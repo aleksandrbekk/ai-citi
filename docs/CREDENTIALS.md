@@ -1,0 +1,74 @@
+# 🔐 ДОСТУПЫ К СЕРВИСАМ
+
+> ⚠️ ЭТОТ ФАЙЛ НЕ КОММИТИТЬ В GIT!
+> Заполни данные и храни локально.
+
+---
+
+## SUPABASE
+
+**Проект:** [создать на supabase.com]
+
+```
+URL: https://xxx.supabase.co
+ANON KEY: xxx
+SERVICE ROLE KEY: xxx (секретный!)
+```
+
+---
+
+## GITHUB
+
+**Репозиторий:** https://github.com/aleksandrbekk/ai-citi
+
+```
+Username: aleksandrbekk
+Email: aleksandrbekk@bk.ru
+```
+
+---
+
+## INSTAGRAM / META
+
+**Meta App:** https://developers.facebook.com/apps/661809894766298
+
+```
+App ID: 661809894766298
+App Secret: xxx (секретный!)
+Instagram Business Account ID: 17841400254783592
+Access Token: xxx (секретный!)
+Token Expires: ~14 февраля 2026
+```
+
+---
+
+## TELEGRAM
+
+**Бот:** @xxx_bot
+
+```
+Bot Token: xxx (секретный!)
+Bot Username: xxx
+```
+
+---
+
+## VERCEL
+
+**Проект:** https://vercel.com/xxx/ai-citi
+
+```
+Team: xxx
+```
+
+---
+
+## КАК ИСПОЛЬЗОВАТЬ
+
+1. Скопируй `VITE_*` переменные в `.env.local`
+2. Секретные ключи добавь в Supabase:
+   ```bash
+   supabase secrets set TELEGRAM_BOT_TOKEN=xxx
+   supabase secrets set META_APP_SECRET=xxx
+   supabase secrets set INSTAGRAM_ACCESS_TOKEN=xxx
+   ```
