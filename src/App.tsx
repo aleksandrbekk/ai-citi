@@ -1,26 +1,26 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Layout } from '@/components/layout/Layout'
+import { Home } from '@/pages/Home'
+import { Profile } from '@/pages/Profile'
+import { Agents } from '@/pages/Agents'
+import { School } from '@/pages/School'
+import { Missions } from '@/pages/Missions'
+import { Shop } from '@/pages/Shop'
 
 function App() {
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            🏙️ AI CITI | НЕЙРОГОРОД
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-zinc-400 text-center">
-            Проект успешно настроен!
-          </p>
-          <div className="flex gap-2 justify-center">
-            <Button>Начать</Button>
-            <Button variant="outline">Подробнее</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="agents" element={<Agents />} />
+          <Route path="school" element={<School />} />
+          <Route path="missions" element={<Missions />} />
+          <Route path="shop" element={<Shop />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
