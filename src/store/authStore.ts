@@ -47,6 +47,24 @@ interface AuthState {
   updateProfile: (updates: Partial<Profile>) => void
 }
 
+const DEFAULT_PROFILE: Profile = {
+  level: 1,
+  xp: 0,
+  xp_to_next_level: 100,
+  coins: 0,
+  premium_coins: 0,
+  subscription: 'free',
+  stats: { learning: 0, content: 0, sales: 0, discipline: 0 },
+}
+
+// Таймаут для fetch запросов
+const fetchWithTimeout = async (promise: Promise<any>, timeoutMs: number): Promise<any> => {
+  const timeout = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+  })
+  return Promise.race([promise, timeout])
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -58,10 +76,15 @@ export const useAuthStore = create<AuthState>()(
       debugInfo: null,
 
       login: async () => {
+        // Проверяем, не авторизован ли уже
+        if (get().isAuthenticated && get().user) {
+          console.log('Already authenticated, skipping login')
+          return
+        }
+
         set({ isLoading: true, error: null })
 
         try {
-          // Отладочная информация
           const webApp = getTelegramWebApp()
           const initData = getInitData()
           const telegramUser = getTelegramUser()
@@ -70,109 +93,130 @@ export const useAuthStore = create<AuthState>()(
             hasWebApp: !!webApp,
             hasInitData: !!initData,
             initDataLength: initData?.length || 0,
+            initDataPreview: initData?.substring(0, 100) || 'none',
             hasTelegramUser: !!telegramUser,
-            telegramUser: telegramUser,
+            telegramUserId: telegramUser?.id || null,
+            telegramUserName: telegramUser?.first_name || null,
           }
           
-          console.log('=== AUTH DEBUG ===')
-          console.log('WebApp:', webApp)
-          console.log('initData:', initData)
-          console.log('telegramUser:', telegramUser)
+          console.log('=== FRONTEND AUTH DEBUG ===')
           console.log('debugInfo:', debugInfo)
-          console.log('==================')
 
           set({ debugInfo: JSON.stringify(debugInfo, null, 2) })
 
-          // Если нет initData — пробуем подождать и проверить ещё раз
+          // Если нет данных Telegram — dev режим
           if (!initData || !telegramUser) {
-            console.log('No Telegram data on first try, waiting 500ms...')
-            
-            await new Promise(resolve => setTimeout(resolve, 500))
-            
-            const initDataRetry = getInitData()
-            const telegramUserRetry = getTelegramUser()
-            
-            console.log('After wait - initData:', initDataRetry)
-            console.log('After wait - telegramUser:', telegramUserRetry)
-            
-            if (!initDataRetry || !telegramUserRetry) {
-              console.log('Still no Telegram data, using dev mode')
-              set({
-                user: {
-                  id: 'dev-user',
-                  telegram_id: 0,
-                  username: 'developer',
-                  first_name: 'Developer',
-                  last_name: null,
-                  avatar_url: null,
-                },
-                profile: {
-                  level: 1,
-                  xp: 0,
-                  xp_to_next_level: 100,
-                  coins: 0,
-                  premium_coins: 0,
-                  subscription: 'free',
-                  stats: { learning: 0, content: 0, sales: 0, discipline: 0 },
-                },
-                isLoading: false,
-                isAuthenticated: true,
-              })
-              return
-            }
+            console.log('No Telegram data, using dev mode')
+            set({
+              user: {
+                id: 'dev-user',
+                telegram_id: 0,
+                username: 'developer',
+                first_name: 'Developer',
+                last_name: null,
+                avatar_url: null,
+              },
+              profile: DEFAULT_PROFILE,
+              isLoading: false,
+              isAuthenticated: true,
+            })
+            return
           }
 
-          // Получаем актуальные данные после возможного ожидания
-          const finalInitData = getInitData()!
+          console.log('Calling Edge Function...')
+          console.log('initData length:', initData.length)
 
-          console.log('Calling Edge Function with initData...')
-
-          // Вызываем Edge Function для авторизации
-          const { data, error } = await supabase.functions.invoke('auth-telegram', {
-            body: { initData: finalInitData },
-          })
+          // Вызываем Edge Function с таймаутом 10 секунд
+          const { data, error } = await fetchWithTimeout(
+            supabase.functions.invoke('auth-telegram', {
+              body: { initData },
+            }),
+            10000
+          )
 
           console.log('Edge Function response:', { data, error })
 
           if (error) {
             console.error('Edge Function error:', error)
-            throw error
+            throw new Error(error.message || 'Auth failed')
           }
 
-          if (!data || !data.user) {
-            console.error('No user in response:', data)
-            throw new Error('No user data in response')
+          if (!data) {
+            console.error('No data in response')
+            throw new Error('Empty response from server')
           }
+
+          if (data.error) {
+            console.error('Server error:', data.error)
+            throw new Error(data.error)
+          }
+
+          if (!data.user) {
+            console.error('No user in response:', data)
+            throw new Error('No user data')
+          }
+
+          console.log('Auth successful:', data.user.first_name)
 
           set({
             user: data.user,
-            profile: data.profile,
+            profile: data.profile || DEFAULT_PROFILE,
             isLoading: false,
             isAuthenticated: true,
+            error: null,
           })
-          
-          console.log('Auth successful:', data.user.first_name)
 
         } catch (error: any) {
           console.error('Auth error:', error)
-          set({
-            error: error.message || 'Ошибка авторизации',
-            isLoading: false,
-            isAuthenticated: false,
-          })
+          
+          // При ошибке — пробуем использовать данные из Telegram напрямую
+          const telegramUser = getTelegramUser()
+          if (telegramUser) {
+            console.log('Falling back to Telegram user data')
+            set({
+              user: {
+                id: `tg-${telegramUser.id}`,
+                telegram_id: telegramUser.id,
+                username: telegramUser.username || null,
+                first_name: telegramUser.first_name,
+                last_name: telegramUser.last_name || null,
+                avatar_url: telegramUser.photo_url || null,
+              },
+              profile: DEFAULT_PROFILE,
+              isLoading: false,
+              isAuthenticated: true,
+              error: `Offline mode: ${error.message}`,
+            })
+          } else {
+            // Полный fallback на dev режим
+            set({
+              user: {
+                id: 'dev-user',
+                telegram_id: 0,
+                username: 'developer',
+                first_name: 'Developer',
+                last_name: null,
+                avatar_url: null,
+              },
+              profile: DEFAULT_PROFILE,
+              isLoading: false,
+              isAuthenticated: true,
+              error: error.message,
+            })
+          }
         }
       },
 
       logout: () => {
+        localStorage.removeItem('auth-storage')
         set({
           user: null,
           profile: null,
           isAuthenticated: false,
           error: null,
           debugInfo: null,
+          isLoading: false,
         })
-        // Очищаем localStorage
-        localStorage.removeItem('auth-storage')
       },
 
       updateProfile: (updates) => {

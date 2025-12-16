@@ -57,6 +57,7 @@ const buildings = [
 export function Home() {
   const { user, profile } = useAuth()
   const debugInfo = useAuthStore((state) => state.debugInfo)
+  const error = useAuthStore((state) => state.error)
 
   return (
     <div className="p-4 space-y-6">
@@ -77,6 +78,13 @@ export function Home() {
               {debugInfo}
             </pre>
           </details>
+        )}
+        
+        {/* Отображение ошибки */}
+        {error && (
+          <div className="mt-2 p-2 bg-red-900/50 rounded text-red-300 text-sm">
+            ⚠️ {error}
+          </div>
         )}
       </div>
 
