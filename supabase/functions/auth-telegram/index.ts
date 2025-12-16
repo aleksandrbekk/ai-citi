@@ -8,14 +8,44 @@ const corsHeaders = {
 
 serve(async (req) => {
   console.log('=== AUTH-TELEGRAM START ===')
+  console.log('Method:', req.method)
+  console.log('URL:', req.url)
   
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request')
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const body = await req.json()
+    // Читаем тело запроса как текст сначала
+    let bodyText = ''
+    try {
+      bodyText = await req.text()
+      console.log('Body length:', bodyText.length)
+      console.log('Body preview:', bodyText.substring(0, 200))
+    } catch (readError) {
+      console.log('ERROR reading body:', readError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to read request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Парсим JSON
+    let body
+    try {
+      body = JSON.parse(bodyText)
+      console.log('Body parsed successfully')
+    } catch (parseError) {
+      console.log('ERROR parsing JSON:', parseError)
+      console.log('Raw body:', bodyText)
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { initData } = body
     
     console.log('Received initData length:', initData?.length || 0)
