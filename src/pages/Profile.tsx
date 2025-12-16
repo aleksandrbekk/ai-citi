@@ -117,11 +117,22 @@ export function Profile() {
       {/* Кнопка выхода (для теста) */}
       <Button 
         variant="outline" 
-        className="w-full"
+        className="w-full mb-2"
         onClick={logout}
       >
         Выйти
       </Button>
+      
+      {/* Кнопка сброса с перезагрузкой */}
+      <button 
+        onClick={() => {
+          logout()
+          window.location.reload()
+        }}
+        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+      >
+        Выйти (сбросить)
+      </button>
     </div>
   )
 }

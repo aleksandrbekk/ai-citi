@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthStore } from '@/store/authStore'
 import { Card, CardContent } from '@/components/ui/card'
 import { Bot, GraduationCap, Wrench, ShoppingBag, Dumbbell } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -55,6 +56,7 @@ const buildings = [
 
 export function Home() {
   const { user, profile } = useAuth()
+  const debugInfo = useAuthStore((state) => state.debugInfo)
 
   return (
     <div className="p-4 space-y-6">
@@ -66,6 +68,16 @@ export function Home() {
         <p className="text-zinc-400">
           Добро пожаловать в НЕЙРОГОРОД
         </p>
+        
+        {/* Debug info - удалить после отладки */}
+        {debugInfo && (
+          <details className="mt-2 text-xs">
+            <summary className="text-zinc-500 cursor-pointer">Debug info</summary>
+            <pre className="text-zinc-400 mt-1 p-2 bg-zinc-900 rounded overflow-auto max-h-40">
+              {debugInfo}
+            </pre>
+          </details>
+        )}
       </div>
 
       {/* Карта зданий */}
