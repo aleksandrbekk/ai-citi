@@ -13,26 +13,58 @@ export function usePosts() {
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuthStore()
 
+  // Получить user_id из базы данных
+  const getUserId = async (): Promise<string | null> => {
+    if (!user) return null
+    
+    // Проверяем, является ли id валидным UUID (не fallback id)
+    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)
+    
+    // Если есть валидный UUID — используем его
+    if (isValidUUID) {
+      return user.id
+    }
+    
+    // Иначе ищем по telegram_id
+    if (user.telegram_id && user.telegram_id > 0) {
+      const { data, error: findError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', user.telegram_id)
+        .maybeSingle()
+      
+      if (findError) {
+        console.error('Error finding user:', findError)
+        return null
+      }
+      
+      return data?.id || null
+    }
+    
+    return null
+  }
+
   // Загрузка медиа в Storage
   const uploadMedia = async (postId: string, files: File[]) => {
     const uploadedMedia = []
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
-      const fileExt = file.name.split('.').pop()
+      const fileExt = file.name.split('.').pop() || 'jpg'
       const fileName = `${postId}/${i + 1}_${Date.now()}.${fileExt}`
       
-      // Загрузка в Storage
       const { error: uploadError } = await supabase.storage
         .from('poster-media')
-        .upload(fileName, file)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
       
       if (uploadError) {
         console.error('Upload error:', uploadError)
-        throw new Error(`Ошибка загрузки файла: ${uploadError.message}`)
+        throw new Error(`Ошибка загрузки: ${uploadError.message}`)
       }
       
-      // Получить публичный URL
       const { data: { publicUrl } } = supabase.storage
         .from('poster-media')
         .getPublicUrl(fileName)
@@ -50,23 +82,25 @@ export function usePosts() {
 
   // Создание поста
   const createPost = async (data: CreatePostData) => {
-    if (!user) {
-      setError('Пользователь не авторизован')
-      return null
-    }
-
     setIsLoading(true)
     setError(null)
 
     try {
+      // Получаем user_id
+      const userId = await getUserId()
+      
+      if (!userId) {
+        throw new Error('Пользователь не найден. Перезайдите в приложение.')
+      }
+
       // 1. Создаём пост в БД
       const status = data.scheduledAt ? 'scheduled' : 'draft'
       
       const { data: post, error: postError } = await supabase
         .from('scheduled_posts')
         .insert({
-          user_id: user.id,
-          caption: data.caption,
+          user_id: userId,
+          caption: data.caption || '',
           scheduled_at: data.scheduledAt?.toISOString() || null,
           status: status
         })
@@ -77,7 +111,7 @@ export function usePosts() {
         throw new Error(`Ошибка создания поста: ${postError.message}`)
       }
 
-      // 2. Загружаем медиа если есть
+      // 2. Загружаем медиа
       if (data.mediaFiles.length > 0) {
         const uploadedMedia = await uploadMedia(post.id, data.mediaFiles)
         
@@ -98,6 +132,7 @@ export function usePosts() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Неизвестная ошибка'
       setError(message)
+      console.error('Create post error:', err)
       return null
     } finally {
       setIsLoading(false)
@@ -106,7 +141,8 @@ export function usePosts() {
 
   // Получение постов пользователя
   const getPosts = async () => {
-    if (!user) return []
+    const userId = await getUserId()
+    if (!userId) return []
 
     const { data, error } = await supabase
       .from('scheduled_posts')
@@ -114,7 +150,7 @@ export function usePosts() {
         *,
         post_media (*)
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -128,9 +164,7 @@ export function usePosts() {
   return {
     createPost,
     getPosts,
-    uploadMedia,
     isLoading,
     error
   }
 }
-
