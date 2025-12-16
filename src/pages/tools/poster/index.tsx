@@ -1,8 +1,38 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Calendar } from 'lucide-react'
+import { Plus, Calendar, Image } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { usePosts } from '@/hooks/usePosts'
+
+interface Post {
+  id: string
+  caption: string
+  status: string
+  scheduled_at: string | null
+  created_at: string
+  post_media: { public_url: string }[]
+}
 
 export default function PosterDashboard() {
+  const { getPosts } = usePosts()
+  const [posts, setPosts] = useState<Post[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    loadPosts()
+  }, [])
+
+  const loadPosts = async () => {
+    setIsLoading(true)
+    const data = await getPosts()
+    setPosts(data)
+    setIsLoading(false)
+  }
+
+  const drafts = posts.filter(p => p.status === 'draft')
+  const scheduled = posts.filter(p => p.status === 'scheduled')
+  const published = posts.filter(p => p.status === 'published')
+
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24">
       {/* Header */}
@@ -11,7 +41,7 @@ export default function PosterDashboard() {
         <Link to="/tools/poster/create">
           <Button className="bg-orange-500 hover:bg-orange-600">
             <Plus className="w-4 h-4 mr-2" />
-            Новый пост
+            Новый
           </Button>
         </Link>
       </div>
@@ -19,34 +49,87 @@ export default function PosterDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-zinc-900 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-orange-500">0</div>
+          <div className="text-2xl font-bold text-orange-500">{drafts.length}</div>
           <div className="text-xs text-zinc-400">Черновики</div>
         </div>
         <div className="bg-zinc-900 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-blue-500">0</div>
+          <div className="text-2xl font-bold text-blue-500">{scheduled.length}</div>
           <div className="text-xs text-zinc-400">Запланировано</div>
         </div>
         <div className="bg-zinc-900 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-green-500">0</div>
+          <div className="text-2xl font-bold text-green-500">{published.length}</div>
           <div className="text-xs text-zinc-400">Опубликовано</div>
         </div>
       </div>
 
-      {/* Empty State */}
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
-          <Calendar className="w-10 h-10 text-zinc-600" />
+      {/* Posts List */}
+      {isLoading ? (
+        <div className="text-center py-8 text-zinc-400">Загрузка...</div>
+      ) : posts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
+            <Calendar className="w-10 h-10 text-zinc-600" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Нет постов</h2>
+          <p className="text-zinc-400 mb-6">Создайте первый пост для Instagram</p>
+          <Link to="/tools/poster/create">
+            <Button className="bg-orange-500 hover:bg-orange-600">
+              <Plus className="w-4 h-4 mr-2" />
+              Создать пост
+            </Button>
+          </Link>
         </div>
-        <h2 className="text-xl font-semibold mb-2">Нет постов</h2>
-        <p className="text-zinc-400 mb-6">Создайте первый пост для Instagram</p>
-        <Link to="/tools/poster/create">
-          <Button className="bg-orange-500 hover:bg-orange-600">
-            <Plus className="w-4 h-4 mr-2" />
-            Создать пост
-          </Button>
-        </Link>
-      </div>
+      ) : (
+        <div className="space-y-3">
+          {posts.map(post => (
+            <div key={post.id} className="bg-zinc-900 rounded-xl p-4 flex gap-4">
+              {/* Thumbnail */}
+              <div className="w-16 h-16 bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
+                {post.post_media?.[0]?.public_url ? (
+                  <img 
+                    src={post.post_media[0].public_url} 
+                    alt="" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Image className="w-6 h-6 text-zinc-600" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate">
+                  {post.caption || 'Без текста'}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    post.status === 'draft' ? 'bg-orange-500/20 text-orange-400' :
+                    post.status === 'scheduled' ? 'bg-blue-500/20 text-blue-400' :
+                    post.status === 'published' ? 'bg-green-500/20 text-green-400' :
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {post.status === 'draft' ? 'Черновик' :
+                     post.status === 'scheduled' ? 'Запланирован' :
+                     post.status === 'published' ? 'Опубликован' : 'Ошибка'}
+                  </span>
+                  {post.post_media?.length > 1 && (
+                    <span className="text-xs text-zinc-400">
+                      {post.post_media.length} фото
+                    </span>
+                  )}
+                </div>
+                {post.scheduled_at && (
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {new Date(post.scheduled_at).toLocaleString('ru')}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
-
