@@ -1,4 +1,4 @@
-// Типы для Telegram WebApp
+// src/lib/telegram.ts
 export interface TelegramUser {
   id: number
   first_name: string
@@ -8,67 +8,26 @@ export interface TelegramUser {
   photo_url?: string
 }
 
-export interface TelegramWebApp {
-  initData: string
-  initDataUnsafe: {
-    user?: TelegramUser
-    auth_date?: number
-    hash?: string
-  }
-  ready: () => void
-  expand: () => void
-  close: () => void
-  MainButton: {
-    text: string
-    color: string
-    textColor: string
-    isVisible: boolean
-    isActive: boolean
-    show: () => void
-    hide: () => void
-    onClick: (callback: () => void) => void
-    offClick: (callback: () => void) => void
-    setText: (text: string) => void
-  }
-  BackButton: {
-    isVisible: boolean
-    show: () => void
-    hide: () => void
-    onClick: (callback: () => void) => void
-    offClick: (callback: () => void) => void
-  }
-  HapticFeedback: {
-    impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void
-    notificationOccurred: (type: 'error' | 'success' | 'warning') => void
-    selectionChanged: () => void
-  }
-  colorScheme: 'light' | 'dark'
-  themeParams: {
-    bg_color?: string
-    text_color?: string
-    hint_color?: string
-    link_color?: string
-    button_color?: string
-    button_text_color?: string
-  }
+export function getTelegramWebApp() {
+  return window.Telegram?.WebApp
 }
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: TelegramWebApp
-    }
+export function getTelegramUser(): TelegramUser | null {
+  const webApp = getTelegramWebApp()
+  if (!webApp?.initDataUnsafe?.user) return null
+  return webApp.initDataUnsafe.user
+}
+
+export function getInitData(): string | null {
+  const webApp = getTelegramWebApp()
+  return webApp?.initData || null
+}
+
+// Расширяем тему Telegram
+export function expandWebApp() {
+  const webApp = getTelegramWebApp()
+  if (webApp) {
+    webApp.expand()
+    webApp.ready()
   }
 }
-
-export function getTelegramWebApp(): TelegramWebApp | null {
-  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-    return window.Telegram.WebApp
-  }
-  return null
-}
-
-export function isTelegramWebApp(): boolean {
-  return getTelegramWebApp() !== null && getTelegramWebApp()!.initData !== ''
-}
-

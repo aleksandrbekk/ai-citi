@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent } from '@/components/ui/card'
 import { Bot, GraduationCap, Wrench, ShoppingBag, Dumbbell } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -54,13 +54,13 @@ const buildings = [
 ]
 
 export function Home() {
-  const { user, profile } = useAuthStore()
+  const { user, profile } = useAuth()
 
   return (
     <div className="p-4 space-y-6">
       {/* Приветствие */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold text-white">
           Привет, {user?.first_name || 'Нейрожитель'}! 👋
         </h1>
         <p className="text-zinc-400">

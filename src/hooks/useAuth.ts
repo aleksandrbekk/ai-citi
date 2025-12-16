@@ -1,36 +1,20 @@
+// src/hooks/useAuth.ts
 import { useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
-import { getTelegramWebApp, isTelegramWebApp } from '../lib/telegram'
+import { expandWebApp } from '../lib/telegram'
 
 export function useAuth() {
-  const { user, profile, isLoading, isAuthenticated, error, login, logout } = useAuthStore()
+  const { user, profile, isLoading, isAuthenticated, error, login } = useAuthStore()
 
   useEffect(() => {
-    // Если уже авторизован — не делаем ничего
-    if (isAuthenticated) return
-
-    const tg = getTelegramWebApp()
+    // Раскрываем Telegram WebApp на весь экран
+    expandWebApp()
     
-    if (tg && isTelegramWebApp()) {
-      // Инициализация Telegram WebApp
-      tg.ready()
-      tg.expand()
-      
-      // Авторизация через initData
-      if (tg.initData) {
-        login(tg.initData)
-      }
+    // Автоматически логинимся при загрузке
+    if (!isAuthenticated && !isLoading) {
+      login()
     }
-  }, [isAuthenticated, login])
+  }, [])
 
-  return {
-    user,
-    profile,
-    isLoading,
-    isAuthenticated,
-    error,
-    logout,
-    isTelegramWebApp: isTelegramWebApp(),
-  }
+  return { user, profile, isLoading, isAuthenticated, error }
 }
-

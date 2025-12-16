@@ -58,7 +58,7 @@ export function Profile() {
             {/* Информация */}
             <div className="flex-1">
               <h2 className="text-xl font-bold">
-                {user.first_name} {user.last_name}
+                {user.first_name} {user.last_name || ''}
               </h2>
               {user.username && (
                 <p className="text-zinc-400 text-sm">@{user.username}</p>

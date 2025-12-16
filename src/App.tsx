@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { expandWebApp } from './lib/telegram'
 import { Layout } from '@/components/layout/Layout'
 import { Home } from '@/pages/Home'
 import { Profile } from '@/pages/Profile'
@@ -8,6 +10,10 @@ import { Missions } from '@/pages/Missions'
 import { Shop } from '@/pages/Shop'
 
 function App() {
+  useEffect(() => {
+    expandWebApp()
+  }, [])
+
   return (
     <BrowserRouter>
       <Routes>
