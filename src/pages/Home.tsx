@@ -37,10 +37,9 @@ const buildings = [
     name: 'Инструменты',
     description: 'Полезные инструменты',
     icon: Wrench,
-    path: '/tools',
+    path: '/tools/poster',
     color: 'from-purple-500 to-pink-500',
-    locked: true,
-    requiredLevel: 5,
+    locked: false,
   },
   {
     id: 'shop',

@@ -8,6 +8,8 @@ import { Agents } from '@/pages/Agents'
 import { School } from '@/pages/School'
 import { Missions } from '@/pages/Missions'
 import { Shop } from '@/pages/Shop'
+import PosterDashboard from '@/pages/tools/poster'
+import PosterCreate from '@/pages/tools/poster/create'
 
 function App() {
   useEffect(() => {
@@ -24,6 +26,8 @@ function App() {
           <Route path="school" element={<School />} />
           <Route path="missions" element={<Missions />} />
           <Route path="shop" element={<Shop />} />
+          <Route path="tools/poster" element={<PosterDashboard />} />
+          <Route path="tools/poster/create" element={<PosterCreate />} />
         </Route>
       </Routes>
     </BrowserRouter>
