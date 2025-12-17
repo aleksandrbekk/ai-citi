@@ -203,9 +203,10 @@ export default function PosterCreate() {
                 }}
                 className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
               >
-                {['00', '15', '30', '45'].map((minute) => (
-                  <option key={minute} value={minute}>{minute}</option>
-                ))}
+                {Array.from({ length: 60 }, (_, i) => {
+                  const minute = i.toString().padStart(2, '0')
+                  return <option key={minute} value={minute}>{minute}</option>
+                })}
               </select>
             </div>
           </div>
