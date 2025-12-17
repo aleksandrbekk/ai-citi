@@ -13,12 +13,27 @@ export function usePosts() {
 
   // Получить user_id из базы данных
   const getUserId = async (): Promise<string | null> => {
-    // ВРЕМЕННОЕ РЕШЕНИЕ: хардкод user_id Александра
-    // TODO: убрать после исправления авторизации
-    const HARDCODED_USER_ID = 'fe23f297-c1da-46b3-9f21-1e13a2ca9165'
+    // Попробуем получить из Telegram
+    const tg = window.Telegram?.WebApp
+    if (tg?.initDataUnsafe?.user?.id) {
+      const telegramId = tg.initDataUnsafe.user.id
+      
+      const { data } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegramId)
+        .single()
+      
+      if (data?.id) {
+        console.log('Got user_id from Telegram:', data.id)
+        return data.id
+      }
+    }
     
-    console.log('Using hardcoded user_id:', HARDCODED_USER_ID)
-    return HARDCODED_USER_ID
+    // Fallback: хардкод для тестирования вне Telegram
+    const FALLBACK_USER_ID = 'fe23f297-c1da-46b3-9f21-1e13a2ca9165'
+    console.log('Using fallback user_id:', FALLBACK_USER_ID)
+    return FALLBACK_USER_ID
   }
 
   // Загрузка медиа в Storage
