@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Calendar, Image, Trash2, Edit } from 'lucide-react'
+import { Plus, Calendar, Image, Trash2, Edit, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { usePosts } from '@/hooks/usePosts'
+import { usePosts, usePublishToInstagram } from '@/hooks/usePosts'
 
 interface Post {
   id: string
@@ -28,6 +28,7 @@ const formatDateMSK = (isoString: string) => {
 
 export default function PosterDashboard() {
   const { getPosts, deletePost } = usePosts()
+  const publishMutation = usePublishToInstagram()
   const navigate = useNavigate()
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -56,6 +57,18 @@ export default function PosterDashboard() {
   const handleEdit = (postId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     navigate(`/tools/poster/${postId}/edit`)
+  }
+
+  const handlePublishNow = async (postId: string) => {
+    if (confirm('Опубликовать пост в Instagram прямо сейчас?')) {
+      try {
+        await publishMutation.mutateAsync(postId)
+        alert('✅ Пост опубликован в Instagram!')
+        loadPosts() // Перезагружаем список
+      } catch (error: any) {
+        alert('❌ Ошибка: ' + error.message)
+      }
+    }
   }
 
   const drafts = posts.filter(p => p.status === 'draft')
@@ -114,6 +127,16 @@ export default function PosterDashboard() {
             <div key={post.id} className="bg-zinc-900 rounded-xl p-4 flex gap-4 relative">
               {/* Action Buttons */}
               <div className="absolute top-2 right-2 flex gap-1">
+                {post.status !== 'published' && (
+                  <button
+                    onClick={() => handlePublishNow(post.id)}
+                    disabled={publishMutation.isPending}
+                    className="p-2 rounded-full bg-green-500/20 hover:bg-green-500/40 text-green-400 disabled:opacity-50"
+                    title="Опубликовать сейчас"
+                  >
+                    <Send size={16} />
+                  </button>
+                )}
                 <button
                   onClick={(e) => handleEdit(post.id, e)}
                   className="p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"

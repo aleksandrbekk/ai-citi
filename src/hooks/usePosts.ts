@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+
+const N8N_PUBLISH_WEBHOOK = 'https://n8n.iferma.pro/webhook/neuroposter-publish'
 
 interface CreatePostData {
   caption: string
@@ -292,4 +295,86 @@ export function usePosts() {
     isLoading,
     error
   }
+}
+
+// Публикация в Instagram через n8n
+export const usePublishToInstagram = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      // Получаем пост с медиа
+      const { data: post, error: postError } = await supabase
+        .from('scheduled_posts')
+        .select(`*, post_media (*)`)
+        .eq('id', postId)
+        .single()
+
+      if (postError || !post) throw new Error('Post not found')
+      if (!post.post_media?.length) throw new Error('No media in post')
+
+      // Собираем URL изображений
+      const imageUrls = post.post_media
+        .sort((a: any, b: any) => a.order_index - b.order_index)
+        .map((m: any) => m.public_url)
+
+      // Отправляем в n8n
+      const response = await fetch(N8N_PUBLISH_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postId: post.id,
+          caption: post.caption || '',
+          imageUrls
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.text()
+        throw new Error(`Publish failed: ${error}`)
+      }
+
+      const result = await response.json()
+
+      // Обновляем статус поста
+      await supabase
+        .from('scheduled_posts')
+        .update({
+          status: 'published',
+          published_at: new Date().toISOString(),
+          instagram_post_id: result.instagram_post_id
+        })
+        .eq('id', postId)
+
+      // Логируем успех
+      await supabase.from('publish_logs').insert({
+        post_id: postId,
+        action: 'success',
+        message: 'Published to Instagram',
+        details: result
+      })
+
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    },
+    onError: async (error, postId) => {
+      // Логируем ошибку
+      await supabase.from('publish_logs').insert({
+        post_id: postId,
+        action: 'error',
+        message: error.message
+      })
+
+      // Обновляем статус
+      await supabase
+        .from('scheduled_posts')
+        .update({
+          status: 'failed',
+          error_message: error.message
+        })
+        .eq('id', postId)
+    }
+  })
 }
