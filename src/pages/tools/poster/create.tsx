@@ -52,11 +52,13 @@ export default function PosterCreate() {
 
   // Запланировать публикацию
   const handleSchedule = async () => {
-    let scheduledAt: Date | undefined
-    
-    if (scheduledDate && scheduledTime) {
-      scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`)
+    if (!scheduledDate || !scheduledTime) {
+      alert('Выберите дату и время')
+      return
     }
+    
+    // Создаём дату с секундами для правильного формата ISO
+    const scheduledAt = new Date(`${scheduledDate}T${scheduledTime}:00`)
     
     const post = await createPost({
       caption,

@@ -131,7 +131,7 @@ export default function PosterDashboard() {
               </div>
               
               {/* Info */}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 pr-20">
                 <p className="text-sm text-white truncate">
                   {post.caption || 'Без текста'}
                 </p>
