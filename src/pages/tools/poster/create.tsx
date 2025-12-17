@@ -204,9 +204,10 @@ export default function PosterCreate() {
                 
                 <div className="p-4 overflow-y-auto max-h-[50vh]">
                   <div className="grid grid-cols-4 gap-2">
-                    {Array.from({ length: 24 * 4 }, (_, i) => {
-                      const hours = Math.floor(i / 4).toString().padStart(2, '0')
-                      const minutes = ((i % 4) * 15).toString().padStart(2, '0')
+                    {Array.from({ length: 24 * 12 }, (_, i) => {
+                      const hours = Math.floor(i / 12).toString().padStart(2, '0')
+                      const minuteValues = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+                      const minutes = minuteValues[i % 12].toString().padStart(2, '0')
                       const time = `${hours}:${minutes}`
                       const isSelected = scheduledTime === time
                       return (
