@@ -12,7 +12,7 @@ export default function PosterCreate() {
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([])
   const [scheduledDate, setScheduledDate] = useState('')
-  const [scheduledTime, setScheduledTime] = useState('')
+  const [scheduledTime, setScheduledTime] = useState('12:00')
 
   // Обработка выбора файлов
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,13 +175,39 @@ export default function PosterCreate() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-zinc-400">Время (МСК)</label>
-            <input
-              type="time"
-              value={scheduledTime}
-              onChange={(e) => setScheduledTime(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-            />
+            <label className="text-sm text-zinc-400">Время (МСК)</label>
+            <div className="flex gap-2">
+              {/* Часы */}
+              <select
+                value={scheduledTime.split(':')[0] || '12'}
+                onChange={(e) => {
+                  const minutes = scheduledTime.split(':')[1] || '00'
+                  setScheduledTime(`${e.target.value}:${minutes}`)
+                }}
+                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+              >
+                {Array.from({ length: 24 }, (_, i) => {
+                  const hour = i.toString().padStart(2, '0')
+                  return <option key={hour} value={hour}>{hour}</option>
+                })}
+              </select>
+              
+              <span className="text-white text-2xl self-center">:</span>
+              
+              {/* Минуты */}
+              <select
+                value={scheduledTime.split(':')[1] || '00'}
+                onChange={(e) => {
+                  const hours = scheduledTime.split(':')[0] || '12'
+                  setScheduledTime(`${hours}:${e.target.value}`)
+                }}
+                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+              >
+                {['00', '15', '30', '45'].map((minute) => (
+                  <option key={minute} value={minute}>{minute}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
