@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
-const N8N_PUBLISH_WEBHOOK = 'https://n8n.iferma.pro/webhook/neuroposter-publish'
+const N8N_PUBLISH_WEBHOOK = 'https://n8n.iferma.pro/webhook/neuroposter-publish-v3'
 
 interface CreatePostData {
   caption: string
