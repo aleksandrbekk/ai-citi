@@ -176,37 +176,18 @@ export default function PosterCreate() {
           </div>
           <div className="space-y-2">
             <label className="text-sm text-zinc-400">Время (МСК)</label>
-            <div className="flex gap-2 items-center">
-              <select
-                value={scheduledTime.split(':')[0] || '12'}
-                onChange={(e) => {
-                  const minutes = scheduledTime.split(':')[1] || '00'
-                  setScheduledTime(`${e.target.value}:${minutes}`)
-                }}
-                className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-3 text-white text-center focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
-              >
-                {Array.from({ length: 24 }, (_, i) => {
-                  const hour = i.toString().padStart(2, '0')
-                  return <option key={hour} value={hour}>{hour}</option>
-                })}
-              </select>
-              
-              <span className="text-white text-xl font-bold">:</span>
-              
-              <select
-                value={scheduledTime.split(':')[1] || '00'}
-                onChange={(e) => {
-                  const hours = scheduledTime.split(':')[0] || '12'
-                  setScheduledTime(`${hours}:${e.target.value}`)
-                }}
-                className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-3 text-white text-center focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
-              >
-                {Array.from({ length: 60 }, (_, i) => {
-                  const minute = i.toString().padStart(2, '0')
-                  return <option key={minute} value={minute}>{minute}</option>
-                })}
-              </select>
-            </div>
+            <select
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              {Array.from({ length: 24 * 4 }, (_, i) => {
+                const hours = Math.floor(i / 4).toString().padStart(2, '0')
+                const minutes = ((i % 4) * 15).toString().padStart(2, '0')
+                const time = `${hours}:${minutes}`
+                return <option key={time} value={time}>{time}</option>
+              })}
+            </select>
           </div>
         </div>
       </div>
