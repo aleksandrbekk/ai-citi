@@ -13,6 +13,7 @@ export default function PosterCreate() {
   const [mediaPreviews, setMediaPreviews] = useState<string[]>([])
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('12:00')
+  const [showTimePicker, setShowTimePicker] = useState(false)
 
   // Обработка выбора файлов
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,19 +177,61 @@ export default function PosterCreate() {
           </div>
           <div className="space-y-2">
             <label className="text-sm text-zinc-400">Время (МСК)</label>
-            <select
-              value={scheduledTime}
-              onChange={(e) => setScheduledTime(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 cursor-pointer"
+            <button
+              type="button"
+              onClick={() => setShowTimePicker(true)}
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white text-left focus:outline-none focus:border-orange-500 flex items-center gap-3"
             >
-              {Array.from({ length: 24 * 4 }, (_, i) => {
-                const hours = Math.floor(i / 4).toString().padStart(2, '0')
-                const minutes = ((i % 4) * 15).toString().padStart(2, '0')
-                const time = `${hours}:${minutes}`
-                return <option key={time} value={time}>{time}</option>
-              })}
-            </select>
+              <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {scheduledTime || 'Выбрать время'}
+            </button>
           </div>
+
+          {/* Time Picker Modal */}
+          {showTimePicker && (
+            <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
+              <div className="bg-zinc-900 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b border-zinc-700">
+                  <h3 className="text-white font-semibold">Выберите время</h3>
+                  <button onClick={() => setShowTimePicker(false)} className="text-zinc-400 hover:text-white">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="p-4 overflow-y-auto max-h-[50vh]">
+                  <div className="grid grid-cols-4 gap-2">
+                    {Array.from({ length: 24 * 4 }, (_, i) => {
+                      const hours = Math.floor(i / 4).toString().padStart(2, '0')
+                      const minutes = ((i % 4) * 15).toString().padStart(2, '0')
+                      const time = `${hours}:${minutes}`
+                      const isSelected = scheduledTime === time
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => {
+                            setScheduledTime(time)
+                            setShowTimePicker(false)
+                          }}
+                          className={`py-2 px-1 rounded-lg text-sm font-medium transition-colors ${
+                            isSelected 
+                              ? 'bg-orange-500 text-white' 
+                              : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
