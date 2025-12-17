@@ -1,0 +1,259 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, Upload, Calendar, Clock, X, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { usePosts } from '@/hooks/usePosts'
+
+export default function PosterEdit() {
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const { getPost, updatePost, isLoading, error } = usePosts()
+  
+  const [caption, setCaption] = useState('')
+  const [mediaFiles, setMediaFiles] = useState<File[]>([])
+  const [mediaPreviews, setMediaPreviews] = useState<string[]>([])
+  const [existingMedia, setExistingMedia] = useState<{ public_url: string; id: string }[]>([])
+  const [scheduledDate, setScheduledDate] = useState('')
+  const [scheduledTime, setScheduledTime] = useState('')
+  const [isLoadingPost, setIsLoadingPost] = useState(true)
+
+  useEffect(() => {
+    loadPost()
+  }, [id])
+
+  const loadPost = async () => {
+    if (!id) return
+    
+    setIsLoadingPost(true)
+    const post = await getPost(id)
+    
+    if (post) {
+      setCaption(post.caption || '')
+      setExistingMedia(post.post_media || [])
+      
+      if (post.scheduled_at) {
+        const date = new Date(post.scheduled_at)
+        setScheduledDate(date.toISOString().split('T')[0])
+        setScheduledTime(date.toTimeString().slice(0, 5))
+      }
+    }
+    
+    setIsLoadingPost(false)
+  }
+
+  // Обработка выбора файлов
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files).slice(0, 10)
+      setMediaFiles(prev => [...prev, ...files].slice(0, 10))
+      
+      files.forEach(file => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setMediaPreviews(prev => [...prev, reader.result as string].slice(0, 10))
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+  }
+
+  // Удаление файла из новых
+  const removeFile = (index: number) => {
+    setMediaFiles(prev => prev.filter((_, i) => i !== index))
+    setMediaPreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // Сохранение как черновик
+  const handleSaveDraft = async () => {
+    if (!id) return
+    
+    const post = await updatePost(id, {
+      caption,
+      mediaFiles,
+      scheduledAt: undefined
+    })
+    
+    if (post) {
+      navigate('/tools/poster')
+    }
+  }
+
+  // Запланировать публикацию
+  const handleSchedule = async () => {
+    if (!id) return
+    
+    let scheduledAt: Date | undefined
+    if (scheduledDate && scheduledTime) {
+      scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`)
+    }
+    
+    const post = await updatePost(id, {
+      caption,
+      mediaFiles,
+      scheduledAt
+    })
+    
+    if (post) {
+      navigate('/tools/poster')
+    }
+  }
+
+  if (isLoadingPost) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white p-4 pb-32">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        <button onClick={() => navigate(-1)} className="p-2">
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <h1 className="text-xl font-bold">Редактировать пост</h1>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-500/20 border border-red-500 rounded-xl p-4 mb-6 text-red-400">
+          {error}
+        </div>
+      )}
+
+      {/* Media Upload */}
+      <div className="mb-6">
+        <label className="block text-sm text-zinc-400 mb-2">
+          Медиа ({(existingMedia.length + mediaFiles.length)}/10)
+        </label>
+        
+        {/* Existing Media */}
+        {existingMedia.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {existingMedia.map((media, index) => (
+              <div key={media.id} className="relative aspect-square">
+                <img 
+                  src={media.public_url} 
+                  alt={`Existing ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <span className="absolute bottom-1 left-1 bg-black/70 text-xs px-2 py-0.5 rounded">
+                  {index + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* New Media Preview */}
+        {mediaPreviews.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {mediaPreviews.map((preview, index) => (
+              <div key={index} className="relative aspect-square">
+                <img 
+                  src={preview} 
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <button
+                  onClick={() => removeFile(index)}
+                  className="absolute top-1 right-1 bg-black/70 rounded-full p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <span className="absolute bottom-1 left-1 bg-black/70 text-xs px-2 py-0.5 rounded">
+                  {existingMedia.length + index + 1}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Upload Zone */}
+        {(existingMedia.length + mediaFiles.length) < 10 && (
+          <div className="border-2 border-dashed border-zinc-700 rounded-xl p-6 text-center">
+            <Upload className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
+            <p className="text-zinc-400 text-sm mb-2">Добавить фото</p>
+            <input 
+              type="file" 
+              accept="image/*" 
+              multiple 
+              className="hidden" 
+              id="media-upload"
+              onChange={handleFileSelect}
+            />
+            <label htmlFor="media-upload">
+              <span className="inline-block px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-sm">
+                Выбрать файлы
+              </span>
+            </label>
+          </div>
+        )}
+      </div>
+
+      {/* Caption */}
+      <div className="mb-6">
+        <label className="block text-sm text-zinc-400 mb-2">Текст поста</label>
+        <textarea
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Напишите текст поста..."
+          className="w-full h-32 bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white resize-none focus:outline-none focus:border-orange-500"
+          maxLength={2200}
+        />
+        <div className="text-right text-sm text-zinc-500 mt-1">
+          {caption.length}/2200
+        </div>
+      </div>
+
+      {/* Schedule */}
+      <div className="mb-6">
+        <label className="block text-sm text-zinc-400 mb-2">Когда опубликовать</label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-zinc-400" />
+            <input 
+              type="date" 
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              className="bg-transparent text-white focus:outline-none flex-1"
+            />
+          </div>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-zinc-400" />
+            <input 
+              type="time" 
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              className="bg-transparent text-white focus:outline-none flex-1"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-black border-t border-zinc-800">
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            className="flex-1 border-zinc-700 text-white hover:bg-zinc-800"
+            onClick={handleSaveDraft}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сохранить'}
+          </Button>
+          <Button 
+            className="flex-1 bg-orange-500 hover:bg-orange-600"
+            onClick={handleSchedule}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Запланировать'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+

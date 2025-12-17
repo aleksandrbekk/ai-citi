@@ -153,9 +153,142 @@ export function usePosts() {
     return data || []
   }
 
+  // Получение одного поста
+  const getPost = async (postId: string) => {
+    const userId = await getUserId()
+    if (!userId) return null
+
+    const { data, error } = await supabase
+      .from('scheduled_posts')
+      .select(`
+        *,
+        post_media (*)
+      `)
+      .eq('id', postId)
+      .eq('user_id', userId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching post:', error)
+      return null
+    }
+
+    return data
+  }
+
+  // Обновление поста
+  const updatePost = async (postId: string, data: CreatePostData) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const userId = await getUserId()
+      if (!userId) {
+        throw new Error('Пользователь не найден')
+      }
+
+      const status = data.scheduledAt ? 'scheduled' : 'draft'
+
+      // Обновляем пост
+      const { data: post, error: postError } = await supabase
+        .from('scheduled_posts')
+        .update({
+          caption: data.caption || '',
+          scheduled_at: data.scheduledAt?.toISOString() || null,
+          status: status
+        })
+        .eq('id', postId)
+        .select()
+        .single()
+
+      if (postError) {
+        throw new Error(`Ошибка обновления: ${postError.message}`)
+      }
+
+      // Если есть новые медиа - удаляем старые и загружаем новые
+      if (data.mediaFiles.length > 0) {
+        // Удаляем старые медиа
+        const { data: oldMedia } = await supabase
+          .from('post_media')
+          .select('storage_path')
+          .eq('post_id', postId)
+
+        if (oldMedia && oldMedia.length > 0) {
+          const paths = oldMedia.map(m => m.storage_path)
+          await supabase.storage.from('poster-media').remove(paths)
+        }
+
+        await supabase.from('post_media').delete().eq('post_id', postId)
+
+        // Загружаем новые медиа
+        const uploadedMedia = await uploadMedia(post.id, data.mediaFiles)
+        await supabase.from('post_media').insert(uploadedMedia.map(m => ({
+          post_id: post.id,
+          ...m
+        })))
+      }
+
+      return post
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Неизвестная ошибка'
+      setError(message)
+      console.error('Update post error:', err)
+      return null
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Удаление поста
+  const deletePost = async (postId: string) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // Сначала удаляем медиа из Storage
+      const { data: mediaFiles } = await supabase
+        .from('post_media')
+        .select('storage_path')
+        .eq('post_id', postId)
+
+      if (mediaFiles && mediaFiles.length > 0) {
+        const paths = mediaFiles.map(m => m.storage_path)
+        const { error: storageError } = await supabase.storage
+          .from('poster-media')
+          .remove(paths)
+
+        if (storageError) {
+          console.error('Storage delete error:', storageError)
+        }
+      }
+
+      // Удаляем пост (каскадно удалит post_media)
+      const { error: deleteError } = await supabase
+        .from('scheduled_posts')
+        .delete()
+        .eq('id', postId)
+
+      if (deleteError) {
+        throw new Error(`Ошибка удаления: ${deleteError.message}`)
+      }
+
+      return true
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Неизвестная ошибка'
+      setError(message)
+      console.error('Delete post error:', err)
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     createPost,
+    updatePost,
     getPosts,
+    getPost,
+    deletePost,
     isLoading,
     error
   }

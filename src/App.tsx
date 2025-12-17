@@ -10,6 +10,7 @@ import { Missions } from '@/pages/Missions'
 import { Shop } from '@/pages/Shop'
 import PosterDashboard from '@/pages/tools/poster'
 import PosterCreate from '@/pages/tools/poster/create'
+import PosterEdit from '@/pages/tools/poster/edit'
 
 function App() {
   useEffect(() => {
@@ -28,6 +29,7 @@ function App() {
           <Route path="shop" element={<Shop />} />
           <Route path="tools/poster" element={<PosterDashboard />} />
           <Route path="tools/poster/create" element={<PosterCreate />} />
+          <Route path="tools/poster/:id/edit" element={<PosterEdit />} />
         </Route>
       </Routes>
     </BrowserRouter>

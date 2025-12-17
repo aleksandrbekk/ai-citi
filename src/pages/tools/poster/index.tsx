@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus, Calendar, Image } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Plus, Calendar, Image, Trash2, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePosts } from '@/hooks/usePosts'
 
@@ -14,7 +14,8 @@ interface Post {
 }
 
 export default function PosterDashboard() {
-  const { getPosts } = usePosts()
+  const { getPosts, deletePost } = usePosts()
+  const navigate = useNavigate()
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -27,6 +28,21 @@ export default function PosterDashboard() {
     const data = await getPosts()
     setPosts(data)
     setIsLoading(false)
+  }
+
+  const handleDelete = async (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (confirm('Удалить этот пост?')) {
+      const success = await deletePost(postId)
+      if (success) {
+        loadPosts() // Перезагружаем список
+      }
+    }
+  }
+
+  const handleEdit = (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigate(`/tools/poster/${postId}/edit`)
   }
 
   const drafts = posts.filter(p => p.status === 'draft')
@@ -82,7 +98,23 @@ export default function PosterDashboard() {
       ) : (
         <div className="space-y-3">
           {posts.map(post => (
-            <div key={post.id} className="bg-zinc-900 rounded-xl p-4 flex gap-4">
+            <div key={post.id} className="bg-zinc-900 rounded-xl p-4 flex gap-4 relative">
+              {/* Action Buttons */}
+              <div className="absolute top-2 right-2 flex gap-1">
+                <button
+                  onClick={(e) => handleEdit(post.id, e)}
+                  className="p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                >
+                  <Edit size={16} className="text-white" />
+                </button>
+                <button
+                  onClick={(e) => handleDelete(post.id, e)}
+                  className="p-2 bg-black/50 rounded-full hover:bg-red-500/70 transition-colors"
+                >
+                  <Trash2 size={16} className="text-white" />
+                </button>
+              </div>
+              
               {/* Thumbnail */}
               <div className="w-16 h-16 bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
                 {post.post_media?.[0]?.public_url ? (
