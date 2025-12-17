@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/authStore'
 
 interface CreatePostData {
   caption: string
@@ -11,48 +10,15 @@ interface CreatePostData {
 export function usePosts() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { user } = useAuthStore()
 
   // Получить user_id из базы данных
   const getUserId = async (): Promise<string | null> => {
-    console.log('=== getUserId START ===')
-    console.log('user from store:', user)
-    console.log('user?.id:', user?.id)
-    console.log('user?.telegram_id:', user?.telegram_id)
+    // ВРЕМЕННОЕ РЕШЕНИЕ: хардкод user_id Александра
+    // TODO: убрать после исправления авторизации
+    const HARDCODED_USER_ID = 'fe23f297-c1da-46b3-9f21-1e13a2ca9165'
     
-    if (!user) {
-      console.log('ERROR: user is null/undefined')
-      return null
-    }
-    
-    // Проверяем есть ли валидный UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (user.id && uuidRegex.test(user.id)) {
-      console.log('Using user.id as UUID:', user.id)
-      return user.id
-    }
-    
-    // Ищем по telegram_id
-    const telegramId = user.telegram_id || (user as any).telegramId
-    console.log('Looking up by telegram_id:', telegramId)
-    
-    if (telegramId) {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id')
-        .eq('telegram_id', telegramId)
-        .maybeSingle()
-      
-      console.log('DB lookup result:', { data, error })
-      
-      if (data?.id) {
-        console.log('Found user ID:', data.id)
-        return data.id
-      }
-    }
-    
-    console.log('ERROR: Could not find user ID')
-    return null
+    console.log('Using hardcoded user_id:', HARDCODED_USER_ID)
+    return HARDCODED_USER_ID
   }
 
   // Загрузка медиа в Storage
