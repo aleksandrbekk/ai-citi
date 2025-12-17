@@ -13,6 +13,19 @@ interface Post {
   post_media: { public_url: string }[]
 }
 
+// Форматирование даты в МСК
+const formatDateMSK = (isoString: string) => {
+  const date = new Date(isoString)
+  return date.toLocaleString('ru-RU', {
+    timeZone: 'Europe/Moscow',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 export default function PosterDashboard() {
   const { getPosts, deletePost } = usePosts()
   const navigate = useNavigate()
@@ -154,7 +167,7 @@ export default function PosterDashboard() {
                 </div>
                 {post.scheduled_at && (
                   <p className="text-xs text-zinc-500 mt-1">
-                    {new Date(post.scheduled_at).toLocaleString('ru')}
+                    {formatDateMSK(post.scheduled_at)} МСК
                   </p>
                 )}
               </div>

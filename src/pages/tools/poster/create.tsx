@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, Calendar, Clock, X, Loader2 } from 'lucide-react'
+import { ArrowLeft, Upload, Calendar, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePosts } from '@/hooks/usePosts'
 
@@ -57,17 +57,23 @@ export default function PosterCreate() {
       return
     }
     
-    // Создаём дату с секундами для правильного формата ISO
-    const scheduledAt = new Date(`${scheduledDate}T${scheduledTime}:00`)
-    
-    const post = await createPost({
-      caption,
-      mediaFiles,
-      scheduledAt
-    })
-    
-    if (post) {
-      navigate('/tools/poster')
+    try {
+      // Создаём дату в МСК (UTC+3)
+      const mskDateString = `${scheduledDate}T${scheduledTime}:00+03:00`
+      const scheduledAt = new Date(mskDateString)
+      
+      const post = await createPost({
+        caption,
+        mediaFiles,
+        scheduledAt
+      })
+      
+      if (post) {
+        navigate('/tools/poster')
+      }
+    } catch (error) {
+      console.error(error)
+      alert('Ошибка создания поста')
     }
   }
 
@@ -168,13 +174,13 @@ export default function PosterCreate() {
               className="bg-transparent text-white focus:outline-none flex-1"
             />
           </div>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-zinc-400" />
-            <input 
-              type="time" 
+          <div className="space-y-2">
+            <label className="text-xs text-zinc-400">Время (МСК)</label>
+            <input
+              type="time"
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
-              className="bg-transparent text-white focus:outline-none flex-1"
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
             />
           </div>
         </div>
