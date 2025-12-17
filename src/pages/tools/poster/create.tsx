@@ -176,15 +176,14 @@ export default function PosterCreate() {
           </div>
           <div className="space-y-2">
             <label className="text-sm text-zinc-400">Время (МСК)</label>
-            <div className="flex gap-2">
-              {/* Часы */}
+            <div className="flex gap-2 items-center">
               <select
                 value={scheduledTime.split(':')[0] || '12'}
                 onChange={(e) => {
                   const minutes = scheduledTime.split(':')[1] || '00'
                   setScheduledTime(`${e.target.value}:${minutes}`)
                 }}
-                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+                className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-3 text-white text-center focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
               >
                 {Array.from({ length: 24 }, (_, i) => {
                   const hour = i.toString().padStart(2, '0')
@@ -192,16 +191,15 @@ export default function PosterCreate() {
                 })}
               </select>
               
-              <span className="text-white text-2xl self-center">:</span>
+              <span className="text-white text-xl font-bold">:</span>
               
-              {/* Минуты */}
               <select
                 value={scheduledTime.split(':')[1] || '00'}
                 onChange={(e) => {
                   const hours = scheduledTime.split(':')[0] || '12'
                   setScheduledTime(`${hours}:${e.target.value}`)
                 }}
-                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
+                className="w-20 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-3 text-white text-center focus:outline-none focus:border-orange-500 appearance-none cursor-pointer"
               >
                 {Array.from({ length: 60 }, (_, i) => {
                   const minute = i.toString().padStart(2, '0')
