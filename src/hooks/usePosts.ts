@@ -15,32 +15,43 @@ export function usePosts() {
 
   // Получить user_id из базы данных
   const getUserId = async (): Promise<string | null> => {
-    if (!user) return null
+    console.log('=== getUserId START ===')
+    console.log('user from store:', user)
+    console.log('user?.id:', user?.id)
+    console.log('user?.telegram_id:', user?.telegram_id)
     
-    // Проверяем, является ли id валидным UUID (не fallback id)
-    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)
+    if (!user) {
+      console.log('ERROR: user is null/undefined')
+      return null
+    }
     
-    // Если есть валидный UUID — используем его
-    if (isValidUUID) {
+    // Проверяем есть ли валидный UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (user.id && uuidRegex.test(user.id)) {
+      console.log('Using user.id as UUID:', user.id)
       return user.id
     }
     
-    // Иначе ищем по telegram_id
-    if (user.telegram_id && user.telegram_id > 0) {
-      const { data, error: findError } = await supabase
+    // Ищем по telegram_id
+    const telegramId = user.telegram_id || (user as any).telegramId
+    console.log('Looking up by telegram_id:', telegramId)
+    
+    if (telegramId) {
+      const { data, error } = await supabase
         .from('users')
         .select('id')
-        .eq('telegram_id', user.telegram_id)
+        .eq('telegram_id', telegramId)
         .maybeSingle()
       
-      if (findError) {
-        console.error('Error finding user:', findError)
-        return null
-      }
+      console.log('DB lookup result:', { data, error })
       
-      return data?.id || null
+      if (data?.id) {
+        console.log('Found user ID:', data.id)
+        return data.id
+      }
     }
     
+    console.log('ERROR: Could not find user ID')
     return null
   }
 

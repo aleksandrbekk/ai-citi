@@ -136,3 +136,5 @@ FROM pg_policies
 WHERE tablename IN ('users', 'profiles')
 ORDER BY tablename, policyname;
 
+
+
