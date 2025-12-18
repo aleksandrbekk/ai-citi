@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "parse:antitrainings": "tsx scripts/parse-antitrainings.ts"
+    "parse:antitrainings": "tsx scripts/parse-antitrainings.ts",
+    "parse:antitrainings:simple": "tsx scripts/parse-antitrainings-simple.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
