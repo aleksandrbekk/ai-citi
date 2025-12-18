@@ -1,0 +1,647 @@
+{
+  "parsed_at": "2025-12-18T11:50:32.339Z",
+  "total_modules": 11,
+  "total_lessons": 82,
+  "modules": [
+    {
+      "title": "Вводный модуль",
+      "order_index": 0,
+      "lessons": [
+        {
+          "title": "1. Схема обучения МЛМ Лагеря",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331201&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Принцип создания крепких команд в МЛМ",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331202&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Модуль 1. Распаковка",
+      "order_index": 1,
+      "lessons": [
+        {
+          "title": "1. Виды распаковок",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331203&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Распаковка личности",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331204&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Распаковка личности запись",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=7245995&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Проработка страхов",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331205&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Распаковка аудитории",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331208&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Сегменты аудитории",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6331210&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Распаковка экспертности",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331206&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Распаковка продукта",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331209&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Дополнительный урок. Простые деньги на распаковке",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331215&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "10. Итоги первого модуля",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331216&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Модуль 2. Алгоритмы соц.сетей и фирменный стиль",
+      "order_index": 2,
+      "lessons": [
+        {
+          "title": "1. Виды блогов",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331222&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Создание фирменного стиля",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331231&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Алгоритмы работы ВК",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331223&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Виды контента в Телеграм",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331225&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Алгоритмы инстаграм",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331232&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Распаковка конкурентов",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6331211&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Как связать МЛМ с нишей",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331207&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Формула УТП и статуса в соц.сетях",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331229&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Разборы аккаунтов",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=7245985&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "10. Дополнительный урок. Подключаем чат-бот к ВК",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331224&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Модуль 3. Прогревы и создание контента",
+      "order_index": 3,
+      "lessons": [
+        {
+          "title": "1. Правила и принципы сторитейлинга",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331239&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Сюжетные линии",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331251&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Первая вовлекающая сториз",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331252&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Форматы сториз",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331253&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Руководство по постам",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331254&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Создание экспертного контента",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=7124987&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Создание вирального контента",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=7124988&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Создание продающего контента",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=7124989&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Банк идей для контента",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331257&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "10. Планирование контента",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331258&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Модуль 4. Продажи",
+      "order_index": 4,
+      "lessons": [
+        {
+          "title": "1. Создание тарифной сетки",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331264&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Как довести клиента до оплаты",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331265&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Скрипты продаж",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331266&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Продажи в переписке",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331267&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Создание продающей анкеты на консультацию",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=7245987&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Структура консультации",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=7245986&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Работа с мышлением",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331268&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Примеры триггеров",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331269&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Создание продающего вебинара",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331270&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "10. Распаковка кейсов",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331213&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Модуль 5. Источники трафика",
+      "order_index": 5,
+      "lessons": [
+        {
+          "title": "1. Виды трафика",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331273&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Все методы продвижения в Инстаграм",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331275&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Воронка через Reels",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=7125450&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Листовки",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331276&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Комментинг",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331274&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Золотые правила взаимопиара",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=7245990&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Дополнительный урок. Все методы продвижения в YouTube",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331277&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Партизанские методы рекламы",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331280&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Итоги пятого модуля",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331281&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Дополнительный модуль. Запуск и работа с командой",
+      "order_index": 6,
+      "lessons": [
+        {
+          "title": "1. Запуск новичка с 0",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6343515&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Способы повышения товарооборота и ЛТО",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6346079&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Методы активации неактивных партнеров",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6363184&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Работа с Лидерами структуры",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6394982&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Темы командных планерок",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6394983&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Создание системы автозапуска партнеров",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6395012&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Как зарабатывать миллионы на продуктовом бизнесе",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6413571&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Алена Ли работы в клиентских чатах",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6408823&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Марина Павленко. Работа в клиентских чатах",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6431116&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "10. Секреты мотивации и дисциплины",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6406976&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Дополнительный модуль. Автоворонки и чат-боты",
+      "order_index": 7,
+      "lessons": [
+        {
+          "title": "1. Создание чат-бот в Телеграм",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6465792&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Виды лид-магнитов для МЛМ",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6465793&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Как окупить платный трафик",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6465794&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. Сервисы для автоматизации",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6465795&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. Связки и автоворонки",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6465796&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. Как связать автоворонку с таргетом",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6465797&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. Создание автовебинара",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6465798&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. Тропинка прогрева через бот",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6465800&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "9. Готовые схемы автоворонок А.Бекка",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6465802&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Продающие связки. Бонусный модуль",
+      "order_index": 8,
+      "lessons": [
+        {
+          "title": "1. Связка 1. Фокус-группа",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331217&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. Пример создания рабочих связок в разных нишах",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331218&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. Связки. Экспертные вопросы. Продающие кейсы. Рассылки в ТГ",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331219&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "Записи онлайн занятий МЛМ Лагеря",
+      "order_index": 9,
+      "lessons": [
+        {
+          "title": "1. Записи онлайн занятий",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6821525&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    },
+    {
+      "title": "МЛМ Ракета",
+      "order_index": 10,
+      "lessons": [
+        {
+          "title": "1. Вводные уроки",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331289&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "2. День 1",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331290&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "3. День 2",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331291&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "4. День 3",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331292&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "5. День 4",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331293&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "6. День 5",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6331294&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "7. День 6",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331295&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        },
+        {
+          "title": "8. День 7",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331296&course_id=279505",
+          "materials": [],
+          "has_homework": false
+        }
+      ]
+    }
+  ]
+}

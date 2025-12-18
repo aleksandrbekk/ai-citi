@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "parse:antitrainings": "tsx scripts/parse-antitrainings.ts",
-    "parse:antitrainings:simple": "tsx scripts/parse-antitrainings-simple.ts"
+    "parse:antitrainings:simple": "tsx scripts/parse-antitrainings-simple.ts",
+    "clean:structure": "tsx scripts/clean-structure.ts",
+    "parse:content": "tsx scripts/parse-lesson-content.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
