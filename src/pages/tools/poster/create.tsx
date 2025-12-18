@@ -13,6 +13,7 @@ export default function PosterCreate() {
   const [scheduledDate, setScheduledDate] = useState('')
   const [scheduledTime, setScheduledTime] = useState('12:00')
   const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
 
   // Обработка выбора файлов
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,13 +169,7 @@ export default function PosterCreate() {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => {
-                const input = document.createElement('input')
-                input.type = 'date'
-                input.value = scheduledDate
-                input.onchange = (e: any) => setScheduledDate(e.target.value)
-                input.click()
-              }}
+              onClick={() => setShowDatePicker(true)}
               className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
             >
               <Calendar className="w-5 h-5 text-zinc-400" />
@@ -191,6 +186,34 @@ export default function PosterCreate() {
           </div>
         </div>
       </div>
+
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-zinc-900 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-700">
+              <h3 className="text-white font-semibold">Выберите дату</h3>
+              <button onClick={() => setShowDatePicker(false)} className="text-zinc-400 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <input
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => {
+                  setScheduledDate(e.target.value)
+                  setShowDatePicker(false)
+                }}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+                autoFocus
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Time Picker Modal */}
       {showTimePicker && (
