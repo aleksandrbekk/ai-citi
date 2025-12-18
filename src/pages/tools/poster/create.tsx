@@ -79,7 +79,7 @@ export default function PosterCreate() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-32">
+    <div className="min-h-screen bg-black text-white p-4">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={() => navigate(-1)} className="p-2">
@@ -257,23 +257,21 @@ export default function PosterCreate() {
       )}
 
       {/* Actions */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-black border-t border-zinc-800">
-        <div className="flex gap-3">
-          <button
-            onClick={handleSaveDraft}
-            disabled={isLoading || mediaFiles.length === 0}
-            className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Черновик'}
-          </button>
-          <button
-            onClick={handleSchedule}
-            disabled={isLoading || mediaFiles.length === 0}
-            className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Запланировать'}
-          </button>
-        </div>
+      <div className="flex gap-3 mt-6 pb-6">
+        <button
+          onClick={handleSaveDraft}
+          disabled={isLoading || mediaFiles.length === 0}
+          className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Черновик'}
+        </button>
+        <button
+          onClick={handleSchedule}
+          disabled={isLoading || mediaFiles.length === 0}
+          className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Запланировать'}
+        </button>
       </div>
     </div>
   )
