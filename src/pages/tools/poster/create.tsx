@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, Calendar, X, Loader2 } from 'lucide-react'
+import { ArrowLeft, Upload, Calendar, X, Loader2, Clock } from 'lucide-react'
 import { usePosts } from '@/hooks/usePosts'
 
 export default function PosterCreate() {
@@ -163,30 +163,30 @@ export default function PosterCreate() {
 
       {/* Schedule */}
       <div className="mb-6">
-        <label className="block text-sm text-zinc-400 mb-2">Когда опубликовать</label>
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
+        <div className="space-y-2">
+          <label className="text-sm text-zinc-400">Когда опубликовать</label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const input = document.createElement('input')
+                input.type = 'date'
+                input.value = scheduledDate
+                input.onchange = (e: any) => setScheduledDate(e.target.value)
+                input.click()
+              }}
+              className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
+            >
               <Calendar className="w-5 h-5 text-zinc-400" />
-              <input 
-                type="date" 
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                className="bg-transparent text-white focus:outline-none flex-1"
-              />
-            </div>
-          </div>
-          <div className="flex-1 space-y-2">
-            <label className="text-sm text-zinc-400 block">Время (МСК)</label>
+              {scheduledDate ? new Date(scheduledDate + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Выбрать дату'}
+            </button>
             <button
               type="button"
               onClick={() => setShowTimePicker(true)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-left focus:outline-none focus:border-orange-500 flex items-center gap-3"
+              className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
             >
-              <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {scheduledTime || 'Выбрать время'}
+              <Clock className="w-5 h-5 text-zinc-400" />
+              {scheduledTime ? `${scheduledTime} МСК` : 'Выбрать время'}
             </button>
           </div>
         </div>
