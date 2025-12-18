@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, Calendar, X, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { usePosts } from '@/hooks/usePosts'
 
 export default function PosterCreate() {
@@ -165,22 +164,24 @@ export default function PosterCreate() {
       {/* Schedule */}
       <div className="mb-6">
         <label className="block text-sm text-zinc-400 mb-2">Когда опубликовать</label>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-zinc-400" />
-            <input 
-              type="date" 
-              value={scheduledDate}
-              onChange={(e) => setScheduledDate(e.target.value)}
-              className="bg-transparent text-white focus:outline-none flex-1"
-            />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-zinc-400" />
+              <input 
+                type="date" 
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className="bg-transparent text-white focus:outline-none flex-1"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm text-zinc-400">Время (МСК)</label>
+          <div className="flex-1 space-y-2">
+            <label className="text-sm text-zinc-400 block">Время (МСК)</label>
             <button
               type="button"
               onClick={() => setShowTimePicker(true)}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white text-left focus:outline-none focus:border-orange-500 flex items-center gap-3"
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-left focus:outline-none focus:border-orange-500 flex items-center gap-3"
             >
               <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -188,53 +189,53 @@ export default function PosterCreate() {
               {scheduledTime || 'Выбрать время'}
             </button>
           </div>
-
-          {/* Time Picker Modal */}
-          {showTimePicker && (
-            <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
-              <div className="bg-zinc-900 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-zinc-700">
-                  <h3 className="text-white font-semibold">Выберите время</h3>
-                  <button onClick={() => setShowTimePicker(false)} className="text-zinc-400 hover:text-white">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                
-                <div className="p-4 overflow-y-auto max-h-[50vh]">
-                  <div className="grid grid-cols-4 gap-2">
-                    {Array.from({ length: 24 * 12 }, (_, i) => {
-                      const hours = Math.floor(i / 12).toString().padStart(2, '0')
-                      const minuteValues = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
-                      const minutes = minuteValues[i % 12].toString().padStart(2, '0')
-                      const time = `${hours}:${minutes}`
-                      const isSelected = scheduledTime === time
-                      return (
-                        <button
-                          key={time}
-                          type="button"
-                          onClick={() => {
-                            setScheduledTime(time)
-                            setShowTimePicker(false)
-                          }}
-                          className={`py-2 px-1 rounded-lg text-sm font-medium transition-colors ${
-                            isSelected 
-                              ? 'bg-orange-500 text-white' 
-                              : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-                          }`}
-                        >
-                          {time}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Time Picker Modal */}
+      {showTimePicker && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-zinc-900 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-700">
+              <h3 className="text-white font-semibold">Выберите время</h3>
+              <button onClick={() => setShowTimePicker(false)} className="text-zinc-400 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto max-h-[50vh]">
+              <div className="grid grid-cols-4 gap-2">
+                {Array.from({ length: 24 * 12 }, (_, i) => {
+                  const hours = Math.floor(i / 12).toString().padStart(2, '0')
+                  const minuteValues = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+                  const minutes = minuteValues[i % 12].toString().padStart(2, '0')
+                  const time = `${hours}:${minutes}`
+                  const isSelected = scheduledTime === time
+                  return (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => {
+                        setScheduledTime(time)
+                        setShowTimePicker(false)
+                      }}
+                      className={`py-2 px-1 rounded-lg text-sm font-medium transition-colors ${
+                        isSelected 
+                          ? 'bg-orange-500 text-white' 
+                          : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="fixed bottom-20 left-0 right-0 p-4 bg-black border-t border-zinc-800">
@@ -242,17 +243,17 @@ export default function PosterCreate() {
           <button
             onClick={handleSaveDraft}
             disabled={isLoading || mediaFiles.length === 0}
-            className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Черновик'}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Черновик'}
           </button>
-          <Button 
-            className="flex-1 bg-orange-500 hover:bg-orange-600"
+          <button
             onClick={handleSchedule}
             disabled={isLoading || mediaFiles.length === 0}
+            className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Запланировать'}
-          </Button>
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Запланировать'}
+          </button>
         </div>
       </div>
     </div>
