@@ -189,28 +189,24 @@ export default function PosterCreate() {
 
       {/* Date Picker Modal */}
       {showDatePicker && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
-          <div className="bg-zinc-900 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-zinc-700">
-              <h3 className="text-white font-semibold">Выберите дату</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-sm bg-zinc-900 rounded-2xl p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Выберите дату</h3>
               <button onClick={() => setShowDatePicker(false)} className="text-zinc-400 hover:text-white">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-4">
-              <input
-                type="date"
-                value={scheduledDate}
-                onChange={(e) => {
-                  setScheduledDate(e.target.value)
-                  setShowDatePicker(false)
-                }}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-                autoFocus
-              />
-            </div>
+            <input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => {
+                setScheduledDate(e.target.value)
+                setShowDatePicker(false)
+              }}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+              autoFocus
+            />
           </div>
         </div>
       )}
