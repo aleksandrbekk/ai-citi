@@ -6,13 +6,15 @@ import { Layout } from '@/components/layout/Layout'
 import { Home } from '@/pages/Home'
 import { Profile } from '@/pages/Profile'
 import { Agents } from '@/pages/Agents'
-import { School } from '@/pages/School'
 import { Missions } from '@/pages/Missions'
 import { Shop } from '@/pages/Shop'
 import PosterDashboard from '@/pages/tools/poster'
 import PosterCreate from '@/pages/tools/poster/create'
 import PosterEdit from '@/pages/tools/poster/edit'
 import PosterCalendar from '@/pages/tools/poster/calendar'
+import SchoolIndex from '@/pages/school/index'
+import ModulePage from '@/pages/school/ModulePage'
+import LessonPage from '@/pages/school/LessonPage'
 
 const queryClient = new QueryClient()
 
@@ -29,7 +31,9 @@ function App() {
             <Route index element={<Home />} />
             <Route path="profile" element={<Profile />} />
             <Route path="agents" element={<Agents />} />
-            <Route path="school" element={<School />} />
+            <Route path="school" element={<SchoolIndex />} />
+            <Route path="school/:moduleId" element={<ModulePage />} />
+            <Route path="school/:moduleId/lesson/:lessonId" element={<LessonPage />} />
             <Route path="missions" element={<Missions />} />
             <Route path="shop" element={<Shop />} />
             <Route path="tools/poster" element={<PosterDashboard />} />
