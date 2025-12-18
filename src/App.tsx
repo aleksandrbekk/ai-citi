@@ -13,6 +13,7 @@ import PosterCreate from '@/pages/tools/poster/create'
 import PosterEdit from '@/pages/tools/poster/edit'
 import PosterCalendar from '@/pages/tools/poster/calendar'
 import SchoolIndex from '@/pages/school/index'
+import TariffPage from '@/pages/school/TariffPage'
 import ModulePage from '@/pages/school/ModulePage'
 import LessonPage from '@/pages/school/LessonPage'
 
@@ -32,8 +33,9 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="agents" element={<Agents />} />
             <Route path="school" element={<SchoolIndex />} />
-            <Route path="school/:moduleId" element={<ModulePage />} />
-            <Route path="school/:moduleId/lesson/:lessonId" element={<LessonPage />} />
+            <Route path="school/:tariffSlug" element={<TariffPage />} />
+            <Route path="school/:tariffSlug/:moduleId" element={<ModulePage />} />
+            <Route path="school/:tariffSlug/:moduleId/lesson/:lessonId" element={<LessonPage />} />
             <Route path="missions" element={<Missions />} />
             <Route path="shop" element={<Shop />} />
             <Route path="tools/poster" element={<PosterDashboard />} />

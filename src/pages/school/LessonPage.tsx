@@ -4,7 +4,7 @@ import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
 import { ArrowLeft, FileText, ExternalLink, Send } from 'lucide-react'
 
 export default function LessonPage() {
-  const { moduleId, lessonId } = useParams<{ moduleId: string; lessonId: string }>()
+  const { tariffSlug, moduleId, lessonId } = useParams<{ tariffSlug: string; moduleId: string; lessonId: string }>()
   const { data, isLoading } = useLesson(lessonId!)
   const [answer, setAnswer] = useState('')
   const submitHomework = useSubmitHomework()
@@ -39,7 +39,7 @@ export default function LessonPage() {
     <div className="min-h-screen bg-black text-white p-4 pb-24">
       {/* Шапка */}
       <div className="flex items-center gap-3 mb-6">
-        <Link to={`/school/${moduleId}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
+        <Link to={`/school/${tariffSlug}/${moduleId}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <h1 className="text-lg font-bold flex-1">{lesson?.title}</h1>
@@ -112,4 +112,5 @@ export default function LessonPage() {
     </div>
   )
 }
+
 

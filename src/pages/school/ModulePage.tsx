@@ -3,7 +3,7 @@ import { useModule, useLessons } from '@/hooks/useCourse'
 import { ArrowLeft, Play, FileText, ChevronRight } from 'lucide-react'
 
 export default function ModulePage() {
-  const { moduleId } = useParams<{ moduleId: string }>()
+  const { tariffSlug, moduleId } = useParams<{ tariffSlug: string; moduleId: string }>()
   const { data: module, isLoading: moduleLoading } = useModule(moduleId!)
   const { data: lessons, isLoading: lessonsLoading } = useLessons(moduleId!)
 
@@ -19,7 +19,7 @@ export default function ModulePage() {
     <div className="min-h-screen bg-black text-white p-4 pb-24">
       {/* Шапка */}
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/school" className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
+        <Link to={`/school/${tariffSlug}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <h1 className="text-xl font-bold flex-1">{module?.title}</h1>
@@ -30,7 +30,7 @@ export default function ModulePage() {
         {lessons?.map((lesson, index) => (
           <Link
             key={lesson.id}
-            to={`/school/${moduleId}/lesson/${lesson.id}`}
+            to={`/school/${tariffSlug}/${moduleId}/lesson/${lesson.id}`}
             className="flex items-center gap-3 p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500 transition-all"
           >
             <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm font-medium">
@@ -64,4 +64,5 @@ export default function ModulePage() {
     </div>
   )
 }
+
 
