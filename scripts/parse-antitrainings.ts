@@ -313,11 +313,26 @@ async function parseCourse() {
     console.log('⏳ Жду загрузки React компонентов...')
     await page.waitForTimeout(5000)
     
-    // Шаг 4: Поиск модулей
+    // Делаем скриншот для проверки
+    const screenshotPath = join(__dirname, 'screenshot-after-load.png')
+    await page.screenshot({ path: screenshotPath, fullPage: true })
+    console.log(`📸 Скриншот после загрузки: ${screenshotPath}\n`)
+    
+    // Шаг 4: Отладка - проверяем разные селекторы
+    console.log('🔍 Отладка селекторов...')
+    console.log(`MuiAccordion-root: ${await page.locator('.MuiAccordion-root').count()}`)
+    console.log(`MuiPaper-root.MuiAccordion-root: ${await page.locator('.MuiPaper-root.MuiAccordion-root').count()}`)
+    console.log(`[class*="Accordion"]: ${await page.locator('[class*="Accordion"]').count()}`)
+    console.log(`[class*="module"]: ${await page.locator('[class*="module"]').count()}`)
+    console.log(`[class*="lesson"]: ${await page.locator('[class*="lesson"]').count()}`)
+    console.log(`h6: ${await page.locator('h6').count()}`)
+    console.log(`#lessons_root: ${await page.locator('#lessons_root').count()}\n`)
+    
+    // Шаг 5: Поиск модулей
     console.log('🔍 Поиск модулей...\n')
     
-    // Ищем все MUI Accordion (модули)
-    const accordions = await page.$$('.MuiAccordion-root')
+    // Ищем все MUI Accordion (модули) - правильный селектор
+    const accordions = await page.locator('.MuiPaper-root.MuiAccordion-root').all()
     console.log(`✅ Найдено модулей: ${accordions.length}\n`)
     
     const modules: Module[] = []
@@ -327,24 +342,26 @@ async function parseCourse() {
       
       try {
         // Получаем название модуля
-        const titleElement = await accordion.$('h6')
-        const moduleTitle = titleElement ? await titleElement.textContent() : `Модуль ${i + 1}`
+        const titleElement = await accordion.locator('h6').first()
+        const moduleTitle = await titleElement.textContent().catch(() => null)
         const title = moduleTitle?.trim() || `Модуль ${i + 1}`
         
         console.log(`📁 Модуль ${i + 1}/${accordions.length}: ${title}`)
         
         // Раскрываем модуль (кликаем на заголовок)
-        const summary = await accordion.$('.MuiAccordionSummary-root')
-        if (summary) {
-          const isExpanded = await accordion.getAttribute('aria-expanded')
-          if (isExpanded !== 'true') {
-            await summary.click()
-            await page.waitForTimeout(1000) // Ждем раскрытия
-          }
+        const summary = accordion.locator('.MuiAccordionSummary-root').first()
+        const isExpanded = await accordion.getAttribute('aria-expanded')
+        
+        if (isExpanded !== 'true') {
+          await summary.click()
+          await page.waitForTimeout(2000) // Ждем раскрытия и загрузки уроков
         }
         
-        // Ищем уроки внутри модуля
-        const lessonLinks = await accordion.$$('a[href*="/panel/"], a[href*="/lesson/"], a[href*="/edit"]')
+        // Ищем уроки внутри модуля - после раскрытия
+        // Уроки могут быть в разных местах, пробуем разные селекторы
+        await page.waitForTimeout(1000) // Дополнительная задержка для загрузки
+        
+        const lessonLinks = await accordion.locator('a[href*="/panel/"], a[href*="/lesson/"], a[href*="/edit"], a[href*="lessons"]').all()
         
         // Если не нашли через ссылки, ищем по другим селекторам
         let lessons: Lesson[] = []
@@ -359,14 +376,14 @@ async function parseCourse() {
               const href = await link.getAttribute('href')
               const linkText = await link.textContent()
               
-              if (!href || !linkText) continue
+              if (!href || !linkText || !linkText.trim()) continue
               
               const fullUrl = href.startsWith('http') ? href : `https://antitreningi.ru${href}`
               
               console.log(`  📄 Урок ${j + 1}/${lessonLinks.length}: ${linkText.trim()}`)
               
               // Открываем урок
-              await link.click()
+              await link.click({ timeout: 10000 })
               await page.waitForTimeout(2000)
               
               // Парсим урок
@@ -385,10 +402,11 @@ async function parseCourse() {
               await page.waitForTimeout(3000)
               
               // Переоткрываем модуль
-              const accordionsAfter = await page.$$('.MuiAccordion-root')
+              const accordionsAfter = await page.locator('.MuiPaper-root.MuiAccordion-root').all()
               if (accordionsAfter[i]) {
-                const summaryAfter = await accordionsAfter[i].$('.MuiAccordionSummary-root')
-                if (summaryAfter) {
+                const summaryAfter = accordionsAfter[i].locator('.MuiAccordionSummary-root').first()
+                const isExpandedAfter = await accordionsAfter[i].getAttribute('aria-expanded')
+                if (isExpandedAfter !== 'true') {
                   await summaryAfter.click()
                   await page.waitForTimeout(1000)
                 }
