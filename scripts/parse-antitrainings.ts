@@ -246,15 +246,33 @@ async function parseCourse() {
   try {
     // Шаг 1: Переход на страницу входа
     console.log('📄 Переход на страницу входа...')
-    await page.goto('https://antitreningi.ru/auth/login', { waitUntil: 'networkidle' })
+    try {
+      await page.goto('https://antitreningi.ru/auth/login', { 
+        waitUntil: 'domcontentloaded',
+        timeout: 60000 
+      })
+    } catch (e) {
+      console.log('⚠️ Таймаут загрузки страницы, продолжаем...')
+    }
+    await page.waitForTimeout(3000)
     
     // Шаг 2: Ожидание ввода логина/пароля
-    console.log('⏳ Жду 60 сек — введи логин/пароль...')
-    await page.waitForTimeout(60000)
+    console.log('⏳ Жду 60 сек — введи логин/пароль в браузере...')
+    console.log('   После входа нажми Enter в терминале, чтобы продолжить')
+    await new Promise(resolve => {
+      process.stdin.once('data', () => resolve(null))
+    })
     
     // Шаг 3: Переход на страницу уроков
     console.log('📚 Переход на страницу уроков...')
-    await page.goto('https://antitreningi.ru/panel/279505/lessons', { waitUntil: 'networkidle' })
+    try {
+      await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
+        waitUntil: 'domcontentloaded',
+        timeout: 60000 
+      })
+    } catch (e) {
+      console.log('⚠️ Таймаут загрузки страницы уроков, продолжаем...')
+    }
     await page.waitForTimeout(3000)
     
     // Шаг 4: Поиск модулей и уроков
@@ -348,11 +366,17 @@ async function parseCourse() {
         
         // Если ссылка ведет на редактирование, используем её напрямую
         if (href.includes('/edit') || href.includes('/lesson/')) {
-          await page.goto(fullUrl, { waitUntil: 'networkidle' })
+          await page.goto(fullUrl, { 
+            waitUntil: 'domcontentloaded',
+            timeout: 30000 
+          }).catch(() => {})
         } else {
           // Иначе кликаем и ждем перехода
           await link.click()
-          await page.waitForNavigation({ waitUntil: 'networkidle', timeout: 10000 }).catch(() => {})
+          await page.waitForNavigation({ 
+            waitUntil: 'domcontentloaded', 
+            timeout: 10000 
+          }).catch(() => {})
         }
         
         await page.waitForTimeout(3000)
@@ -366,14 +390,20 @@ async function parseCourse() {
         }
         
         // Возвращаемся к списку
-        await page.goto('https://antitreningi.ru/panel/279505/lessons', { waitUntil: 'networkidle' })
+        await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
+          waitUntil: 'domcontentloaded',
+          timeout: 30000 
+        }).catch(() => {})
         await page.waitForTimeout(2000)
         
       } catch (error) {
         console.error(`❌ Ошибка при обработке урока ${i + 1}:`, error)
         // Продолжаем дальше
         try {
-          await page.goto('https://antitreningi.ru/panel/279505/lessons', { waitUntil: 'networkidle' })
+          await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
+            waitUntil: 'domcontentloaded',
+            timeout: 30000 
+          })
           await page.waitForTimeout(2000)
         } catch (e) {
           // Игнорируем ошибки навигации
