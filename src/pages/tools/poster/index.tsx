@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Calendar, Image, Trash2, Edit, Send, CalendarDays } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Calendar, Image, Trash2, Edit, Send } from 'lucide-react'
 import { usePosts, usePublishToInstagram } from '@/hooks/usePosts'
 
 interface Post {
@@ -80,19 +79,21 @@ export default function PosterDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">НЕЙРОПОСТЕР</h1>
-        <div className="flex gap-2">
-          <Link to="/tools/poster/calendar">
-            <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
-              <CalendarDays className="w-4 h-4 mr-2" />
-              Календарь
-            </Button>
-          </Link>
-          <Link to="/tools/poster/create">
-            <Button className="bg-orange-500 hover:bg-orange-600">
-              <Plus className="w-4 h-4 mr-2" />
-              Новый
-            </Button>
-          </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/tools/poster/calendar')}
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+            title="Календарь"
+          >
+            <Calendar className="w-5 h-5 text-white" />
+          </button>
+          <button
+            onClick={() => navigate('/tools/poster/create')}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 rounded-xl text-white font-medium hover:bg-orange-600 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Новый
+          </button>
         </div>
       </div>
 
@@ -122,12 +123,13 @@ export default function PosterDashboard() {
           </div>
           <h2 className="text-xl font-semibold mb-2">Нет постов</h2>
           <p className="text-zinc-400 mb-6">Создайте первый пост для Instagram</p>
-          <Link to="/tools/poster/create">
-            <Button className="bg-orange-500 hover:bg-orange-600">
-              <Plus className="w-4 h-4 mr-2" />
-              Создать пост
-            </Button>
-          </Link>
+          <button
+            onClick={() => navigate('/tools/poster/create')}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 rounded-xl text-white font-medium hover:bg-orange-600 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Создать пост
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
