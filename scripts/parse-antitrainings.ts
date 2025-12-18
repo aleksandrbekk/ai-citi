@@ -31,8 +31,6 @@ interface Module {
 
 interface ParsedData {
   parsed_at: string
-  total_modules: number
-  total_lessons: number
   modules: Module[]
 }
 
@@ -56,24 +54,38 @@ function detectMaterialType(url: string, title: string | null): 'pdf' | 'sheet' 
   return 'link'
 }
 
-// Парсинг урока в режиме редактирования
+// Парсинг урока
 async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | null> {
   try {
-    console.log(`  📝 Парсинг урока: ${lessonTitle}`)
+    console.log(`    📄 Парсинг урока: ${lessonTitle}`)
     
-    // Ждем загрузки редактора
+    // Ждем загрузки страницы
     await page.waitForTimeout(3000)
     
-    // 1. Извлекаем title (может быть в заголовке или поле ввода)
+    // 1. Извлекаем title
     let title = lessonTitle
     try {
-      const titleInput = await page.$('input[type="text"], input[name*="title"], input[name*="name"]')
-      if (titleInput) {
-        const value = await titleInput.inputValue()
-        if (value) title = value
+      const titleSelectors = [
+        'h1',
+        'h2',
+        '.lesson-title',
+        '[class*="title"]',
+        'input[name*="title"]',
+        'input[name*="name"]'
+      ]
+      
+      for (const selector of titleSelectors) {
+        const element = await page.$(selector)
+        if (element) {
+          const text = await element.textContent()
+          if (text && text.trim()) {
+            title = text.trim()
+            break
+          }
+        }
       }
     } catch (e) {
-      // Игнорируем ошибки
+      // Используем переданное название
     }
     
     // 2. Ищем video_url в iframe
@@ -81,39 +93,50 @@ async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | nu
     let video_id: string | null = null
     
     try {
-      // Ищем iframe с kinescope
       const iframe = await page.$('iframe[src*="kinescope"], iframe[src*="kinescope.io"]')
       if (iframe) {
         video_url = await iframe.getAttribute('src')
         if (video_url) {
           video_id = extractVideoId(video_url)
+          console.log(`    ✅ Видео найдено: ${video_id}`)
         }
-      }
-      
-      // Если не нашли iframe, ищем embed код в тексте
-      if (!video_url) {
+      } else {
+        // Ищем в тексте страницы
         const pageContent = await page.content()
         const embedMatch = pageContent.match(/kinescope\.io\/embed\/([a-zA-Z0-9_-]+)/)
         if (embedMatch) {
           video_id = embedMatch[1]
           video_url = `https://kinescope.io/embed/${video_id}`
+          console.log(`    ✅ Видео найдено в коде: ${video_id}`)
+        } else {
+          console.log(`    ❌ Видео не найдено`)
         }
       }
     } catch (e) {
-      console.log(`    ⚠️ Не удалось извлечь видео: ${e}`)
+      console.log(`    ❌ Ошибка поиска видео: ${e}`)
     }
     
-    // 3. Извлекаем description (текстовый контент)
+    // 3. Извлекаем description
     let description: string | null = null
     try {
-      // Ищем блоки с текстом контента
-      const contentBlocks = await page.$$('div[contenteditable], .editor-content, .lesson-content, textarea[name*="content"], textarea[name*="description"]')
+      const contentSelectors = [
+        '.lesson-content',
+        '.lesson-description',
+        '[class*="description"]',
+        '[class*="content"]',
+        'textarea[name*="content"]',
+        'textarea[name*="description"]',
+        'div[contenteditable]'
+      ]
       
       const texts: string[] = []
-      for (const block of contentBlocks) {
-        const text = await block.textContent()
-        if (text && text.trim()) {
-          texts.push(text.trim())
+      for (const selector of contentSelectors) {
+        const elements = await page.$$(selector)
+        for (const el of elements) {
+          const text = await el.textContent()
+          if (text && text.trim() && text.length > 20) {
+            texts.push(text.trim())
+          }
         }
       }
       
@@ -121,45 +144,41 @@ async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | nu
         description = texts.join('\n\n')
       }
     } catch (e) {
-      console.log(`    ⚠️ Не удалось извлечь описание: ${e}`)
+      console.log(`    ⚠️ Не удалось извлечь описание`)
     }
     
-    // 4. Ищем материалы (ссылки на файлы)
+    // 4. Ищем материалы
     const materials: LessonMaterial[] = []
-    
     try {
-      // Ищем все ссылки
-      const links = await page.$$('a[href], button[href]')
+      const links = await page.$$('a[href]')
       
       for (const link of links) {
         const href = await link.getAttribute('href')
         const text = await link.textContent()
         
-        if (href && (href.includes('FILESTORAGE') || href.includes('.pdf') || href.includes('docs.google.com') || href.includes('drive.google.com'))) {
+        if (href && (
+          href.includes('FILESTORAGE') || 
+          href.includes('.pdf') || 
+          href.includes('docs.google.com') || 
+          href.includes('drive.google.com') ||
+          href.includes('sheets.google.com')
+        )) {
           const linkText = text?.trim() || null
+          const fullUrl = href.startsWith('http') ? href : `https://antitreningi.ru${href}`
+          
           materials.push({
-            type: detectMaterialType(href, linkText),
+            type: detectMaterialType(fullUrl, linkText),
             title: linkText,
-            url: href.startsWith('http') ? href : `https://antitreningi.ru${href}`
+            url: fullUrl
           })
         }
       }
       
-      // Ищем кнопки "Скачать", "Заполнить"
-      const downloadButtons = await page.$$('button:has-text("Скачать"), button:has-text("Заполнить"), a:has-text("Скачать")')
-      for (const btn of downloadButtons) {
-        const href = await btn.getAttribute('href')
-        if (href) {
-          const text = await btn.textContent()
-          materials.push({
-            type: detectMaterialType(href, text),
-            title: text?.trim() || null,
-            url: href.startsWith('http') ? href : `https://antitreningi.ru${href}`
-          })
-        }
+      if (materials.length > 0) {
+        console.log(`    ✅ Найдено материалов: ${materials.length}`)
       }
     } catch (e) {
-      console.log(`    ⚠️ Не удалось извлечь материалы: ${e}`)
+      console.log(`    ⚠️ Ошибка поиска материалов`)
     }
     
     // 5. Ищем домашнее задание
@@ -167,15 +186,15 @@ async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | nu
     let homework_description: string | null = null
     
     try {
-      // Ищем блоки с текстом "Домашнее задание", "ДЗ", "Задание"
       const homeworkSelectors = [
         'text=/домашнее задание/i',
         'text=/домашнее/i',
         'text=/дз/i',
         'text=/задание/i',
+        '.homework',
+        '[class*="homework"]',
         'textarea[name*="homework"]',
-        'textarea[name*="task"]',
-        'input[name*="homework"]'
+        'textarea[name*="task"]'
       ]
       
       for (const selector of homeworkSelectors) {
@@ -184,8 +203,19 @@ async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | nu
           if (element) {
             has_homework = true
             
-            // Пытаемся найти описание рядом
-            const parent = await element.evaluateHandle((el) => el.closest('div, section, article'))
+            // Ищем описание рядом
+            const parent = await element.evaluateHandle((el) => {
+              let current = el
+              for (let i = 0; i < 5; i++) {
+                current = current.parentElement
+                if (!current) break
+                if (current.textContent && current.textContent.length > 50) {
+                  return current
+                }
+              }
+              return el
+            })
+            
             if (parent) {
               const text = await parent.asElement()?.textContent()
               if (text) {
@@ -208,8 +238,14 @@ async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | nu
           // Продолжаем поиск
         }
       }
+      
+      if (has_homework) {
+        console.log(`    ✅ ДЗ найдено`)
+      } else {
+        console.log(`    ❌ ДЗ не найдено`)
+      }
     } catch (e) {
-      console.log(`    ⚠️ Не удалось извлечь ДЗ: ${e}`)
+      console.log(`    ⚠️ Ошибка поиска ДЗ`)
     }
     
     return {
@@ -223,7 +259,7 @@ async function parseLesson(page: Page, lessonTitle: string): Promise<Lesson | nu
       homework_description
     }
   } catch (error) {
-    console.error(`  ❌ Ошибка парсинга урока "${lessonTitle}":`, error)
+    console.error(`    ❌ Ошибка парсинга урока:`, error)
     return null
   }
 }
@@ -234,7 +270,7 @@ async function parseCourse() {
   
   const browser = await chromium.launch({ 
     headless: false,
-    slowMo: 100 // Замедление для отладки
+    slowMo: 100
   })
   
   const context = await browser.newContext({
@@ -272,156 +308,122 @@ async function parseCourse() {
     } catch (e) {
       console.log('⚠️ Таймаут загрузки страницы уроков, продолжаем...')
     }
-    await page.waitForTimeout(3000)
     
-    // Шаг 4: Поиск модулей и уроков
-    console.log('🔍 Поиск модулей и уроков...\n')
+    // Ждем загрузки React компонентов
+    console.log('⏳ Жду загрузки React компонентов...')
+    await page.waitForTimeout(5000)
+    
+    // Шаг 4: Поиск модулей
+    console.log('🔍 Поиск модулей...\n')
+    
+    // Ищем все MUI Accordion (модули)
+    const accordions = await page.$$('.MuiAccordion-root')
+    console.log(`✅ Найдено модулей: ${accordions.length}\n`)
     
     const modules: Module[] = []
     
-    // Ищем все элементы уроков/модулей
-    // Варианты селекторов для списка уроков
-    const lessonSelectors = [
-      'a[href*="/lesson/"]',
-      'a[href*="/edit"]',
-      '.lesson-item',
-      '.module-item',
-      'tr[data-id]',
-      '.list-item',
-      '[data-lesson-id]'
-    ]
-    
-    let lessonLinks: any[] = []
-    for (const selector of lessonSelectors) {
-      try {
-        lessonLinks = await page.$$(selector)
-        if (lessonLinks.length > 0) {
-          console.log(`✅ Найдено элементов по селектору "${selector}": ${lessonLinks.length}`)
-          break
-        }
-      } catch (e) {
-        // Продолжаем поиск
-      }
-    }
-    
-    // Если не нашли через селекторы, попробуем найти все ссылки
-    if (lessonLinks.length === 0) {
-      console.log('⚠️ Не найдено через селекторы, ищем все ссылки...')
-      const allLinks = await page.$$('a')
-      const filteredLinks: any[] = []
-      for (const link of allLinks) {
-        const href = await link.getAttribute('href')
-        if (href && (href.includes('lesson') || href.includes('edit') || href.includes('panel'))) {
-          filteredLinks.push(link)
-        }
-      }
-      lessonLinks = filteredLinks
-    }
-    
-    console.log(`📊 Найдено потенциальных уроков: ${lessonLinks.length}\n`)
-    
-    // Сначала попробуем найти структуру модулей на странице
-    // Ищем заголовки модулей или группы уроков
-    const moduleHeaders = await page.$$('h2, h3, .module-title, [class*="module"]')
-    const moduleTitles: string[] = []
-    for (const header of moduleHeaders) {
-      const text = await header.textContent()
-      if (text && text.trim().length > 0) {
-        moduleTitles.push(text.trim())
-      }
-    }
-    
-    // Группируем по модулям (если есть структура модулей)
-    // Пока парсим все уроки подряд
-    const allLessons: Lesson[] = []
-    
-    // Собираем уникальные ссылки на уроки
-    const uniqueLessons = new Map<string, any>()
-    
-    for (const link of lessonLinks) {
-      try {
-        const href = await link.getAttribute('href')
-        const text = await link.textContent()
-        
-        if (href && text && !uniqueLessons.has(href)) {
-          uniqueLessons.set(href, { link, href, text: text.trim() })
-        }
-      } catch (e) {
-        // Пропускаем
-      }
-    }
-    
-    const lessonsToParse = Array.from(uniqueLessons.values())
-    console.log(`📚 Уникальных уроков для парсинга: ${lessonsToParse.length}\n`)
-    
-    for (let i = 0; i < lessonsToParse.length; i++) {
-      const { link, href, text } = lessonsToParse[i]
+    for (let i = 0; i < accordions.length; i++) {
+      const accordion = accordions[i]
       
       try {
-        console.log(`\n📖 Урок ${i + 1}/${lessonsToParse.length}: ${text}`)
+        // Получаем название модуля
+        const titleElement = await accordion.$('h6')
+        const moduleTitle = titleElement ? await titleElement.textContent() : `Модуль ${i + 1}`
+        const title = moduleTitle?.trim() || `Модуль ${i + 1}`
         
-        // Открываем урок в новой вкладке или кликаем
-        const fullUrl = href.startsWith('http') ? href : `https://antitreningi.ru${href}`
+        console.log(`📁 Модуль ${i + 1}/${accordions.length}: ${title}`)
         
-        // Если ссылка ведет на редактирование, используем её напрямую
-        if (href.includes('/edit') || href.includes('/lesson/')) {
-          await page.goto(fullUrl, { 
-            waitUntil: 'domcontentloaded',
-            timeout: 30000 
-          }).catch(() => {})
+        // Раскрываем модуль (кликаем на заголовок)
+        const summary = await accordion.$('.MuiAccordionSummary-root')
+        if (summary) {
+          const isExpanded = await accordion.getAttribute('aria-expanded')
+          if (isExpanded !== 'true') {
+            await summary.click()
+            await page.waitForTimeout(1000) // Ждем раскрытия
+          }
+        }
+        
+        // Ищем уроки внутри модуля
+        const lessonLinks = await accordion.$$('a[href*="/panel/"], a[href*="/lesson/"], a[href*="/edit"]')
+        
+        // Если не нашли через ссылки, ищем по другим селекторам
+        let lessons: Lesson[] = []
+        
+        if (lessonLinks.length > 0) {
+          console.log(`  📚 Найдено уроков: ${lessonLinks.length}`)
+          
+          for (let j = 0; j < lessonLinks.length; j++) {
+            const link = lessonLinks[j]
+            
+            try {
+              const href = await link.getAttribute('href')
+              const linkText = await link.textContent()
+              
+              if (!href || !linkText) continue
+              
+              const fullUrl = href.startsWith('http') ? href : `https://antitreningi.ru${href}`
+              
+              console.log(`  📄 Урок ${j + 1}/${lessonLinks.length}: ${linkText.trim()}`)
+              
+              // Открываем урок
+              await link.click()
+              await page.waitForTimeout(2000)
+              
+              // Парсим урок
+              const lesson = await parseLesson(page, linkText.trim())
+              
+              if (lesson) {
+                lesson.order_index = j
+                lessons.push(lesson)
+              }
+              
+              // Возвращаемся к списку уроков
+              await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
+                waitUntil: 'domcontentloaded',
+                timeout: 30000 
+              })
+              await page.waitForTimeout(3000)
+              
+              // Переоткрываем модуль
+              const accordionsAfter = await page.$$('.MuiAccordion-root')
+              if (accordionsAfter[i]) {
+                const summaryAfter = await accordionsAfter[i].$('.MuiAccordionSummary-root')
+                if (summaryAfter) {
+                  await summaryAfter.click()
+                  await page.waitForTimeout(1000)
+                }
+              }
+              
+            } catch (error) {
+              console.error(`  ❌ Ошибка при обработке урока ${j + 1}:`, error)
+              // Продолжаем дальше
+              await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
+                waitUntil: 'domcontentloaded',
+                timeout: 30000 
+              })
+              await page.waitForTimeout(2000)
+            }
+          }
         } else {
-          // Иначе кликаем и ждем перехода
-          await link.click()
-          await page.waitForNavigation({ 
-            waitUntil: 'domcontentloaded', 
-            timeout: 10000 
-          }).catch(() => {})
+          console.log(`  ⚠️ Уроки не найдены в модуле`)
         }
         
-        await page.waitForTimeout(3000)
+        modules.push({
+          title,
+          order_index: i,
+          lessons
+        })
         
-        // Парсим урок
-        const lesson = await parseLesson(page, text)
-        
-        if (lesson) {
-          lesson.order_index = allLessons.length
-          allLessons.push(lesson)
-        }
-        
-        // Возвращаемся к списку
-        await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
-          waitUntil: 'domcontentloaded',
-          timeout: 30000 
-        }).catch(() => {})
-        await page.waitForTimeout(2000)
+        console.log(`  ✅ Модуль обработан: ${lessons.length} уроков\n`)
         
       } catch (error) {
-        console.error(`❌ Ошибка при обработке урока ${i + 1}:`, error)
-        // Продолжаем дальше
-        try {
-          await page.goto('https://antitreningi.ru/panel/279505/lessons', { 
-            waitUntil: 'domcontentloaded',
-            timeout: 30000 
-          })
-          await page.waitForTimeout(2000)
-        } catch (e) {
-          // Игнорируем ошибки навигации
-        }
+        console.error(`❌ Ошибка при обработке модуля ${i + 1}:`, error)
       }
     }
-    
-    // Группируем уроки по модулям (пока один модуль со всеми уроками)
-    modules.push({
-      title: 'Все модули',
-      order_index: 0,
-      lessons: allLessons
-    })
     
     // Формируем результат
     const result: ParsedData = {
-      parsed_at: new Date().toISOString(),
-      total_modules: modules.length,
-      total_lessons: allLessons.length,
+      parsed_at: new Date().toISOString().split('T')[0],
       modules
     }
     
@@ -431,22 +433,17 @@ async function parseCourse() {
     console.log(`\n✅ Данные сохранены в ${jsonPath}`)
     
     // Статистика
-    const stats = {
-      modules: result.total_modules,
-      lessons: result.total_lessons,
-      withVideo: allLessons.filter(l => l.video_url).length,
-      withHomework: allLessons.filter(l => l.has_homework).length,
-      pdfMaterials: allLessons.reduce((sum, l) => sum + l.materials.filter(m => m.type === 'pdf').length, 0),
-      sheets: allLessons.reduce((sum, l) => sum + l.materials.filter(m => m.type === 'sheet').length, 0)
-    }
+    const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0)
+    const withVideo = modules.reduce((sum, m) => 
+      sum + m.lessons.filter(l => l.video_url).length, 0)
+    const withHomework = modules.reduce((sum, m) => 
+      sum + m.lessons.filter(l => l.has_homework).length, 0)
     
     console.log('\n📊 Статистика:')
-    console.log(`  Модулей: ${stats.modules}`)
-    console.log(`  Уроков всего: ${stats.lessons}`)
-    console.log(`  С видео: ${stats.withVideo}`)
-    console.log(`  С ДЗ: ${stats.withHomework}`)
-    console.log(`  PDF материалов: ${stats.pdfMaterials}`)
-    console.log(`  Таблиц: ${stats.sheets}`)
+    console.log(`  Модулей: ${modules.length}`)
+    console.log(`  Уроков всего: ${totalLessons}`)
+    console.log(`  С видео: ${withVideo}`)
+    console.log(`  С ДЗ: ${withHomework}`)
     
     // Генерируем SQL
     generateSQL(result)
@@ -470,28 +467,34 @@ function generateSQL(data: ParsedData) {
   sql.push(`-- Сгенерировано: ${data.parsed_at}`)
   sql.push('')
   
-  let moduleOrder = 0
-  let lessonOrder = 0
-  
   for (const module of data.modules) {
-    moduleOrder++
-    
     sql.push(`-- Модуль: ${module.title}`)
     sql.push(`INSERT INTO course_modules (id, title, description, order_index, min_tariff, lessons_count, is_active)`)
-    sql.push(`VALUES (gen_random_uuid(), '${module.title.replace(/'/g, "''")}', NULL, ${moduleOrder}, 'platinum', ${module.lessons.length}, true);`)
+    sql.push(`VALUES (gen_random_uuid(), '${module.title.replace(/'/g, "''")}', NULL, ${module.order_index}, 'platinum', ${module.lessons.length}, true);`)
     sql.push('')
     
     for (const lesson of module.lessons) {
-      lessonOrder++
-      
       const videoId = lesson.video_id ? `'${lesson.video_id}'` : 'NULL'
       const videoUrl = lesson.video_url ? `'${lesson.video_url.replace(/'/g, "''")}'` : 'NULL'
-      const description = lesson.description ? `'${lesson.description.replace(/'/g, "''")}'` : 'NULL'
-      const homeworkDesc = lesson.homework_description ? `'${lesson.homework_description.replace(/'/g, "''")}'` : 'NULL'
+      const description = lesson.description ? `'${lesson.description.replace(/'/g, "''").replace(/\n/g, ' ')}'` : 'NULL'
+      const homeworkDesc = lesson.homework_description ? `'${lesson.homework_description.replace(/'/g, "''").replace(/\n/g, ' ')}'` : 'NULL'
       
       sql.push(`-- Урок: ${lesson.title}`)
       sql.push(`INSERT INTO course_lessons (id, module_id, title, description, order_index, video_id, video_url, video_duration, has_homework, homework_title, homework_description, is_active)`)
-      sql.push(`VALUES (gen_random_uuid(), (SELECT id FROM course_modules WHERE order_index = ${moduleOrder} LIMIT 1), '${lesson.title.replace(/'/g, "''")}', ${description}, ${lessonOrder}, ${videoId}, ${videoUrl}, NULL, ${lesson.has_homework}, NULL, ${homeworkDesc}, true);`)
+      sql.push(`VALUES (`)
+      sql.push(`  gen_random_uuid(),`)
+      sql.push(`  (SELECT id FROM course_modules WHERE title ILIKE '%${module.title.replace(/'/g, "''")}%' LIMIT 1),`)
+      sql.push(`  '${lesson.title.replace(/'/g, "''")}',`)
+      sql.push(`  ${description},`)
+      sql.push(`  ${lesson.order_index},`)
+      sql.push(`  ${videoId},`)
+      sql.push(`  ${videoUrl},`)
+      sql.push(`  NULL,`)
+      sql.push(`  ${lesson.has_homework},`)
+      sql.push(`  NULL,`)
+      sql.push(`  ${homeworkDesc},`)
+      sql.push(`  true`)
+      sql.push(`);`)
       sql.push('')
       
       // Материалы
@@ -501,7 +504,14 @@ function generateSQL(data: ParsedData) {
           const materialTitle = material.title ? `'${material.title.replace(/'/g, "''")}'` : 'NULL'
           
           sql.push(`INSERT INTO lesson_materials (id, lesson_id, type, title, url, order_index)`)
-          sql.push(`VALUES (gen_random_uuid(), (SELECT id FROM course_lessons WHERE title = '${lesson.title.replace(/'/g, "''")}' LIMIT 1), '${material.type}', ${materialTitle}, '${material.url.replace(/'/g, "''")}', ${i});`)
+          sql.push(`VALUES (`)
+          sql.push(`  gen_random_uuid(),`)
+          sql.push(`  (SELECT id FROM course_lessons WHERE title = '${lesson.title.replace(/'/g, "''")}' LIMIT 1),`)
+          sql.push(`  '${material.type}',`)
+          sql.push(`  ${materialTitle},`)
+          sql.push(`  '${material.url.replace(/'/g, "''")}',`)
+          sql.push(`  ${i}`)
+          sql.push(`);`)
         }
         sql.push('')
       }
@@ -515,4 +525,3 @@ function generateSQL(data: ParsedData) {
 
 // Запуск
 parseCourse().catch(console.error)
-
