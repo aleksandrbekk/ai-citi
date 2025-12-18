@@ -239,14 +239,13 @@ export default function PosterCreate() {
       {/* Actions */}
       <div className="fixed bottom-20 left-0 right-0 p-4 bg-black border-t border-zinc-800">
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            className="flex-1 border-zinc-700 text-white hover:bg-zinc-800"
+          <button
             onClick={handleSaveDraft}
             disabled={isLoading || mediaFiles.length === 0}
+            className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Черновик'}
-          </Button>
+          </button>
           <Button 
             className="flex-1 bg-orange-500 hover:bg-orange-600"
             onClick={handleSchedule}
