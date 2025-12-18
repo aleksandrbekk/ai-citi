@@ -247,7 +247,7 @@ async function parseCourse() {
     // Шаг 1: Переход на страницу входа
     console.log('📄 Переход на страницу входа...')
     try {
-      await page.goto('https://antitreningi.ru/auth/login', { 
+      await page.goto('https://antitreningi.ru/#/login', { 
         waitUntil: 'domcontentloaded',
         timeout: 60000 
       })
