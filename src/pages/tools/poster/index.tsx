@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, Calendar, Image, Trash2, Edit, Send } from 'lucide-react'
+import { Plus, Calendar, Image, Trash2, Edit, Send, CalendarDays } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePosts, usePublishToInstagram } from '@/hooks/usePosts'
 
@@ -80,12 +80,20 @@ export default function PosterDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">НЕЙРОПОСТЕР</h1>
-        <Link to="/tools/poster/create">
-          <Button className="bg-orange-500 hover:bg-orange-600">
-            <Plus className="w-4 h-4 mr-2" />
-            Новый
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/tools/poster/calendar">
+            <Button variant="outline" className="border-zinc-700 text-white hover:bg-zinc-800">
+              <CalendarDays className="w-4 h-4 mr-2" />
+              Календарь
+            </Button>
+          </Link>
+          <Link to="/tools/poster/create">
+            <Button className="bg-orange-500 hover:bg-orange-600">
+              <Plus className="w-4 h-4 mr-2" />
+              Новый
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

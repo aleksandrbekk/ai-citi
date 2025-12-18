@@ -12,6 +12,7 @@ import { Shop } from '@/pages/Shop'
 import PosterDashboard from '@/pages/tools/poster'
 import PosterCreate from '@/pages/tools/poster/create'
 import PosterEdit from '@/pages/tools/poster/edit'
+import PosterCalendar from '@/pages/tools/poster/calendar'
 
 const queryClient = new QueryClient()
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="shop" element={<Shop />} />
             <Route path="tools/poster" element={<PosterDashboard />} />
             <Route path="tools/poster/create" element={<PosterCreate />} />
+            <Route path="tools/poster/calendar" element={<PosterCalendar />} />
             <Route path="tools/poster/:id/edit" element={<PosterEdit />} />
           </Route>
         </Routes>
