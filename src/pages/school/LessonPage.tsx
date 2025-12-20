@@ -9,6 +9,8 @@ export default function LessonPage() {
   const { data, isLoading } = useLesson(lessonId!)
   const [answer, setAnswer] = useState('')
   const [extraVideos, setExtraVideos] = useState<any[]>([])
+  const [quizzes, setQuizzes] = useState<any[]>([])
+  const [userAnswers, setUserAnswers] = useState<Record<string, string[]>>({})
   const submitHomework = useSubmitHomework()
   
   // Временно: фейковый userId
@@ -22,6 +24,16 @@ export default function LessonPage() {
         .eq('lesson_id', lessonId)
         .order('order_index')
         .then(({ data }) => setExtraVideos(data || []))
+      
+      supabase
+        .from('lesson_quizzes')
+        .select(`
+          *,
+          quiz_options (*)
+        `)
+        .eq('lesson_id', lessonId)
+        .order('order_index')
+        .then(({ data }) => setQuizzes(data || []))
     }
   }, [lessonId])
 
@@ -115,6 +127,60 @@ export default function LessonPage() {
                 <span className="flex-1">{material.title || 'Материал'}</span>
                 <ExternalLink className="w-4 h-4 text-zinc-500" />
               </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Тесты */}
+      {quizzes.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">📝 Тест</h2>
+          <div className="space-y-4">
+            {quizzes.map((quiz, qIndex) => (
+              <div key={quiz.id} className="bg-zinc-900 rounded-xl p-4">
+                <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
+                
+                <div className={quiz.question_type === 'image' ? 'grid grid-cols-2 gap-2' : 'space-y-2'}>
+                  {quiz.quiz_options?.map((opt: any) => (
+                    <label
+                      key={opt.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                        userAnswers[quiz.id]?.includes(opt.id)
+                          ? 'bg-orange-500/20 border-2 border-orange-500'
+                          : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
+                      }`}
+                    >
+                      <input
+                        type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
+                        name={`quiz-${quiz.id}`}
+                        checked={userAnswers[quiz.id]?.includes(opt.id) || false}
+                        onChange={() => {
+                          setUserAnswers(prev => {
+                            const current = prev[quiz.id] || []
+                            if (quiz.question_type === 'multiple') {
+                              return {
+                                ...prev,
+                                [quiz.id]: current.includes(opt.id)
+                                  ? current.filter(id => id !== opt.id)
+                                  : [...current, opt.id]
+                              }
+                            } else {
+                              return { ...prev, [quiz.id]: [opt.id] }
+                            }
+                          })
+                        }}
+                        className="hidden"
+                      />
+                      {quiz.question_type === 'image' && opt.image_url ? (
+                        <img src={opt.image_url} alt="" className="w-full h-24 object-cover rounded" />
+                      ) : (
+                        <span className="text-sm">{opt.option_text}</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
