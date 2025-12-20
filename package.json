@@ -11,16 +11,18 @@
     "parse:antitrainings": "tsx scripts/parse-antitrainings.ts",
     "parse:antitrainings:simple": "tsx scripts/parse-antitrainings-simple.ts",
     "clean:structure": "tsx scripts/clean-structure.ts",
-    "parse:content": "tsx scripts/parse-lesson-content.ts"
+    "parse:content": "tsx scripts/parse-lesson-content.ts",
+    "parse:full": "tsx scripts/parse-full-course.ts",
+    "upload:supabase": "tsx scripts/upload-to-supabase.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
-    "@supabase/supabase-js": "^2.87.3",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.561.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.57.0",
+    "@supabase/supabase-js": "^2.89.0",
     "@types/node": "^24.10.4",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

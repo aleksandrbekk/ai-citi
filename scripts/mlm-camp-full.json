@@ -1,0 +1,1606 @@
+{
+  "course_name": "МЛМ ЛАГЕРЬ",
+  "parsed_at": "2025-12-19T10:33:58.134Z",
+  "modules": [
+    {
+      "title": "Вводный модуль",
+      "order_index": 0,
+      "lessons": [
+        {
+          "title": "1. Схема обучения МЛМ Лагеря",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331201&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1kXtTo4UI7gEyDsvcm0jdLnmpncFh0prx/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/5f4a603f-d662-48e9-88b2-7bfb75ee8732",
+          "video_id": "5f4a603f-d662-48e9-88b2-7bfb75ee8732"
+        },
+        {
+          "title": "2. Принцип создания крепких команд в МЛМ",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331202&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1wXaYRp9Dtme6M-AGgIz5x2DAKXFvmoO0/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/q8r6ywEVnrADB1M5rghQkF"
+        }
+      ]
+    },
+    {
+      "title": "Модуль 1. Распаковка",
+      "order_index": 1,
+      "lessons": [
+        {
+          "title": "1. Виды распаковок",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331203&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1sf8EbBrWl-lO1n3FTCURcbKCLpyjvHiX/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/cXgsZWTeGFBDZfHwC4Wq87"
+        },
+        {
+          "title": "2. Распаковка личности",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331204&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1noqK7163NYGh_YiTmmrqtiivXVuIwPOd/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/9UDumvE8FFpRCH3C9UsL3P"
+        },
+        {
+          "title": "3. Распаковка личности запись",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=7245995&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/iSvA8DJMMyLDYkqHEkkgSN"
+        },
+        {
+          "title": "4. Проработка страхов",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331205&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "5. Распаковка аудитории",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331208&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1aQd17BjCWtHujm1XkQtXV0S2oy_hOb4o/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1IHTqA6ptk06zcf8S8yusMBmSDWaNP1Il/view"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/trtRZ4uRVggq5ve9YiqrRR"
+        },
+        {
+          "title": "6. Сегменты аудитории",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6331210&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1QQ1clqxF-aBqvpUE4w4lgDcaMqSnzkR8/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/obt8BhLDQ6hWvPAVNUNGvP"
+        },
+        {
+          "title": "7. Распаковка экспертности",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331206&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1CYRFvC5dkwVzORxvCzrLY4O49HLEUXs0/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/qitSR9iBPhkemRAWTr31YP"
+        },
+        {
+          "title": "8. Распаковка продукта",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331209&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1JSpLZdgNx12PptqcbBDWqQQDG0YZis-s/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Выбор темы и формата продукта",
+              "url": "https://drive.google.com/file/d/1cBK8DGOYJj5G1lKieYujLnoibMHmfES3/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/tbQpF1KXqtxiQonU5wgNJb"
+        },
+        {
+          "title": "9. Дополнительный урок. Простые деньги на распаковке",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331215&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1ds_MpXkuRIycx6WGo2FLBoJSZtrWFUyn/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "PDF",
+              "url": "https://drive.google.com/file/d/1d6KMBa6X3MZSWdF9riyjWgVfwkBfausw/view?usp=sharing"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "10. Итоги первого модуля",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331216&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1VgI9kGbjK9_qz5PlmrlouvUrJ_-wjOPY/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/vPLXLJ7Hj5SkqT52TgGbmZ"
+        }
+      ]
+    },
+    {
+      "title": "Модуль 2. Алгоритмы соц.сетей и фирменный стиль",
+      "order_index": 2,
+      "lessons": [
+        {
+          "title": "1. Виды блогов",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331222&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1EYzdv8mWqp-jyAIX-WsO_s2bq4HnRPSO/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/ue9M4GAQZk353MDC3GV6LQ"
+        },
+        {
+          "title": "2. Создание фирменного стиля",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331231&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1uyXuaH9LQZgJsARrTUOUXXLBmvwIe3C7/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1WYnDIoiX64YPWbZNx8WmgrcaGXdQEQgG/view?usp=share_link"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "3. Алгоритмы работы ВК",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331223&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1tUl12pZaAisVHc4mGGnPa1jzHryo7vWo/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/cCeuY5vJX1uuuwDN1pRbfL"
+        },
+        {
+          "title": "4. Виды контента в Телеграм",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331225&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1EW0x_0ZEAb327LKbl-C3kO3QnVAXep9I/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/n5mfBF4HJMZ1NuvaPe8fyt"
+        },
+        {
+          "title": "5. Алгоритмы инстаграм",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331232&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1sbAE_NotENS2NJbmT4MhJBKSd34OG-hr/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/rzy6AKZEezqR4dHkYA64KH"
+        },
+        {
+          "title": "6. Распаковка конкурентов",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6331211&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1J4R0bzmy2-Sglp9QawlHGwIa1pexMjhW/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1HkUrN3BzPdrzT03nvL3LPYN86AKd8-ej/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/n1wXFqPzjwuNSBB4C1jBNZ"
+        },
+        {
+          "title": "7. Как связать МЛМ с нишей",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331207&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1ILbxtg_K2jTA3F2DSigj9nsrcl7Z-p5h/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/wZVX1dbTvuCSqZfMYPUHui"
+        },
+        {
+          "title": "8. Формула УТП и статуса в соц.сетях",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331229&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1l8l_6DjtGBESeo1sFT58f4jDcjPvSwgF/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/722c364d-956b-4ed7-a0de-41b27c930008",
+          "video_id": "722c364d-956b-4ed7-a0de-41b27c930008"
+        },
+        {
+          "title": "9. Разборы аккаунтов",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=7245985&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1ILbxtg_K2jTA3F2DSigj9nsrcl7Z-p5h/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/qaVcHU3JokiCWMQUU6wyBG"
+        },
+        {
+          "title": "10. Дополнительный урок. Подключаем чат-бот к ВК",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331224&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1Ql_ET3LeOKJpjzyj-ek0bTS0MhKCzpEb/view?usp=share_link"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "11. Дополнительный урок. Как создать чат-бот в телеграм",
+          "order_index": 10,
+          "url": "/panel/lessons/preview?lesson_id=6331228&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1Zc_qiGqst9smpLguAJNkKtHhOV3QmO94/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1BlIXmAM7wQww5dhN0LpAIiIGq9ZHACIC/view"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "12. Дополнительный урок. Алгоритмы YouTube",
+          "order_index": 11,
+          "url": "/panel/lessons/preview?lesson_id=6331233&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/12cXwoNf0vgKbQuOrbsnrOrB6vtyP0ZzT/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/ebAYL69rzkhStYZddTk42v"
+        },
+        {
+          "title": "13. Дополнительный урок. Простые деньги SMM разборах",
+          "order_index": 12,
+          "url": "/panel/lessons/preview?lesson_id=6331234&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "14. Дополнительный урок. Создание квизов",
+          "order_index": 13,
+          "url": "/panel/lessons/preview?lesson_id=6331230&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/oarmGr5ztURisftbzWw1Rd"
+        },
+        {
+          "title": "15. Бесплатные методы набора подписчиков",
+          "order_index": 14,
+          "url": "/panel/lessons/preview?lesson_id=6331226&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1fZg5V7shmfSyfWBPM7l-Hbg1qfdZG-QO/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/wEx2TjK5jDD5e5gS2iXdfq"
+        },
+        {
+          "title": "16. Платные методы набора подписчиков",
+          "order_index": 15,
+          "url": "/panel/lessons/preview?lesson_id=6331227&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1Nq43lZi03ICTTwxlgWWjWW4FH982mJqb/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "99 идей для контента в соц.сетях",
+              "url": "https://drive.google.com/file/d/18_mgpScwlqAyXwJij2ZRl476t-lmq-Z5/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Как смотреть статистику в сториз",
+              "url": "https://drive.google.com/file/d/149abyMVqIPZcYabKMVYVyHFZZIQi0Z9-/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "20 способов взорвать охваты в сториз",
+              "url": "https://drive.google.com/file/d/1HsXx3-dNJ2ApOzMg6rMEvkYhnRzUvUYG/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/vRP1ynRvMACKtjQCWV31ii"
+        },
+        {
+          "title": "17. Итоги второго модуля",
+          "order_index": 16,
+          "url": "/panel/lessons/preview?lesson_id=6331235&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        }
+      ]
+    },
+    {
+      "title": "Модуль 3. Прогревы и создание контента",
+      "order_index": 3,
+      "lessons": [
+        {
+          "title": "1. Правила и принципы сторитейлинга",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331239&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1eVHE5n3zJboKKIFfUZnRXKRE0WAWZ3b8/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/8WPLzqmaQjaf3DDmoF8Lac"
+        },
+        {
+          "title": "2. Сюжетные линии",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331251&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1EWQuiEn49xNuQFbPf7McdtLK1O_8Wtvl/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/eug5kQYbBs2AYybMD8vKNy"
+        },
+        {
+          "title": "3. Первая вовлекающая сториз",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331252&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1006tJRAyiFA47Z1nv8T7VzWumyReyDxR/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/18umkTWfPOmfLGr78Z6ArAcj3DFUaPqBT/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1qRb7xjixDIbvdCq0fph-zFVBcttRQ6DY/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/vmfEoSPDPo95H449eEDMxw"
+        },
+        {
+          "title": "4. Форматы сториз",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331253&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1YOrp4MLI_4DxTwiLhmEdQQCNXD6MQ-VI/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "PDF-файла",
+              "url": "https://drive.google.com/file/d/13icd-dBbJkbffYRwt1pptrtLfbqumMX7/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/iDyh2bpsa8X4DEncJ4D78S"
+        },
+        {
+          "title": "5. Руководство по постам",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331254&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1eEEEZpM0adNL1oyTDACgc9sli2sf5fJ0/view?usp=share_link"
+            },
+            {
+              "type": "pdf",
+              "title": "Материал",
+              "url": "http://cm.startupmlm.ru/pdf/135_zagolovkov.pdf?utm_source=facebook&utm_medium=target&utm_campaign=voronka_135_zagolovka&utm_content=pdf"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/hV5sgmLMMUaE9bVcu45TiB"
+        },
+        {
+          "title": "6. Создание экспертного контента",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=7124987&course_id=279505",
+          "materials": [
+            {
+              "type": "pdf",
+              "title": "Материал",
+              "url": "https://v3.startupmlm.ru/uploads/file-lissons/1591284203.3272.pdf"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/db94ebb4-aa80-4973-8174-48478aa57b80",
+          "video_id": "db94ebb4-aa80-4973-8174-48478aa57b80"
+        },
+        {
+          "title": "7. Создание вирального контента",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=7124988&course_id=279505",
+          "materials": [
+            {
+              "type": "pdf",
+              "title": "Материал",
+              "url": "https://v3.startupmlm.ru/uploads/file-lissons/1591248069.496.pdf"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/gxAf5ucaaLJLYr3WY79SiL"
+        },
+        {
+          "title": "8. Создание продающего контента",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=7124989&course_id=279505",
+          "materials": [
+            {
+              "type": "pdf",
+              "title": "Материал",
+              "url": "https://v3.startupmlm.ru/uploads/file-lissons/1591248221.5182.pdf"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/j1bw8DaMkqKgSdPFkddFKn"
+        },
+        {
+          "title": "9. Банк идей для контента",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331257&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1wwtUYlQaMo9F9XDfEnKrrhhl0864VlgM/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/15eoQxXHN0qzEKYIs8HifP8_oSCdgpNa9/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1hoJx8SuM60DuP4iFufmzAHPH0uueBBlD/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/8yUYZW9D39tREpAchLwG8e"
+        },
+        {
+          "title": "10. Планирование контента",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331258&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1uszM4REqJI1r6IOt313l1YJF9ZfnjDoA/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/x1Jd2oAtDS4Kwq3TxewVRj"
+        },
+        {
+          "title": "11. Что такое прогревы",
+          "order_index": 10,
+          "url": "/panel/lessons/preview?lesson_id=6331236&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/sgbRVUPMXWjrkdhLTzz2v9"
+        },
+        {
+          "title": "12. Уровни недоверия клиента",
+          "order_index": 11,
+          "url": "/panel/lessons/preview?lesson_id=6331237&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1kPjLFjFqaxI0VODZpJnrUhrJXgf3xEgX/view"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/bZSuAonrdMS5RTiS7FXWyZ"
+        },
+        {
+          "title": "13. Прогревы в Сториз",
+          "order_index": 12,
+          "url": "/panel/lessons/preview?lesson_id=6331238&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1i5c4IX-VkfPbEq95OC2YfRtrxgGHsJPD/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/xyiWYAX2f4cNmw1dTYPSmS"
+        },
+        {
+          "title": "14. Структура прогрева",
+          "order_index": 13,
+          "url": "/panel/lessons/preview?lesson_id=6331240&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/16fPoX57TZpZ5uIdOIXut2qcZypyPDLv5/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/n3FkBAQ71bn6uXt89q4CuV"
+        },
+        {
+          "title": "15. Прогрев через инфоповод",
+          "order_index": 14,
+          "url": "/panel/lessons/preview?lesson_id=6331242&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1S91oOCwpekbV82ogYqIUweQBrEZmfy_-/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/jxNMi6qr3vUTe1dUGSqxtH"
+        },
+        {
+          "title": "16. Прогревы через боли аудитории",
+          "order_index": 15,
+          "url": "/panel/lessons/preview?lesson_id=6331243&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1pkO9MT-DirXZWgv5UHqequQy2t-xueNH/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/hEpqTCyzcniBUB6JWUB2H5"
+        },
+        {
+          "title": "17. Проектировка экспресс - прогрева",
+          "order_index": 16,
+          "url": "/panel/lessons/preview?lesson_id=6331241&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/17XfqXdWCU2oskw2B8FOcYuW5P3bFxHDi/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/fbS2FgikSQ5BuS2VwWXpNP"
+        },
+        {
+          "title": "18. Прогревы через ценности",
+          "order_index": 17,
+          "url": "/panel/lessons/preview?lesson_id=6331244&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1X1m3BCHfewWQYGNa6qbClhoxc22aVwzP/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1u-eNQnWHCuqXqxl7uzxVeUvFc5NO3c0V/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "\"Ценности и негативные убеждения\"",
+              "url": "https://drive.google.com/file/d/10_XwjvcbGrjjc2lAYS4KFQyP8ALNnb8S/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/mNUc3SU5nDbzrQezxVzhJo"
+        },
+        {
+          "title": "19. Вброс идеи продукта",
+          "order_index": 18,
+          "url": "/panel/lessons/preview?lesson_id=6331245&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1GZxQIvmyVyrjK8X2i_xTdg1TZIDqc381/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/nMcmak9ijDFWJyFcAm57zx"
+        },
+        {
+          "title": "20. Демонстрация экспертности",
+          "order_index": 19,
+          "url": "/panel/lessons/preview?lesson_id=6331246&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/12qcB2bodhI-anNEgZMvQwtYZy7ED3umH/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/hjsD7gh4CzZjLHUNF3WHAb"
+        },
+        {
+          "title": "21. Прогревы через кейсы",
+          "order_index": 20,
+          "url": "/panel/lessons/preview?lesson_id=6331247&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "PDF С УРОКА",
+              "url": "https://drive.google.com/file/d/1mcRLYgJxbSUdVn9wxoSonHKIPQ8s8weA/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/j62qYyb16Gw8jL5fRamGjS"
+        },
+        {
+          "title": "22. Закрытие возражений",
+          "order_index": 21,
+          "url": "/panel/lessons/preview?lesson_id=6331248&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "PDF к уроку",
+              "url": "https://drive.google.com/file/d/1u-eNQnWHCuqXqxl7uzxVeUvFc5NO3c0V/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1u-eNQnWHCuqXqxl7uzxVeUvFc5NO3c0V/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/kfC46ux6ND77Y3CNXff7C1"
+        },
+        {
+          "title": "23. Открытие продаж в блоге",
+          "order_index": 22,
+          "url": "/panel/lessons/preview?lesson_id=6331249&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "PDF к уроку",
+              "url": "https://drive.google.com/file/d/1XEyGTnJR3VXBfemS0GVy2jf8bJgIy4tx/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1XEyGTnJR3VXBfemS0GVy2jf8bJgIy4tx/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/cm2xCi2aqK3nxrw3QwwUJz"
+        },
+        {
+          "title": "24. Триггеры продаж",
+          "order_index": 23,
+          "url": "/panel/lessons/preview?lesson_id=6331250&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1izlD8rCJUusV34gY_sBH2lnQE9_ydoI4/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/diftkYGi4XBseUffCLYor8"
+        },
+        {
+          "title": "25. Прогревы в ВК",
+          "order_index": 24,
+          "url": "/panel/lessons/preview?lesson_id=6331255&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1DhlRtNIukCzOB3px9Dz02X5XtwfLNnwK/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/xAqDRp7zyxvrraFMYdjgHK"
+        },
+        {
+          "title": "26. Ошибки в прогревах",
+          "order_index": 25,
+          "url": "/panel/lessons/preview?lesson_id=6331256&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1_qlpoJ59q03FQ6yvXEtGnhbl2u1Vsoxc/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/jceKZ1f6EVa7tvE1EqCifF"
+        },
+        {
+          "title": "27. Reels, Shorts и ВК клипы - методы вовлечения",
+          "order_index": 26,
+          "url": "/panel/lessons/preview?lesson_id=6331259&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1A42EuxFkE4L_S1d5TLHo0WjZ1Bcd2-26/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1DUQbsH8PQoofMh9Sfvef7KtkIDtzJm45/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1WEJTjef7cvrlK7dAR4lAbavOKqS5DjUy/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/3ZdyxRHqHfSw6j2zEEX7Vs"
+        },
+        {
+          "title": "28. Продуктовая контент-стратегия",
+          "order_index": 27,
+          "url": "/panel/lessons/preview?lesson_id=6331260&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/344wV9X7WJeT73nVBPVhKf"
+        },
+        {
+          "title": "29. Дополнительный урок. Простые деньги на прогревах",
+          "order_index": 28,
+          "url": "/panel/lessons/preview?lesson_id=6331262&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "30. Итоги третьего модуля",
+          "order_index": 29,
+          "url": "/panel/lessons/preview?lesson_id=6331263&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        }
+      ]
+    },
+    {
+      "title": "Модуль 4. Продажи",
+      "order_index": 4,
+      "lessons": [
+        {
+          "title": "1. Создание тарифной сетки",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331264&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1ZJocF-n6Yn5ezmHePwQQ8SjrkYdWRNSr/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/wYsxA3UTfdoSRfxyZ7cRxG"
+        },
+        {
+          "title": "2. Как довести клиента до оплаты",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331265&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1QXBiz93eiiCKbpg3GqggdHsFrSEktU2K/view?usp=share_link"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/7AL34soCSYwwfvFn6gueTB"
+        },
+        {
+          "title": "3. Скрипты продаж",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331266&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1ii-yAKVVm06inSnlsLR78Hn5eFQwr-t-/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1Ecr-07lkDGDcoHcS0DFFujWpixSKSli1/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1OzOgL7bozZnk-a4X_7qLXpBmeFeFBbS3/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "СПИН",
+              "url": "http://drive.google.com/file/d/1Gu8nir4ZkP-viZPgLk-2hFuZqB4lMlYx/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/qn9JhbYovqK5RJtVpmXvsR"
+        },
+        {
+          "title": "4. Продажи в переписке",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331267&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/169sRkrP645KC6bWhz-ShLKRUIsAnw2E0/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "шпаргалку",
+              "url": "https://drive.google.com/file/d/169sRkrP645KC6bWhz-ShLKRUIsAnw2E0/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "18 приемов работы с возражениями",
+              "url": "https://drive.google.com/file/d/1QbnmVilZ6Ou3_MKWoKc9wBZHVONNjFn2/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/ovfBkeBzEVSnpfxTeSAJhK"
+        },
+        {
+          "title": "5. Создание продающей анкеты на консультацию",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=7245987&course_id=279505",
+          "materials": [
+            {
+              "type": "pdf",
+              "title": "Материал",
+              "url": "https://v3.startupmlm.ru/uploads/file-lissons/1591285663.4972.pdf"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/p5A8kucZJVhMF8hGwGoVpE"
+        },
+        {
+          "title": "6. Структура консультации",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=7245986&course_id=279505",
+          "materials": [
+            {
+              "type": "pdf",
+              "title": "Материал",
+              "url": "https://v3.startupmlm.ru/uploads/file-lissons/1591413944.803.pdf"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/d7PDwXy38voFjjRp4JJzEL"
+        },
+        {
+          "title": "7. Работа с мышлением",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331268&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1Iy_h7oKGGb0WTfvUQkigR1gsHfdKfu86/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1VLVvMiWHF9ihnJpgmo37JiypXyPiULWN/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/vyKujy3AFukHC4mjHntGMn"
+        },
+        {
+          "title": "8. Примеры триггеров",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331269&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1CVh5BIkEgQAG0PX4jlpMxIUEOgeD47Vx/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/kFGqf7aAHMGps9GfsCFT4w"
+        },
+        {
+          "title": "9. Создание продающего вебинара",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331270&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1PXOvIqVk_tmMdhury92Gcnc-YIw1R2bs/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/ueiN3fRfNHrnjekiWmB7rf"
+        },
+        {
+          "title": "10. Распаковка кейсов",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6331213&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1dijv-E8LJW0QZz9tku6jkV98B6uQbY5_/view?usp=share_link"
+            },
+            {
+              "type": "link",
+              "title": "файл вопросы для распаковки кейсов",
+              "url": "https://drive.google.com/file/d/1d6KMBa6X3MZSWdF9riyjWgVfwkBfausw/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/kguEeYULDtfsowQefCyfrb"
+        },
+        {
+          "title": "11. \"База продаж\" запись онлайн урока",
+          "order_index": 10,
+          "url": "/panel/lessons/preview?lesson_id=7246001&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/ooBxfauJtuSvVwrrbFdmyo"
+        },
+        {
+          "title": "12. Быстрые деньги на продажах",
+          "order_index": 11,
+          "url": "/panel/lessons/preview?lesson_id=6331271&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "13. Итоги четвертого модуля",
+          "order_index": 12,
+          "url": "/panel/lessons/preview?lesson_id=6331272&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        }
+      ]
+    },
+    {
+      "title": "Модуль 5. Источники трафика",
+      "order_index": 5,
+      "lessons": [
+        {
+          "title": "1. Виды трафика",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331273&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/idt4G69vEMqWKpY72eCiBp"
+        },
+        {
+          "title": "2. Все методы продвижения в Инстаграм",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331275&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/csxs9BPmrHXzG6kxYtpu4Y"
+        },
+        {
+          "title": "3. Воронка через Reels",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=7125450&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/9oDm2wgaXepSicCGB8pSqq"
+        },
+        {
+          "title": "4. Листовки",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331276&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/8RwWw4hJfS4dnFYwL9grB6"
+        },
+        {
+          "title": "5. Комментинг",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331274&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/3DcpBvEf7AM5AQJvrsPr1w"
+        },
+        {
+          "title": "6. Золотые правила взаимопиара",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=7245990&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/8LHhvNt88yTj1gRnRm3Fg5"
+        },
+        {
+          "title": "7. Дополнительный урок. Все методы продвижения в YouTube",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331277&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/vDvMqeWerHtQ49kPqcQAsr"
+        },
+        {
+          "title": "8. Партизанские методы рекламы",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331280&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1qRl0TLs8wGxdJgmVpE1LBoMu6u12H3fl/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "пример",
+              "url": "https://drive.google.com/file/d/150DkW8qbQjJPACl_a1H-ErytJpSUZWzl/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/kTWwsjdQqyaZEhoXxWLWSQ"
+        },
+        {
+          "title": "9. Итоги пятого модуля",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6331281&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        }
+      ]
+    },
+    {
+      "title": "Дополнительный модуль. Запуск и работа с командой",
+      "order_index": 6,
+      "lessons": [
+        {
+          "title": "1. Запуск новичка с 0",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6343515&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1OTZn0QbAGyEqRAT_GsZ3BlbPosbLnje3/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/6AsTEYY8oQYcRks5mbRAcu"
+        },
+        {
+          "title": "2. Способы повышения товарооборота и ЛТО",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6346079&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1XCQZzjiLIrHgeqPBMADKQuSwwRpzHb67/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/fLonCTHUKLYbgDeupUKXzV"
+        },
+        {
+          "title": "3. Методы активации неактивных партнеров",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6363184&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1LIDZc8XIK3pEdaaw_Fpgfa9F685SkAL2/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/mrN3ga6ERnpwTE5vaHXwVK"
+        },
+        {
+          "title": "4. Работа с Лидерами структуры",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6394982&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1ontp4cJvwWIvuWpRbA5UtFPQ5wYirjh-/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/fYvW9pyGUpZp26AeKp9kzk"
+        },
+        {
+          "title": "5. Темы командных планерок",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6394983&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1oGqhjvEQYNE9SlC_5qhVm_mdRMPSgKYn/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/0Sa97mKe2eV9Ervvbqvert"
+        },
+        {
+          "title": "6. Создание системы автозапуска партнеров",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6395012&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1j01HiLrysYiuBCLYWCgNODnI-l7pKhEn/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/7rKFFembbTUDoJE5uPQ36c"
+        },
+        {
+          "title": "7. Как зарабатывать миллионы на продуктовом бизнесе",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6413571&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/16TTGOuYLf5n5axYHwdMDmEPF3kObPE9V/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/hySqegnxvM5PQidEN3HBRG"
+        },
+        {
+          "title": "8. Алена Ли работы в клиентских чатах",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6408823&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1NRWFCtdtsqkDe68Tl-AdNl6ZG5O3O7KI/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/mR8jXjPjzk9wYS9EdCbAGG"
+        },
+        {
+          "title": "9. Марина Павленко. Работа в клиентских чатах",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6431116&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1t7sGoJRSvUvza9r0yS8wk-S2v9Hgep4o/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1jadrTODKrxkOB1VwU9Jc3940r1riprGo/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/11DWb0yS74JBJ4NuX6fip7LIWLwhoRovs/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/dYxhmRvHH5r3mnfbJ8cdLm"
+        },
+        {
+          "title": "10. Секреты мотивации и дисциплины",
+          "order_index": 9,
+          "url": "/panel/lessons/preview?lesson_id=6406976&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/16I7WPl1NNY7nvs_18i8r7dZdTJh0PAuT/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/8Dis9BV8u7sX4C1hEVdAWJ"
+        }
+      ]
+    },
+    {
+      "title": "Дополнительный модуль. Автоворонки и чат-боты",
+      "order_index": 7,
+      "lessons": [
+        {
+          "title": "1. Создание чат-бот в Телеграм",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6465792&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/8YzvdLw6DhA1yf9yg2GdiW"
+        },
+        {
+          "title": "2. Виды лид-магнитов для МЛМ",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6465793&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1HmoK08xqOycgMOwZD28CZErAMKU-if9n/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1M6gjApEkaffHSi1F9WRomX-bFva5xPQm/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/ef9ac4be-2aa8-49bc-8081-1a07c5a4d657",
+          "video_id": "ef9ac4be-2aa8-49bc-8081-1a07c5a4d657"
+        },
+        {
+          "title": "3. Как окупить платный трафик",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6465794&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/jvquYJKnHsi52Abw4KWXo8"
+        },
+        {
+          "title": "4. Сервисы для автоматизации",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6465795&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1BlIXmAM7wQww5dhN0LpAIiIGq9ZHACIC/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/08b14f4c-b7e5-4ce3-86a1-5f7e78e6e426",
+          "video_id": "08b14f4c-b7e5-4ce3-86a1-5f7e78e6e426"
+        },
+        {
+          "title": "5. Связки и автоворонки",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6465796&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/kiFiG9mChGs2RQJSzyNi1B"
+        },
+        {
+          "title": "6. Как связать автоворонку с таргетом",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6465797&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1_FCRpSg-rOgEsr0yLji_1XG_XkM9Viox/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1J7x5RsQTAvXO8uHJEJiV0GF5wJpX2Z_d/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/7JmFUszmYFmsQW4WMWAn5i"
+        },
+        {
+          "title": "7. Создание автовебинара",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6465798&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/aj9RnkdG5yyB3pc13LQwLt"
+        },
+        {
+          "title": "8. Тропинка прогрева через бот",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6465800&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/9a29b04f-8966-4f4f-a88c-13e032818cc6",
+          "video_id": "9a29b04f-8966-4f4f-a88c-13e032818cc6"
+        },
+        {
+          "title": "9. Готовые схемы автоворонок А.Бекка",
+          "order_index": 8,
+          "url": "/panel/lessons/preview?lesson_id=6465802&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1N0xY4F_S94nf-Ay4BsDtcECTUzspCytK/view?usp=sharing"
+            },
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1OB0Y61FrJo4qHGaeCE8UWSQfqdaSXBz7/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/1396003b-dc24-4684-b0a7-44fe1399f1ce",
+          "video_id": "1396003b-dc24-4684-b0a7-44fe1399f1ce"
+        }
+      ]
+    },
+    {
+      "title": "Продающие связки. Бонусный модуль",
+      "order_index": 8,
+      "lessons": [
+        {
+          "title": "1. Связка 1. Фокус-группа",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331217&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/s2F8uu4pG97w5opmXvNnLE"
+        },
+        {
+          "title": "2. Пример создания рабочих связок в разных нишах",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331218&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/nBWibAeZZ5XrUWQGn4JCkg"
+        },
+        {
+          "title": "3. Связки. Экспертные вопросы. Продающие кейсы. Рассылки в ТГ",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331219&course_id=279505",
+          "materials": [],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/nYG86e3bz7MhUz3Rtwk2Bm"
+        }
+      ]
+    },
+    {
+      "title": "Записи онлайн занятий МЛМ Лагеря",
+      "order_index": 9,
+      "lessons": [
+        {
+          "title": "1. Записи онлайн занятий",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6821525&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "PDF",
+              "url": "https://drive.google.com/file/d/1aIDw308Q_aXkTLY2asHui_-bm-UXU2o3/view?usp=sharing"
+            }
+          ],
+          "has_homework": true,
+          "video_url": "https://kinescope.io/embed/43d044b5-ccb6-40c8-bfb1-a0fdb741315c",
+          "video_id": "43d044b5-ccb6-40c8-bfb1-a0fdb741315c"
+        }
+      ]
+    },
+    {
+      "title": "МЛМ Ракета",
+      "order_index": 10,
+      "lessons": [
+        {
+          "title": "1. Вводные уроки",
+          "order_index": 0,
+          "url": "/panel/lessons/preview?lesson_id=6331289&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "drive.google.com/file/d/1Id8f8UM7I5Db7vyV_gkdCi-67bTcyvph/view",
+              "url": "https://drive.google.com/file/d/1Id8f8UM7I5Db7vyV_gkdCi-67bTcyvph/view"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "2. День 1",
+          "order_index": 1,
+          "url": "/panel/lessons/preview?lesson_id=6331290&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "drive.google.com/file/d/1O2DBDAdxA2d0eb7Jafb8Mx-eDlYAPVna/view?usp=sharing",
+              "url": "https://drive.google.com/file/d/1O2DBDAdxA2d0eb7Jafb8Mx-eDlYAPVna/view?usp=sharing"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "3. День 2",
+          "order_index": 2,
+          "url": "/panel/lessons/preview?lesson_id=6331291&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "4. День 3",
+          "order_index": 3,
+          "url": "/panel/lessons/preview?lesson_id=6331292&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "5. День 4",
+          "order_index": 4,
+          "url": "/panel/lessons/preview?lesson_id=6331293&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "drive.google.com/drive/folders/1yQeB4JtsQn0LhWKQZKRsYcH2D4pD_u0L",
+              "url": "https://drive.google.com/drive/folders/1yQeB4JtsQn0LhWKQZKRsYcH2D4pD_u0L"
+            }
+          ],
+          "has_homework": true
+        },
+        {
+          "title": "6. День 5",
+          "order_index": 5,
+          "url": "/panel/lessons/preview?lesson_id=6331294&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "7. День 6",
+          "order_index": 6,
+          "url": "/panel/lessons/preview?lesson_id=6331295&course_id=279505",
+          "materials": [],
+          "has_homework": true
+        },
+        {
+          "title": "8. День 7",
+          "order_index": 7,
+          "url": "/panel/lessons/preview?lesson_id=6331296&course_id=279505",
+          "materials": [
+            {
+              "type": "link",
+              "title": "Материал",
+              "url": "https://drive.google.com/file/d/1PWA9LSXSD99GkyPnPhEugNmBvqhQX0w1/view?usp=sharing"
+            }
+          ],
+          "has_homework": true
+        }
+      ]
+    }
+  ]
+}
