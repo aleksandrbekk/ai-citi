@@ -62,7 +62,12 @@ export default function LessonPage() {
       {/* Описание урока */}
       {lesson?.description && (
         <div className="bg-gray-800/50 rounded-xl p-3 mb-4">
-          <p className="text-sm text-gray-300 whitespace-pre-line leading-relaxed">{lesson.description}</p>
+          <p className="text-xs font-medium text-white mb-2">В этом уроке:</p>
+          <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside">
+            {lesson.description.split('\n').filter(line => line.trim()).map((line, index) => (
+              <li key={index}>{line.trim()}</li>
+            ))}
+          </ol>
         </div>
       )}
 
