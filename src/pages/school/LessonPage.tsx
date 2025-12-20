@@ -45,13 +45,6 @@ export default function LessonPage() {
         <h1 className="text-lg font-bold flex-1">{lesson?.title}</h1>
       </div>
 
-      {/* Описание урока */}
-      {lesson?.description && (
-        <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
-          <p className="text-gray-300 whitespace-pre-line">{lesson.description}</p>
-        </div>
-      )}
-
       {/* Видео */}
       {lesson?.video_url && (
         <div className="mb-6">
@@ -63,6 +56,13 @@ export default function LessonPage() {
               allowFullScreen
             />
           </div>
+        </div>
+      )}
+
+      {/* Описание урока */}
+      {lesson?.description && (
+        <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
+          <p className="text-gray-300 whitespace-pre-line">{lesson.description}</p>
         </div>
       )}
 
