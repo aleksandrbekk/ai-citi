@@ -48,15 +48,22 @@ export default function LessonPage() {
   const { lesson, materials } = data || {}
 
   const handleSubmit = async () => {
-    if (!answer.trim() || !lessonId) return
+    if (!lessonId) return
+    
+    const hasTextAnswer = answer.trim().length > 0
+    const hasQuizAnswers = Object.keys(userAnswers).length > 0
+    
+    if (!hasTextAnswer && !hasQuizAnswers) return
     
     await submitHomework.mutateAsync({
       lessonId,
       userId,
-      answerText: answer
+      answerText: answer || '',
+      quizAnswers: userAnswers
     })
     
     setAnswer('')
+    setUserAnswers({})
     alert('Ответ отправлен на проверку!')
   }
 
@@ -137,81 +144,83 @@ export default function LessonPage() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">📝 Домашнее задание</h2>
           
+          {/* Описание задания */}
           {lesson.homework_description && (
             <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 mb-4">
               <p className="text-zinc-300 whitespace-pre-wrap">{lesson.homework_description}</p>
             </div>
           )}
 
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Напиши свой ответ..."
-            className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none"
-          />
-          
+          {/* Тесты/квизы (если есть) */}
+          {quizzes.length > 0 && (
+            <div className="space-y-4 mb-4">
+              {quizzes.map((quiz, qIndex) => (
+                <div key={quiz.id} className="bg-zinc-900 rounded-xl p-4">
+                  <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
+                  
+                  <div className={quiz.question_type === 'image' ? 'grid grid-cols-2 gap-2' : 'space-y-2'}>
+                    {quiz.quiz_options?.map((opt: any) => (
+                      <label
+                        key={opt.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                          userAnswers[quiz.id]?.includes(opt.id)
+                            ? 'bg-orange-500/20 border-2 border-orange-500'
+                            : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
+                        }`}
+                      >
+                        <input
+                          type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
+                          name={`quiz-${quiz.id}`}
+                          checked={userAnswers[quiz.id]?.includes(opt.id) || false}
+                          onChange={() => {
+                            setUserAnswers(prev => {
+                              const current = prev[quiz.id] || []
+                              if (quiz.question_type === 'multiple') {
+                                return {
+                                  ...prev,
+                                  [quiz.id]: current.includes(opt.id)
+                                    ? current.filter(id => id !== opt.id)
+                                    : [...current, opt.id]
+                                }
+                              } else {
+                                return { ...prev, [quiz.id]: [opt.id] }
+                              }
+                            })
+                          }}
+                          className="hidden"
+                        />
+                        {quiz.question_type === 'image' && opt.image_url ? (
+                          <img src={opt.image_url} alt="" className="w-full h-24 object-cover rounded" />
+                        ) : (
+                          <span className="text-sm">{opt.option_text}</span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Текстовый ответ — только если НЕТ тестов */}
+          {quizzes.length === 0 && (
+            <textarea
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Напиши свой ответ..."
+              className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none mb-4"
+            />
+          )}
+
+          {/* Кнопка отправки */}
           <button
             onClick={handleSubmit}
-            disabled={!answer.trim() || submitHomework.isPending}
-            className="mt-3 w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
+            disabled={(quizzes.length === 0 && !answer.trim()) || (quizzes.length > 0 && Object.keys(userAnswers).length === 0) || submitHomework.isPending}
+            className="w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
           >
             <Send className="w-4 h-4" />
             {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
           </button>
-        </div>
-      )}
-
-      {/* Тесты */}
-      {quizzes.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">📝 Тест</h2>
-          <div className="space-y-4">
-            {quizzes.map((quiz, qIndex) => (
-              <div key={quiz.id} className="bg-zinc-900 rounded-xl p-4">
-                <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
-                
-                <div className={quiz.question_type === 'image' ? 'grid grid-cols-2 gap-2' : 'space-y-2'}>
-                  {quiz.quiz_options?.map((opt: any) => (
-                    <label
-                      key={opt.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                        userAnswers[quiz.id]?.includes(opt.id)
-                          ? 'bg-orange-500/20 border-2 border-orange-500'
-                          : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
-                      }`}
-                    >
-                      <input
-                        type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
-                        name={`quiz-${quiz.id}`}
-                        checked={userAnswers[quiz.id]?.includes(opt.id) || false}
-                        onChange={() => {
-                          setUserAnswers(prev => {
-                            const current = prev[quiz.id] || []
-                            if (quiz.question_type === 'multiple') {
-                              return {
-                                ...prev,
-                                [quiz.id]: current.includes(opt.id)
-                                  ? current.filter(id => id !== opt.id)
-                                  : [...current, opt.id]
-                              }
-                            } else {
-                              return { ...prev, [quiz.id]: [opt.id] }
-                            }
-                          })
-                        }}
-                        className="hidden"
-                      />
-                      {quiz.question_type === 'image' && opt.image_url ? (
-                        <img src={opt.image_url} alt="" className="w-full h-24 object-cover rounded" />
-                      ) : (
-                        <span className="text-sm">{opt.option_text}</span>
-                      )}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>
