@@ -132,6 +132,35 @@ export default function LessonPage() {
         </div>
       )}
 
+      {/* Домашнее задание */}
+      {lesson?.has_homework && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">📝 Домашнее задание</h2>
+          
+          {lesson.homework_description && (
+            <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 mb-4">
+              <p className="text-zinc-300 whitespace-pre-wrap">{lesson.homework_description}</p>
+            </div>
+          )}
+
+          <textarea
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder="Напиши свой ответ..."
+            className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none"
+          />
+          
+          <button
+            onClick={handleSubmit}
+            disabled={!answer.trim() || submitHomework.isPending}
+            className="mt-3 w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
+          >
+            <Send className="w-4 h-4" />
+            {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
+          </button>
+        </div>
+      )}
+
       {/* Тесты */}
       {quizzes.length > 0 && (
         <div className="mb-6">
@@ -183,35 +212,6 @@ export default function LessonPage() {
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Домашнее задание */}
-      {lesson?.has_homework && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">📝 Домашнее задание</h2>
-          
-          {lesson.homework_description && (
-            <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 mb-4">
-              <p className="text-zinc-300 whitespace-pre-wrap">{lesson.homework_description}</p>
-            </div>
-          )}
-
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Напиши свой ответ..."
-            className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none"
-          />
-          
-          <button
-            onClick={handleSubmit}
-            disabled={!answer.trim() || submitHomework.isPending}
-            className="mt-3 w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
-          >
-            <Send className="w-4 h-4" />
-            {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
-          </button>
         </div>
       )}
     </div>
