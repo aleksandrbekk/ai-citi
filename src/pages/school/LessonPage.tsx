@@ -1,16 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
 import { ArrowLeft, FileText, ExternalLink, Send } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export default function LessonPage() {
   const { tariffSlug, moduleId, lessonId } = useParams<{ tariffSlug: string; moduleId: string; lessonId: string }>()
   const { data, isLoading } = useLesson(lessonId!)
   const [answer, setAnswer] = useState('')
+  const [extraVideos, setExtraVideos] = useState<any[]>([])
   const submitHomework = useSubmitHomework()
   
   // Временно: фейковый userId
   const userId = 'temp-user-id'
+
+  useEffect(() => {
+    if (lessonId) {
+      supabase
+        .from('lesson_videos')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .order('order_index')
+        .then(({ data }) => setExtraVideos(data || []))
+    }
+  }, [lessonId])
 
   if (isLoading) {
     return (
@@ -58,6 +71,20 @@ export default function LessonPage() {
           </div>
         </div>
       )}
+
+      {/* Дополнительные видео */}
+      {extraVideos.map((video) => (
+        <div key={video.id} className="mb-4">
+          <div className="aspect-video rounded-xl overflow-hidden bg-zinc-900">
+            <iframe
+              src={video.video_url}
+              className="w-full h-full"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      ))}
 
       {/* Описание урока */}
       {lesson?.description && (
