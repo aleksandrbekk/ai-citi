@@ -61,8 +61,8 @@ export default function LessonPage() {
 
       {/* Описание урока */}
       {lesson?.description && (
-        <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
-          <p className="text-gray-300 whitespace-pre-line">{lesson.description}</p>
+        <div className="bg-gray-800/50 rounded-xl p-3 mb-4">
+          <p className="text-sm text-gray-300 whitespace-pre-line leading-relaxed">{lesson.description}</p>
         </div>
       )}
 
