@@ -117,12 +117,18 @@ export default function LessonPage() {
       <div className="max-w-3xl mx-auto px-4">
         {/* Шапка */}
         <div className="flex items-center justify-between mb-4">
-          {/* Левая часть: назад + предыдущий */}
-          <div className="flex items-center gap-2">
-            <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            
+          {/* Назад к модулю */}
+          <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+
+          {/* Название */}
+          <h1 className="text-lg font-bold text-center flex-1 px-2">
+            {lesson?.title}
+          </h1>
+
+          {/* Навигация между уроками */}
+          <div className="flex items-center gap-1">
             <button 
               onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
               disabled={!prevLesson}
@@ -130,15 +136,6 @@ export default function LessonPage() {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Центр: название */}
-          <h1 className="text-lg font-bold text-center flex-1 px-2">
-            {lesson?.title}
-          </h1>
-
-          {/* Правая часть: следующий */}
-          <div className="flex items-center">
             <button 
               onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
               disabled={!nextLesson}
