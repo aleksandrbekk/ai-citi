@@ -116,34 +116,37 @@ export default function LessonPage() {
     <div className="min-h-screen bg-black text-white pb-24">
       <div className="max-w-3xl mx-auto px-4">
         {/* Шапка */}
-        <div className="flex items-center gap-3 mb-4">
-          {/* Назад к модулю */}
-          <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          
-          {/* Предыдущий урок */}
-          <button 
-            onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
-            disabled={!prevLesson}
-            className={`p-1 ${prevLesson ? 'text-white' : 'text-zinc-600'}`}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+        <div className="flex items-center justify-between mb-4">
+          {/* Левая часть: назад + предыдущий */}
+          <div className="flex items-center gap-2">
+            <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            
+            <button 
+              onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
+              disabled={!prevLesson}
+              className={`p-2 ${prevLesson ? 'text-white' : 'text-zinc-600'}`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          </div>
 
-          {/* Название */}
-          <h1 className="text-lg font-bold flex-1 text-center">
+          {/* Центр: название */}
+          <h1 className="text-lg font-bold text-center flex-1 px-2">
             {lesson?.order_index}. {lesson?.title}
           </h1>
 
-          {/* Следующий урок */}
-          <button 
-            onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
-            disabled={!nextLesson}
-            className={`p-1 ${nextLesson ? 'text-white' : 'text-zinc-600'}`}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+          {/* Правая часть: следующий */}
+          <div className="flex items-center">
+            <button 
+              onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
+              disabled={!nextLesson}
+              className={`p-2 ${nextLesson ? 'text-white' : 'text-zinc-600'}`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Видео */}
