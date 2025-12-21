@@ -134,7 +134,7 @@ export default function LessonPage() {
 
           {/* Центр: название */}
           <h1 className="text-lg font-bold text-center flex-1 px-2">
-            {lesson?.order_index}. {lesson?.title}
+            {lesson?.title}
           </h1>
 
           {/* Правая часть: следующий */}
