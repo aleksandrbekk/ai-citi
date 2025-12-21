@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
-import { ArrowLeft, FileText, ExternalLink, Send, Check } from 'lucide-react'
+import { ArrowLeft, FileText, ExternalLink, Send, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function LessonPage() {
   const { tariffSlug, moduleId, lessonId } = useParams<{ tariffSlug: string; moduleId: string; lessonId: string }>()
+  const navigate = useNavigate()
   const { data, isLoading } = useLesson(lessonId!)
   const [answer, setAnswer] = useState('')
   const [extraVideos, setExtraVideos] = useState<any[]>([])
@@ -15,6 +17,27 @@ export default function LessonPage() {
   
   // Временно: фейковый userId
   const userId = 'temp-user-id'
+
+  // Получи все уроки модуля
+  const { data: allLessons } = useQuery({
+    queryKey: ['module-lessons', moduleId],
+    queryFn: async () => {
+      if (!moduleId) return []
+      const { data } = await supabase
+        .from('course_lessons')
+        .select('id, title, order_index')
+        .eq('module_id', moduleId)
+        .eq('is_active', true)
+        .order('order_index')
+      return data || []
+    },
+    enabled: !!moduleId
+  })
+
+  // Найди индекс текущего урока
+  const currentIndex = allLessons?.findIndex(l => l.id === lessonId) ?? -1
+  const prevLesson = currentIndex > 0 ? allLessons?.[currentIndex - 1] : null
+  const nextLesson = currentIndex < (allLessons?.length || 0) - 1 ? allLessons?.[currentIndex + 1] : null
 
   useEffect(() => {
     if (lessonId) {
@@ -92,11 +115,37 @@ export default function LessonPage() {
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24">
       {/* Шапка */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link to={`/school/${tariffSlug}/${moduleId}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <h1 className="text-lg font-bold flex-1">{lesson?.title}</h1>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          {/* Назад к модулю */}
+          <Link to={`/school/${tariffSlug}/${moduleId}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          
+          {/* Предыдущий урок */}
+          <button 
+            onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/${prevLesson.id}`)}
+            disabled={!prevLesson}
+            className={`p-2 rounded-lg ${prevLesson ? 'hover:bg-zinc-800' : 'opacity-30 cursor-not-allowed'}`}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        </div>
+
+        <h1 className="text-lg font-bold text-center flex-1">
+          {lesson?.order_index}. {lesson?.title}
+        </h1>
+
+        <div className="flex items-center gap-2">
+          {/* Следующий урок */}
+          <button 
+            onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/${nextLesson.id}`)}
+            disabled={!nextLesson}
+            className={`p-2 rounded-lg ${nextLesson ? 'hover:bg-zinc-800' : 'opacity-30 cursor-not-allowed'}`}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Видео */}
