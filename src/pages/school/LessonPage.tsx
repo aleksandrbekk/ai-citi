@@ -116,7 +116,7 @@ export default function LessonPage() {
     <div className="min-h-screen bg-black text-white pb-24">
       <div className="max-w-3xl mx-auto px-4">
         {/* Шапка */}
-        <div className="relative flex items-center justify-between mb-4">
+        <div className="relative flex items-center justify-between mb-4 h-10">
           {/* Назад к модулю */}
           <button 
             onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)} 
@@ -125,8 +125,8 @@ export default function LessonPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          {/* Название — абсолютно по центру */}
-          <h1 className="absolute left-0 right-0 text-lg font-bold text-center px-16">
+          {/* Название — по центру */}
+          <h1 className="absolute left-0 right-0 top-1/2 -translate-y-1/2 text-base font-semibold text-center px-16 truncate">
             {lesson?.title}
           </h1>
 
