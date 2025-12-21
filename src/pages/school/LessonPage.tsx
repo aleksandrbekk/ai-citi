@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
-import { ArrowLeft, FileText, ExternalLink, Send } from 'lucide-react'
+import { ArrowLeft, FileText, ExternalLink, Send, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function LessonPage() {
@@ -176,45 +176,93 @@ export default function LessonPage() {
                 <div key={quiz.id} className="bg-zinc-900 rounded-xl p-4">
                   <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
                   
-                  <div className={quiz.question_type === 'image' ? 'grid grid-cols-2 gap-2' : 'space-y-2'}>
-                    {quiz.quiz_options?.map((opt: any) => (
-                      <label
-                        key={opt.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                          userAnswers[quiz.id]?.includes(opt.id)
-                            ? 'bg-orange-500/20 border-2 border-orange-500'
-                            : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
-                        }`}
-                      >
-                        <input
-                          type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
-                          name={`quiz-${quiz.id}`}
-                          checked={userAnswers[quiz.id]?.includes(opt.id) || false}
-                          onChange={() => {
-                            setUserAnswers(prev => {
-                              const current = prev[quiz.id] || []
-                              if (quiz.question_type === 'multiple') {
-                                return {
-                                  ...prev,
-                                  [quiz.id]: current.includes(opt.id)
-                                    ? current.filter(id => id !== opt.id)
-                                    : [...current, opt.id]
+                  {quiz.question_type === 'image' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {quiz.quiz_options?.map((opt: any) => (
+                        <label
+                          key={opt.id}
+                          className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                            userAnswers[quiz.id]?.includes(opt.id)
+                              ? 'border-orange-500 ring-2 ring-orange-500/50'
+                              : 'border-zinc-700 hover:border-zinc-500'
+                          }`}
+                        >
+                          <input
+                            type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
+                            name={`quiz-${quiz.id}`}
+                            checked={userAnswers[quiz.id]?.includes(opt.id) || false}
+                            onChange={() => {
+                              setUserAnswers(prev => {
+                                const current = prev[quiz.id] || []
+                                if (quiz.question_type === 'multiple') {
+                                  return {
+                                    ...prev,
+                                    [quiz.id]: current.includes(opt.id)
+                                      ? current.filter(id => id !== opt.id)
+                                      : [...current, opt.id]
+                                  }
+                                } else {
+                                  return { ...prev, [quiz.id]: [opt.id] }
                                 }
-                              } else {
-                                return { ...prev, [quiz.id]: [opt.id] }
-                              }
-                            })
-                          }}
-                          className="hidden"
-                        />
-                        {quiz.question_type === 'image' && opt.image_url ? (
-                          <img src={opt.image_url} alt="" className="w-full h-24 object-cover rounded" />
-                        ) : (
+                              })
+                            }}
+                            className="sr-only"
+                          />
+                          <img 
+                            src={opt.image_url} 
+                            alt={opt.option_text || ''} 
+                            className="w-full aspect-[4/3] object-cover"
+                          />
+                          {opt.option_text && (
+                            <div className="p-2 bg-zinc-800 text-center text-sm">
+                              {opt.option_text}
+                            </div>
+                          )}
+                          {userAnswers[quiz.id]?.includes(opt.id) && (
+                            <div className="absolute top-2 right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                              <Check className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {quiz.quiz_options?.map((opt: any) => (
+                        <label
+                          key={opt.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                            userAnswers[quiz.id]?.includes(opt.id)
+                              ? 'bg-orange-500/20 border-2 border-orange-500'
+                              : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
+                          }`}
+                        >
+                          <input
+                            type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
+                            name={`quiz-${quiz.id}`}
+                            checked={userAnswers[quiz.id]?.includes(opt.id) || false}
+                            onChange={() => {
+                              setUserAnswers(prev => {
+                                const current = prev[quiz.id] || []
+                                if (quiz.question_type === 'multiple') {
+                                  return {
+                                    ...prev,
+                                    [quiz.id]: current.includes(opt.id)
+                                      ? current.filter(id => id !== opt.id)
+                                      : [...current, opt.id]
+                                  }
+                                } else {
+                                  return { ...prev, [quiz.id]: [opt.id] }
+                                }
+                              })
+                            }}
+                            className="hidden"
+                          />
                           <span className="text-sm">{opt.option_text}</span>
-                        )}
-                      </label>
-                    ))}
-                  </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
