@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
-import { ArrowLeft, FileText, ExternalLink, Send, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function LessonPage() {
