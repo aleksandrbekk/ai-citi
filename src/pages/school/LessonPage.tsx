@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
 import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -113,68 +113,70 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24">
-      {/* Шапка */}
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-black text-white pb-24">
+      <div className="max-w-3xl mx-auto px-4">
+        {/* Шапка */}
+        <div className="flex items-center gap-3 mb-4">
           {/* Назад к модулю */}
-          <Link to={`/school/${tariffSlug}/${moduleId}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
+          <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg">
             <ArrowLeft className="w-5 h-5" />
-          </Link>
+          </button>
           
           {/* Предыдущий урок */}
           <button 
             onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/${prevLesson.id}`)}
             disabled={!prevLesson}
-            className={`p-2 rounded-lg ${prevLesson ? 'hover:bg-zinc-800' : 'opacity-30 cursor-not-allowed'}`}
+            className={`p-1 ${prevLesson ? 'text-white' : 'text-zinc-600'}`}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-        </div>
 
-        <h1 className="text-lg font-bold text-center flex-1">
-          {lesson?.order_index}. {lesson?.title}
-        </h1>
+          {/* Название */}
+          <h1 className="text-lg font-bold flex-1 text-center">
+            {lesson?.order_index}. {lesson?.title}
+          </h1>
 
-        <div className="flex items-center gap-2">
           {/* Следующий урок */}
           <button 
             onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/${nextLesson.id}`)}
             disabled={!nextLesson}
-            className={`p-2 rounded-lg ${nextLesson ? 'hover:bg-zinc-800' : 'opacity-30 cursor-not-allowed'}`}
+            className={`p-1 ${nextLesson ? 'text-white' : 'text-zinc-600'}`}
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
-      </div>
 
-      {/* Видео */}
-      {lesson?.video_url && (
-        <div className="mb-6">
-          <div className="aspect-video rounded-xl overflow-hidden bg-zinc-900">
-            <iframe
-              src={lesson.video_url}
-              className="w-full h-full"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-            />
+        {/* Видео */}
+        {lesson?.video_url && (
+          <div className="mb-6">
+            <div className="max-w-2xl mx-auto">
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+                <iframe
+                  src={lesson.video_url}
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Дополнительные видео */}
-      {extraVideos.map((video) => (
-        <div key={video.id} className="mb-4">
-          <div className="aspect-video rounded-xl overflow-hidden bg-zinc-900">
-            <iframe
-              src={video.video_url}
-              className="w-full h-full"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-            />
+        {/* Дополнительные видео */}
+        {extraVideos.map((video) => (
+          <div key={video.id} className="mb-4">
+            <div className="max-w-2xl mx-auto">
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+                <iframe
+                  src={video.video_url}
+                  className="w-full h-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
       {/* Описание урока */}
       {lesson?.description && (
@@ -328,6 +330,7 @@ export default function LessonPage() {
           </button>
         </div>
       )}
+      </div>
     </div>
   )
 }
