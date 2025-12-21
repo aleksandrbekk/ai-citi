@@ -177,14 +177,14 @@ export default function LessonPage() {
                   <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
                   
                   {quiz.question_type === 'image' ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       {quiz.quiz_options?.map((opt: any) => (
                         <label
                           key={opt.id}
-                          className={`relative cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                          className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
                             userAnswers[quiz.id]?.includes(opt.id)
-                              ? 'border-orange-500 ring-2 ring-orange-500/50'
-                              : 'border-zinc-700 hover:border-zinc-500'
+                              ? 'border-orange-500'
+                              : 'border-zinc-700'
                           }`}
                         >
                           <input
@@ -211,18 +211,8 @@ export default function LessonPage() {
                           <img 
                             src={opt.image_url} 
                             alt={opt.option_text || ''} 
-                            className="w-full aspect-[4/3] object-cover"
+                            className="w-full h-auto object-contain bg-zinc-800"
                           />
-                          {opt.option_text && (
-                            <div className="p-2 bg-zinc-800 text-center text-sm">
-                              {opt.option_text}
-                            </div>
-                          )}
-                          {userAnswers[quiz.id]?.includes(opt.id) && (
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                          )}
                         </label>
                       ))}
                     </div>
