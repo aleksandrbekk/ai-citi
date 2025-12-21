@@ -116,19 +116,22 @@ export default function LessonPage() {
     <div className="min-h-screen bg-black text-white pb-24">
       <div className="max-w-3xl mx-auto px-4">
         {/* Шапка */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="relative flex items-center justify-between mb-4">
           {/* Назад к модулю */}
-          <button onClick={() => navigate(-1)} className="p-2 bg-zinc-800 rounded-lg">
+          <button 
+            onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)} 
+            className="p-2 bg-zinc-800 rounded-lg z-10"
+          >
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          {/* Название */}
-          <h1 className="text-lg font-bold text-center flex-1 px-2">
+          {/* Название — абсолютно по центру */}
+          <h1 className="absolute left-0 right-0 text-lg font-bold text-center px-16">
             {lesson?.title}
           </h1>
 
           {/* Навигация между уроками */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 z-10">
             <button 
               onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
               disabled={!prevLesson}
