@@ -124,7 +124,7 @@ export default function LessonPage() {
           
           {/* Предыдущий урок */}
           <button 
-            onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/${prevLesson.id}`)}
+            onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
             disabled={!prevLesson}
             className={`p-1 ${prevLesson ? 'text-white' : 'text-zinc-600'}`}
           >
@@ -138,7 +138,7 @@ export default function LessonPage() {
 
           {/* Следующий урок */}
           <button 
-            onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/${nextLesson.id}`)}
+            onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
             disabled={!nextLesson}
             className={`p-1 ${nextLesson ? 'text-white' : 'text-zinc-600'}`}
           >
