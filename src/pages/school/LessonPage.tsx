@@ -47,6 +47,28 @@ export default function LessonPage() {
 
   const { lesson, materials } = data || {}
 
+  const linkifyText = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const parts = text.split(urlRegex)
+    
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-orange-400 underline break-all"
+          >
+            {part}
+          </a>
+        )
+      }
+      return part
+    })
+  }
+
   const handleSubmit = async () => {
     if (!lessonId) return
     
@@ -109,7 +131,7 @@ export default function LessonPage() {
       {lesson?.description && (
         <div className="bg-gray-800/50 rounded-xl p-3 mb-4">
           <p className="text-xs font-medium text-white mb-2">В этом уроке:</p>
-          <p className="text-xs text-gray-400 whitespace-pre-wrap">{lesson.description}</p>
+          <p className="text-xs text-gray-400 whitespace-pre-wrap">{linkifyText(lesson.description)}</p>
         </div>
       )}
 
