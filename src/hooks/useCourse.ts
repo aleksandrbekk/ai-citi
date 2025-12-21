@@ -151,21 +151,25 @@ export function useHomeworkSubmission(lessonId: string, userId: string) {
 }
 
 // Отправить ДЗ
+interface SubmitHomeworkInput {
+  lessonId: string
+  userId: string
+  answerText: string
+  quizAnswers?: Record<string, string[]>
+}
+
 export function useSubmitHomework() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async ({ lessonId, userId, answerText }: { 
-      lessonId: string
-      userId: string
-      answerText: string 
-    }) => {
+    mutationFn: async (input: SubmitHomeworkInput) => {
       const { data, error } = await supabase
         .from('homework_submissions')
         .insert({
-          lesson_id: lessonId,
-          user_id: userId,
-          answer_text: answerText,
+          lesson_id: input.lessonId,
+          user_id: input.userId,
+          answer_text: input.answerText,
+          quiz_answers: input.quizAnswers || {},
           status: 'pending'
         })
         .select()
