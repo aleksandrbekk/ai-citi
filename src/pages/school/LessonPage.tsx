@@ -170,7 +170,7 @@ export default function LessonPage() {
           <div key={video.id} className="mb-4">
             {/* Название видео если есть */}
             {video.title && (
-              <h3 className="text-sm font-medium text-zinc-300 mb-2 px-1">
+              <h3 className="text-lg font-semibold text-white mb-3 text-center">
                 {video.title}
               </h3>
             )}
