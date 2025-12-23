@@ -39,6 +39,25 @@ export default function LessonPage() {
   const prevLesson = currentIndex > 0 ? allLessons?.[currentIndex - 1] : null
   const nextLesson = currentIndex < (allLessons?.length || 0) - 1 ? allLessons?.[currentIndex + 1] : null
 
+  // Получи статус отправленного ДЗ текущего пользователя
+  const { data: mySubmission } = useQuery({
+    queryKey: ['my-submission', lessonId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
+      
+      const { data } = await supabase
+        .from('homework_submissions')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .eq('user_id', user.id)
+        .single()
+      
+      return data
+    },
+    enabled: !!lessonId
+  })
+
   useEffect(() => {
     if (lessonId) {
       supabase
@@ -230,6 +249,40 @@ export default function LessonPage() {
             </div>
           )}
 
+          {/* Статус отправленного ДЗ */}
+          {mySubmission && (
+            <div className={`mb-4 p-4 rounded-xl ${
+              mySubmission.status === 'pending' 
+                ? 'bg-yellow-500/10 border border-yellow-500/30' 
+                : mySubmission.status === 'approved'
+                ? 'bg-green-500/10 border border-green-500/30'
+                : 'bg-red-500/10 border border-red-500/30'
+            }`}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`w-2 h-2 rounded-full ${
+                  mySubmission.status === 'pending' ? 'bg-yellow-400' :
+                  mySubmission.status === 'approved' ? 'bg-green-400' : 'bg-red-400'
+                }`} />
+                <span className="font-medium">
+                  {mySubmission.status === 'pending' ? 'На проверке' :
+                   mySubmission.status === 'approved' ? 'Зачёт ✓' : 'Незачёт ✗'}
+                </span>
+              </div>
+              
+              {/* Твой ответ */}
+              <p className="text-sm text-zinc-400 mb-2">Твой ответ:</p>
+              <p className="text-sm text-zinc-300 whitespace-pre-wrap mb-2">{mySubmission.answer_text}</p>
+              
+              {/* Комментарий куратора */}
+              {mySubmission.curator_comment && (
+                <div className="mt-3 pt-3 border-t border-zinc-700">
+                  <p className="text-sm text-blue-400 mb-1">Комментарий куратора:</p>
+                  <p className="text-sm text-white">{mySubmission.curator_comment}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Тесты/квизы (если есть) */}
           {quizzes.length > 0 && (
             <div className="space-y-4 mb-4">
@@ -319,25 +372,30 @@ export default function LessonPage() {
             </div>
           )}
 
-          {/* Текстовый ответ — только если НЕТ тестов */}
-          {quizzes.length === 0 && (
-            <textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Напиши свой ответ..."
-              className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none mb-4"
-            />
-          )}
+          {/* Форма отправки — показывать только если нет ДЗ или оно rejected */}
+          {(!mySubmission || mySubmission.status === 'rejected') && (
+            <>
+              {/* Текстовый ответ — только если НЕТ тестов */}
+              {quizzes.length === 0 && (
+                <textarea
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  placeholder="Напиши свой ответ..."
+                  className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none mb-4"
+                />
+              )}
 
-          {/* Кнопка отправки */}
-          <button
-            onClick={handleSubmit}
-            disabled={(quizzes.length === 0 && !answer.trim()) || (quizzes.length > 0 && Object.keys(userAnswers).length === 0) || submitHomework.isPending}
-            className="w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
-          >
-            <Send className="w-4 h-4" />
-            {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
-          </button>
+              {/* Кнопка отправки */}
+              <button
+                onClick={handleSubmit}
+                disabled={(quizzes.length === 0 && !answer.trim()) || (quizzes.length > 0 && Object.keys(userAnswers).length === 0) || submitHomework.isPending}
+                className="w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
+              >
+                <Send className="w-4 h-4" />
+                {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
+              </button>
+            </>
+          )}
         </div>
       )}
       </div>
