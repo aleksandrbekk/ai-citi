@@ -168,6 +168,13 @@ export default function LessonPage() {
         {/* Дополнительные видео */}
         {extraVideos.map((video) => (
           <div key={video.id} className="mb-4">
+            {/* Название видео если есть */}
+            {video.title && (
+              <h3 className="text-sm font-medium text-zinc-300 mb-2 px-1">
+                {video.title}
+              </h3>
+            )}
+            
             <div className="max-w-2xl mx-auto">
               <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
                 <iframe
