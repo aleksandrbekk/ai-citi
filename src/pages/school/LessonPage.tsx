@@ -76,6 +76,27 @@ export default function LessonPage() {
     enabled: !!lessonId
   })
 
+  // Проверить доступ
+  const { data: userTariff } = useQuery({
+    queryKey: ['user-tariff-access', lessonId],
+    queryFn: async () => {
+      const authStorage = localStorage.getItem('auth-storage')
+      if (!authStorage) return null
+      
+      const parsed = JSON.parse(authStorage)
+      const userId = parsed?.state?.user?.id
+      if (!userId || userId === 'dev-user') return null
+      
+      const { data } = await supabase
+        .from('user_tariffs')
+        .select('is_active')
+        .eq('user_id', userId)
+        .single()
+      
+      return data
+    }
+  })
+
   useEffect(() => {
     if (lessonId) {
       supabase
@@ -96,6 +117,18 @@ export default function LessonPage() {
         .then(({ data }) => setQuizzes(data || []))
     }
   }, [lessonId])
+
+  // Если доступ приостановлен — показать сообщение
+  if (userTariff && userTariff.is_active === false) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center max-w-md">
+          <p className="text-red-400 text-xl font-semibold mb-2">Доступ приостановлен</p>
+          <p className="text-zinc-400">Обратитесь к администратору для возобновления доступа</p>
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return (

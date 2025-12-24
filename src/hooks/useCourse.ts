@@ -184,6 +184,29 @@ export function useSubmitHomework() {
   })
 }
 
+// Получить статус доступа пользователя к тарифу
+export function useUserTariffAccess(userId: string | null) {
+  return useQuery({
+    queryKey: ['user-tariff-access', userId],
+    queryFn: async () => {
+      if (!userId || userId === 'dev-user') return null
+      
+      const { data, error } = await supabase
+        .from('user_tariffs')
+        .select('is_active')
+        .eq('user_id', userId)
+        .single()
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching user tariff access:', error)
+      }
+      
+      return data
+    },
+    enabled: !!userId && userId !== 'dev-user'
+  })
+}
+
 
 
 
