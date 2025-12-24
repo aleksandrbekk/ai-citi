@@ -160,12 +160,64 @@ export default function LessonPage() {
       return
     }
     
-    await submitHomework.mutateAsync({
-      lessonId,
-      userId,
-      answerText: answer || '',
-      quizAnswers: userAnswers
-    })
+    // Подготовить данные для отправки
+    const homeworkAnswer = answer || ''
+    const selectedAnswers = userAnswers
+    
+    // Проверить есть ли уже ДЗ
+    const { data: existingSubmission, error: fetchError } = await supabase
+      .from('homework_submissions')
+      .select('id, status')
+      .eq('lesson_id', lessonId)
+      .eq('user_id', userId)
+      .maybeSingle()
+    
+    // Игнорируем ошибку "не найдено"
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error fetching existing submission:', fetchError)
+    }
+    
+    let error
+    
+    if (existingSubmission && existingSubmission.status === 'rejected') {
+      // Обновить существующее ДЗ
+      const { error: updateError } = await supabase
+        .from('homework_submissions')
+        .update({
+          answer_text: homeworkAnswer,
+          quiz_answers: selectedAnswers,
+          status: 'pending',
+          curator_comment: null,
+          reviewed_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingSubmission.id)
+      
+      error = updateError
+    } else if (!existingSubmission) {
+      // Создать новое ДЗ
+      const { error: insertError } = await supabase
+        .from('homework_submissions')
+        .insert({
+          user_id: userId,
+          lesson_id: lessonId,
+          answer_text: homeworkAnswer,
+          quiz_answers: selectedAnswers,
+          status: 'pending'
+        })
+      
+      error = insertError
+    } else {
+      // ДЗ уже отправлено и не rejected
+      alert('Домашнее задание уже отправлено')
+      return
+    }
+    
+    if (error) {
+      console.error('Error submitting homework:', error)
+      alert('Ошибка при отправке')
+      return
+    }
     
     setAnswer('')
     setUserAnswers({})
