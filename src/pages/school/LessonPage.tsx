@@ -14,9 +14,6 @@ export default function LessonPage() {
   const [quizzes, setQuizzes] = useState<any[]>([])
   const [userAnswers, setUserAnswers] = useState<Record<string, string[]>>({})
   const submitHomework = useSubmitHomework()
-  
-  // Временно: фейковый userId
-  const userId = 'temp-user-id'
 
   // Получи все уроки модуля
   const { data: allLessons } = useQuery({
@@ -118,6 +115,24 @@ export default function LessonPage() {
     const hasQuizAnswers = Object.keys(userAnswers).length > 0
     
     if (!hasTextAnswer && !hasQuizAnswers) return
+    
+    // Получить текущего пользователя из Supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Если нет user из auth, попробуй получить из localStorage
+    let userId = user?.id
+    if (!userId) {
+      const savedUser = localStorage.getItem('user')
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser)
+        userId = parsed.id
+      }
+    }
+    
+    if (!userId) {
+      alert('Необходимо авторизоваться')
+      return
+    }
     
     await submitHomework.mutateAsync({
       lessonId,
