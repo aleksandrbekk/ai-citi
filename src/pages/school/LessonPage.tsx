@@ -37,18 +37,39 @@ export default function LessonPage() {
   const nextLesson = currentIndex < (allLessons?.length || 0) - 1 ? allLessons?.[currentIndex + 1] : null
 
   // Получи статус отправленного ДЗ текущего пользователя
-  const { data: mySubmission } = useQuery({
+  const { data: mySubmission, refetch: refetchSubmission } = useQuery({
     queryKey: ['my-submission', lessonId],
     queryFn: async () => {
+      // Получить user_id
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return null
+      let userId = user?.id
       
-      const { data } = await supabase
+      if (!userId) {
+        const authStorage = localStorage.getItem('auth-storage')
+        if (authStorage) {
+          try {
+            const parsed = JSON.parse(authStorage)
+            userId = parsed?.state?.user?.id
+          } catch (e) {
+            console.error('Error parsing auth-storage:', e)
+          }
+        }
+      }
+      
+      if (!userId || userId === 'dev-user') {
+        return null
+      }
+      
+      const { data, error } = await supabase
         .from('homework_submissions')
         .select('*')
         .eq('lesson_id', lessonId)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single()
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching submission:', error)
+      }
       
       return data
     },
@@ -149,6 +170,7 @@ export default function LessonPage() {
     setAnswer('')
     setUserAnswers({})
     alert('Ответ отправлен на проверку!')
+    refetchSubmission()
   }
 
   return (
