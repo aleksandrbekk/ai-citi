@@ -116,21 +116,26 @@ export default function LessonPage() {
     
     if (!hasTextAnswer && !hasQuizAnswers) return
     
-    // Получить текущего пользователя из Supabase
+    // Получить текущего пользователя
     const { data: { user } } = await supabase.auth.getUser()
     
-    // Если нет user из auth, попробуй получить из localStorage
     let userId = user?.id
+    
+    // Если нет user из auth, получить из auth-storage (Zustand)
     if (!userId) {
-      const savedUser = localStorage.getItem('user')
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser)
-        userId = parsed.id
+      const authStorage = localStorage.getItem('auth-storage')
+      if (authStorage) {
+        try {
+          const parsed = JSON.parse(authStorage)
+          userId = parsed?.state?.user?.id
+        } catch (e) {
+          console.error('Error parsing auth-storage:', e)
+        }
       }
     }
     
-    if (!userId) {
-      alert('Необходимо авторизоваться')
+    if (!userId || userId === 'dev-user') {
+      alert('Необходимо авторизоваться через Telegram')
       return
     }
     
