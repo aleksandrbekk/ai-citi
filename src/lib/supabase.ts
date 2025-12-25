@@ -38,3 +38,42 @@ export async function checkIsCurator(userId: string): Promise<boolean> {
   
   return !!data && !error
 }
+
+export async function getOrCreateUser(telegramUser: {
+  id: number
+  first_name?: string
+  last_name?: string
+  username?: string
+  photo_url?: string
+}) {
+  // Сначала проверим есть ли пользователь
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('*')
+    .eq('telegram_id', telegramUser.id)
+    .single()
+  
+  if (existingUser) {
+    return existingUser
+  }
+  
+  // Создаём нового пользователя
+  const { data: newUser, error } = await supabase
+    .from('users')
+    .insert({
+      telegram_id: telegramUser.id,
+      first_name: telegramUser.first_name || 'Пользователь',
+      last_name: telegramUser.last_name || null,
+      username: telegramUser.username || null,
+      avatar_url: telegramUser.photo_url || null
+    })
+    .select()
+    .single()
+  
+  if (error) {
+    console.error('Error creating user:', error)
+    return null
+  }
+  
+  return newUser
+}

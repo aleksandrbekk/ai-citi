@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
-import { checkWhitelist } from './lib/supabase'
+import { checkWhitelist, getOrCreateUser } from './lib/supabase'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
@@ -33,28 +33,33 @@ function App() {
 
   useEffect(() => {
     const checkAccess = async () => {
-      let telegramId: number | null = null
+      let telegramUser: any = null
 
       // Проверяем Telegram Mini App
       const tg = window.Telegram?.WebApp
-      if (tg?.initDataUnsafe?.user?.id) {
-        telegramId = tg.initDataUnsafe.user.id
+      if (tg?.initDataUnsafe?.user) {
+        telegramUser = tg.initDataUnsafe.user
       } else {
         // Проверяем localStorage (веб-авторизация)
         const savedUser = localStorage.getItem('tg_user')
         if (savedUser) {
           try {
-            const user = JSON.parse(savedUser)
-            telegramId = user.id
+            telegramUser = JSON.parse(savedUser)
           } catch {}
         }
       }
 
-      if (telegramId) {
-        const allowed = await checkWhitelist(telegramId)
+      if (telegramUser?.id) {
+        // Проверяем whitelist
+        const allowed = await checkWhitelist(telegramUser.id)
+        
+        if (allowed) {
+          // Создаём или получаем пользователя из базы
+          await getOrCreateUser(telegramUser)
+        }
+        
         setHasAccess(allowed)
       } else {
-        // Нет авторизации - покажем логин
         setHasAccess(null)
       }
       
