@@ -56,8 +56,26 @@ const buildings = [
 ]
 
 export function Home() {
-  const { user, profile } = useAuth()
+  const { profile } = useAuth() // profile используется для проверки уровня зданий
   const [isCurator, setIsCurator] = useState(false)
+  // Получаем имя из Telegram или localStorage
+  const [userName, setUserName] = useState('Пользователь')
+
+  useEffect(() => {
+    // Получаем имя из Telegram или localStorage
+    const tg = window.Telegram?.WebApp
+    if (tg?.initDataUnsafe?.user?.first_name) {
+      setUserName(tg.initDataUnsafe.user.first_name)
+    } else {
+      const savedUser = localStorage.getItem('tg_user')
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser)
+          setUserName(user.first_name || 'Пользователь')
+        } catch {}
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Получить user_id текущего пользователя и проверить
@@ -91,7 +109,7 @@ export function Home() {
       {/* Приветствие */}
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold text-white">
-          Привет, {user?.first_name || 'Нейрожитель'}! 👋
+          Привет, {userName}! 👋
         </h1>
         <p className="text-zinc-400">
           Добро пожаловать в НЕЙРОГОРОД
