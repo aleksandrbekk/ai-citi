@@ -19,6 +19,7 @@ import SchoolIndex from '@/pages/school/index'
 import TariffPage from '@/pages/school/TariffPage'
 import ModulePage from '@/pages/school/ModulePage'
 import LessonPage from '@/pages/school/LessonPage'
+import CuratorReview from './pages/CuratorReview'
 
 const queryClient = new QueryClient()
 
@@ -86,6 +87,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path="/curator" element={<CuratorReview />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="profile" element={<Profile />} />

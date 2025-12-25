@@ -27,3 +27,14 @@ export async function checkWhitelist(telegramId: number): Promise<boolean> {
   
   return !!data && !error
 }
+
+export async function checkIsCurator(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('curators')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .single()
+  
+  return !!data && !error
+}

@@ -1,7 +1,10 @@
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent } from '@/components/ui/card'
 import { Bot, GraduationCap, Wrench, ShoppingBag, Dumbbell } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { supabase } from '@/lib/supabase'
+import { checkIsCurator } from '@/lib/supabase'
 
 const buildings = [
   {
@@ -54,6 +57,34 @@ const buildings = [
 
 export function Home() {
   const { user, profile } = useAuth()
+  const [isCurator, setIsCurator] = useState(false)
+
+  useEffect(() => {
+    // Получить user_id текущего пользователя и проверить
+    const checkCurator = async () => {
+      // Получаем user по telegram_id
+      const tg = window.Telegram?.WebApp
+      const savedUser = localStorage.getItem('tg_user')
+      let telegramId = tg?.initDataUnsafe?.user?.id
+      if (!telegramId && savedUser) {
+        telegramId = JSON.parse(savedUser).id
+      }
+      
+      if (telegramId) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id')
+          .eq('telegram_id', telegramId)
+          .single()
+        
+        if (userData) {
+          const curator = await checkIsCurator(userData.id)
+          setIsCurator(curator)
+        }
+      }
+    }
+    checkCurator()
+  }, [])
 
   return (
     <div className="p-4 space-y-6">
@@ -66,6 +97,13 @@ export function Home() {
           Добро пожаловать в НЕЙРОГОРОД
         </p>
       </div>
+
+      {/* Кнопка для кураторов */}
+      {isCurator && (
+        <Link to="/curator" className="block bg-orange-500 text-white rounded-xl p-4 text-center font-medium">
+          📋 Проверка ДЗ
+        </Link>
+      )}
 
       {/* Карта зданий */}
       <div className="grid grid-cols-2 gap-3">
