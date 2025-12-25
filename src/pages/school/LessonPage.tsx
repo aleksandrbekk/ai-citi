@@ -15,6 +15,21 @@ export default function LessonPage() {
   const [userAnswers, setUserAnswers] = useState<Record<string, string[]>>({})
   const submitHomework = useSubmitHomework()
 
+  // Получаем telegram_id текущего пользователя
+  const getTelegramId = (): number | null => {
+    const tg = (window as any).Telegram?.WebApp
+    if (tg?.initDataUnsafe?.user?.id) {
+      return tg.initDataUnsafe.user.id
+    }
+    const savedUser = localStorage.getItem('tg_user')
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser).id
+      } catch {}
+    }
+    return null
+  }
+
   // Получи все уроки модуля
   const { data: allLessons } = useQuery({
     queryKey: ['module-lessons', moduleId],
@@ -40,31 +55,23 @@ export default function LessonPage() {
   const { data: mySubmission, refetch: refetchSubmission } = useQuery({
     queryKey: ['my-submission', lessonId],
     queryFn: async () => {
-      // Получить user_id
-      const { data: { user } } = await supabase.auth.getUser()
-      let userId = user?.id
+      const telegramId = getTelegramId()
+      if (!telegramId) return null
       
-      if (!userId) {
-        const authStorage = localStorage.getItem('auth-storage')
-        if (authStorage) {
-          try {
-            const parsed = JSON.parse(authStorage)
-            userId = parsed?.state?.user?.id
-          } catch (e) {
-            console.error('Error parsing auth-storage:', e)
-          }
-        }
-      }
+      // Получаем user_id по telegram_id
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegramId)
+        .single()
       
-      if (!userId || userId === 'dev-user') {
-        return null
-      }
+      if (!userData) return null
       
       const { data, error } = await supabase
         .from('homework_submissions')
         .select('*')
         .eq('lesson_id', lessonId)
-        .eq('user_id', userId)
+        .eq('user_id', userData.id)
         .single()
       
       if (error && error.code !== 'PGRST116') {
@@ -160,21 +167,6 @@ export default function LessonPage() {
       }
       return part
     })
-  }
-
-  // Получаем telegram_id текущего пользователя
-  const getTelegramId = (): number | null => {
-    const tg = (window as any).Telegram?.WebApp
-    if (tg?.initDataUnsafe?.user?.id) {
-      return tg.initDataUnsafe.user.id
-    }
-    const savedUser = localStorage.getItem('tg_user')
-    if (savedUser) {
-      try {
-        return JSON.parse(savedUser).id
-      } catch {}
-    }
-    return null
   }
 
   const handleSubmit = async () => {
