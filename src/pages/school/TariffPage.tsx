@@ -1,27 +1,53 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useModules } from '@/hooks/useCourse'
 import { ArrowLeft, BookOpen, ChevronRight } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
-import { canAccessModule } from '@/lib/supabase'
+import { getUserTariffsById } from '@/lib/supabase'
 
 export default function TariffPage() {
   const { tariffSlug } = useParams<{ tariffSlug: string }>()
   const navigate = useNavigate()
   const { data: modules, isLoading } = useModules()
-  const userTariffs = useAuthStore((state) => state.tariffs)
+  const [userTariffs, setUserTariffs] = useState<string[]>([])
+  const [isLoadingTariffs, setIsLoadingTariffs] = useState(true)
   
   const tariffNames: Record<string, string> = {
     'platinum': 'ПЛАТИНА',
     'standard': 'СТАНДАРТ'
   }
 
-  // Фильтруем модули по доступу
-  const accessibleModules = modules?.filter(m => canAccessModule(m.min_tariff, userTariffs)) || []
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    const savedUser = localStorage.getItem('tg_user')
+    let telegramId = tg?.initDataUnsafe?.user?.id
+    if (!telegramId && savedUser) {
+      telegramId = JSON.parse(savedUser).id
+    }
+    
+    if (telegramId) {
+      getUserTariffsById(telegramId).then(tariffs => {
+        setUserTariffs(tariffs)
+        setIsLoadingTariffs(false)
+      })
+    } else {
+      setIsLoadingTariffs(false)
+    }
+  }, [])
 
-  if (isLoading) {
+  // Фильтруем модули по тарифу
+  const filteredModules = modules?.filter(m => {
+    if (userTariffs.includes('platinum')) return true
+    if (userTariffs.includes('standard') && m.min_tariff === 'standard') return true
+    return false
+  }) || []
+
+  if (isLoading || isLoadingTariffs) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
+          <p className="text-zinc-400">Загрузка...</p>
+        </div>
       </div>
     )
   }
@@ -37,33 +63,28 @@ export default function TariffPage() {
       </div>
 
       {/* Список модулей */}
-      <div className="space-y-3">
-        {modules?.map((module) => {
-          const hasAccess = canAccessModule(module.min_tariff, userTariffs)
-          
-          return (
+      {filteredModules.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-zinc-400">Нет доступных модулей</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredModules.map((module) => (
             <div
               key={module.id}
-              onClick={() => hasAccess && navigate(`/school/${tariffSlug}/${module.id}`)}
-              className={`flex items-center gap-3 p-4 rounded-xl bg-zinc-900 border transition-all ${
-                hasAccess 
-                  ? 'border-zinc-700 hover:border-orange-500 cursor-pointer' 
-                  : 'border-zinc-800 opacity-50 cursor-not-allowed'
-              }`}
+              onClick={() => navigate(`/school/${tariffSlug}/${module.id}`)}
+              className="flex items-center gap-3 p-4 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-orange-500 transition-all cursor-pointer"
             >
-              <BookOpen className={`w-5 h-5 ${hasAccess ? 'text-orange-500' : 'text-zinc-600'}`} />
+              <BookOpen className="w-5 h-5 text-orange-500" />
               <div className="flex-1">
-                <div className="font-medium flex items-center gap-2">
-                  {!hasAccess && <span className="text-yellow-500">🔒</span>}
-                  {module.title}
-                </div>
+                <div className="font-medium">{module.title}</div>
                 <div className="text-sm text-zinc-400">{module.lessons_count} уроков</div>
               </div>
-              {hasAccess && <ChevronRight className="w-5 h-5 text-zinc-500" />}
+              <ChevronRight className="w-5 h-5 text-zinc-500" />
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

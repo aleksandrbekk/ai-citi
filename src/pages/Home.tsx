@@ -4,8 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Bot, GraduationCap, Wrench, ShoppingBag, Dumbbell } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { checkIsCurator } from '@/lib/supabase'
-import { useAuthStore } from '@/store/authStore'
+import { checkIsCurator, getUserTariffsById } from '@/lib/supabase'
 
 const buildings = [
   {
@@ -61,7 +60,10 @@ export function Home() {
   const [isCurator, setIsCurator] = useState(false)
   // Получаем имя из Telegram или localStorage
   const [userName, setUserName] = useState('Пользователь')
-  const hasPremiumAccess = useAuthStore((state) => state.hasPremium())
+  const [userTariffs, setUserTariffs] = useState<string[]>([])
+  const [isLoadingTariffs, setIsLoadingTariffs] = useState(true)
+  
+  const hasPlatinum = userTariffs.includes('platinum')
 
   useEffect(() => {
     // Получаем имя из Telegram или localStorage
@@ -77,6 +79,27 @@ export function Home() {
         } catch {}
       }
     }
+  }, [])
+
+  useEffect(() => {
+    // Загружаем тарифы пользователя
+    const loadTariffs = async () => {
+      const tg = window.Telegram?.WebApp
+      const savedUser = localStorage.getItem('tg_user')
+      let telegramId = tg?.initDataUnsafe?.user?.id
+      if (!telegramId && savedUser) {
+        telegramId = JSON.parse(savedUser).id
+      }
+      
+      if (telegramId) {
+        const tariffs = await getUserTariffsById(telegramId)
+        setUserTariffs(tariffs)
+        setIsLoadingTariffs(false)
+      } else {
+        setIsLoadingTariffs(false)
+      }
+    }
+    loadTariffs()
   }, [])
 
   useEffect(() => {
@@ -106,6 +129,17 @@ export function Home() {
     checkCurator()
   }, [])
 
+  if (isLoadingTariffs) {
+    return (
+      <div className="p-4 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
+          <p className="text-zinc-400">Загрузка...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 space-y-6">
       {/* Приветствие */}
@@ -129,11 +163,17 @@ export function Home() {
       <div className="grid grid-cols-2 gap-3">
         {buildings.map((building) => {
           const Icon = building.icon
-          // Проверка доступа: AI FERMA и Инструменты требуют premium
-          const requiresPremium = building.id === 'agents' || building.id === 'tools'
-          const isPremiumLocked = requiresPremium && !hasPremiumAccess
+          // Проверка доступа: AI FERMA и Инструменты требуют platinum
+          const requiresPlatinum = building.id === 'agents' || building.id === 'tools'
+          const isPlatinumLocked = requiresPlatinum && !hasPlatinum
           const isLevelLocked = building.locked && (profile?.level || 1) < (building.requiredLevel || 0)
-          const isLocked = isPremiumLocked || isLevelLocked
+          
+          // Скрываем AI FERMA и Инструменты для standard пользователей
+          if (isPlatinumLocked) {
+            return null
+          }
+          
+          const isLocked = isLevelLocked
 
           if (isLocked) {
             return (
@@ -147,7 +187,7 @@ export function Home() {
                   </div>
                   <span className="font-medium text-sm">{building.name}</span>
                   <span className="text-[10px] text-zinc-500">
-                    {isPremiumLocked ? '🔒 Premium' : `🔒 Уровень ${building.requiredLevel}`}
+                    🔒 Уровень {building.requiredLevel}
                   </span>
                 </CardContent>
               </Card>

@@ -89,6 +89,26 @@ export async function getUserTariffs(userId: string): Promise<string[]> {
   return data.map(t => t.tariff_slug)
 }
 
+export async function getUserTariffsById(telegramId: number): Promise<string[]> {
+  // Получаем user по telegram_id
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+  
+  if (!user) return []
+  
+  // Получаем активные тарифы
+  const { data: tariffs } = await supabase
+    .from('user_tariffs')
+    .select('tariff_slug')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+  
+  return tariffs?.map(t => t.tariff_slug) || []
+}
+
 // Проверка доступа к модулю
 export function canAccessModule(moduleTariff: string, userTariffs: string[]): boolean {
   // platinum даёт доступ ко всему
