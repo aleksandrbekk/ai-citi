@@ -12,22 +12,51 @@ export default function CuratorReview() {
   const { data: submissions, isLoading } = useQuery({
     queryKey: ['curator-homework'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Сначала получаем ДЗ
+      const { data: submissions, error } = await supabase
         .from('homework_submissions')
-        .select(`
-          *,
-          course_lessons!inner (id, title, order_index, module_id, 
-            course_modules!inner (title, order_index)
-          ),
-          users (id, first_name, last_name, username)
-        `)
+        .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: true })
       
-      if (error) throw error
-
-      // Подгрузить quiz данные если есть
-      const enriched = await Promise.all(data.map(async (sub: any) => {
+      if (error) {
+        console.error('Error fetching submissions:', error)
+        throw error
+      }
+      
+      if (!submissions || submissions.length === 0) {
+        return []
+      }
+      
+      // Подгружаем данные для каждого ДЗ
+      const enriched = await Promise.all(submissions.map(async (sub: any) => {
+        // Получаем урок
+        const { data: lesson } = await supabase
+          .from('course_lessons')
+          .select('id, title, order_index, module_id')
+          .eq('id', sub.lesson_id)
+          .single()
+        
+        // Получаем модуль
+        let module = null
+        if (lesson?.module_id) {
+          const { data: mod } = await supabase
+            .from('course_modules')
+            .select('title, order_index')
+            .eq('id', lesson.module_id)
+            .single()
+          module = mod
+        }
+        
+        // Получаем пользователя
+        const { data: user } = await supabase
+          .from('users')
+          .select('id, first_name, last_name, username')
+          .eq('id', sub.user_id)
+          .single()
+        
+        // Подгружаем quiz данные если есть
+        let quizData = null
         if (sub.quiz_answers && Object.keys(sub.quiz_answers).length > 0) {
           const questionIds = Object.keys(sub.quiz_answers)
           const { data: questions } = await supabase
@@ -36,16 +65,23 @@ export default function CuratorReview() {
             .in('id', questionIds)
           
           const allOptionIds = Object.values(sub.quiz_answers).flat() as string[]
-          const { data: options } = await supabase
-            .from('quiz_options')
-            .select('id, option_text, is_correct')
-            .in('id', allOptionIds)
-          
-          sub.quizData = { questions, options }
+          if (allOptionIds.length > 0) {
+            const { data: options } = await supabase
+              .from('quiz_options')
+              .select('id, option_text, is_correct')
+              .in('id', allOptionIds)
+            quizData = { questions, options }
+          }
         }
-        return sub
+        
+        return {
+          ...sub,
+          course_lessons: lesson ? { ...lesson, course_modules: module } : null,
+          users: user,
+          quizData
+        }
       }))
-
+      
       return enriched
     }
   })
