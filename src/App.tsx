@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
+import { checkWhitelist } from './lib/supabase'
+import AccessDenied from './components/AccessDenied'
 import { Layout } from '@/components/layout/Layout'
 import { Home } from '@/pages/Home'
 import Profile from '@/pages/Profile'
@@ -20,9 +22,33 @@ import LessonPage from '@/pages/school/LessonPage'
 const queryClient = new QueryClient()
 
 function App() {
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
+
   useEffect(() => {
     expandWebApp()
   }, [])
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    if (tg?.initDataUnsafe?.user?.id) {
+      checkWhitelist(tg.initDataUnsafe.user.id).then(setHasAccess)
+    } else {
+      // Для веб-версии без Telegram - пока блокируем
+      setHasAccess(false)
+    }
+  }, [])
+
+  if (hasAccess === null) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <p className="text-white">Проверка доступа...</p>
+      </div>
+    )
+  }
+
+  if (hasAccess === false) {
+    return <AccessDenied />
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

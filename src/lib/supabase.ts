@@ -17,3 +17,13 @@ export const supabase = createClient(
   supabaseUrl || 'https://debcwvxlvozjlqkhnauy.supabase.co',
   supabaseAnonKey || ''
 )
+
+export async function checkWhitelist(telegramId: number): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('allowed_users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+  
+  return !!data && !error
+}
