@@ -170,28 +170,33 @@ export default function LessonPage() {
     
     if (!hasTextAnswer && !hasQuizAnswers) return
     
-    // Получить текущего пользователя
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    let userId = user?.id
-    
-    // Если нет user из auth, получить из auth-storage (Zustand)
-    if (!userId) {
-      const authStorage = localStorage.getItem('auth-storage')
-      if (authStorage) {
-        try {
-          const parsed = JSON.parse(authStorage)
-          userId = parsed?.state?.user?.id
-        } catch (e) {
-          console.error('Error parsing auth-storage:', e)
-        }
-      }
+    // Получить текущего пользователя по telegram_id
+    const tg = window.Telegram?.WebApp
+    const savedUser = localStorage.getItem('tg_user')
+    let telegramId = tg?.initDataUnsafe?.user?.id
+    if (!telegramId && savedUser) {
+      telegramId = JSON.parse(savedUser).id
     }
     
-    if (!userId || userId === 'dev-user') {
+    if (!telegramId) {
       alert('Необходимо авторизоваться через Telegram')
       return
     }
+    
+    // Получаем user_id из базы по telegram_id
+    const { data: currentUser, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', telegramId)
+      .single()
+    
+    if (userError || !currentUser) {
+      console.error('Error fetching user:', userError)
+      alert('Ошибка при получении данных пользователя')
+      return
+    }
+    
+    const userId = currentUser.id
     
     // Подготовить данные для отправки
     const homeworkAnswer = answer || ''
