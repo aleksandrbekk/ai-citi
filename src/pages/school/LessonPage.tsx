@@ -187,6 +187,10 @@ export default function LessonPage() {
     
     // Получаем telegram_id текущего пользователя
     const telegramId = getTelegramId()
+    
+    // ВРЕМЕННЫЙ ДЕБАГ - убрать после проверки
+    alert('Telegram ID: ' + telegramId)
+    
     if (!telegramId) {
       alert('Ошибка: не удалось определить пользователя')
       return
