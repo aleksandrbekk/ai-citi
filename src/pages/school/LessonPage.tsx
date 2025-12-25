@@ -162,6 +162,21 @@ export default function LessonPage() {
     })
   }
 
+  // Получаем telegram_id текущего пользователя
+  const getTelegramId = (): number | null => {
+    const tg = (window as any).Telegram?.WebApp
+    if (tg?.initDataUnsafe?.user?.id) {
+      return tg.initDataUnsafe.user.id
+    }
+    const savedUser = localStorage.getItem('tg_user')
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser).id
+      } catch {}
+    }
+    return null
+  }
+
   const handleSubmit = async () => {
     if (!lessonId) return
     
@@ -170,33 +185,26 @@ export default function LessonPage() {
     
     if (!hasTextAnswer && !hasQuizAnswers) return
     
-    // Получить текущего пользователя по telegram_id
-    const tg = window.Telegram?.WebApp
-    const savedUser = localStorage.getItem('tg_user')
-    let telegramId = tg?.initDataUnsafe?.user?.id
-    if (!telegramId && savedUser) {
-      telegramId = JSON.parse(savedUser).id
-    }
-    
+    // Получаем telegram_id текущего пользователя
+    const telegramId = getTelegramId()
     if (!telegramId) {
-      alert('Необходимо авторизоваться через Telegram')
+      alert('Ошибка: не удалось определить пользователя')
       return
     }
-    
-    // Получаем user_id из базы по telegram_id
-    const { data: currentUser, error: userError } = await supabase
+
+    // Получаем user_id по telegram_id
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id')
       .eq('telegram_id', telegramId)
       .single()
-    
-    if (userError || !currentUser) {
-      console.error('Error fetching user:', userError)
-      alert('Ошибка при получении данных пользователя')
+
+    if (userError || !userData) {
+      alert('Ошибка: пользователь не найден')
       return
     }
-    
-    const userId = currentUser.id
+
+    const userId = userData.id
     
     // Подготовить данные для отправки
     const homeworkAnswer = answer || ''
@@ -234,10 +242,11 @@ export default function LessonPage() {
       error = updateError
     } else if (!existingSubmission) {
       // Создать новое ДЗ
+      // ВАЖНО: используем user_id из базы, полученный по telegram_id, не из store
       const { error: insertError } = await supabase
         .from('homework_submissions')
         .insert({
-          user_id: userId,
+          user_id: userId, // userData.id - правильный user_id из базы
           lesson_id: lessonId,
           answer_text: homeworkAnswer,
           quiz_answers: selectedAnswers,
