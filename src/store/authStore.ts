@@ -38,6 +38,7 @@ export interface Profile {
 interface AuthState {
   user: User | null
   profile: Profile | null
+  tariffs: string[]
   isLoading: boolean
   isAuthenticated: boolean
   error: string | null
@@ -45,6 +46,8 @@ interface AuthState {
   login: () => Promise<void>
   logout: () => void
   updateProfile: (updates: Partial<Profile>) => void
+  setTariffs: (tariffs: string[]) => void
+  hasPremium: () => boolean
 }
 
 const DEFAULT_PROFILE: Profile = {
@@ -70,6 +73,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       profile: null,
+      tariffs: [],
       isLoading: false,
       isAuthenticated: false,
       error: null,
@@ -225,12 +229,21 @@ export const useAuthStore = create<AuthState>()(
           set({ profile: { ...currentProfile, ...updates } })
         }
       },
+
+      setTariffs: (tariffs) => {
+        set({ tariffs })
+      },
+
+      hasPremium: () => {
+        return get().tariffs.includes('platinum')
+      },
     }),
     {
       name: 'auth-storage',
       partialize: (state) => ({ 
         user: state.user, 
         profile: state.profile,
+        tariffs: state.tariffs,
         isAuthenticated: state.isAuthenticated 
       }),
     }

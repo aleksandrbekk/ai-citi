@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
-import { checkWhitelist, getOrCreateUser } from './lib/supabase'
+import { checkWhitelist, getOrCreateUser, getUserTariffs } from './lib/supabase'
+import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
@@ -26,6 +27,7 @@ const queryClient = new QueryClient()
 function App() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [isChecking, setIsChecking] = useState(true)
+  const setTariffs = useAuthStore((state) => state.setTariffs)
 
   useEffect(() => {
     expandWebApp()
@@ -55,7 +57,13 @@ function App() {
         
         if (allowed) {
           // Создаём или получаем пользователя из базы
-          await getOrCreateUser(telegramUser)
+          const user = await getOrCreateUser(telegramUser)
+          
+          // Загружаем тарифы пользователя
+          if (user?.id) {
+            const tariffs = await getUserTariffs(user.id)
+            setTariffs(tariffs)
+          }
         }
         
         setHasAccess(allowed)

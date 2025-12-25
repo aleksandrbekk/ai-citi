@@ -77,3 +77,23 @@ export async function getOrCreateUser(telegramUser: {
   
   return newUser
 }
+
+export async function getUserTariffs(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('user_tariffs')
+    .select('tariff_slug')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+  
+  if (error || !data) return []
+  return data.map(t => t.tariff_slug)
+}
+
+// Проверка доступа к модулю
+export function canAccessModule(moduleTariff: string, userTariffs: string[]): boolean {
+  // platinum даёт доступ ко всему
+  if (userTariffs.includes('platinum')) return true
+  // standard даёт доступ к standard модулям
+  if (userTariffs.includes('standard') && moduleTariff === 'standard') return true
+  return false
+}

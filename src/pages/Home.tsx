@@ -5,6 +5,7 @@ import { Bot, GraduationCap, Wrench, ShoppingBag, Dumbbell } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { checkIsCurator } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 
 const buildings = [
   {
@@ -60,6 +61,7 @@ export function Home() {
   const [isCurator, setIsCurator] = useState(false)
   // Получаем имя из Telegram или localStorage
   const [userName, setUserName] = useState('Пользователь')
+  const hasPremiumAccess = useAuthStore((state) => state.hasPremium())
 
   useEffect(() => {
     // Получаем имя из Telegram или localStorage
@@ -127,7 +129,11 @@ export function Home() {
       <div className="grid grid-cols-2 gap-3">
         {buildings.map((building) => {
           const Icon = building.icon
-          const isLocked = building.locked && (profile?.level || 1) < (building.requiredLevel || 0)
+          // Проверка доступа: AI FERMA и Инструменты требуют premium
+          const requiresPremium = building.id === 'agents' || building.id === 'tools'
+          const isPremiumLocked = requiresPremium && !hasPremiumAccess
+          const isLevelLocked = building.locked && (profile?.level || 1) < (building.requiredLevel || 0)
+          const isLocked = isPremiumLocked || isLevelLocked
 
           if (isLocked) {
             return (
@@ -141,7 +147,7 @@ export function Home() {
                   </div>
                   <span className="font-medium text-sm">{building.name}</span>
                   <span className="text-[10px] text-zinc-500">
-                    🔒 Уровень {building.requiredLevel}
+                    {isPremiumLocked ? '🔒 Premium' : `🔒 Уровень ${building.requiredLevel}`}
                   </span>
                 </CardContent>
               </Card>
