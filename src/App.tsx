@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
 import { checkWhitelist } from './lib/supabase'
 import AccessDenied from './components/AccessDenied'
+import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
 import { Home } from '@/pages/Home'
 import Profile from '@/pages/Profile'
@@ -23,27 +24,58 @@ const queryClient = new QueryClient()
 
 function App() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
+  const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
     expandWebApp()
   }, [])
 
   useEffect(() => {
-    const tg = window.Telegram?.WebApp
-    if (tg?.initDataUnsafe?.user?.id) {
-      checkWhitelist(tg.initDataUnsafe.user.id).then(setHasAccess)
-    } else {
-      // Для веб-версии без Telegram - пока блокируем
-      setHasAccess(false)
+    const checkAccess = async () => {
+      let telegramId: number | null = null
+
+      // Проверяем Telegram Mini App
+      const tg = window.Telegram?.WebApp
+      if (tg?.initDataUnsafe?.user?.id) {
+        telegramId = tg.initDataUnsafe.user.id
+      } else {
+        // Проверяем localStorage (веб-авторизация)
+        const savedUser = localStorage.getItem('tg_user')
+        if (savedUser) {
+          try {
+            const user = JSON.parse(savedUser)
+            telegramId = user.id
+          } catch {}
+        }
+      }
+
+      if (telegramId) {
+        const allowed = await checkWhitelist(telegramId)
+        setHasAccess(allowed)
+      } else {
+        // Нет авторизации - покажем логин
+        setHasAccess(null)
+      }
+      
+      setIsChecking(false)
     }
+
+    checkAccess()
   }, [])
 
-  if (hasAccess === null) {
+  if (isChecking) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white">Проверка доступа...</p>
+        <p className="text-white">Загрузка...</p>
       </div>
     )
+  }
+
+  // Нет авторизации вообще (ни TG Mini App, ни localStorage)
+  const tg = window.Telegram?.WebApp
+  const savedUser = localStorage.getItem('tg_user')
+  if (!tg?.initDataUnsafe?.user?.id && !savedUser) {
+    return <Login />
   }
 
   if (hasAccess === false) {
