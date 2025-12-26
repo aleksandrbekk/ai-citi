@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
@@ -14,6 +14,7 @@ export default function LessonPage() {
   const [quizzes, setQuizzes] = useState<any[]>([])
   const [userAnswers, setUserAnswers] = useState<Record<string, string[]>>({})
   const submitHomework = useSubmitHomework()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Получаем telegram_id текущего пользователя
   const getTelegramId = (): number | null => {
@@ -266,7 +267,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
+    <div className="min-h-screen bg-black text-white pb-[300px]">
       <div className="max-w-3xl mx-auto px-4">
         {/* Шапка */}
         <div className="relative flex items-center justify-between mb-4 h-10">
@@ -512,12 +513,16 @@ export default function LessonPage() {
               {/* Текстовый ответ — только если НЕТ тестов */}
               {quizzes.length === 0 && (
                 <textarea
+                  ref={textareaRef}
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
-                  onFocus={(e) => {
-                    // Небольшая задержка чтобы клавиатура успела появиться
+                  onFocus={() => {
+                    // Задержка чтобы клавиатура успела появиться
                     setTimeout(() => {
-                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                      textareaRef.current?.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                      })
                     }, 300)
                   }}
                   placeholder="Напиши свой ответ..."
