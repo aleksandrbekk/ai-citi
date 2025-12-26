@@ -29,5 +29,10 @@ export function expandWebApp() {
   if (webApp) {
     webApp.expand()
     webApp.ready()
+    
+    // Отключить свайп вниз для закрытия (доступно с Bot API 7.7)
+    if (webApp.disableVerticalSwipes) {
+      webApp.disableVerticalSwipes()
+    }
   }
 }
