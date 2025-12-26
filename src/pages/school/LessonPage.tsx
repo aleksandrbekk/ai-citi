@@ -514,6 +514,12 @@ export default function LessonPage() {
                 <textarea
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
+                  onFocus={(e) => {
+                    // Небольшая задержка чтобы клавиатура успела появиться
+                    setTimeout(() => {
+                      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    }, 300)
+                  }}
                   placeholder="Напиши свой ответ..."
                   className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none mb-4"
                 />
