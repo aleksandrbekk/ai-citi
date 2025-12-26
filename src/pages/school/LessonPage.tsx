@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
 import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useUIStore } from '@/store/uiStore'
 
 export default function LessonPage() {
   const { tariffSlug, moduleId, lessonId } = useParams<{ tariffSlug: string; moduleId: string; lessonId: string }>()
@@ -15,6 +16,7 @@ export default function LessonPage() {
   const [userAnswers, setUserAnswers] = useState<Record<string, string[]>>({})
   const submitHomework = useSubmitHomework()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const setKeyboardOpen = useUIStore((s) => s.setKeyboardOpen)
 
   // Получаем telegram_id текущего пользователя
   const getTelegramId = (): number | null => {
@@ -517,6 +519,7 @@ export default function LessonPage() {
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   onFocus={() => {
+                    setKeyboardOpen(true)
                     // Задержка чтобы клавиатура успела появиться
                     setTimeout(() => {
                       textareaRef.current?.scrollIntoView({ 
@@ -525,6 +528,7 @@ export default function LessonPage() {
                       })
                     }, 300)
                   }}
+                  onBlur={() => setKeyboardOpen(false)}
                   placeholder="Напиши свой ответ..."
                   className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none mb-4"
                 />
