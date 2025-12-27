@@ -1,13 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Map, User, Target, Bot, GraduationCap } from 'lucide-react'
+import { Map, User, Bot, GraduationCap, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
 
 const navItems = [
   { path: '/', icon: Map, label: 'Город' },
-  { path: '/agents', icon: Bot, label: 'Агенты' },
   { path: '/school', icon: GraduationCap, label: 'Школа' },
-  { path: '/missions', icon: Target, label: 'Миссии' },
+  { path: '/agents', icon: Bot, label: 'Агенты' },
+  { path: '/shop', icon: ShoppingBag, label: 'Магазин' },
   { path: '/profile', icon: User, label: 'Профиль' },
 ]
 
