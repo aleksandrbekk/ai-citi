@@ -1,4 +1,13 @@
 // src/lib/telegram.ts
+
+// Расширяем тип TelegramWebApp для поддержки новых методов
+declare global {
+  interface TelegramWebApp {
+    disableVerticalSwipes?: () => void
+    enableVerticalSwipes?: () => void
+  }
+}
+
 export interface TelegramUser {
   id: number
   first_name: string
