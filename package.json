@@ -13,7 +13,8 @@
     "clean:structure": "tsx scripts/clean-structure.ts",
     "parse:content": "tsx scripts/parse-lesson-content.ts",
     "parse:full": "tsx scripts/parse-full-course.ts",
-    "upload:supabase": "tsx scripts/upload-to-supabase.ts"
+    "upload:supabase": "tsx scripts/upload-to-supabase.ts",
+    "db:list-tables": "tsx scripts/list-supabase-tables.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
