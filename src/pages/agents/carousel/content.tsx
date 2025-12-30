@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { useCarouselStore, TemplateId } from '@/store/carouselStore'
+import { useCarouselStore } from '@/store/carouselStore'
+import type { TemplateId } from '@/store/carouselStore'
 
 // Конфигурация полей для каждого шаблона
 const TEMPLATE_FIELDS: Record<TemplateId, Array<{ key: string; label: string; placeholder: string }>> = {
