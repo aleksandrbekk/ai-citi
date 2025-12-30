@@ -39,6 +39,18 @@ export function Agents() {
           <p className="text-zinc-500 text-sm">Скоро</p>
         </div>
         
+        {/* Карусели */}
+        <Link 
+          to="/agents/carousel"
+          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors"
+        >
+          <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
+            <span className="text-3xl">🎠</span>
+          </div>
+          <h3 className="text-white font-semibold mb-1">Карусели</h3>
+          <p className="text-zinc-500 text-sm">Генератор каруселей</p>
+        </Link>
+        
         {/* Нейропостер - только для владельца */}
         {isOwner && (
           <Link 
