@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Bot, Calendar } from 'lucide-react'
 
 const OWNER_TELEGRAM_ID = 190202791
 
 export function Agents() {
+  const navigate = useNavigate()
   const [isOwner, setIsOwner] = useState(false)
   
   useEffect(() => {
@@ -39,17 +40,17 @@ export function Agents() {
           <p className="text-zinc-500 text-sm">Скоро</p>
         </div>
         
-        {/* Карусели */}
-        <Link 
-          to="/agents/carousel"
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors"
+        {/* Карусели - доступны всем */}
+        <div
+          onClick={() => navigate('/agents/carousel')}
+          className="bg-white/10 backdrop-blur rounded-2xl p-6 cursor-pointer hover:bg-white/20 transition-all"
         >
-          <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mb-4">
             <span className="text-3xl">🎠</span>
           </div>
-          <h3 className="text-white font-semibold mb-1">Карусели</h3>
-          <p className="text-zinc-500 text-sm">Генератор каруселей</p>
-        </Link>
+          <h3 className="text-white font-semibold text-lg">Карусели</h3>
+          <p className="text-gray-400 text-sm mt-1">AI-генератор для Instagram</p>
+        </div>
         
         {/* Нейропостер - только для владельца */}
         {isOwner && (
