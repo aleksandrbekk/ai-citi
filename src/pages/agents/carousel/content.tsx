@@ -85,27 +85,36 @@ export default function CarouselContent() {
       return
     }
 
-    setStatus('generating')
-    navigate('/agents/carousel/generating')
-    
-    // Получаем telegram_id
+    // Получаем telegram_id из Telegram WebApp
     const tg = window.Telegram?.WebApp
-    const savedUser = localStorage.getItem('tg_user')
-    let telegramId: number | null = null
+    const chatId = tg?.initDataUnsafe?.user?.id
     
-    if (tg?.initDataUnsafe?.user?.id) {
-      telegramId = tg.initDataUnsafe.user.id
-    } else if (savedUser) {
-      try {
-        telegramId = JSON.parse(savedUser).id
-      } catch {}
-    }
-
-    if (!telegramId) {
-      alert('Не удалось определить Telegram ID')
+    // Проверка chatId
+    if (!chatId || typeof chatId !== 'number') {
+      alert('Ошибка: Не удалось определить Telegram ID. Убедитесь, что вы открыли приложение через Telegram.')
       setStatus('error')
+      navigate('/agents/carousel')
       return
     }
+
+    // Подготовка данных для отправки
+    const requestData = {
+      chatId: chatId, // ОБЯЗАТЕЛЬНО число, telegram user id
+      templateId: selectedTemplate === 'custom' ? 'custom' : selectedTemplate,
+      userPhoto: userPhoto || '',
+      variables: variables,
+    }
+
+    // Логирование перед отправкой
+    console.log('Sending carousel request:', {
+      chatId,
+      templateId: requestData.templateId,
+      hasUserPhoto: !!userPhoto,
+      variablesCount: Object.keys(variables).length,
+    })
+
+    setStatus('generating')
+    navigate('/agents/carousel/generating')
 
     // Отправка в n8n
     try {
@@ -114,12 +123,7 @@ export default function CarouselContent() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          chatId: telegramId,
-          templateId: selectedTemplate === 'custom' ? 'custom' : selectedTemplate,
-          userPhoto: userPhoto || '',
-          variables: variables,
-        }),
+        body: JSON.stringify(requestData),
       })
 
       if (!response.ok) {
