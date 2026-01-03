@@ -66,23 +66,37 @@ const TEMPLATE_FIELDS: Record<TemplateId, Array<{ key: string; label: string; pl
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { selectedTemplate, variables, setVariable, setStatus, userPhoto } = useCarouselStore()
+  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, mode } = useCarouselStore()
 
   if (!selectedTemplate) {
     navigate('/agents/carousel')
     return null
   }
 
-  const fields = TEMPLATE_FIELDS[selectedTemplate] || []
+  const allFields = TEMPLATE_FIELDS[selectedTemplate] || []
+  
+  // В AI режиме показываем только topic, в ручном - все поля
+  const fields = mode === 'ai' 
+    ? allFields.filter(f => f.key === 'topic')
+    : allFields
 
   const handleGenerate = async () => {
     // Проверка заполненности обязательных полей
-    const requiredFields = fields.filter(f => f.key !== 'viral_target')
-    const missingFields = requiredFields.filter(f => !variables[f.key]?.trim())
-    
-    if (missingFields.length > 0) {
-      alert(`Заполните все поля: ${missingFields.map(f => f.label).join(', ')}`)
-      return
+    if (mode === 'ai') {
+      // В AI режиме проверяем только topic
+      if (!variables.topic?.trim()) {
+        alert('Заполните тему карусели')
+        return
+      }
+    } else {
+      // В ручном режиме проверяем все обязательные поля
+      const requiredFields = allFields.filter(f => f.key !== 'viral_target')
+      const missingFields = requiredFields.filter(f => !variables[f.key]?.trim())
+      
+      if (missingFields.length > 0) {
+        alert(`Заполните все поля: ${missingFields.map(f => f.label).join(', ')}`)
+        return
+      }
     }
 
     // Получаем telegram_id из Telegram WebApp
@@ -102,15 +116,19 @@ export default function CarouselContent() {
       chatId: chatId, // ОБЯЗАТЕЛЬНО число, telegram user id
       templateId: selectedTemplate === 'custom' ? 'custom' : selectedTemplate,
       userPhoto: userPhoto || '',
-      variables: variables,
+      mode: mode, // 'ai' или 'manual'
+      topic: variables.topic || '',
+      variables: mode === 'manual' ? variables : {},
     }
 
     // Логирование перед отправкой
     console.log('Sending carousel request:', {
       chatId,
       templateId: requestData.templateId,
+      mode: requestData.mode,
+      topic: requestData.topic,
       hasUserPhoto: !!userPhoto,
-      variablesCount: Object.keys(variables).length,
+      variablesCount: mode === 'manual' ? Object.keys(variables).length : 0,
     })
 
     setStatus('generating')

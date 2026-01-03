@@ -9,6 +9,8 @@ export type StylePreset = 'ai-citi' | 'minimal' | 'bright'
 
 export type CarouselStatus = 'idle' | 'generating' | 'completed' | 'error'
 
+export type CarouselMode = 'ai' | 'manual'
+
 interface CarouselState {
   // Шаблон
   selectedTemplate: TemplateId | null
@@ -19,6 +21,7 @@ interface CarouselState {
   audience: AudiencePreset
   customAudience: string
   style: StylePreset
+  mode: CarouselMode
   
   // Контент
   variables: Record<string, string>
@@ -35,6 +38,7 @@ interface CarouselState {
   setAudience: (audience: AudiencePreset) => void
   setCustomAudience: (audience: string) => void
   setStyle: (style: StylePreset) => void
+  setMode: (mode: CarouselMode) => void
   setVariable: (key: string, value: string) => void
   setVariables: (variables: Record<string, string>) => void
   setGeneratedSlides: (slides: string[]) => void
@@ -50,6 +54,7 @@ const initialState = {
   audience: 'networkers' as AudiencePreset,
   customAudience: '',
   style: 'ai-citi' as StylePreset,
+  mode: 'ai' as CarouselMode,
   variables: {},
   generatedSlides: [],
   status: 'idle' as CarouselStatus,
@@ -67,6 +72,7 @@ export const useCarouselStore = create<CarouselState>()(
       setAudience: (audience) => set({ audience }),
       setCustomAudience: (audience) => set({ customAudience: audience }),
       setStyle: (style) => set({ style }),
+      setMode: (mode) => set({ mode }),
       setVariable: (key, value) => set((state) => ({
         variables: { ...state.variables, [key]: value }
       })),
@@ -85,6 +91,7 @@ export const useCarouselStore = create<CarouselState>()(
         audience: state.audience,
         customAudience: state.customAudience,
         style: state.style,
+        mode: state.mode,
         variables: state.variables,
       }),
     }
