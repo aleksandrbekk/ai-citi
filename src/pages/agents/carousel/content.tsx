@@ -66,7 +66,7 @@ const TEMPLATE_FIELDS: Record<TemplateId, Array<{ key: string; label: string; pl
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, mode } = useCarouselStore()
+  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, mode, ctaText, setCtaText } = useCarouselStore()
 
   if (!selectedTemplate) {
     navigate('/agents/carousel')
@@ -75,17 +75,21 @@ export default function CarouselContent() {
 
   const allFields = TEMPLATE_FIELDS[selectedTemplate] || []
   
-  // В AI режиме показываем только topic, в ручном - все поля
+  // В AI режиме показываем topic и cta_text, в ручном - все поля
   const fields = mode === 'ai' 
-    ? allFields.filter(f => f.key === 'topic')
+    ? allFields.filter(f => f.key === 'topic' || f.key === 'cta_text')
     : allFields
 
   const handleGenerate = async () => {
     // Проверка заполненности обязательных полей
     if (mode === 'ai') {
-      // В AI режиме проверяем только topic
+      // В AI режиме проверяем topic и ctaText
       if (!variables.topic?.trim()) {
         alert('Заполните тему карусели')
+        return
+      }
+      if (!ctaText?.trim()) {
+        alert('Заполните призыв к действию')
         return
       }
     } else {
@@ -118,6 +122,7 @@ export default function CarouselContent() {
       userPhoto: userPhoto || '',
       mode: mode, // 'ai' или 'manual'
       topic: variables.topic || '',
+      cta_text: mode === 'ai' ? ctaText : (variables.cta_text || ''),
       variables: mode === 'manual' ? variables : {},
     }
 
@@ -127,6 +132,7 @@ export default function CarouselContent() {
       templateId: requestData.templateId,
       mode: requestData.mode,
       topic: requestData.topic,
+      cta_text: requestData.cta_text,
       hasUserPhoto: !!userPhoto,
       variablesCount: mode === 'manual' ? Object.keys(variables).length : 0,
     })
@@ -171,18 +177,30 @@ export default function CarouselContent() {
       </div>
 
       <div className="p-4 space-y-4">
-        {fields.map((field) => (
-          <div key={field.key} className="space-y-2">
-            <label className="text-sm font-medium text-zinc-300">{field.label}</label>
-            <textarea
-              value={variables[field.key] || ''}
-              onChange={(e) => setVariable(field.key, e.target.value)}
-              placeholder={field.placeholder}
-              className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none"
-              rows={field.key === 'topic' || field.key === 'content' ? 3 : 2}
-            />
-          </div>
-        ))}
+        {fields.map((field) => {
+          // В AI режиме для cta_text используем отдельное поле ctaText
+          const isCtaField = mode === 'ai' && field.key === 'cta_text'
+          const fieldValue = isCtaField ? ctaText : (variables[field.key] || '')
+          const handleChange = isCtaField 
+            ? (e: React.ChangeEvent<HTMLTextAreaElement>) => setCtaText(e.target.value)
+            : (e: React.ChangeEvent<HTMLTextAreaElement>) => setVariable(field.key, e.target.value)
+          
+          return (
+            <div key={field.key} className="space-y-2">
+              <label className="text-sm font-medium text-zinc-300">{field.label}</label>
+              <textarea
+                value={fieldValue}
+                onChange={handleChange}
+                placeholder={isCtaField ? 'Например: Напиши ХОЧУ в директ' : field.placeholder}
+                className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none"
+                rows={field.key === 'topic' || field.key === 'content' ? 3 : 2}
+              />
+              {isCtaField && (
+                <p className="text-xs text-zinc-500">Это будет на последнем слайде карусели</p>
+              )}
+            </div>
+          )
+        })}
 
         <button
           onClick={handleGenerate}

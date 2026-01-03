@@ -25,6 +25,7 @@ interface CarouselState {
   
   // Контент
   variables: Record<string, string>
+  ctaText: string
   
   // Результат
   generatedSlides: string[]
@@ -39,6 +40,7 @@ interface CarouselState {
   setCustomAudience: (audience: string) => void
   setStyle: (style: StylePreset) => void
   setMode: (mode: CarouselMode) => void
+  setCtaText: (text: string) => void
   setVariable: (key: string, value: string) => void
   setVariables: (variables: Record<string, string>) => void
   setGeneratedSlides: (slides: string[]) => void
@@ -56,6 +58,7 @@ const initialState = {
   style: 'ai-citi' as StylePreset,
   mode: 'ai' as CarouselMode,
   variables: {},
+  ctaText: '',
   generatedSlides: [],
   status: 'idle' as CarouselStatus,
   error: null,
@@ -73,6 +76,7 @@ export const useCarouselStore = create<CarouselState>()(
       setCustomAudience: (audience) => set({ customAudience: audience }),
       setStyle: (style) => set({ style }),
       setMode: (mode) => set({ mode }),
+      setCtaText: (text) => set({ ctaText: text }),
       setVariable: (key, value) => set((state) => ({
         variables: { ...state.variables, [key]: value }
       })),
@@ -93,6 +97,7 @@ export const useCarouselStore = create<CarouselState>()(
         style: state.style,
         mode: state.mode,
         variables: state.variables,
+        ctaText: state.ctaText,
       }),
     }
   )
