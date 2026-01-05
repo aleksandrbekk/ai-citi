@@ -1,13 +1,5 @@
 // src/lib/telegram.ts
 
-// Расширяем тип TelegramWebApp для поддержки новых методов
-declare global {
-  interface TelegramWebApp {
-    disableVerticalSwipes?: () => void
-    enableVerticalSwipes?: () => void
-  }
-}
-
 export interface TelegramUser {
   id: number
   first_name: string
@@ -36,12 +28,7 @@ export function getInitData(): string | null {
 export function expandWebApp() {
   const webApp = getTelegramWebApp()
   if (webApp) {
-    webApp.expand()
     webApp.ready()
-    
-    // Отключить свайп вниз для закрытия (доступно с Bot API 7.7)
-    if (webApp.disableVerticalSwipes) {
-      webApp.disableVerticalSwipes()
-    }
+    webApp.expand()
   }
 }
