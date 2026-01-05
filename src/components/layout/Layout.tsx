@@ -17,12 +17,16 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Фиксированная шапка-заглушка для Telegram */}
+      <div className="fixed top-0 left-0 right-0 h-[100px] bg-black z-50" />
+      
       <main className="flex-1 overflow-auto">
-        <div className="safe-top pb-20">
+        <div className="pt-[100px] pb-20">
           <Outlet />
         </div>
       </main>
+      
       <BottomNav />
     </div>
   )
