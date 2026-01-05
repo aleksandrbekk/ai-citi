@@ -18,9 +18,9 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="h-[var(--tg-viewport-stable-height,100vh)] flex flex-col bg-zinc-950 text-white overflow-hidden">
       <Header />
-      <main className="pt-14 pb-20 min-h-screen">
+      <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
       <BottomNav />
