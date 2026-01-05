@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all",
+    "iOS >= 12",
+    "Android >= 5"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
