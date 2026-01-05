@@ -1,20 +1,42 @@
-// Отлов ошибок для мобильных устройств
-window.onerror = function(msg, _url, line, col, error) {
-  document.body.innerHTML = '<pre style="color:red;padding:20px;background:#000;font-size:14px;">Error: ' + msg + '\nLine: ' + line + '\nCol: ' + col + '\n' + (error?.stack || '') + '</pre>';
-  return false;
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+// Отладка на экран
+const debugEl = document.createElement('div');
+debugEl.id = 'debug';
+debugEl.style.cssText = 'position:fixed;top:50px;left:10px;right:10px;background:black;color:lime;padding:10px;font-size:12px;z-index:99999;max-height:300px;overflow:auto;white-space:pre-wrap;';
+document.body.appendChild(debugEl);
+
+function log(msg: string) {
+  const el = document.getElementById('debug');
+  if (el) el.textContent += msg + '\n';
+  console.log(msg);
+}
+
+window.onerror = (msg, src, line) => {
+  log(`ERROR: ${msg} at ${src}:${line}`);
 };
 
-window.addEventListener('unhandledrejection', function(e) {
-  document.body.innerHTML = '<pre style="color:red;padding:20px;background:#000;font-size:14px;">Promise Error: ' + e.reason + '\n' + (e.reason?.stack || '') + '</pre>';
-});
-
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+try {
+  log('1. Starting...');
+  
+  const root = document.getElementById('root');
+  log('2. Root element: ' + (root ? 'found' : 'NOT FOUND'));
+  
+  if (root) {
+    log('3. Creating React root...');
+    const reactRoot = ReactDOM.createRoot(root);
+    
+    log('4. Rendering App...');
+    reactRoot.render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+    log('5. Render called');
+  }
+} catch (e: any) {
+  log('CATCH ERROR: ' + e.message + '\n' + e.stack);
+}
