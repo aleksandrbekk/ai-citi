@@ -11,16 +11,37 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
+    <div id="root"></div>
     <script>
+      // Отладка для мобильных устройств
       document.body.style.background = 'white';
-      document.body.innerHTML = '<h1 style="color:black;padding:20px;">Loading...</h1>';
+      var debugDiv = document.createElement('div');
+      debugDiv.id = 'debug-info';
+      debugDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:white;padding:20px;color:black;font-size:14px;';
+      debugDiv.innerHTML = '<h1>Loading...</h1>';
+      document.body.appendChild(debugDiv);
       
       window.onerror = function(msg, url, line) {
-        document.body.innerHTML = '<pre style="color:red;padding:20px;">JS Error:\n' + msg + '\nURL: ' + url + '\nLine: ' + line + '</pre>';
+        debugDiv.style.background = '#ff0000';
+        debugDiv.style.color = 'white';
+        debugDiv.innerHTML = '<pre style="margin:0;">JS Error:\n' + msg + '\nURL: ' + url + '\nLine: ' + line + '</pre>';
+        return false;
       };
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        debugDiv.style.background = '#ff0000';
+        debugDiv.style.color = 'white';
+        debugDiv.innerHTML = '<pre style="margin:0;">Promise Error:\n' + e.reason + '</pre>';
+      });
+      
+      // Скрываем отладку когда React загрузится
+      setTimeout(function() {
+        var root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          debugDiv.style.display = 'none';
+        }
+      }, 3000);
     </script>
-    
-    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
