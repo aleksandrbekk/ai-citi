@@ -26,9 +26,14 @@ export function getInitData(): string | null {
 
 // Расширяем тему Telegram
 export function expandWebApp() {
-  const webApp = getTelegramWebApp()
-  if (webApp) {
-    webApp.ready()
-    webApp.expand()
+  try {
+    const webApp = getTelegramWebApp()
+    if (webApp) {
+      webApp.ready()
+      webApp.expand()
+    }
+  } catch (error) {
+    // Игнорируем ошибки инициализации Telegram WebApp
+    console.warn('Telegram WebApp initialization error:', error)
   }
 }
