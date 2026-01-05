@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router-dom'
-import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -19,7 +18,6 @@ export function Layout() {
 
   return (
     <div className="h-[var(--tg-viewport-stable-height,100vh)] flex flex-col bg-zinc-950 text-white overflow-hidden">
-      <Header />
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
