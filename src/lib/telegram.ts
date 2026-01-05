@@ -26,14 +26,28 @@ export function getInitData(): string | null {
 
 // Расширяем тему Telegram
 export function expandWebApp() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg) return null;
+
+  tg.ready();
+  tg.expand();
+  
+  // Fullscreen методы (если доступны)
   try {
-    const webApp = getTelegramWebApp()
-    if (webApp) {
-      webApp.ready()
-      webApp.expand()
+    if (typeof tg.requestFullscreen === 'function') {
+      tg.requestFullscreen();
     }
-  } catch (error) {
-    // Игнорируем ошибки инициализации Telegram WebApp
-    console.warn('Telegram WebApp initialization error:', error)
+    if (typeof tg.disableVerticalSwipes === 'function') {
+      tg.disableVerticalSwipes();
+    }
+  } catch (e) {
+    console.log('Fullscreen methods not available');
   }
+
+  return tg;
+}
+
+// Алиас для обратной совместимости
+export function initTelegram() {
+  return expandWebApp();
 }

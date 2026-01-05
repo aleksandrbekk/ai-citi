@@ -44,6 +44,12 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Telegram fullscreen support */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
