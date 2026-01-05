@@ -43,29 +43,5 @@ export function expandWebApp() {
     if (webApp.disableVerticalSwipes) {
       webApp.disableVerticalSwipes()
     }
-    
-    // Запрос fullscreen режима
-    if (webApp.requestFullscreen) {
-      webApp.requestFullscreen()
-    }
-    
-    // Обновление viewport размеров
-    const updateViewport = () => {
-      const viewportHeight = webApp.viewportHeight || window.innerHeight
-      const viewportStableHeight = webApp.viewportStableHeight || window.innerHeight
-      
-      document.documentElement.style.setProperty('--tg-viewport-height', `${viewportHeight}px`)
-      document.documentElement.style.setProperty('--tg-viewport-stable-height', `${viewportStableHeight}px`)
-    }
-    
-    updateViewport()
-    
-    // Слушаем изменения viewport
-    if (webApp.onEvent) {
-      webApp.onEvent('viewportChanged', updateViewport)
-    } else {
-      // Fallback: слушаем изменения размера окна
-      window.addEventListener('resize', updateViewport)
-    }
   }
 }
