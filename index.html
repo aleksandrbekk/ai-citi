@@ -10,14 +10,14 @@
     <!-- Telegram WebApp SDK — ОБЯЗАТЕЛЬНО ДО ОСНОВНОГО СКРИПТА -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
-  <body>
+  <body style="background-color: #000000; margin: 0;">
     <div id="root"></div>
     <script>
       // Отладка для мобильных устройств
-      document.body.style.background = 'white';
+      document.body.style.background = '#000000';
       var debugDiv = document.createElement('div');
       debugDiv.id = 'debug-info';
-      debugDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:white;padding:20px;color:black;font-size:14px;';
+      debugDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#000000;padding:20px;color:white;font-size:14px;';
       debugDiv.innerHTML = '<h1>Loading...</h1>';
       document.body.appendChild(debugDiv);
       
