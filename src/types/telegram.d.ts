@@ -21,10 +21,6 @@ interface TelegramWebApp {
   ready: () => void
   expand: () => void
   close: () => void
-  viewportHeight?: number
-  viewportStableHeight?: number
-  requestFullscreen?: () => void
-  onEvent?: (event: string, callback: () => void) => void
   MainButton: {
     text: string
     show: () => void

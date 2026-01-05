@@ -16,7 +16,7 @@ export function BottomNav() {
   const isKeyboardOpen = useUIStore((s) => s.isKeyboardOpen)
 
   return (
-    <nav className={`safe-bottom z-50 bg-zinc-950/80 backdrop-blur-lg border-t border-zinc-800 transition-transform duration-200 ${
+    <nav className={`fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-t border-zinc-800 transition-transform duration-200 ${
       isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
     }`}>
       <div className="flex items-center justify-around h-16 px-2">

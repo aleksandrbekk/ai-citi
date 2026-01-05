@@ -113,27 +113,6 @@
   --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
-:root {
-  --tg-viewport-height: 100vh;
-  --tg-viewport-stable-height: 100vh;
-  --safe-area-top: env(safe-area-inset-top, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-html, body, #root {
-  height: 100%;
-  height: var(--tg-viewport-stable-height, 100vh);
-  overflow: hidden;
-}
-
-.safe-top {
-  padding-top: max(env(safe-area-inset-top, 0px), 44px);
-}
-
-.safe-bottom {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 34px);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
