@@ -51,3 +51,14 @@ export function expandWebApp() {
 export function initTelegram() {
   return expandWebApp();
 }
+
+// Определение мобильного Telegram
+export function isMobileTelegram(): boolean {
+  const tg = window.Telegram?.WebApp;
+  if (!tg) return false;
+  
+  const platform = (tg as any).platform;
+  // android, ios — мобильные
+  // tdesktop, macos, web — десктоп/браузер
+  return platform === 'android' || platform === 'ios';
+}

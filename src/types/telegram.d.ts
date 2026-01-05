@@ -21,6 +21,7 @@ interface TelegramWebApp {
   ready: () => void
   expand: () => void
   close: () => void
+  platform?: string
   requestFullscreen?: () => void
   disableVerticalSwipes?: () => void
   MainButton: {
