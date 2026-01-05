@@ -18,7 +18,7 @@ export function Layout() {
 
   return (
     <div className="h-[var(--tg-viewport-stable-height,100vh)] flex flex-col bg-zinc-950 text-white overflow-hidden">
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto safe-top">
         <Outlet />
       </main>
       <BottomNav />
