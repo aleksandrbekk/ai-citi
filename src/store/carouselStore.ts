@@ -26,6 +26,8 @@ interface CarouselState {
   // Контент
   variables: Record<string, string>
   ctaText: string
+  ctaQuestion: string
+  ctaBenefits: string
   
   // Результат
   generatedSlides: string[]
@@ -41,6 +43,8 @@ interface CarouselState {
   setStyle: (style: StylePreset) => void
   setMode: (mode: CarouselMode) => void
   setCtaText: (text: string) => void
+  setCtaQuestion: (text: string) => void
+  setCtaBenefits: (text: string) => void
   setVariable: (key: string, value: string) => void
   setVariables: (variables: Record<string, string>) => void
   setGeneratedSlides: (slides: string[]) => void
@@ -59,6 +63,8 @@ const initialState = {
   mode: 'ai' as CarouselMode,
   variables: {},
   ctaText: '',
+  ctaQuestion: 'Хочешь так же?',
+  ctaBenefits: '',
   generatedSlides: [],
   status: 'idle' as CarouselStatus,
   error: null,
@@ -77,6 +83,8 @@ export const useCarouselStore = create<CarouselState>()(
       setStyle: (style) => set({ style }),
       setMode: (mode) => set({ mode }),
       setCtaText: (text) => set({ ctaText: text }),
+      setCtaQuestion: (text) => set({ ctaQuestion: text }),
+      setCtaBenefits: (text) => set({ ctaBenefits: text }),
       setVariable: (key, value) => set((state) => ({
         variables: { ...state.variables, [key]: value }
       })),
@@ -98,6 +106,8 @@ export const useCarouselStore = create<CarouselState>()(
         mode: state.mode,
         variables: state.variables,
         ctaText: state.ctaText,
+        ctaQuestion: state.ctaQuestion,
+        ctaBenefits: state.ctaBenefits,
       }),
     }
   )

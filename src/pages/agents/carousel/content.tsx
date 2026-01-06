@@ -4,7 +4,7 @@ import { useCarouselStore } from '@/store/carouselStore'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, ctaText, setCtaText } = useCarouselStore()
+  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits } = useCarouselStore()
 
   if (!selectedTemplate) {
     navigate('/agents/carousel')
@@ -42,6 +42,8 @@ export default function CarouselContent() {
       mode: 'ai', // Всегда AI режим
       topic: variables.topic || '',
       cta_text: ctaText,
+      cta_question: ctaQuestion,
+      cta_benefits: ctaBenefits,
       variables: {},
     }
 
@@ -107,17 +109,40 @@ export default function CarouselContent() {
           />
         </div>
 
+        {/* Поле "Заголовок CTA" */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-300">🎯 Заголовок CTA</label>
+          <input
+            type="text"
+            value={ctaQuestion}
+            onChange={(e) => setCtaQuestion(e.target.value)}
+            placeholder="Например: Хочешь так же?"
+            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500"
+          />
+        </div>
+
         {/* Поле "Призыв к действию" */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">Призыв к действию</label>
+          <label className="text-sm font-medium text-zinc-300">📣 Призыв к действию</label>
           <textarea
             value={ctaText}
             onChange={(e) => setCtaText(e.target.value)}
-            placeholder="Например: Напиши ХОЧУ в директ"
+            placeholder="Например: НАПИШИ СЛОВО КОМПАНИЯ — ОТПРАВЛЮ ГАЙД"
             className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none"
-            rows={2}
+            rows={3}
           />
-          <p className="text-xs text-zinc-500">Это будет на последнем слайде карусели</p>
+        </div>
+
+        {/* Поле "Что получит" */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-300">🎁 Что получит (через запятую)</label>
+          <input
+            type="text"
+            value={ctaBenefits}
+            onChange={(e) => setCtaBenefits(e.target.value)}
+            placeholder="Бесплатный урок, Пошаговая инструкция, Поддержка"
+            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500"
+          />
         </div>
 
         <button
