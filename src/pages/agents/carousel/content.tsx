@@ -17,10 +17,6 @@ export default function CarouselContent() {
       alert('Заполните тему карусели')
       return
     }
-    if (!ctaText?.trim()) {
-      alert('Заполните призыв к действию')
-      return
-    }
 
     // Получаем telegram_id из Telegram WebApp
     const tg = window.Telegram?.WebApp
