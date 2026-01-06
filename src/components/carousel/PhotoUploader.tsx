@@ -73,11 +73,11 @@ export function PhotoUploader({ photo, onPhotoChange }: PhotoUploaderProps) {
       <label className="text-sm font-medium text-zinc-300">📸 Фото (опционально)</label>
       
       {photo ? (
-        <div className="relative">
+        <div className="relative bg-zinc-900 rounded-xl flex items-center justify-center min-h-[150px]">
           <img 
             src={photo} 
             alt="Uploaded" 
-            className="w-full h-48 object-cover rounded-xl"
+            className="w-full max-h-[200px] object-contain rounded-xl"
           />
           <button
             onClick={handleRemove}
