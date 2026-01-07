@@ -35,6 +35,7 @@ supabase/functions/*/index.ts
 - **Runtime:** Deno (Edge Functions)
 - **База:** Supabase Client
 - **API:** Instagram Graph API, Telegram Bot API
+- **N8N:** Автоматизация workflow (см. `/docs/N8N_API.md` для API ключа)
 
 ---
 
