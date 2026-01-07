@@ -4,7 +4,7 @@ import { useCarouselStore } from '@/store/carouselStore'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits } = useCarouselStore()
+  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
 
   if (!selectedTemplate) {
     navigate('/agents/carousel')
