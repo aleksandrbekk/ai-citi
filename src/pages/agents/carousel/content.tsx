@@ -37,6 +37,9 @@ export default function CarouselContent() {
       userPhoto: userPhoto || '',
       mode: 'ai', // Всегда AI режим
       topic: variables.topic || '',
+      style: style || 'ai-citi', // Стиль дизайна
+      audience: audience || 'networkers', // Целевая аудитория
+      customAudience: customAudience || '', // Своя ЦА
       cta_text: ctaText,
       cta_question: ctaQuestion,
       cta_benefits: ctaBenefits,
