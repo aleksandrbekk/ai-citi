@@ -452,56 +452,68 @@ export function useQuizResponse(quizId: string | null) {
     return true
   }
 
-  const completeResponse = async (answers: QuizResponse['answers']): Promise<QuizResponse | null> => {
+  const completeResponse = async (answers: QuizResponse['answers'] | any[]): Promise<QuizResponse | null> => {
     if (!response || !quizId) return null
 
-    // Загружаем вопросы и опции для подсчёта баллов
-    const { data: questions } = await supabase
-      .from('quiz_questions')
-      .select(`
-        id,
-        points,
-        question_type,
-        quiz_options (
-          id,
-          is_correct
-        )
-      `)
-      .eq('quiz_id', quizId)
-
-    if (!questions) return null
-
-    // Подсчитываем баллы
+    // Проверяем, это рейтинг или обычный квиз
+    const isRatingOnly = answers.length > 0 && answers[0].question_id === 'rating'
+    
     let score = 0
     let maxScore = 0
+    let percentage = 0
 
-    questions.forEach((q: any) => {
-      maxScore += q.points
-      const answer = answers.find(a => a.question_id === q.id)
-      if (answer) {
-        const questionOptions = (q.quiz_options || []) as QuizOption[]
-        const correctOptions = questionOptions.filter((o: QuizOption) => o.is_correct).map((o: QuizOption) => o.id)
-        
-        if (q.question_type === 'single_choice' || q.question_type === 'multiple_choice') {
-          const userOptions = answer.option_ids || []
-          const isCorrect = correctOptions.length === userOptions.length &&
-            correctOptions.every(id => userOptions.includes(id))
+    if (isRatingOnly) {
+      // Для рейтинга просто сохраняем значение
+      const ratingValue = answers[0]?.rating_value || 0
+      score = ratingValue
+      maxScore = 5
+      percentage = (ratingValue / 5) * 100
+    } else {
+      // Загружаем вопросы и опции для подсчёта баллов
+      const { data: questions } = await supabase
+        .from('quiz_questions')
+        .select(`
+          id,
+          points,
+          question_type,
+          quiz_options (
+            id,
+            is_correct
+          )
+        `)
+        .eq('quiz_id', quizId)
+
+      if (!questions) return null
+
+      // Подсчитываем баллы
+      questions.forEach((q: any) => {
+        maxScore += q.points
+        const answer = answers.find((a: any) => a.question_id === q.id)
+        if (answer) {
+          const questionOptions = (q.quiz_options || []) as QuizOption[]
+          const correctOptions = questionOptions.filter((o: QuizOption) => o.is_correct).map((o: QuizOption) => o.id)
           
-          if (isCorrect) {
-            score += q.points
-            answer.is_correct = true
+          if (q.question_type === 'single_choice' || q.question_type === 'multiple_choice') {
+            const userOptions = answer.option_ids || []
+            const isCorrect = correctOptions.length === userOptions.length &&
+              correctOptions.every(id => userOptions.includes(id))
+            
+            if (isCorrect) {
+              score += q.points
+              answer.is_correct = true
+            } else {
+              answer.is_correct = false
+            }
           } else {
-            answer.is_correct = false
+            // Для текстовых ответов и рейтинга считаем как правильные
+            answer.is_correct = true
+            score += q.points
           }
-        } else {
-          // Для текстовых ответов и рейтинга считаем как правильные
-          answer.is_correct = true
-          score += q.points
         }
-      }
-    })
+      })
 
-    const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0
+      percentage = maxScore > 0 ? (score / maxScore) * 100 : 0
+    }
 
     // Обновляем ответ
     const { data, error } = await supabase
