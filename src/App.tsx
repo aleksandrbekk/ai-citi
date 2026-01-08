@@ -26,6 +26,11 @@ import CarouselSettings from './pages/agents/carousel/settings'
 import CarouselContent from './pages/agents/carousel/content'
 import CarouselGenerating from './pages/agents/carousel/generating'
 import CarouselResult from './pages/agents/carousel/result'
+import QuizzesDashboard from './pages/quizzes/index'
+import QuizBuilder from './pages/quizzes/builder'
+import TakeQuiz from './pages/quizzes/take'
+import QuizAnalytics from './pages/quizzes/analytics'
+import AdminPanel from './pages/admin/index'
 
 const queryClient = new QueryClient()
 
@@ -106,6 +111,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/curator" element={<CuratorReview />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="profile" element={<Profile />} />
@@ -125,6 +131,11 @@ function App() {
             <Route path="agents/carousel/content" element={<CarouselContent />} />
             <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
             <Route path="agents/carousel/result" element={<CarouselResult />} />
+            <Route path="quizzes" element={<QuizzesDashboard />} />
+            <Route path="quizzes/builder" element={<QuizBuilder />} />
+            <Route path="quizzes/builder/:id" element={<QuizBuilder />} />
+            <Route path="quizzes/:id/analytics" element={<QuizAnalytics />} />
+            <Route path="quiz/:id" element={<TakeQuiz />} />
           </Route>
         </Routes>
       </BrowserRouter>
