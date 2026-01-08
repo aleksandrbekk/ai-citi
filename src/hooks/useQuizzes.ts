@@ -78,14 +78,17 @@ export function useQuizzes() {
   const [isLoading, setIsLoading] = useState(true)
   const userId = useAuthStore((state) => state.user?.id)
 
+  // Проверяем, что userId это валидный UUID, иначе используем null
+  const validUserId = userId && userId !== 'dev-user' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId) ? userId : null
+
   const loadQuizzes = async () => {
-    if (!userId) return
+    if (!validUserId) return
     
     setIsLoading(true)
     const { data, error } = await supabase
       .from('quizzes')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', validUserId)
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -98,10 +101,10 @@ export function useQuizzes() {
 
   useEffect(() => {
     loadQuizzes()
-  }, [userId])
+  }, [validUserId])
 
   const createQuiz = async (quizData: Partial<Quiz>): Promise<Quiz | null> => {
-    if (!userId) return null
+    if (!validUserId) return null
 
     const { data, error } = await supabase
       .from('quizzes')

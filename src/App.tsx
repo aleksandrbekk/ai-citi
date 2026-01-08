@@ -35,16 +35,27 @@ import CarouselDesignsPage from './pages/carousel-designs/index'
 
 const queryClient = new QueryClient()
 
-function App() {
+function AppContent() {
+  const location = useLocation()
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [isChecking, setIsChecking] = useState(true)
   const setTariffs = useAuthStore((state) => state.setTariffs)
+
+  // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
+  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs')
 
   useEffect(() => {
     expandWebApp()
   }, [])
 
   useEffect(() => {
+    // Если это публичная страница, пропускаем проверку авторизации
+    if (isPublicPage) {
+      setIsChecking(false)
+      setHasAccess(true)
+      return
+    }
+
     const checkAccess = async () => {
       let telegramUser: any = null
 
@@ -86,13 +97,25 @@ function App() {
     }
 
     checkAccess()
-  }, [])
+  }, [isPublicPage, setTariffs])
 
   if (isChecking) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <p className="text-white">Загрузка...</p>
       </div>
+    )
+  }
+
+  // Если это публичная страница, показываем сразу
+  if (isPublicPage) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route path="/quiz/:id" element={<TakeQuiz />} />
+          <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
+        </Routes>
+      </QueryClientProvider>
     )
   }
 
@@ -112,8 +135,6 @@ function App() {
       <Routes>
         <Route path="/curator" element={<CuratorReview />} />
         <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/quiz/:id" element={<TakeQuiz />} />
-        <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
