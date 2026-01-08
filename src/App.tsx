@@ -31,6 +31,7 @@ import QuizBuilder from './pages/quizzes/builder'
 import TakeQuiz from './pages/quizzes/take'
 import QuizAnalytics from './pages/quizzes/analytics'
 import AdminPanel from './pages/admin/index'
+import CarouselDesignsPage from './pages/carousel-designs/index'
 
 const queryClient = new QueryClient()
 
@@ -112,6 +113,7 @@ function App() {
         <Route path="/curator" element={<CuratorReview />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/quiz/:id" element={<TakeQuiz />} />
+        <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
