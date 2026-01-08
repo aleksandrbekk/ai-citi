@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
 import { checkWhitelist, getOrCreateUser, getUserTariffs } from './lib/supabase'
@@ -108,38 +108,44 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/curator" element={<CuratorReview />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="agents" element={<Agents />} />
-            <Route path="school" element={<SchoolIndex />} />
-            <Route path="school/:tariffSlug" element={<TariffPage />} />
-            <Route path="school/:tariffSlug/:moduleId" element={<ModulePage />} />
-            <Route path="school/:tariffSlug/:moduleId/lesson/:lessonId" element={<LessonPage />} />
-            <Route path="missions" element={<Missions />} />
-            <Route path="shop" element={<Shop />} />
-            <Route path="tools/poster" element={<PosterDashboard />} />
-            <Route path="tools/poster/create" element={<PosterCreate />} />
-            <Route path="tools/poster/calendar" element={<PosterCalendar />} />
-            <Route path="tools/poster/:id/edit" element={<PosterEdit />} />
-            <Route path="agents/carousel" element={<CarouselIndex />} />
-            <Route path="agents/carousel/settings" element={<CarouselSettings />} />
-            <Route path="agents/carousel/content" element={<CarouselContent />} />
-            <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
-            <Route path="agents/carousel/result" element={<CarouselResult />} />
-            <Route path="quizzes" element={<QuizzesDashboard />} />
-            <Route path="quizzes/builder" element={<QuizBuilder />} />
-            <Route path="quizzes/builder/:id" element={<QuizBuilder />} />
-            <Route path="quizzes/:id/analytics" element={<QuizAnalytics />} />
-            <Route path="quiz/:id" element={<TakeQuiz />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route path="/curator" element={<CuratorReview />} />
+        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/quiz/:id" element={<TakeQuiz />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="agents" element={<Agents />} />
+          <Route path="school" element={<SchoolIndex />} />
+          <Route path="school/:tariffSlug" element={<TariffPage />} />
+          <Route path="school/:tariffSlug/:moduleId" element={<ModulePage />} />
+          <Route path="school/:tariffSlug/:moduleId/lesson/:lessonId" element={<LessonPage />} />
+          <Route path="missions" element={<Missions />} />
+          <Route path="shop" element={<Shop />} />
+          <Route path="tools/poster" element={<PosterDashboard />} />
+          <Route path="tools/poster/create" element={<PosterCreate />} />
+          <Route path="tools/poster/calendar" element={<PosterCalendar />} />
+          <Route path="tools/poster/:id/edit" element={<PosterEdit />} />
+          <Route path="agents/carousel" element={<CarouselIndex />} />
+          <Route path="agents/carousel/settings" element={<CarouselSettings />} />
+          <Route path="agents/carousel/content" element={<CarouselContent />} />
+          <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
+          <Route path="agents/carousel/result" element={<CarouselResult />} />
+          <Route path="quizzes" element={<QuizzesDashboard />} />
+          <Route path="quizzes/builder" element={<QuizBuilder />} />
+          <Route path="quizzes/builder/:id" element={<QuizBuilder />} />
+          <Route path="quizzes/:id/analytics" element={<QuizAnalytics />} />
+        </Route>
+      </Routes>
     </QueryClientProvider>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   )
 }
 

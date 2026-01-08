@@ -525,7 +525,7 @@ export function useQuizResponse(quizId: string | null) {
       .insert({
         quiz_id: quizId,
         event_type: 'complete',
-        user_id: userId || null,
+        user_id: validUserId,
         session_id: sessionId
       })
 
