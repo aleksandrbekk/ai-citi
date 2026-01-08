@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 const CLOUDINARY_CLOUD = 'ds8ylsl2x'
-const CLOUDINARY_PRESET = 'ml_default'
+const CLOUDINARY_PRESET = 'carousel_unsigned'
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`
 
 interface PhotoUploaderProps {
