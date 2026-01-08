@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Plus, Eye, Edit, Trash2, BarChart3, Users, TrendingUp } from 'lucide-react'
-import { useQuizzes, Quiz, useQuizAnalytics } from '@/hooks/useQuizzes'
+import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 
 export default function QuizzesDashboard() {
   const navigate = useNavigate()

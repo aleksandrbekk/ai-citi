@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Plus, Trash2, Save, Eye, Image as ImageIcon, ArrowLeft, Settings, Upload } from 'lucide-react'
-import { useQuizzes, useQuiz, useQuizOptions, Quiz, QuizQuestion, QuizOption } from '@/hooks/useQuizzes'
-import { supabase } from '@/lib/supabase'
+import { useQuizzes, useQuiz, useQuizOptions, type Quiz, type QuizQuestion } from '@/hooks/useQuizzes'
 
 export default function QuizBuilder() {
   const navigate = useNavigate()
   const { id } = useParams<{ id?: string }>()
   const { createQuiz, updateQuiz } = useQuizzes()
-  const { quiz, questions, isLoading: quizLoading, createQuestion, updateQuestion, deleteQuestion, loadQuestions } = useQuiz(id || null)
+  const { quiz, questions, isLoading: quizLoading, createQuestion, updateQuestion, deleteQuestion } = useQuiz(id || null)
   
   const [currentQuiz, setCurrentQuiz] = useState<Partial<Quiz>>({
     title: '',
@@ -250,7 +249,7 @@ export default function QuizBuilder() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {questions.map((question, index) => (
+                  {questions.map((question) => (
                     <QuestionEditor
                       key={question.id}
                       question={question}

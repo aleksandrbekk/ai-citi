@@ -21,20 +21,21 @@ export default function QuizAnalytics() {
   const loadResponses = async () => {
     if (!id) return
 
-    let dateFilter = ''
-    if (timeRange === '7d') {
-      dateFilter = 'created_at.gte=' + new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    } else if (timeRange === '30d') {
-      dateFilter = 'created_at.gte=' + new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    }
-
-    const { data } = await supabase
+    let query = supabase
       .from('quiz_responses')
       .select('*')
       .eq('quiz_id', id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(100)
+
+    if (timeRange === '7d') {
+      query = query.gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    } else if (timeRange === '30d') {
+      query = query.gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+    }
+
+    const { data } = await query
 
     setResponses(data || [])
   }

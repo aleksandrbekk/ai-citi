@@ -14,7 +14,7 @@ import {
   BarChart3,
   Search
 } from 'lucide-react'
-import { useQuizzes, Quiz, useQuizAnalytics } from '@/hooks/useQuizzes'
+import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 
 type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'settings'
 

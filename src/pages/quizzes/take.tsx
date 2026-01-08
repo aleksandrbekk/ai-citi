@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Trophy, BarChart3 } from 'lucide-react'
-import { useQuiz, useQuizResponse, QuizQuestion, QuizOption } from '@/hooks/useQuizzes'
+import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Trophy } from 'lucide-react'
+import { useQuiz, useQuizResponse, type QuizQuestion, type QuizOption } from '@/hooks/useQuizzes'
 import { supabase } from '@/lib/supabase'
 
 export default function TakeQuiz() {
@@ -12,7 +12,6 @@ export default function TakeQuiz() {
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string[]>>({})
-  const [isCompleted, setIsCompleted] = useState(false)
   const [showResults, setShowResults] = useState(false)
 
   useEffect(() => {
@@ -30,7 +29,6 @@ export default function TakeQuiz() {
 
   useEffect(() => {
     if (response?.completed_at) {
-      setIsCompleted(true)
       setShowResults(true)
     }
   }, [response])
