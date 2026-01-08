@@ -1,11 +1,27 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getUserPhoto } from '@/lib/supabase'
+import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
   const { selectedTemplate, variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
+
+  // Загружаем фото пользователя из БД при загрузке страницы
+  useEffect(() => {
+    const loadUserPhoto = async () => {
+      const telegramUser = getTelegramUser()
+      if (telegramUser?.id) {
+        const photoFromDb = await getUserPhoto(telegramUser.id)
+        if (photoFromDb) {
+          setUserPhoto(photoFromDb)
+        }
+      }
+    }
+    loadUserPhoto()
+  }, [setUserPhoto])
 
   if (!selectedTemplate) {
     navigate('/agents/carousel')
@@ -31,15 +47,8 @@ export default function CarouselContent() {
       return
     }
 
-    // Получаем фото: сначала из store, если нет - из Supabase
-    let finalUserPhoto = userPhoto
-    if (!finalUserPhoto) {
-      const photoFromDb = await getUserPhoto(chatId)
-      if (photoFromDb) {
-        finalUserPhoto = photoFromDb
-        setUserPhoto(photoFromDb) // Сохраняем в store для будущего использования
-      }
-    }
+    // Фото уже загружено в useEffect
+    const finalUserPhoto = userPhoto
 
     // Подготовка данных для отправки
     const requestData = {
