@@ -3,10 +3,30 @@ import { ArrowLeft } from 'lucide-react'
 import { PhotoUploader } from '@/components/carousel/PhotoUploader'
 import { AudienceSelector } from '@/components/carousel/AudienceSelector'
 import { useCarouselStore } from '@/store/carouselStore'
+import { saveUserPhoto, deleteUserPhoto } from '@/lib/supabase'
+import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselSettings() {
   const navigate = useNavigate()
   const { userPhoto, setUserPhoto } = useCarouselStore()
+
+  const handlePhotoChange = async (photo: string | null) => {
+    const telegramUser = getTelegramUser()
+    if (!telegramUser?.id) {
+      setUserPhoto(photo)
+      return
+    }
+
+    setUserPhoto(photo)
+
+    if (photo) {
+      // Сохраняем в БД
+      await saveUserPhoto(telegramUser.id, photo, 'face_main')
+    } else {
+      // Удаляем из БД
+      await deleteUserPhoto(telegramUser.id, 'face_main')
+    }
+  }
 
   const handleNext = () => {
     navigate('/agents/carousel/content')
@@ -27,7 +47,13 @@ export default function CarouselSettings() {
 
       <div className="p-4 space-y-6">
         {/* Загрузка фото */}
-        <PhotoUploader photo={userPhoto} onPhotoChange={setUserPhoto} />
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-300">📸 Фото для каруселей</label>
+          <p className="text-xs text-zinc-500">
+            Загрузите фото где хорошо видно лицо. Оно будет использоваться для AI-генерации каруселей.
+          </p>
+          <PhotoUploader photo={userPhoto} onPhotoChange={handlePhotoChange} saveToDatabase={true} />
+        </div>
 
         {/* Целевая аудитория */}
         <AudienceSelector />

@@ -117,3 +117,79 @@ export function canAccessModule(moduleTariff: string, userTariffs: string[]): bo
   if (userTariffs.includes('standard') && moduleTariff === 'standard') return true
   return false
 }
+
+// ===========================================
+// USER PHOTOS (для каруселей)
+// ===========================================
+
+export interface UserPhoto {
+  telegram_id: number
+  face_main: string | null
+  face_cap: string | null
+  cloudinary_folder: string | null
+}
+
+/**
+ * Получить фото пользователя из базы данных
+ */
+export async function getUserPhoto(telegramId: number): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('user_photos')
+    .select('face_main')
+    .eq('telegram_id', telegramId)
+    .single()
+  
+  if (error || !data) {
+    return null
+  }
+  
+  return data.face_main
+}
+
+/**
+ * Сохранить фото пользователя в базу данных
+ */
+export async function saveUserPhoto(
+  telegramId: number,
+  photoUrl: string,
+  type: 'face_main' | 'face_cap' = 'face_main'
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_photos')
+    .upsert({
+      telegram_id: telegramId,
+      [type]: photoUrl,
+      cloudinary_folder: `carousel-users/${telegramId}`,
+    }, {
+      onConflict: 'telegram_id'
+    })
+  
+  if (error) {
+    console.error('Error saving user photo:', error)
+    return false
+  }
+  
+  return true
+}
+
+/**
+ * Удалить фото пользователя
+ */
+export async function deleteUserPhoto(
+  telegramId: number,
+  type: 'face_main' | 'face_cap' = 'face_main'
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_photos')
+    .update({
+      [type]: null,
+    })
+    .eq('telegram_id', telegramId)
+  
+  if (error) {
+    console.error('Error deleting user photo:', error)
+    return false
+  }
+  
+  return true
+}

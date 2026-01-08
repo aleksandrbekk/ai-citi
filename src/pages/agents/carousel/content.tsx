@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
+import { getUserPhoto } from '@/lib/supabase'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
+  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
 
   if (!selectedTemplate) {
     navigate('/agents/carousel')
@@ -30,11 +31,21 @@ export default function CarouselContent() {
       return
     }
 
+    // Получаем фото: сначала из store, если нет - из Supabase
+    let finalUserPhoto = userPhoto
+    if (!finalUserPhoto) {
+      const photoFromDb = await getUserPhoto(chatId)
+      if (photoFromDb) {
+        finalUserPhoto = photoFromDb
+        setUserPhoto(photoFromDb) // Сохраняем в store для будущего использования
+      }
+    }
+
     // Подготовка данных для отправки
     const requestData = {
       chatId: chatId, // ОБЯЗАТЕЛЬНО число, telegram user id
       templateId: selectedTemplate === 'custom' ? 'custom' : selectedTemplate,
-      userPhoto: userPhoto || '',
+      userPhoto: finalUserPhoto || '',
       mode: 'ai', // Всегда AI режим
       topic: variables.topic || '',
       style: style || 'ai-citi', // Стиль дизайна
@@ -53,7 +64,7 @@ export default function CarouselContent() {
       mode: requestData.mode,
       topic: requestData.topic,
       cta_text: requestData.cta_text,
-      hasUserPhoto: !!userPhoto,
+      hasUserPhoto: !!finalUserPhoto,
     })
 
     setStatus('generating')
