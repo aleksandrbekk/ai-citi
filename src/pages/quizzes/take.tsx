@@ -108,7 +108,6 @@ export default function TakeQuiz() {
     const completed = await completeResponse(formattedAnswers)
     
     if (completed) {
-      setIsCompleted(true)
       setShowResults(true)
     }
   }
