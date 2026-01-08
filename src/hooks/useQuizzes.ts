@@ -106,7 +106,7 @@ export function useQuizzes() {
     const { data, error } = await supabase
       .from('quizzes')
       .insert({
-        user_id: userId,
+        user_id: validUserId || '00000000-0000-0000-0000-000000000001',
         title: quizData.title || 'Новый квиз',
         description: quizData.description || null,
         cover_image_url: quizData.cover_image_url || null,
@@ -395,6 +395,9 @@ export function useQuizResponse(quizId: string | null) {
   const [sessionId] = useState(() => generateSessionId())
   const userId = useAuthStore((state) => state.user?.id)
 
+  // Проверяем, что userId это валидный UUID, иначе используем null
+  const validUserId = userId && userId !== 'dev-user' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId) ? userId : null
+
   const startResponse = async (): Promise<QuizResponse | null> => {
     if (!quizId) return null
 
@@ -404,7 +407,7 @@ export function useQuizResponse(quizId: string | null) {
       .insert({
         quiz_id: quizId,
         event_type: 'start',
-        user_id: userId || null,
+        user_id: validUserId,
         session_id: sessionId
       })
 
@@ -412,7 +415,7 @@ export function useQuizResponse(quizId: string | null) {
       .from('quiz_responses')
       .insert({
         quiz_id: quizId,
-        user_id: userId || null,
+        user_id: validUserId,
         session_id: sessionId,
         started_at: new Date().toISOString(),
         answers: []
