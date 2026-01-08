@@ -4,10 +4,17 @@ import { Star, Plus, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react
 import { useQuiz, useQuizResponse } from '@/hooks/useQuizzes'
 import { supabase } from '@/lib/supabase'
 
+interface QuizImage {
+  id: string
+  image_url: string
+  row_index: number
+  image_index: number
+}
+
 interface ImageRow {
   id: string
-  images: string[]
-  ratings: Record<number, number> // индекс картинки -> рейтинг (1-5)
+  images: QuizImage[]
+  ratings: Record<string, number> // image_id -> рейтинг (1-5)
 }
 
 export default function TakeQuiz() {
@@ -15,13 +22,53 @@ export default function TakeQuiz() {
   const { quiz, isLoading } = useQuiz(id || null)
   const { response, startResponse, completeResponse, sessionId } = useQuizResponse(id || null)
   
-  const [rows, setRows] = useState<ImageRow[]>([
-    { id: 'row-1', images: [], ratings: {} }
-  ])
+  const [rows, setRows] = useState<ImageRow[]>([])
+  const [isLoadingImages, setIsLoadingImages] = useState(true)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
+  // Загружаем картинки из базы данных
   useEffect(() => {
-    if (id && !response) {
+    if (id) {
+      loadImages()
+    }
+  }, [id])
+
+  const loadImages = async () => {
+    if (!id) return
+
+    setIsLoadingImages(true)
+    const { data, error } = await supabase
+      .from('quiz_images')
+      .select('*')
+      .eq('quiz_id', id)
+      .order('row_index', { ascending: true })
+      .order('image_index', { ascending: true })
+
+    if (error) {
+      console.error('Error loading images:', error)
+      setIsLoadingImages(false)
+      return
+    }
+
+    // Группируем картинки по рядам
+    const rowsMap = new Map<number, ImageRow>()
+    
+    if (data && data.length > 0) {
+      data.forEach((img: QuizImage) => {
+        const rowIndex = img.row_index || 0
+        if (!rowsMap.has(rowIndex)) {
+          rowsMap.set(rowIndex, { id: `row-${rowIndex}`, images: [], ratings: {} })
+        }
+        rowsMap.get(rowIndex)!.images.push(img)
+      })
+    }
+
+    setRows(Array.from(rowsMap.values()))
+    setIsLoadingImages(false)
+  }
+
+  useEffect(() => {
+    if (id && !response && !isLoadingImages) {
       // Записываем событие "view"
       supabase.from('quiz_analytics').insert({
         quiz_id: id,
@@ -31,7 +78,7 @@ export default function TakeQuiz() {
       
       startResponse()
     }
-  }, [id, response, startResponse, sessionId])
+  }, [id, response, startResponse, sessionId, isLoadingImages])
 
   useEffect(() => {
     if (response?.completed_at) {
@@ -39,51 +86,12 @@ export default function TakeQuiz() {
     }
   }, [response])
 
-  const handleImageUpload = (rowId: string, file: File) => {
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const base64String = reader.result as string
-      setRows(prevRows => 
-        prevRows.map(row => 
-          row.id === rowId 
-            ? { ...row, images: [...row.images, base64String] }
-            : row
-        )
-      )
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const handleRatingChange = (rowId: string, imageIndex: number, rating: number) => {
-    setRows(prevRows =>
-      prevRows.map(row =>
-        row.id === rowId
-          ? { ...row, ratings: { ...row.ratings, [imageIndex]: rating } }
-          : row
-      )
-    )
-  }
-
-  const handleAddRow = () => {
-    const newRowId = `row-${rows.length + 1}`
-    setRows([...rows, { id: newRowId, images: [], ratings: {} }])
-  }
-
-  const handleRemoveImage = (rowId: string, imageIndex: number) => {
+  const handleRatingChange = (imageId: string, rating: number) => {
     setRows(prevRows =>
       prevRows.map(row => {
-        if (row.id === rowId) {
-          const newImages = row.images.filter((_, idx) => idx !== imageIndex)
-          const newRatings: Record<number, number> = {}
-          Object.entries(row.ratings).forEach(([idx, rating]) => {
-            const numIdx = parseInt(idx)
-            if (numIdx < imageIndex) {
-              newRatings[numIdx] = rating
-            } else if (numIdx > imageIndex) {
-              newRatings[numIdx - 1] = rating
-            }
-          })
-          return { ...row, images: newImages, ratings: newRatings }
+        const hasImage = row.images.some(img => img.id === imageId)
+        if (hasImage) {
+          return { ...row, ratings: { ...row.ratings, [imageId]: rating } }
         }
         return row
       })
@@ -99,19 +107,19 @@ export default function TakeQuiz() {
     )
 
     if (!hasRatings) {
-      alert('Пожалуйста, загрузите картинки и поставьте оценки')
+      alert('Пожалуйста, поставьте оценки хотя бы одной картинке')
       return
     }
 
     // Формируем ответы с рейтингами для каждой картинки
     const formattedAnswers = rows.flatMap((row, rowIndex) =>
-      row.images.map((image, imageIndex) => ({
-        question_id: `${row.id}-${imageIndex}`,
+      row.images.map((image) => ({
+        question_id: `image-${image.id}`,
         option_ids: [],
-        rating_value: row.ratings[imageIndex] || null,
-        image_url: image,
+        rating_value: row.ratings[image.id] || null,
+        image_id: image.id,
         row_index: rowIndex,
-        image_index: imageIndex,
+        image_index: image.image_index,
         is_correct: true
       }))
     )
@@ -144,7 +152,7 @@ export default function TakeQuiz() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingImages) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-black to-zinc-900 text-white flex items-center justify-center">
         <div className="text-center">
@@ -212,29 +220,22 @@ export default function TakeQuiz() {
         </div>
 
         {/* Image Rows */}
-        <div className="space-y-12">
-          {rows.map((row, rowIndex) => (
-            <ImageRowComponent
-              key={row.id}
-              row={row}
-              rowIndex={rowIndex}
-              onImageUpload={(file) => handleImageUpload(row.id, file)}
-              onRatingChange={(imageIndex, rating) => handleRatingChange(row.id, imageIndex, rating)}
-              onRemoveImage={(imageIndex) => handleRemoveImage(row.id, imageIndex)}
-            />
-          ))}
-        </div>
-
-        {/* Add Row Button */}
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={handleAddRow}
-            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/20"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Добавить ряд картинок</span>
-          </button>
-        </div>
+        {rows.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-zinc-400 text-lg">В этом квизе пока нет картинок для оценки</p>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {rows.map((row, rowIndex) => (
+              <ImageRowComponent
+                key={row.id}
+                row={row}
+                rowIndex={rowIndex}
+                onRatingChange={(imageId, rating) => handleRatingChange(imageId, rating)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Submit Button */}
         <div className="flex justify-center mt-12">
@@ -253,15 +254,11 @@ export default function TakeQuiz() {
 function ImageRowComponent({
   row,
   rowIndex,
-  onImageUpload,
-  onRatingChange,
-  onRemoveImage
+  onRatingChange
 }: {
   row: ImageRow
   rowIndex: number
-  onImageUpload: (file: File) => void
-  onRatingChange: (imageIndex: number, rating: number) => void
-  onRemoveImage: (imageIndex: number) => void
+  onRatingChange: (imageId: string, rating: number) => void
 }) {
   const [scrollPosition, setScrollPosition] = useState(0)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -330,45 +327,19 @@ function ImageRowComponent({
           className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
           style={{ scrollSnapType: 'x mandatory' }}
         >
-          {/* Add Image Button */}
-          {row.images.length < 10 && (
-            <label className="flex-shrink-0 w-64 h-64 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-orange-500/50 transition-colors flex flex-col items-center justify-center bg-white/5">
-              <Plus className="w-12 h-12 text-zinc-400 mb-2" />
-              <span className="text-sm text-zinc-400">Добавить картинку</span>
-              <span className="text-xs text-zinc-500 mt-1">
-                {row.images.length} / 10
-              </span>
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) onImageUpload(file)
-                }}
-              />
-            </label>
-          )}
-
           {/* Images */}
-          {row.images.map((image, imageIndex) => (
+          {row.images.map((image) => (
             <div
-              key={imageIndex}
+              key={image.id}
               className="flex-shrink-0 w-64 space-y-3"
               style={{ scrollSnapAlign: 'start' }}
             >
-              <div className="relative group">
+              <div className="relative">
                 <img
-                  src={image}
-                  alt={`Image ${imageIndex + 1}`}
+                  src={image.image_url}
+                  alt={`Image ${image.image_index + 1}`}
                   className="w-64 h-64 object-cover rounded-xl shadow-lg"
                 />
-                <button
-                  onClick={() => onRemoveImage(imageIndex)}
-                  className="absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  ✕
-                </button>
               </div>
 
               {/* Rating */}
@@ -376,16 +347,16 @@ function ImageRowComponent({
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
-                    onClick={() => onRatingChange(imageIndex, value)}
+                    onClick={() => onRatingChange(image.id, value)}
                     className={`transition-all transform hover:scale-110 ${
-                      row.ratings[imageIndex] && row.ratings[imageIndex] >= value
+                      row.ratings[image.id] && row.ratings[image.id] >= value
                         ? 'text-orange-500 scale-110'
                         : 'text-zinc-600 hover:text-orange-400'
                     }`}
                   >
                     <Star
                       className={`w-6 h-6 ${
-                        row.ratings[imageIndex] && row.ratings[imageIndex] >= value
+                        row.ratings[image.id] && row.ratings[image.id] >= value
                           ? 'fill-current'
                           : ''
                       }`}
@@ -393,9 +364,9 @@ function ImageRowComponent({
                   </button>
                 ))}
               </div>
-              {row.ratings[imageIndex] && (
+              {row.ratings[image.id] && (
                 <p className="text-center text-sm text-zinc-400">
-                  Оценка: {row.ratings[imageIndex]} / 5
+                  Оценка: {row.ratings[image.id]} / 5
                 </p>
               )}
             </div>
