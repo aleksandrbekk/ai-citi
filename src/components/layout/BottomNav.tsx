@@ -15,6 +15,11 @@ export function BottomNav() {
   const location = useLocation()
   const isKeyboardOpen = useUIStore((s) => s.isKeyboardOpen)
 
+  // Скрываем навигацию на страницах квизов и просмотра дизайнов
+  if (location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs')) {
+    return null
+  }
+
   return (
     <nav className={`fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-t border-zinc-800 transition-transform duration-200 safe-bottom ${
       isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
