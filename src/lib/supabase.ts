@@ -256,19 +256,12 @@ export async function deletePhotoFromSlot(
   return true
 }
 
-export async function getFirstUserPhoto(telegramId: number): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('user_photo_gallery')
-    .select('photo_url')
+export async function getFirstUserPhoto(telegramId: number): Promise<string> {
+  const { data } = await supabase
+    .from('user_photos')
+    .select('face_main')
     .eq('telegram_id', telegramId)
-    .order('slot_index', { ascending: true })
-    .limit(1)
     .maybeSingle()
   
-  if (error) {
-    console.error('Error getting first user photo:', error)
-    return null
-  }
-  
-  return data?.photo_url || null
+  return data?.face_main || ''
 }
