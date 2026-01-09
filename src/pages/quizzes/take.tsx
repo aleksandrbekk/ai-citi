@@ -51,53 +51,6 @@ export default function TakeQuiz() {
       console.warn('Error loading rows (may not exist for old quizzes):', rowsError)
     }
 
-    // Загружаем картинки с таймаутом (base64 строки могут быть большими)
-    console.log('Loading images for quiz:', id)
-    
-    try {
-      const { data: imagesData, error: imagesError } = await Promise.race([
-        supabase
-          .from('quiz_images')
-          .select('id, quiz_id, row_index, image_index, image_url, order_index')
-          .eq('quiz_id', id)
-          .order('row_index', { ascending: true })
-          .order('image_index', { ascending: true }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout: запрос занял слишком много времени')), 30000)
-        )
-      ]) as any
-
-      if (imagesError) {
-        console.error('Error loading images:', imagesError)
-        alert('Ошибка загрузки картинок: ' + imagesError.message)
-        setIsLoadingImages(false)
-        return
-      }
-
-      console.log('Loaded images:', imagesData?.length || 0)
-      
-      // Продолжаем обработку с imagesData
-      if (imagesData && imagesData.length > 0) {
-        imagesData.forEach((img: QuizImage) => {
-          const rowIndex = img.row_index || 0
-          if (!rowsMap.has(rowIndex)) {
-            rowsMap.set(rowIndex, {
-              id: `row-${rowIndex}`,
-              name: `Ряд ${rowIndex + 1}`,
-              images: [],
-              rating: null
-            })
-          }
-          rowsMap.get(rowIndex)!.images.push(img)
-        })
-      }
-    } catch (error: any) {
-      console.error('Error loading images (timeout or error):', error)
-      alert('Ошибка загрузки картинок. Попробуйте обновить страницу.')
-      setIsLoadingImages(false)
-      return
-    }
-
     // Создаем мапу рядов
     const rowsMap = new Map<number, ImageRow>()
     
@@ -165,7 +118,15 @@ export default function TakeQuiz() {
 
     // Если нет ни рядов, ни картинок - пустой массив
     const finalRows = Array.from(rowsMap.values())
-    console.log('Loaded rows:', finalRows.length, 'rows with', finalRows.reduce((sum, r) => sum + r.images.length, 0), 'images')
+    const totalImages = finalRows.reduce((sum, r) => sum + r.images.length, 0)
+    console.log('Loaded rows:', finalRows.length, 'rows with', totalImages, 'images')
+    
+    if (finalRows.length === 0) {
+      console.warn('No rows or images found for quiz:', id)
+    } else if (totalImages === 0) {
+      console.warn('Rows found but no images in them')
+    }
+    
     setRows(finalRows)
     setIsLoadingImages(false)
   }
@@ -210,7 +171,7 @@ export default function TakeQuiz() {
     }
 
     // Формируем ответы - один рейтинг на ряд (карусель)
-    const formattedAnswers = rows.map((row, rowIndex) => ({
+    const formattedAnswers = rowsWithImages.map((row, rowIndex) => ({
       question_id: `row-${rowIndex}`,
       option_ids: [],
       rating_value: row.rating,
@@ -252,7 +213,7 @@ export default function TakeQuiz() {
       <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-black to-zinc-900 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-zinc-400">Загрузка...</p>
+          <p className="text-zinc-400">Загрузка квиза...</p>
         </div>
       </div>
     )
@@ -315,9 +276,10 @@ export default function TakeQuiz() {
         </div>
 
         {/* Image Rows */}
-        {rows.length === 0 ? (
+        {rows.length === 0 || rows.every(row => row.images.length === 0) ? (
           <div className="text-center py-12">
             <p className="text-zinc-400 text-lg">В этом квизе пока нет картинок для оценки</p>
+            <p className="text-zinc-500 text-sm mt-2">Загрузите картинки в конструкторе квиза</p>
           </div>
         ) : (
           <div className="space-y-12">
@@ -336,7 +298,8 @@ export default function TakeQuiz() {
         <div className="flex justify-center mt-12">
           <button
             onClick={handleSubmit}
-            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30 text-lg font-semibold"
+            disabled={rows.filter(row => row.images.length > 0).some(row => row.rating === null)}
+            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Отправить оценки
           </button>
