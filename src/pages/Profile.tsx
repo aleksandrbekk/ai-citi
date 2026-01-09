@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PhotoUploader } from '@/components/carousel/PhotoUploader'
-import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, type GalleryPhoto } from '@/lib/supabase'
+import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, type GalleryPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function Profile() {
@@ -22,7 +22,15 @@ export default function Profile() {
           photoArray[photo.slot_index - 1] = photo.photo_url
         }
       })
-      
+
+      // Если первый слот пустой, проверяем legacy таблицу user_photos
+      if (!photoArray[0]) {
+        const legacyPhoto = await getUserPhoto(telegramUser.id)
+        if (legacyPhoto) {
+          photoArray[0] = legacyPhoto
+        }
+      }
+
       setPhotos(photoArray)
       setIsLoading(false)
     }
