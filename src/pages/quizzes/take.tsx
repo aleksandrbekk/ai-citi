@@ -66,33 +66,42 @@ export default function TakeQuiz() {
       })
     }
 
-    // Загружаем картинки с таймаутом (base64 строки могут быть большими)
-    console.log('Loading images for quiz:', id)
+    // Загружаем картинки порциями (из-за больших base64 строк)
+    console.log('Loading images for quiz:', id, 'in batches...')
     
-    let imagesData: QuizImage[] | null = null
-    
+    let imagesData: QuizImage[] = []
+    let offset = 0
+    const batchSize = 20
+    let hasMore = true
+
     try {
-      const result = await Promise.race([
-        supabase
+      while (hasMore) {
+        const { data: batch, error: batchError } = await supabase
           .from('quiz_images')
           .select('id, quiz_id, row_index, image_index, image_url, order_index')
           .eq('quiz_id', id)
           .order('row_index', { ascending: true })
-          .order('image_index', { ascending: true }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout: запрос занял слишком много времени')), 30000)
-        )
-      ]) as any
+          .order('image_index', { ascending: true })
+          .range(offset, offset + batchSize - 1)
 
-      if (result.error) {
-        console.error('Error loading images:', result.error)
-        alert('Ошибка загрузки картинок: ' + result.error.message)
-        setIsLoadingImages(false)
-        return
+        if (batchError) {
+          console.error('Error loading images batch:', batchError)
+          alert('Ошибка загрузки картинок: ' + batchError.message)
+          setIsLoadingImages(false)
+          return
+        }
+
+        if (batch && batch.length > 0) {
+          imagesData = [...imagesData, ...batch]
+          offset += batchSize
+          hasMore = batch.length === batchSize
+          console.log(`Loaded batch: ${batch.length} images, total: ${imagesData.length}`)
+        } else {
+          hasMore = false
+        }
       }
 
-      imagesData = result.data
-      console.log('Loaded images:', imagesData?.length || 0)
+      console.log('Loaded images:', imagesData.length)
     } catch (error: any) {
       console.error('Error loading images (timeout or error):', error)
       alert('Ошибка загрузки картинок. Попробуйте обновить страницу.')
