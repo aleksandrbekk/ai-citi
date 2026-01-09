@@ -51,22 +51,52 @@ export default function TakeQuiz() {
       console.warn('Error loading rows (may not exist for old quizzes):', rowsError)
     }
 
-    // Загружаем картинки (только необходимые поля, без больших base64 строк)
-    const { data: imagesData, error: imagesError } = await supabase
-      .from('quiz_images')
-      .select('id, quiz_id, row_index, image_index, image_url, order_index')
-      .eq('quiz_id', id)
-      .order('row_index', { ascending: true })
-      .order('image_index', { ascending: true })
+    // Загружаем картинки с таймаутом (base64 строки могут быть большими)
+    console.log('Loading images for quiz:', id)
+    
+    try {
+      const { data: imagesData, error: imagesError } = await Promise.race([
+        supabase
+          .from('quiz_images')
+          .select('id, quiz_id, row_index, image_index, image_url, order_index')
+          .eq('quiz_id', id)
+          .order('row_index', { ascending: true })
+          .order('image_index', { ascending: true }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout: запрос занял слишком много времени')), 30000)
+        )
+      ]) as any
 
-    if (imagesError) {
-      console.error('Error loading images:', imagesError)
-      alert('Ошибка загрузки картинок: ' + imagesError.message)
+      if (imagesError) {
+        console.error('Error loading images:', imagesError)
+        alert('Ошибка загрузки картинок: ' + imagesError.message)
+        setIsLoadingImages(false)
+        return
+      }
+
+      console.log('Loaded images:', imagesData?.length || 0)
+      
+      // Продолжаем обработку с imagesData
+      if (imagesData && imagesData.length > 0) {
+        imagesData.forEach((img: QuizImage) => {
+          const rowIndex = img.row_index || 0
+          if (!rowsMap.has(rowIndex)) {
+            rowsMap.set(rowIndex, {
+              id: `row-${rowIndex}`,
+              name: `Ряд ${rowIndex + 1}`,
+              images: [],
+              rating: null
+            })
+          }
+          rowsMap.get(rowIndex)!.images.push(img)
+        })
+      }
+    } catch (error: any) {
+      console.error('Error loading images (timeout or error):', error)
+      alert('Ошибка загрузки картинок. Попробуйте обновить страницу.')
       setIsLoadingImages(false)
       return
     }
-
-    console.log('Loaded images:', imagesData?.length || 0)
 
     // Создаем мапу рядов
     const rowsMap = new Map<number, ImageRow>()
