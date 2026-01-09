@@ -113,6 +113,40 @@ export default function TakeQuiz() {
       })
     }
 
+    // Загружаем картинки с таймаутом (base64 строки могут быть большими)
+    console.log('Loading images for quiz:', id)
+    
+    let imagesData: QuizImage[] | null = null
+    
+    try {
+      const result = await Promise.race([
+        supabase
+          .from('quiz_images')
+          .select('id, quiz_id, row_index, image_index, image_url, order_index')
+          .eq('quiz_id', id)
+          .order('row_index', { ascending: true })
+          .order('image_index', { ascending: true }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout: запрос занял слишком много времени')), 30000)
+        )
+      ]) as any
+
+      if (result.error) {
+        console.error('Error loading images:', result.error)
+        alert('Ошибка загрузки картинок: ' + result.error.message)
+        setIsLoadingImages(false)
+        return
+      }
+
+      imagesData = result.data
+      console.log('Loaded images:', imagesData?.length || 0)
+    } catch (error: any) {
+      console.error('Error loading images (timeout or error):', error)
+      alert('Ошибка загрузки картинок. Попробуйте обновить страницу.')
+      setIsLoadingImages(false)
+      return
+    }
+
     // Добавляем картинки в ряды (создаем ряды, если их нет в quiz_image_rows)
     if (imagesData && imagesData.length > 0) {
       imagesData.forEach((img: QuizImage) => {
