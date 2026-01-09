@@ -421,6 +421,8 @@ function ImageRowComponent({
                 <img
                   src={image.image_url}
                   alt={`Image ${image.image_index + 1}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-64 h-64 object-cover rounded-xl shadow-lg"
                 />
               </div>
