@@ -14,7 +14,7 @@ interface QuizImage {
 interface ImageRow {
   id: string
   images: QuizImage[]
-  ratings: Record<string, number> // image_id -> рейтинг (1-5)
+  rating: number | null // одна оценка для всего ряда (1-5)
 }
 
 export default function TakeQuiz() {
@@ -57,7 +57,7 @@ export default function TakeQuiz() {
       data.forEach((img: QuizImage) => {
         const rowIndex = img.row_index || 0
         if (!rowsMap.has(rowIndex)) {
-          rowsMap.set(rowIndex, { id: `row-${rowIndex}`, images: [], ratings: {} })
+          rowsMap.set(rowIndex, { id: `row-${rowIndex}`, images: [], rating: null })
         }
         rowsMap.get(rowIndex)!.images.push(img)
       })
@@ -86,43 +86,35 @@ export default function TakeQuiz() {
     }
   }, [response])
 
-  const handleRatingChange = (imageId: string, rating: number) => {
+  const handleRatingChange = (rowId: string, rating: number) => {
     setRows(prevRows =>
-      prevRows.map(row => {
-        const hasImage = row.images.some(img => img.id === imageId)
-        if (hasImage) {
-          return { ...row, ratings: { ...row.ratings, [imageId]: rating } }
-        }
-        return row
-      })
+      prevRows.map(row => 
+        row.id === rowId ? { ...row, rating } : row
+      )
     )
   }
 
   const handleSubmit = async () => {
     if (!id || !response) return
 
-    // Проверяем, что есть хотя бы одна картинка с рейтингом
-    const hasRatings = rows.some(row => 
-      row.images.length > 0 && Object.keys(row.ratings).length > 0
-    )
+    // Проверяем, что все ряды с картинками имеют рейтинг
+    const rowsWithImages = rows.filter(row => row.images.length > 0)
+    const hasAllRatings = rowsWithImages.every(row => row.rating !== null)
 
-    if (!hasRatings) {
-      alert('Пожалуйста, поставьте оценки хотя бы одной картинке')
+    if (!hasAllRatings) {
+      alert('Пожалуйста, поставьте оценку для всех каруселей')
       return
     }
 
-    // Формируем ответы с рейтингами для каждой картинки
-    const formattedAnswers = rows.flatMap((row, rowIndex) =>
-      row.images.map((image) => ({
-        question_id: `image-${image.id}`,
-        option_ids: [],
-        rating_value: row.ratings[image.id] || null,
-        image_id: image.id,
-        row_index: rowIndex,
-        image_index: image.image_index,
-        is_correct: true
-      }))
-    )
+    // Формируем ответы - один рейтинг на ряд (карусель)
+    const formattedAnswers = rows.map((row, rowIndex) => ({
+      question_id: `row-${rowIndex}`,
+      option_ids: [],
+      rating_value: row.rating,
+      row_index: rowIndex,
+      images_count: row.images.length,
+      is_correct: true
+    }))
 
     // Записываем событие "start" если еще не записано
     await supabase.from('quiz_analytics').insert({
@@ -145,8 +137,8 @@ export default function TakeQuiz() {
         session_id: sessionId,
         metadata: { 
           rows_count: rows.length, 
-          total_images: formattedAnswers.length,
-          ratings: rows.map(row => row.ratings)
+          total_images: rows.reduce((sum, row) => sum + row.images.length, 0),
+          ratings: rows.map(row => ({ row_id: row.id, rating: row.rating }))
         }
       })
     }
@@ -231,7 +223,7 @@ export default function TakeQuiz() {
                 key={row.id}
                 row={row}
                 rowIndex={rowIndex}
-                onRatingChange={(imageId, rating) => handleRatingChange(imageId, rating)}
+                onRatingChange={(rating) => handleRatingChange(row.id, rating)}
               />
             ))}
           </div>
@@ -258,7 +250,7 @@ function ImageRowComponent({
 }: {
   row: ImageRow
   rowIndex: number
-  onRatingChange: (imageId: string, rating: number) => void
+  onRatingChange: (rating: number) => void
 }) {
   const [scrollPosition, setScrollPosition] = useState(0)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -331,7 +323,7 @@ function ImageRowComponent({
           {row.images.map((image) => (
             <div
               key={image.id}
-              className="flex-shrink-0 w-64 space-y-3"
+              className="flex-shrink-0 w-64"
               style={{ scrollSnapAlign: 'start' }}
             >
               <div className="relative">
@@ -341,37 +333,42 @@ function ImageRowComponent({
                   className="w-64 h-64 object-cover rounded-xl shadow-lg"
                 />
               </div>
-
-              {/* Rating */}
-              <div className="flex items-center justify-center gap-1">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => onRatingChange(image.id, value)}
-                    className={`transition-all transform hover:scale-110 ${
-                      row.ratings[image.id] && row.ratings[image.id] >= value
-                        ? 'text-orange-500 scale-110'
-                        : 'text-zinc-600 hover:text-orange-400'
-                    }`}
-                  >
-                    <Star
-                      className={`w-6 h-6 ${
-                        row.ratings[image.id] && row.ratings[image.id] >= value
-                          ? 'fill-current'
-                          : ''
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-              {row.ratings[image.id] && (
-                <p className="text-center text-sm text-zinc-400">
-                  Оценка: {row.ratings[image.id]} / 5
-                </p>
-              )}
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Рейтинг для всего ряда - под картинками */}
+      <div className="mt-6 pt-6 border-t border-white/10">
+        <div className="text-center mb-4">
+          <p className="text-sm text-zinc-400 mb-2">Оцените эту карусель</p>
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          {[1, 2, 3, 4, 5].map((value) => (
+            <button
+              key={value}
+              onClick={() => onRatingChange(value)}
+              className={`transition-all transform hover:scale-110 ${
+                row.rating && row.rating >= value
+                  ? 'text-orange-500 scale-110'
+                  : 'text-zinc-600 hover:text-orange-400'
+              }`}
+            >
+              <Star
+                className={`w-8 h-8 ${
+                  row.rating && row.rating >= value
+                    ? 'fill-current'
+                    : ''
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+        {row.rating && (
+          <p className="text-center text-sm text-zinc-400 mt-3">
+            Оценка: {row.rating} / 5
+          </p>
+        )}
       </div>
     </div>
   )
