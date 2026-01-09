@@ -97,7 +97,9 @@ export default function TakeQuiz() {
     }
 
     // Если нет ни рядов, ни картинок - пустой массив
-    setRows(Array.from(rowsMap.values()))
+    const finalRows = Array.from(rowsMap.values())
+    console.log('Loaded rows:', finalRows.length, 'rows with', finalRows.reduce((sum, r) => sum + r.images.length, 0), 'images')
+    setRows(finalRows)
     setIsLoadingImages(false)
   }
 
