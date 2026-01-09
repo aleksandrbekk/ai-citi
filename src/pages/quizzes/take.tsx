@@ -40,11 +40,16 @@ export default function TakeQuiz() {
     setIsLoadingImages(true)
     
     // Загружаем ряды с названиями (может быть пусто для старых квизов)
-    const { data: rowsData } = await supabase
+    const { data: rowsData, error: rowsError } = await supabase
       .from('quiz_image_rows')
       .select('*')
       .eq('quiz_id', id)
       .order('row_index', { ascending: true })
+    
+    // Игнорируем ошибку, если таблица не существует или пуста
+    if (rowsError) {
+      console.warn('Error loading rows (may not exist for old quizzes):', rowsError)
+    }
 
     // Загружаем картинки
     const { data: imagesData, error: imagesError } = await supabase
