@@ -51,19 +51,22 @@ export default function TakeQuiz() {
       console.warn('Error loading rows (may not exist for old quizzes):', rowsError)
     }
 
-    // Загружаем картинки
+    // Загружаем картинки (только необходимые поля, без больших base64 строк)
     const { data: imagesData, error: imagesError } = await supabase
       .from('quiz_images')
-      .select('*')
+      .select('id, quiz_id, row_index, image_index, image_url, order_index')
       .eq('quiz_id', id)
       .order('row_index', { ascending: true })
       .order('image_index', { ascending: true })
 
     if (imagesError) {
       console.error('Error loading images:', imagesError)
+      alert('Ошибка загрузки картинок: ' + imagesError.message)
       setIsLoadingImages(false)
       return
     }
+
+    console.log('Loaded images:', imagesData?.length || 0)
 
     // Создаем мапу рядов
     const rowsMap = new Map<number, ImageRow>()
