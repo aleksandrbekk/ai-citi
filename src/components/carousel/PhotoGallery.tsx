@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Loader2, ImagePlus } from 'lucide-react'
 import { getTelegramUser } from '@/lib/telegram'
-import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot } from '@/lib/supabase'
+import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, deleteUserPhoto } from '@/lib/supabase'
 import type { GalleryPhoto } from '@/lib/supabase'
 
 const CLOUDINARY_CLOUD = 'ds8ylsl2x'
@@ -36,6 +36,7 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
     }
 
     try {
+      // Загружаем из новой таблицы user_photo_gallery
       const gallery = await getUserPhotoGallery(telegramId)
       const slots: (GalleryPhoto | null)[] = [null, null, null]
 
@@ -44,6 +45,21 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
           slots[photo.slot_index - 1] = photo
         }
       })
+
+      // Если первый слот пустой, проверяем старую таблицу user_photos
+      if (!slots[0]) {
+        const legacyPhoto = await getUserPhoto(telegramId)
+        if (legacyPhoto) {
+          // Создаём виртуальный объект для отображения
+          slots[0] = {
+            id: 'legacy',
+            telegram_id: telegramId,
+            photo_url: legacyPhoto,
+            slot_index: 1,
+            created_at: new Date().toISOString()
+          }
+        }
+      }
 
       setPhotos(slots)
     } catch (err) {
@@ -107,9 +123,20 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
     if (!telegramId) return
 
     try {
-      const success = await deletePhotoFromSlot(telegramId, slotIndex)
-      if (success) {
-        await loadPhotos()
+      const photo = photos[slotIndex - 1]
+
+      // Если это legacy фото из старой таблицы
+      if (photo?.id === 'legacy') {
+        const success = await deleteUserPhoto(telegramId, 'face_main')
+        if (success) {
+          await loadPhotos()
+        }
+      } else {
+        // Обычное фото из новой таблицы
+        const success = await deletePhotoFromSlot(telegramId, slotIndex)
+        if (success) {
+          await loadPhotos()
+        }
       }
     } catch (err) {
       console.error('Delete error:', err)
