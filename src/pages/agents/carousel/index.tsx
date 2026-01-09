@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getUserPhoto } from '@/lib/supabase'
+import { getFirstUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselIndex() {
@@ -15,12 +15,12 @@ export default function CarouselIndex() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Загружаем фото пользователя из БД при загрузке страницы
+  // Загружаем первое фото пользователя из галереи при загрузке страницы
   useEffect(() => {
     const loadUserPhoto = async () => {
       const telegramUser = getTelegramUser()
       if (telegramUser?.id) {
-        const photoFromDb = await getUserPhoto(telegramUser.id)
+        const photoFromDb = await getFirstUserPhoto(telegramUser.id)
         if (photoFromDb) {
           setUserPhoto(photoFromDb)
         }

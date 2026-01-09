@@ -2,19 +2,19 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getUserPhoto } from '@/lib/supabase'
+import { getFirstUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
   const { selectedTemplate, variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
 
-  // Загружаем фото пользователя из БД при загрузке страницы
+  // Загружаем первое фото пользователя из галереи при загрузке страницы
   useEffect(() => {
     const loadUserPhoto = async () => {
       const telegramUser = getTelegramUser()
       if (telegramUser?.id) {
-        const photoFromDb = await getUserPhoto(telegramUser.id)
+        const photoFromDb = await getFirstUserPhoto(telegramUser.id)
         if (photoFromDb) {
           setUserPhoto(photoFromDb)
         }

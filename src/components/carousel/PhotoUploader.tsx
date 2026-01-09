@@ -11,9 +11,10 @@ interface PhotoUploaderProps {
   photo: string | null
   onPhotoChange: (photo: string | null) => void
   saveToDatabase?: boolean // Опция для сохранения в БД
+  compact?: boolean // Компактный режим для галереи
 }
 
-export function PhotoUploader({ photo, onPhotoChange, saveToDatabase = false }: PhotoUploaderProps) {
+export function PhotoUploader({ photo, onPhotoChange, saveToDatabase = false, compact = false }: PhotoUploaderProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -106,15 +107,17 @@ export function PhotoUploader({ photo, onPhotoChange, saveToDatabase = false }: 
   }
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-zinc-300">📸 Фото (опционально)</label>
+    <div className={compact ? "w-full h-full" : "w-full"}>
+      {!compact && (
+        <label className="text-sm font-medium text-zinc-300">📸 Фото (опционально)</label>
+      )}
       
       {photo ? (
-        <div className="relative bg-zinc-900 rounded-xl flex items-center justify-center min-h-[150px]">
+        <div className={`relative bg-zinc-900 rounded-xl flex items-center justify-center ${compact ? 'w-full h-full' : 'min-h-[150px]'}`}>
           <img 
             src={photo} 
             alt="Uploaded" 
-            className="w-full max-h-[200px] object-contain rounded-xl"
+            className={`w-full ${compact ? 'h-full object-cover' : 'max-h-[200px] object-contain'} rounded-xl`}
           />
           <button
             onClick={handleRemove}
@@ -128,7 +131,7 @@ export function PhotoUploader({ photo, onPhotoChange, saveToDatabase = false }: 
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onClick={handleClick}
-          className="border-2 border-dashed border-zinc-700 rounded-xl p-8 text-center cursor-pointer hover:border-zinc-600 transition-colors"
+          className={`border-2 border-dashed border-zinc-700 rounded-xl ${compact ? 'w-full h-full p-2' : 'p-8'} text-center cursor-pointer hover:border-zinc-600 transition-colors flex flex-col items-center justify-center`}
         >
           <input
             ref={fileInputRef}
@@ -143,7 +146,7 @@ export function PhotoUploader({ photo, onPhotoChange, saveToDatabase = false }: 
           
           {isUploading ? (
             <div className="space-y-2">
-              <div className="text-zinc-400">Загрузка...</div>
+              <div className="text-zinc-400 text-xs">Загрузка...</div>
               {uploadProgress > 0 && (
                 <div className="w-full bg-zinc-800 rounded-full h-2">
                   <div 
@@ -155,9 +158,9 @@ export function PhotoUploader({ photo, onPhotoChange, saveToDatabase = false }: 
             </div>
           ) : (
             <>
-              <Upload className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
-              <div className="text-sm text-zinc-400">
-                Перетащите фото или нажмите для выбора
+              <Upload className={`${compact ? 'w-6 h-6' : 'w-8 h-8'} text-zinc-500 mx-auto mb-2`} />
+              <div className={`${compact ? 'text-xs' : 'text-sm'} text-zinc-400`}>
+                {compact ? 'Загрузить' : 'Перетащите фото или нажмите для выбора'}
               </div>
             </>
           )}

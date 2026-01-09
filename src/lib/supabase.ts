@@ -193,3 +193,77 @@ export async function deleteUserPhoto(
   
   return true
 }
+
+// ===========================================
+// USER PHOTO GALLERY (до 3 фото)
+// ===========================================
+
+export interface GalleryPhoto {
+  id: string
+  telegram_id: number
+  photo_url: string
+  slot_index: number
+  created_at: string
+}
+
+export async function getUserPhotoGallery(telegramId: number): Promise<GalleryPhoto[]> {
+  const { data, error } = await supabase
+    .from('user_photo_gallery')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .order('slot_index', { ascending: true })
+  
+  if (error || !data) return []
+  return data
+}
+
+export async function savePhotoToSlot(
+  telegramId: number,
+  photoUrl: string,
+  slotIndex: number
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_photo_gallery')
+    .upsert({
+      telegram_id: telegramId,
+      photo_url: photoUrl,
+      slot_index: slotIndex,
+    }, {
+      onConflict: 'telegram_id,slot_index'
+    })
+  
+  if (error) {
+    console.error('Error saving photo to slot:', error)
+    return false
+  }
+  return true
+}
+
+export async function deletePhotoFromSlot(
+  telegramId: number,
+  slotIndex: number
+): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_photo_gallery')
+    .delete()
+    .eq('telegram_id', telegramId)
+    .eq('slot_index', slotIndex)
+  
+  if (error) {
+    console.error('Error deleting photo from slot:', error)
+    return false
+  }
+  return true
+}
+
+export async function getFirstUserPhoto(telegramId: number): Promise<string | null> {
+  const { data } = await supabase
+    .from('user_photo_gallery')
+    .select('photo_url')
+    .eq('telegram_id', telegramId)
+    .order('slot_index', { ascending: true })
+    .limit(1)
+    .single()
+  
+  return data?.photo_url || null
+}
