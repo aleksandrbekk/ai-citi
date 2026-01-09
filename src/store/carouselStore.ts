@@ -99,7 +99,7 @@ export const useCarouselStore = create<CarouselState>()(
       partialize: (state) => ({
         selectedTemplate: state.selectedTemplate,
         customTemplateDescription: state.customTemplateDescription,
-        userPhoto: state.userPhoto,
+        // userPhoto НЕ сохраняем - загружается из БД
         audience: state.audience,
         customAudience: state.customAudience,
         style: state.style,
