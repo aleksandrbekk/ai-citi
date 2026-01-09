@@ -194,8 +194,8 @@ export default function TakeQuiz() {
   }
 
   if (isSubmitted) {
-    const totalImages = rows.reduce((sum, row) => sum + row.images.length, 0)
-    const totalRatings = rows.reduce((sum, row) => sum + Object.keys(row.ratings).length, 0)
+    const totalRows = rows.filter(row => row.images.length > 0).length
+    const ratedRows = rows.filter(row => row.images.length > 0 && row.rating !== null).length
     
     return (
       <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-black to-zinc-900 text-white flex items-center justify-center">
@@ -204,7 +204,7 @@ export default function TakeQuiz() {
             <CheckCircle className="w-12 h-12 text-white" />
           </div>
           <h2 className="text-3xl font-bold mb-4">Спасибо за оценку!</h2>
-          <p className="text-zinc-400 text-lg mb-2">Оценено картинок: <span className="text-orange-500 font-bold">{totalRatings}</span> из {totalImages}</p>
+          <p className="text-zinc-400 text-lg mb-2">Оценено каруселей: <span className="text-orange-500 font-bold">{ratedRows}</span> из {totalRows}</p>
           <p className="text-zinc-500 text-sm">Ваши оценки сохранены</p>
         </div>
       </div>
