@@ -82,14 +82,20 @@ export function useQuizzes() {
   const validUserId = userId && userId !== 'dev-user' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId) ? userId : null
 
   const loadQuizzes = async () => {
-    if (!validUserId) return
-    
     setIsLoading(true)
-    const { data, error } = await supabase
+    
+    // Если нет validUserId, загружаем все квизы (для админки)
+    let query = supabase
       .from('quizzes')
       .select('*')
-      .eq('user_id', validUserId)
       .order('created_at', { ascending: false })
+    
+    // Если есть validUserId, фильтруем по нему
+    if (validUserId) {
+      query = query.eq('user_id', validUserId)
+    }
+    
+    const { data, error } = await query
     
     if (error) {
       console.error('Error loading quizzes:', error)
