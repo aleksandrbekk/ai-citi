@@ -39,7 +39,7 @@ export default function TakeQuiz() {
 
     setIsLoadingImages(true)
     
-    // Загружаем ряды с названиями
+    // Загружаем ряды с названиями (может быть пусто для старых квизов)
     const { data: rowsData } = await supabase
       .from('quiz_image_rows')
       .select('*')
@@ -63,7 +63,7 @@ export default function TakeQuiz() {
     // Создаем мапу рядов
     const rowsMap = new Map<number, ImageRow>()
     
-    // Сначала создаем ряды из БД
+    // Сначала создаем ряды из БД (если есть)
     if (rowsData && rowsData.length > 0) {
       rowsData.forEach((row: any) => {
         rowsMap.set(row.row_index, {
@@ -75,7 +75,7 @@ export default function TakeQuiz() {
       })
     }
 
-    // Добавляем картинки в ряды
+    // Добавляем картинки в ряды (создаем ряды, если их нет в quiz_image_rows)
     if (imagesData && imagesData.length > 0) {
       imagesData.forEach((img: QuizImage) => {
         const rowIndex = img.row_index || 0
@@ -91,6 +91,7 @@ export default function TakeQuiz() {
       })
     }
 
+    // Если нет ни рядов, ни картинок - пустой массив
     setRows(Array.from(rowsMap.values()))
     setIsLoadingImages(false)
   }
