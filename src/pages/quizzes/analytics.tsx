@@ -207,12 +207,95 @@ export default function QuizAnalytics() {
           </div>
         </div>
 
+        {/* Рейтинг по стилям - ГЛАВНАЯ СТАТИСТИКА */}
+        {imageRows.length > 0 && responses.length > 0 && (
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl mb-8">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-orange-500" />
+              🏆 Рейтинг стилей
+            </h3>
+            
+            {(() => {
+              // Вычисляем средние оценки по каждому стилю
+              const styleRatings: { rowIndex: number; name: string; totalRating: number; count: number; avgRating: number }[] = []
+              
+              imageRows.forEach((row) => {
+                let totalRating = 0
+                let count = 0
+                
+                responses.forEach((response) => {
+                  if (response.answers && Array.isArray(response.answers)) {
+                    response.answers.forEach((answer: any) => {
+                      const isRowRating = String(answer.question_id || '').startsWith('row-')
+                      if (isRowRating) {
+                        const answerRowIndex = parseInt(String(answer.question_id).replace('row-', ''))
+                        if (answerRowIndex === row.row_index && typeof answer.rating_value === 'number') {
+                          totalRating += answer.rating_value
+                          count++
+                        }
+                      }
+                    })
+                  }
+                })
+                
+                styleRatings.push({
+                  rowIndex: row.row_index,
+                  name: row.name || `Стиль ${row.row_index + 1}`,
+                  totalRating,
+                  count,
+                  avgRating: count > 0 ? totalRating / count : 0
+                })
+              })
+              
+              // Сортируем по среднему рейтингу (лучшие сверху)
+              const sortedRatings = [...styleRatings].sort((a, b) => b.avgRating - a.avgRating)
+              
+              return (
+                <div className="space-y-4">
+                  {sortedRatings.map((style, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`
+                    const barColor = index === 0 ? 'from-yellow-500 to-yellow-600' : 
+                                     index === 1 ? 'from-gray-400 to-gray-500' : 
+                                     index === 2 ? 'from-amber-600 to-amber-700' : 
+                                     'from-blue-500 to-blue-600'
+                    
+                    return (
+                      <div key={style.rowIndex} className="bg-white/5 rounded-xl p-4 border border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{medal}</span>
+                            <span className="font-semibold text-lg">{style.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-3xl font-bold text-orange-400">
+                              {style.avgRating.toFixed(1)}
+                            </div>
+                            <div className="text-xs text-zinc-500">
+                              из 10 ({style.count} оценок)
+                            </div>
+                          </div>
+                        </div>
+                        <div className="h-4 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full bg-gradient-to-r ${barColor} transition-all duration-500`}
+                            style={{ width: `${(style.avgRating / 10) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
+          </div>
+        )}
+
         {/* Additional Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5" />
-              Средние результаты
+              Общая статистика
             </h3>
             <div className="space-y-4">
               <div>
