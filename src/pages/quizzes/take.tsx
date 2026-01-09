@@ -13,6 +13,7 @@ interface QuizImage {
 
 interface ImageRow {
   id: string
+  name: string
   images: QuizImage[]
   rating: number | null // одна оценка для всего ряда (1-5)
 }
@@ -37,27 +38,54 @@ export default function TakeQuiz() {
     if (!id) return
 
     setIsLoadingImages(true)
-    const { data, error } = await supabase
+    
+    // Загружаем ряды с названиями
+    const { data: rowsData } = await supabase
+      .from('quiz_image_rows')
+      .select('*')
+      .eq('quiz_id', id)
+      .order('row_index', { ascending: true })
+
+    // Загружаем картинки
+    const { data: imagesData, error: imagesError } = await supabase
       .from('quiz_images')
       .select('*')
       .eq('quiz_id', id)
       .order('row_index', { ascending: true })
       .order('image_index', { ascending: true })
 
-    if (error) {
-      console.error('Error loading images:', error)
+    if (imagesError) {
+      console.error('Error loading images:', imagesError)
       setIsLoadingImages(false)
       return
     }
 
-    // Группируем картинки по рядам
+    // Создаем мапу рядов
     const rowsMap = new Map<number, ImageRow>()
     
-    if (data && data.length > 0) {
-      data.forEach((img: QuizImage) => {
+    // Сначала создаем ряды из БД
+    if (rowsData && rowsData.length > 0) {
+      rowsData.forEach((row: any) => {
+        rowsMap.set(row.row_index, {
+          id: `row-${row.row_index}`,
+          name: row.name || `Ряд ${row.row_index + 1}`,
+          images: [],
+          rating: null
+        })
+      })
+    }
+
+    // Добавляем картинки в ряды
+    if (imagesData && imagesData.length > 0) {
+      imagesData.forEach((img: QuizImage) => {
         const rowIndex = img.row_index || 0
         if (!rowsMap.has(rowIndex)) {
-          rowsMap.set(rowIndex, { id: `row-${rowIndex}`, images: [], rating: null })
+          rowsMap.set(rowIndex, {
+            id: `row-${rowIndex}`,
+            name: `Ряд ${rowIndex + 1}`,
+            images: [],
+            rating: null
+          })
         }
         rowsMap.get(rowIndex)!.images.push(img)
       })
@@ -286,7 +314,7 @@ function ImageRowComponent({
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
       <h3 className="text-xl font-semibold mb-4 text-center">
-        Ряд {rowIndex + 1}
+        {row.name}
       </h3>
 
       {/* Scrollable Images Container */}
