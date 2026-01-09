@@ -6,6 +6,7 @@ import { checkWhitelist, getOrCreateUser, getUserTariffs } from './lib/supabase'
 import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
+import PasswordLogin from './pages/PasswordLogin'
 import { Layout } from '@/components/layout/Layout'
 import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
@@ -57,40 +58,49 @@ function AppContent() {
     }
 
     const checkAccess = async () => {
-      let telegramUser: any = null
+      // Проверяем пароль для главной страницы (если не авторизован через пароль)
+      const isPasswordAuth = sessionStorage.getItem('app_authenticated') === 'true'
+      
+      // Если нет парольной авторизации, проверяем Telegram
+      if (!isPasswordAuth) {
+        let telegramUser: any = null
 
-      // Проверяем Telegram Mini App
-      const tg = window.Telegram?.WebApp
-      if (tg?.initDataUnsafe?.user) {
-        telegramUser = tg.initDataUnsafe.user
-      } else {
-        // Проверяем localStorage (веб-авторизация)
-        const savedUser = localStorage.getItem('tg_user')
-        if (savedUser) {
-          try {
-            telegramUser = JSON.parse(savedUser)
-          } catch {}
-        }
-      }
-
-      if (telegramUser?.id) {
-        // Проверяем whitelist
-        const allowed = await checkWhitelist(telegramUser.id)
-        
-        if (allowed) {
-          // Создаём или получаем пользователя из базы
-          const user = await getOrCreateUser(telegramUser)
-          
-          // Загружаем тарифы пользователя
-          if (user?.id) {
-            const tariffs = await getUserTariffs(user.id)
-            setTariffs(tariffs)
+        // Проверяем Telegram Mini App
+        const tg = window.Telegram?.WebApp
+        if (tg?.initDataUnsafe?.user) {
+          telegramUser = tg.initDataUnsafe.user
+        } else {
+          // Проверяем localStorage (веб-авторизация)
+          const savedUser = localStorage.getItem('tg_user')
+          if (savedUser) {
+            try {
+              telegramUser = JSON.parse(savedUser)
+            } catch {}
           }
         }
-        
-        setHasAccess(allowed)
+
+        if (telegramUser?.id) {
+          // Проверяем whitelist
+          const allowed = await checkWhitelist(telegramUser.id)
+          
+          if (allowed) {
+            // Создаём или получаем пользователя из базы
+            const user = await getOrCreateUser(telegramUser)
+            
+            // Загружаем тарифы пользователя
+            if (user?.id) {
+              const tariffs = await getUserTariffs(user.id)
+              setTariffs(tariffs)
+            }
+          }
+          
+          setHasAccess(allowed)
+        } else {
+          setHasAccess(null)
+        }
       } else {
-        setHasAccess(null)
+        // Парольная авторизация прошла успешно
+        setHasAccess(true)
       }
       
       setIsChecking(false)
@@ -119,10 +129,17 @@ function AppContent() {
     )
   }
 
-  // Нет авторизации вообще (ни TG Mini App, ни localStorage)
+  // Проверяем парольную авторизацию для главной страницы
+  const isPasswordAuth = sessionStorage.getItem('app_authenticated') === 'true'
+  
+  // Нет авторизации вообще (ни пароль, ни TG Mini App, ни localStorage)
   const tg = window.Telegram?.WebApp
   const savedUser = localStorage.getItem('tg_user')
-  if (!tg?.initDataUnsafe?.user?.id && !savedUser) {
+  if (!isPasswordAuth && !tg?.initDataUnsafe?.user?.id && !savedUser) {
+    // Для главной страницы показываем форму пароля, для остальных - Telegram логин
+    if (location.pathname === '/' || location.pathname === '') {
+      return <PasswordLogin />
+    }
     return <Login />
   }
 
