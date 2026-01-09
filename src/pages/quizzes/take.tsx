@@ -298,11 +298,10 @@ export default function TakeQuiz() {
           </div>
         ) : (
           <div className="space-y-12">
-            {rows.map((row, rowIndex) => (
+            {rows.map((row) => (
               <ImageRowComponent
                 key={row.id}
                 row={row}
-                rowIndex={rowIndex}
                 onRatingChange={(rating) => handleRatingChange(row.id, rating)}
               />
             ))}
@@ -326,11 +325,9 @@ export default function TakeQuiz() {
 
 function ImageRowComponent({
   row,
-  rowIndex,
   onRatingChange
 }: {
   row: ImageRow
-  rowIndex: number
   onRatingChange: (rating: number) => void
 }) {
   const [scrollPosition, setScrollPosition] = useState(0)
