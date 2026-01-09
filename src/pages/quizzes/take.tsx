@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Star, Plus, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Star, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuiz, useQuizResponse } from '@/hooks/useQuizzes'
 import { supabase } from '@/lib/supabase'
 
