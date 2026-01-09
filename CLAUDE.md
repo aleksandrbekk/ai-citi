@@ -11,6 +11,35 @@ Telegram Mini App + Web + Desktop (один код).
 
 ---
 
+## 🔑 ДОСТУПЫ И CREDENTIALS
+
+**ВСЕ КЛЮЧИ ХРАНЯТСЯ В `.env.local`** — читай этот файл в начале сессии!
+
+```bash
+cat /Users/bekk/Desktop/AI-CITI/.env.local
+```
+
+**Содержит:**
+- Supabase: URL, Anon Key, Service Role Key, Access Token
+- Cloudinary: Cloud Name, API Key, API Secret
+- N8N: API URL, API Key, Workflow ID
+
+**Как использовать:**
+- Supabase REST API: используй Service Role Key для обхода RLS
+- Supabase SQL: используй Access Token с Management API
+- Cloudinary: для загрузки/удаления фото
+- N8N: для управления workflows
+
+**Пример SQL запроса через Supabase Management API:**
+```bash
+curl -X POST "https://api.supabase.com/v1/projects/debcwvxlvozjlqkhnauy/database/query" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "SELECT * FROM user_photo_gallery"}'
+```
+
+---
+
 ## ⚠️ КРИТИЧЕСКИЕ ПРАВИЛА ДЛЯ АГЕНТОВ
 
 ### 🚨 ПРАВИЛО #1: ВСЕГДА ПУШИТЬ В GIT (БЕЗ ИСКЛЮЧЕНИЙ!)
