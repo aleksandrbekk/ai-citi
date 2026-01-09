@@ -135,17 +135,20 @@ function AppContent() {
   // Админские Telegram ID (исключения из редиректа)
   const ADMIN_TELEGRAM_IDS = [190202791, 643763835]
   
-  // Редирект на Telegram для главной страницы (если не авторизован)
+  // Редирект на Telegram для главной страницы (только в обычном браузере, НЕ в Telegram Mini App)
   useEffect(() => {
     const isMainPage = location.pathname === '/' || location.pathname === ''
-    const tg = window.Telegram?.WebApp
+    const tgWebApp = window.Telegram?.WebApp
     const savedUser = localStorage.getItem('tg_user')
     const telegramRedirect = import.meta.env.VITE_TELEGRAM_REDIRECT_URL || 'https://t.me/aleksandrbekk'
     
+    // ВАЖНО: Если открыто через Telegram Mini App - НЕ делать редирект
+    const isInTelegramMiniApp = !!tgWebApp
+    
     // Проверяем, является ли пользователь админом
     let telegramUserId: number | null = null
-    if (tg?.initDataUnsafe?.user?.id) {
-      telegramUserId = tg.initDataUnsafe.user.id
+    if (tgWebApp?.initDataUnsafe?.user?.id) {
+      telegramUserId = tgWebApp.initDataUnsafe.user.id
     } else if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser)
@@ -155,8 +158,14 @@ function AppContent() {
     
     const isAdmin = telegramUserId && ADMIN_TELEGRAM_IDS.includes(telegramUserId)
     
-    // Если это главная страница, нет авторизации и пользователь НЕ админ - редирект на Telegram
-    if (isMainPage && !isPasswordAuth && !isAdmin && !tg?.initDataUnsafe?.user?.id && !savedUser) {
+    // Редирект только если:
+    // 1. Это главная страница
+    // 2. НЕ открыто через Telegram Mini App
+    // 3. Нет парольной авторизации
+    // 4. Пользователь НЕ админ
+    // 5. Нет Telegram пользователя и нет сохраненного пользователя
+    const hasTelegramUser = tgWebApp?.initDataUnsafe?.user?.id
+    if (isMainPage && !isInTelegramMiniApp && !isPasswordAuth && !isAdmin && !hasTelegramUser && !savedUser) {
       window.location.href = telegramRedirect
     }
   }, [location.pathname, isPasswordAuth])
@@ -164,6 +173,7 @@ function AppContent() {
   // Нет авторизации вообще (ни пароль, ни TG Mini App, ни localStorage)
   const tg = window.Telegram?.WebApp
   const savedUser = localStorage.getItem('tg_user')
+  const isInTelegramMiniApp = !!tg
   
   // Проверяем, является ли пользователь админом (для главной страницы)
   let telegramUserId: number | null = null
@@ -180,11 +190,15 @@ function AppContent() {
   if (!isPasswordAuth && !tg?.initDataUnsafe?.user?.id && !savedUser) {
     // Для главной страницы
     if (location.pathname === '/' || location.pathname === '') {
-      // Если админ - показываем форму пароля, иначе - редирект (в useEffect)
+      // Если открыто через Telegram Mini App - показываем Login (не редирект)
+      if (isInTelegramMiniApp) {
+        return <Login />
+      }
+      // Если админ в обычном браузере - показываем форму пароля
       if (isAdmin) {
         return <PasswordLogin />
       }
-      // Для не-админов - показываем загрузку (редирект в useEffect)
+      // Для не-админов в обычном браузере - показываем загрузку (редирект в useEffect)
       return (
         <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center">
