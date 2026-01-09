@@ -35,47 +35,59 @@ export default function TakeQuiz() {
   }, [id])
 
   const loadImages = async () => {
-    if (!id) return
+    if (!id) {
+      console.error('No quiz ID provided')
+      setIsLoadingImages(false)
+      return
+    }
 
     setIsLoadingImages(true)
+    console.log('🔄 Starting to load images for quiz:', id)
     
-    // Загружаем ряды с названиями (может быть пусто для старых квизов)
-    const { data: rowsData, error: rowsError } = await supabase
-      .from('quiz_image_rows')
-      .select('*')
-      .eq('quiz_id', id)
-      .order('row_index', { ascending: true })
-    
-    // Игнорируем ошибку, если таблица не существует или пуста
-    if (rowsError) {
-      console.warn('Error loading rows (may not exist for old quizzes):', rowsError)
-    }
-
-    // Создаем мапу рядов
-    const rowsMap = new Map<number, ImageRow>()
-    
-    // Сначала создаем ряды из БД (если есть)
-    if (rowsData && rowsData.length > 0) {
-      rowsData.forEach((row: any) => {
-        rowsMap.set(row.row_index, {
-          id: `row-${row.row_index}`,
-          name: row.name || `Ряд ${row.row_index + 1}`,
-          images: [],
-          rating: null
-        })
-      })
-    }
-
-    // Загружаем картинки порциями (из-за больших base64 строк)
-    console.log('Loading images for quiz:', id, 'in batches...')
-    
-    let imagesData: QuizImage[] = []
-    let offset = 0
-    const batchSize = 20
-    let hasMore = true
-
     try {
+      // Загружаем ряды с названиями (может быть пусто для старых квизов)
+      const { data: rowsData, error: rowsError } = await supabase
+        .from('quiz_image_rows')
+        .select('*')
+        .eq('quiz_id', id)
+        .order('row_index', { ascending: true })
+      
+      // Игнорируем ошибку, если таблица не существует или пуста
+      if (rowsError) {
+        console.warn('⚠️ Error loading rows (may not exist for old quizzes):', rowsError)
+      } else {
+        console.log('✅ Loaded rows data:', rowsData?.length || 0, 'rows')
+      }
+
+      // Создаем мапу рядов
+      const rowsMap = new Map<number, ImageRow>()
+      
+      // Сначала создаем ряды из БД (если есть)
+      if (rowsData && rowsData.length > 0) {
+        rowsData.forEach((row: any) => {
+          rowsMap.set(row.row_index, {
+            id: `row-${row.row_index}`,
+            name: row.name || `Ряд ${row.row_index + 1}`,
+            images: [],
+            rating: null
+          })
+        })
+        console.log('✅ Created', rowsMap.size, 'rows from quiz_image_rows')
+      }
+
+      // Загружаем картинки порциями (из-за больших base64 строк)
+      console.log('🔄 Loading images in batches...')
+      
+      let imagesData: QuizImage[] = []
+      let offset = 0
+      const batchSize = 10 // Уменьшил размер батча для надежности
+      let hasMore = true
+      let batchNumber = 0
+
       while (hasMore) {
+        batchNumber++
+        console.log(`🔄 Loading batch ${batchNumber} (offset: ${offset})...`)
+        
         const { data: batch, error: batchError } = await supabase
           .from('quiz_images')
           .select('id, quiz_id, row_index, image_index, image_url, order_index')
@@ -85,7 +97,7 @@ export default function TakeQuiz() {
           .range(offset, offset + batchSize - 1)
 
         if (batchError) {
-          console.error('Error loading images batch:', batchError)
+          console.error('❌ Error loading images batch:', batchError)
           alert('Ошибка загрузки картинок: ' + batchError.message)
           setIsLoadingImages(false)
           return
@@ -95,49 +107,53 @@ export default function TakeQuiz() {
           imagesData = [...imagesData, ...batch]
           offset += batchSize
           hasMore = batch.length === batchSize
-          console.log(`Loaded batch: ${batch.length} images, total: ${imagesData.length}`)
+          console.log(`✅ Batch ${batchNumber}: ${batch.length} images, total: ${imagesData.length}`)
         } else {
           hasMore = false
+          console.log(`✅ Batch ${batchNumber}: no more images`)
         }
       }
 
-      console.log('Loaded images:', imagesData.length)
-    } catch (error: any) {
-      console.error('Error loading images (timeout or error):', error)
-      alert('Ошибка загрузки картинок. Попробуйте обновить страницу.')
+      console.log('✅ Total loaded images:', imagesData.length)
+
+      // Добавляем картинки в ряды (создаем ряды, если их нет в quiz_image_rows)
+      if (imagesData && imagesData.length > 0) {
+        imagesData.forEach((img: QuizImage) => {
+          const rowIndex = img.row_index || 0
+          if (!rowsMap.has(rowIndex)) {
+            rowsMap.set(rowIndex, {
+              id: `row-${rowIndex}`,
+              name: `Ряд ${rowIndex + 1}`,
+              images: [],
+              rating: null
+            })
+            console.log(`✅ Created row ${rowIndex} from image data`)
+          }
+          rowsMap.get(rowIndex)!.images.push(img)
+        })
+        console.log('✅ Added images to rows')
+      }
+
+      // Если нет ни рядов, ни картинок - пустой массив
+      const finalRows = Array.from(rowsMap.values())
+      const totalImages = finalRows.reduce((sum, r) => sum + r.images.length, 0)
+      console.log('✅ Final result:', finalRows.length, 'rows with', totalImages, 'images')
+      
+      if (finalRows.length === 0 && totalImages === 0) {
+        console.warn('⚠️ No rows or images found for quiz:', id)
+      } else if (finalRows.length > 0 && totalImages === 0) {
+        console.warn('⚠️ Rows found but no images in them')
+      } else {
+        console.log('✅ Successfully loaded quiz with images!')
+      }
+      
+      setRows(finalRows)
       setIsLoadingImages(false)
-      return
+    } catch (error: any) {
+      console.error('❌ Fatal error loading images:', error)
+      alert('Критическая ошибка загрузки картинок: ' + (error.message || 'Неизвестная ошибка'))
+      setIsLoadingImages(false)
     }
-
-    // Добавляем картинки в ряды (создаем ряды, если их нет в quiz_image_rows)
-    if (imagesData && imagesData.length > 0) {
-      imagesData.forEach((img: QuizImage) => {
-        const rowIndex = img.row_index || 0
-        if (!rowsMap.has(rowIndex)) {
-          rowsMap.set(rowIndex, {
-            id: `row-${rowIndex}`,
-            name: `Ряд ${rowIndex + 1}`,
-            images: [],
-            rating: null
-          })
-        }
-        rowsMap.get(rowIndex)!.images.push(img)
-      })
-    }
-
-    // Если нет ни рядов, ни картинок - пустой массив
-    const finalRows = Array.from(rowsMap.values())
-    const totalImages = finalRows.reduce((sum, r) => sum + r.images.length, 0)
-    console.log('Loaded rows:', finalRows.length, 'rows with', totalImages, 'images')
-    
-    if (finalRows.length === 0) {
-      console.warn('No rows or images found for quiz:', id)
-    } else if (totalImages === 0) {
-      console.warn('Rows found but no images in them')
-    }
-    
-    setRows(finalRows)
-    setIsLoadingImages(false)
   }
 
   useEffect(() => {
