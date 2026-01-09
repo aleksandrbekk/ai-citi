@@ -59,6 +59,22 @@ function AppContent() {
       return
     }
 
+    // Для админки и куратора - пропускаем проверку whitelist, но проверяем авторизацию
+    if (isAdminPage) {
+      const isPasswordAuth = sessionStorage.getItem('app_authenticated') === 'true'
+      const tg = window.Telegram?.WebApp
+      const savedUser = localStorage.getItem('tg_user')
+      
+      if (isPasswordAuth || tg?.initDataUnsafe?.user?.id || savedUser) {
+        setIsChecking(false)
+        setHasAccess(true)
+      } else {
+        setIsChecking(false)
+        setHasAccess(null) // Покажет форму входа
+      }
+      return
+    }
+
     const checkAccess = async () => {
       // Проверяем пароль для главной страницы (если не авторизован через пароль)
       const isPasswordAuth = sessionStorage.getItem('app_authenticated') === 'true'
@@ -109,7 +125,7 @@ function AppContent() {
     }
 
     checkAccess()
-  }, [isPublicPage, setTariffs])
+  }, [isPublicPage, isAdminPage, setTariffs])
 
   if (isChecking) {
     return (
