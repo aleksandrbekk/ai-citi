@@ -455,19 +455,32 @@ export function useQuizResponse(quizId: string | null) {
   const completeResponse = async (answers: QuizResponse['answers'] | any[]): Promise<QuizResponse | null> => {
     if (!response || !quizId) return null
 
-    // Проверяем, это рейтинг или обычный квиз
-    const isRatingOnly = answers.length > 0 && answers[0].question_id === 'rating'
+    // Проверяем, это рейтинг (один слайдер) или рейтинг по рядам (карусели) или обычный квиз
+    const isSingleRating =
+      answers.length === 1 &&
+      answers[0]?.question_id === 'rating' &&
+      typeof (answers[0] as any)?.rating_value === 'number'
+
+    const isRowRating =
+      answers.length > 0 &&
+      answers.every((a: any) => typeof a?.rating_value === 'number') &&
+      answers.some((a: any) => typeof a?.row_index === 'number' || String(a?.question_id || '').startsWith('row-'))
     
     let score = 0
     let maxScore = 0
     let percentage = 0
 
-    if (isRatingOnly) {
-      // Для рейтинга просто сохраняем значение
-      const ratingValue = answers[0]?.rating_value || 0
+    if (isSingleRating) {
+      // Старый формат: один рейтинг (1-5)
+      const ratingValue = (answers[0] as any)?.rating_value || 0
       score = ratingValue
       maxScore = 5
-      percentage = (ratingValue / 5) * 100
+      percentage = maxScore > 0 ? (score / maxScore) * 100 : 0
+    } else if (isRowRating) {
+      // Новый формат: один рейтинг (1-10) на каждый ряд/карусель
+      score = (answers as any[]).reduce((sum, a) => sum + (Number(a.rating_value) || 0), 0)
+      maxScore = answers.length * 10
+      percentage = maxScore > 0 ? (score / maxScore) * 100 : 0
     } else {
       // Загружаем вопросы и опции для подсчёта баллов
       const { data: questions } = await supabase

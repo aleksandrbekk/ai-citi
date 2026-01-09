@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Star, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuiz, useQuizResponse } from '@/hooks/useQuizzes'
 import { supabase } from '@/lib/supabase'
 
@@ -15,7 +15,7 @@ interface ImageRow {
   id: string
   name: string
   images: QuizImage[]
-  rating: number | null // одна оценка для всего ряда (1-5)
+  rating: number | null // одна оценка для всего ряда (1-10)
 }
 
 export default function TakeQuiz() {
@@ -26,6 +26,7 @@ export default function TakeQuiz() {
   const [rows, setRows] = useState<ImageRow[]>([])
   const [isLoadingImages, setIsLoadingImages] = useState(true)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const hasStartedRef = useRef(false)
 
   // Загружаем картинки из базы данных
   useEffect(() => {
@@ -157,7 +158,8 @@ export default function TakeQuiz() {
   }
 
   useEffect(() => {
-    if (id && !response && !isLoadingImages) {
+    if (id && !response && !isLoadingImages && !hasStartedRef.current) {
+      hasStartedRef.current = true
       // Записываем событие "view"
       supabase.from('quiz_analytics').insert({
         quiz_id: id,
@@ -191,26 +193,24 @@ export default function TakeQuiz() {
     const hasAllRatings = rowsWithImages.every(row => row.rating !== null)
 
     if (!hasAllRatings) {
-      alert('Пожалуйста, поставьте оценку для всех каруселей')
+      alert('Пожалуйста, поставьте оценку для всех каруселей (1–10)')
       return
     }
 
     // Формируем ответы - один рейтинг на ряд (карусель)
-    const formattedAnswers = rowsWithImages.map((row, rowIndex) => ({
-      question_id: `row-${rowIndex}`,
+    const formattedAnswers = rowsWithImages.map((row, index) => {
+      const actualRowIndex =
+        row.images[0]?.row_index ??
+        (row.id.startsWith('row-') ? Number(row.id.replace('row-', '')) : index)
+
+      return {
+        question_id: row.id,
       option_ids: [],
       rating_value: row.rating,
-      row_index: rowIndex,
+        row_index: Number.isFinite(actualRowIndex) ? actualRowIndex : index,
       images_count: row.images.length,
       is_correct: true
-    }))
-
-    // Записываем событие "start" если еще не записано
-    await supabase.from('quiz_analytics').insert({
-      quiz_id: id,
-      event_type: 'start',
-      session_id: sessionId,
-      metadata: { rows_count: rows.length, total_images: formattedAnswers.length }
+      }
     })
 
     // Сохраняем ответы
@@ -218,18 +218,6 @@ export default function TakeQuiz() {
     
     if (completed) {
       setIsSubmitted(true)
-      
-      // Записываем событие "complete" с метаданными
-      await supabase.from('quiz_analytics').insert({
-        quiz_id: id,
-        event_type: 'complete',
-        session_id: sessionId,
-        metadata: { 
-          rows_count: rows.length, 
-          total_images: rows.reduce((sum, row) => sum + row.images.length, 0),
-          ratings: rows.map(row => ({ row_id: row.id, rating: row.rating }))
-        }
-      })
     }
   }
 
@@ -264,9 +252,11 @@ export default function TakeQuiz() {
           <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-3xl font-bold mb-4">Спасибо за оценку!</h2>
-          <p className="text-zinc-400 text-lg mb-2">Оценено каруселей: <span className="text-orange-500 font-bold">{ratedRows}</span> из {totalRows}</p>
-          <p className="text-zinc-500 text-sm">Ваши оценки сохранены</p>
+          <h2 className="text-3xl font-bold mb-4">Спасибо! Оценки приняты</h2>
+          <p className="text-zinc-300 text-lg mb-2">
+            Оценено каруселей: <span className="text-orange-500 font-bold">{ratedRows}</span> из {totalRows}
+          </p>
+          <p className="text-zinc-500 text-sm">Можно закрыть страницу — данные сохранены.</p>
         </div>
       </div>
     )
@@ -434,32 +424,27 @@ function ImageRowComponent({
       {/* Рейтинг для всего ряда - под картинками */}
       <div className="mt-6 pt-6 border-t border-white/10">
         <div className="text-center mb-4">
-          <p className="text-sm text-zinc-400 mb-2">Оцените эту карусель</p>
+          <p className="text-sm text-zinc-400 mb-2">Оцените эту карусель по шкале 1–10</p>
         </div>
-        <div className="flex items-center justify-center gap-2">
-          {[1, 2, 3, 4, 5].map((value) => (
+        <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 justify-items-center">
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => (
             <button
               key={value}
               onClick={() => onRatingChange(value)}
-              className={`transition-all transform hover:scale-110 ${
-                row.rating && row.rating >= value
-                  ? 'text-orange-500 scale-110'
-                  : 'text-zinc-600 hover:text-orange-400'
+              type="button"
+              className={`w-11 h-11 rounded-full border transition-all active:scale-95 ${
+                row.rating === value
+                  ? 'border-orange-400 bg-orange-500/20 text-orange-200 shadow-lg shadow-orange-500/20'
+                  : 'border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:border-white/20'
               }`}
             >
-              <Star
-                className={`w-8 h-8 ${
-                  row.rating && row.rating >= value
-                    ? 'fill-current'
-                    : ''
-                }`}
-              />
+              <span className="text-sm font-semibold">{value}</span>
             </button>
           ))}
         </div>
-        {row.rating && (
+        {row.rating !== null && (
           <p className="text-center text-sm text-zinc-400 mt-3">
-            Оценка: {row.rating} / 5
+            Оценка: {row.rating} / 10
           </p>
         )}
       </div>
