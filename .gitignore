@@ -25,3 +25,6 @@ dist-ssr
 .cursor/mcp.json
 .vercel
 gen-lang-client-*.json
+
+# Playwright artifacts
+.playwright-mcp/
