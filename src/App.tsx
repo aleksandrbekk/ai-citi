@@ -44,6 +44,8 @@ function AppContent() {
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
   const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs')
+  // Админка и куратор - отдельные страницы, не требуют публичного доступа
+  const isAdminPage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/curator')
 
   useEffect(() => {
     expandWebApp()
@@ -188,6 +190,11 @@ function AppContent() {
   const isAdmin = telegramUserId && ADMIN_TELEGRAM_IDS.includes(telegramUserId)
   
   if (!isPasswordAuth && !tg?.initDataUnsafe?.user?.id && !savedUser) {
+    // Для админки и куратора - показываем форму входа
+    if (isAdminPage) {
+      return <Login />
+    }
+    
     // Для главной страницы
     if (location.pathname === '/' || location.pathname === '') {
       // Если открыто через Telegram Mini App - показываем Login (не редирект)
