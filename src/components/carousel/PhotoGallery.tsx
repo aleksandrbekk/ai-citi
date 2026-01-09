@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Loader2, ImagePlus } from 'lucide-react'
 import { getTelegramUser } from '@/lib/telegram'
-import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, deleteUserPhoto } from '@/lib/supabase'
+import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, deleteUserPhoto, deleteFromCloudinary } from '@/lib/supabase'
 import type { GalleryPhoto } from '@/lib/supabase'
 
 const CLOUDINARY_CLOUD = 'ds8ylsl2x'
@@ -124,9 +124,13 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
 
     try {
       const photo = photos[slotIndex - 1]
+      if (!photo) return
+
+      // Удаляем из Cloudinary
+      await deleteFromCloudinary(photo.photo_url)
 
       // Если это legacy фото из старой таблицы
-      if (photo?.id === 'legacy') {
+      if (photo.id === 'legacy') {
         const success = await deleteUserPhoto(telegramId, 'face_main')
         if (success) {
           await loadPhotos()

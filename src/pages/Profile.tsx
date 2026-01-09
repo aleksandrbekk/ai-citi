@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PhotoUploader } from '@/components/carousel/PhotoUploader'
-import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, type GalleryPhoto } from '@/lib/supabase'
+import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, deleteFromCloudinary, type GalleryPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function Profile() {
@@ -42,6 +42,7 @@ export default function Profile() {
     const telegramUser = getTelegramUser()
     if (!telegramUser?.id) return
 
+    const oldPhoto = photos[slotIndex]
     const newPhotos = [...photos]
     newPhotos[slotIndex] = photo
     setPhotos(newPhotos)
@@ -49,6 +50,10 @@ export default function Profile() {
     if (photo) {
       await savePhotoToSlot(telegramUser.id, photo, slotIndex + 1)
     } else {
+      // Удаляем из Cloudinary если было фото
+      if (oldPhoto) {
+        await deleteFromCloudinary(oldPhoto)
+      }
       await deletePhotoFromSlot(telegramUser.id, slotIndex + 1)
     }
   }

@@ -262,6 +262,31 @@ export async function getFirstUserPhoto(telegramId: number): Promise<string> {
     .select('face_main')
     .eq('telegram_id', telegramId)
     .maybeSingle()
-  
+
   return data?.face_main || ''
+}
+
+// ===========================================
+// CLOUDINARY DELETION
+// ===========================================
+
+const SUPABASE_FUNCTIONS_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.functions.supabase.co')
+
+export async function deleteFromCloudinary(photoUrl: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${SUPABASE_FUNCTIONS_URL}/delete-cloudinary-photo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ photoUrl }),
+    })
+
+    const result = await response.json()
+    return result.success === true
+  } catch (error) {
+    console.error('Error deleting from Cloudinary:', error)
+    return false
+  }
 }
