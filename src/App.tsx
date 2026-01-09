@@ -6,7 +6,6 @@ import { checkWhitelist, getOrCreateUser, getUserTariffs } from './lib/supabase'
 import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
-import PasswordLogin from './pages/PasswordLogin'
 import { Layout } from '@/components/layout/Layout'
 import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
@@ -132,13 +131,33 @@ function AppContent() {
   // Проверяем парольную авторизацию для главной страницы
   const isPasswordAuth = sessionStorage.getItem('app_authenticated') === 'true'
   
+  // Редирект на Telegram для главной страницы (если не авторизован)
+  useEffect(() => {
+    const isMainPage = location.pathname === '/' || location.pathname === ''
+    const tg = window.Telegram?.WebApp
+    const savedUser = localStorage.getItem('tg_user')
+    const telegramRedirect = import.meta.env.VITE_TELEGRAM_REDIRECT_URL || 'https://t.me/aleksandrbekk'
+    
+    // Если это главная страница и нет авторизации - редирект на Telegram
+    if (isMainPage && !isPasswordAuth && !tg?.initDataUnsafe?.user?.id && !savedUser) {
+      window.location.href = telegramRedirect
+    }
+  }, [location.pathname, isPasswordAuth])
+  
   // Нет авторизации вообще (ни пароль, ни TG Mini App, ни localStorage)
   const tg = window.Telegram?.WebApp
   const savedUser = localStorage.getItem('tg_user')
   if (!isPasswordAuth && !tg?.initDataUnsafe?.user?.id && !savedUser) {
-    // Для главной страницы показываем форму пароля, для остальных - Telegram логин
+    // Для главной страницы - показываем загрузку (редирект в useEffect)
     if (location.pathname === '/' || location.pathname === '') {
-      return <PasswordLogin />
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white">Перенаправление на Telegram...</p>
+          </div>
+        </div>
+      )
     }
     return <Login />
   }
