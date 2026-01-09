@@ -234,6 +234,11 @@ function AppContent() {
     return <Login />
   }
 
+  // Если hasAccess === null (нет авторизации) - показываем форму входа
+  if (hasAccess === null && !isPublicPage) {
+    return <Login />
+  }
+
   if (hasAccess === false) {
     return <AccessDenied />
   }
