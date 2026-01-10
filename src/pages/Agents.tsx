@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BotIcon, CarouselIcon, CalendarIcon, SparkleIcon, BackIcon } from '@/components/ui/icons'
+import { BotIcon, CarouselIcon, CalendarIcon, SparkleIcon, BackIcon, LockIcon } from '@/components/ui/icons'
+import { useAuthStore } from '@/store/authStore'
 
 const OWNER_TELEGRAM_ID = 190202791
 
 export function Agents() {
   const navigate = useNavigate()
   const [isOwner, setIsOwner] = useState(false)
+  const tariffs = useAuthStore((state) => state.tariffs)
+
+  // Проверяем есть ли платный тариф
+  const hasPaidAccess = tariffs.length > 0
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp
@@ -57,16 +62,25 @@ export function Agents() {
             <p className="text-gray-400 text-sm">Скоро</p>
           </div>
 
-          {/* Карусели - доступны всем */}
+          {/* Карусели - только для платных пользователей */}
           <div
-            onClick={() => navigate('/agents/carousel')}
-            className="glass-card p-5 cursor-pointer hover:scale-[1.02] transition-all group"
+            onClick={() => hasPaidAccess && navigate('/agents/carousel')}
+            className={`glass-card p-5 transition-all group relative ${
+              hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
+            }`}
           >
+            {!hasPaidAccess && (
+              <div className="absolute top-3 right-3">
+                <LockIcon className="w-5 h-5 text-gray-400" />
+              </div>
+            )}
             <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
               <CarouselIcon className="w-7 h-7 text-white" />
             </div>
             <h3 className="text-gray-900 font-semibold mb-1">Карусели</h3>
-            <p className="text-gray-500 text-sm">AI-генератор для Instagram</p>
+            <p className="text-gray-500 text-sm">
+              {hasPaidAccess ? 'AI-генератор для Instagram' : 'Требуется подписка'}
+            </p>
           </div>
 
           {/* Нейропостер - только для владельца */}

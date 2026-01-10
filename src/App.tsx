@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
-import { checkWhitelist, getOrCreateUser, getUserTariffs } from './lib/supabase'
+import { getOrCreateUser, getUserTariffs } from './lib/supabase'
 import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
@@ -74,21 +74,17 @@ function AppContent() {
       }
 
       if (telegramUser?.id) {
-        // Проверяем whitelist
-        const allowed = await checkWhitelist(telegramUser.id)
-        
-        if (allowed) {
-          // Создаём или получаем пользователя из базы
-          const user = await getOrCreateUser(telegramUser)
-          
-          // Загружаем тарифы пользователя
-          if (user?.id) {
-            const tariffs = await getUserTariffs(user.id)
-            setTariffs(tariffs)
-          }
+        // Создаём или получаем пользователя из базы (без проверки whitelist)
+        const user = await getOrCreateUser(telegramUser)
+
+        // Загружаем тарифы пользователя
+        if (user?.id) {
+          const tariffs = await getUserTariffs(user.id)
+          setTariffs(tariffs)
         }
-        
-        setHasAccess(allowed)
+
+        // Всем разрешаем доступ к приложению
+        setHasAccess(true)
       } else {
         setHasAccess(null)
       }
