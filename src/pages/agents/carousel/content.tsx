@@ -81,7 +81,7 @@ export default function CarouselContent() {
 
     // Отправка в n8n
     try {
-      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
+      const response = await fetch('https://n8n.iferma.pro/webhook/bfa5144f-3c01-453a-9e17-d95c6ec66c4a', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
