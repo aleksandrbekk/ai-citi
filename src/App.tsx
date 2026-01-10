@@ -46,6 +46,11 @@ import { StudentsList } from './pages/admin/students/StudentsList'
 import { StudentCreate } from './pages/admin/students/StudentCreate'
 import { StudentEdit } from './pages/admin/students/StudentEdit'
 import AdminHomeworkReview from './pages/admin/HomeworkReview'
+import AdminWhitelist from './pages/admin/Whitelist'
+import { QuizzesList } from './pages/admin/quizzes/QuizzesList'
+import AdminQuizBuilder from './pages/admin/quizzes/QuizBuilder'
+import AdminQuizAnalytics from './pages/admin/quizzes/QuizAnalytics'
+import { AdminQuizImageEditor } from './pages/admin/quizzes/QuizImageEditor'
 
 const queryClient = new QueryClient()
 
@@ -154,6 +159,13 @@ function AppContent() {
             {/* CRM */}
             <Route index element={<AdminCRM />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="whitelist" element={<AdminWhitelist />} />
+            <Route path="quizzes" element={<QuizzesList />} />
+            <Route path="quizzes/new" element={<AdminQuizBuilder />} />
+            <Route path="quizzes/:id" element={<AdminQuizBuilder />} />
+            <Route path="quizzes/:id/edit" element={<AdminQuizBuilder />} />
+            <Route path="quizzes/:id/analytics" element={<AdminQuizAnalytics />} />
+            <Route path="quizzes/:id/images" element={<AdminQuizImageEditor />} />
 
             {/* МЛМ Лагерь */}
             <Route path="mlm" element={<MlmDashboard />} />

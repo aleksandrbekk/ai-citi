@@ -9,7 +9,9 @@ import {
   ClipboardCheck,
   ChevronDown,
   ChevronRight,
-  LogOut
+  LogOut,
+  Shield,
+  HelpCircle
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
@@ -23,6 +25,8 @@ export function AdminSidebar() {
 
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },
+    { to: '/admin/whitelist', icon: Shield, label: 'Whitelist' },
+    { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
   ]
 
   const mlmLinks = [

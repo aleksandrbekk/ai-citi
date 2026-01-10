@@ -7,7 +7,11 @@ export interface Quiz {
   title: string
   description: string | null
   cover_image_url: string | null
+  is_published?: boolean
+  is_public?: boolean
   settings: Record<string, any>
+  total_views?: number
+  total_completions?: number
   created_at?: string
   updated_at?: string
 }
@@ -42,6 +46,26 @@ export function useQuizzes() {
 
   const createQuiz = async (quizData: Partial<Quiz>): Promise<Quiz | null> => {
     try {
+      // Используем RPC функцию для обхода RLS, если она есть
+      try {
+        const { data, error: rpcError } = await supabase.rpc('create_quiz_as_admin', {
+          p_title: quizData.title || 'Новый квиз',
+          p_description: quizData.description || null,
+          p_cover_image_url: quizData.cover_image_url || null,
+          p_is_published: quizData.is_published || false,
+          p_is_public: quizData.is_public !== undefined ? quizData.is_public : true,
+          p_settings: quizData.settings || {}
+        })
+        
+        if (!rpcError && data) {
+          await loadQuizzes()
+          return data
+        }
+      } catch (rpcErr) {
+        // Fallback на обычный insert
+        console.log('RPC not available, using direct insert')
+      }
+
       const { data, error: createError } = await supabase
         .from('quizzes')
         .insert(quizData)
@@ -97,5 +121,44 @@ export function useQuizzes() {
     updateQuiz,
     deleteQuiz,
     reload: loadQuizzes
+  }
+}
+
+export function useQuiz(quizId: string | null) {
+  const [quiz, setQuiz] = useState<Quiz | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    if (!quizId) {
+      setQuiz(null)
+      setIsLoading(false)
+      return
+    }
+
+    const loadQuiz = async () => {
+      setIsLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('quizzes')
+          .select('*')
+          .eq('id', quizId)
+          .single()
+
+        if (error) throw error
+        setQuiz(data)
+      } catch (err) {
+        console.error('Error loading quiz:', err)
+        setQuiz(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadQuiz()
+  }, [quizId])
+
+  return {
+    quiz,
+    isLoading
   }
 }
