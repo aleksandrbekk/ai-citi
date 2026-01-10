@@ -1,14 +1,14 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Map, User, Bot, GraduationCap, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
+import { CityIcon, SchoolIcon, BotIcon, ShopIcon, UserIcon } from '@/components/ui/icons'
 
 const navItems = [
-  { path: '/', icon: Map, label: 'Город' },
-  { path: '/school', icon: GraduationCap, label: 'Школа' },
-  { path: '/agents', icon: Bot, label: 'Агенты' },
-  { path: '/shop', icon: ShoppingBag, label: 'Магазин' },
-  { path: '/profile', icon: User, label: 'Профиль' },
+  { path: '/', Icon: CityIcon, label: 'Город' },
+  { path: '/school', Icon: SchoolIcon, label: 'Школа' },
+  { path: '/agents', Icon: BotIcon, label: 'Агенты' },
+  { path: '/shop', Icon: ShopIcon, label: 'Магазин' },
+  { path: '/profile', Icon: UserIcon, label: 'Профиль' },
 ]
 
 export function BottomNav() {
@@ -21,26 +21,25 @@ export function BottomNav() {
   }
 
   return (
-    <nav className={`fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-t border-zinc-800 transition-transform duration-200 safe-bottom ${
-      isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
-    }`}>
+    <nav className={`fixed bottom-0 left-0 right-0 z-50 nav-glass transition-transform duration-200 safe-bottom ${isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
+      }`}>
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path
-          const Icon = item.icon
-          
+          const { Icon } = item
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
-                isActive 
-                  ? "text-amber-400" 
-                  : "text-zinc-500 hover:text-zinc-300"
+                isActive
+                  ? "text-orange-500"
+                  : "text-gray-400 hover:text-gray-600"
               )}
             >
-              <Icon className="w-5 h-5" />
+              <Icon size={22} className={isActive ? 'text-orange-500' : ''} />
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           )
@@ -49,8 +48,3 @@ export function BottomNav() {
     </nav>
   )
 }
-
-
-
-
-

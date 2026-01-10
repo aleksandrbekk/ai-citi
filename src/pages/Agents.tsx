@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Bot, Calendar } from 'lucide-react'
+import { BotIcon, CarouselIcon, CalendarIcon, SparkleIcon, BackIcon } from '@/components/ui/icons'
 
 const OWNER_TELEGRAM_ID = 190202791
 
 export function Agents() {
   const navigate = useNavigate()
   const [isOwner, setIsOwner] = useState(false)
-  
+
   useEffect(() => {
     const tg = window.Telegram?.WebApp
     let telegramId: number | null = null
-    
+
     if (tg?.initDataUnsafe?.user?.id) {
       telegramId = tg.initDataUnsafe.user.id
     } else {
@@ -19,52 +19,86 @@ export function Agents() {
       if (stored) {
         try {
           telegramId = JSON.parse(stored).id
-        } catch {}
+        } catch { }
       }
     }
-    
+
     setIsOwner(telegramId === OWNER_TELEGRAM_ID)
   }, [])
 
   return (
-    <div className="min-h-screen bg-black p-4">
-      <h1 className="text-2xl font-bold text-white mb-6">🤖 AI Агенты</h1>
-      
-      <div className="grid grid-cols-2 gap-4">
-        {/* AI FERMA - заглушка */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 opacity-50">
-          <div className="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center mb-4">
-            <Bot className="w-7 h-7 text-white" />
-          </div>
-          <h3 className="text-white font-semibold mb-1">AI FERMA</h3>
-          <p className="text-zinc-500 text-sm">Скоро</p>
-        </div>
-        
-        {/* Карусели - доступны всем */}
-        <div
-          onClick={() => navigate('/agents/carousel')}
-          className="bg-white/10 backdrop-blur rounded-2xl p-6 cursor-pointer hover:bg-white/20 transition-all"
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-24">
+      {/* Декоративные элементы */}
+      <div className="absolute top-0 right-0 w-80 h-80 bg-orange-100/50 rounded-full blur-3xl" />
+      <div className="absolute bottom-40 left-0 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl" />
+
+      {/* Header */}
+      <div className="sticky top-0 z-20 nav-glass px-4 py-4 flex items-center gap-3">
+        <button
+          onClick={() => navigate('/')}
+          className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
         >
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mb-4">
-            <span className="text-3xl">🎠</span>
-          </div>
-          <h3 className="text-white font-semibold text-lg">Карусели</h3>
-          <p className="text-gray-400 text-sm mt-1">AI-генератор для Instagram</p>
+          <BackIcon size={24} className="text-gray-700" />
+        </button>
+        <div className="flex items-center gap-2">
+          <SparkleIcon size={24} className="text-orange-500" />
+          <h1 className="text-xl font-bold text-gray-900">AI Агенты</h1>
         </div>
-        
-        {/* Нейропостер - только для владельца */}
-        {isOwner && (
-          <Link 
-            to="/tools/poster"
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors"
-          >
-            <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-purple-500 rounded-xl flex items-center justify-center mb-4">
-              <Calendar className="w-7 h-7 text-white" />
+      </div>
+
+      <div className="relative z-10 p-4">
+        <div className="grid grid-cols-2 gap-4">
+          {/* AI FERMA - заглушка */}
+          <div className="glass-card p-5 opacity-50">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
+              <BotIcon className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-white font-semibold mb-1">Нейропостер</h3>
-            <p className="text-zinc-500 text-sm">Планировщик Instagram</p>
-          </Link>
-        )}
+            <h3 className="text-gray-900 font-semibold mb-1">AI FERMA</h3>
+            <p className="text-gray-400 text-sm">Скоро</p>
+          </div>
+
+          {/* Карусели - доступны всем */}
+          <div
+            onClick={() => navigate('/agents/carousel')}
+            className="glass-card p-5 cursor-pointer hover:scale-[1.02] transition-all group"
+          >
+            <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
+              <CarouselIcon className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-gray-900 font-semibold mb-1">Карусели</h3>
+            <p className="text-gray-500 text-sm">AI-генератор для Instagram</p>
+          </div>
+
+          {/* Нейропостер - только для владельца */}
+          {isOwner && (
+            <Link
+              to="/tools/poster"
+              className="glass-card p-5 hover:scale-[1.02] transition-all group"
+            >
+              <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/30 transition-shadow">
+                <CalendarIcon className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-gray-900 font-semibold mb-1">Нейропостер</h3>
+              <p className="text-gray-500 text-sm">Планировщик Instagram</p>
+            </Link>
+          )}
+        </div>
+
+        {/* Промо-баннер */}
+        <div className="mt-6 glass-card-strong p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <SparkleIcon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-gray-900 font-semibold mb-1">Создавай с AI</h3>
+              <p className="text-gray-500 text-sm">
+                Генерируй карусели для Instagram за секунды.
+                Выбирай стиль и получай готовый контент.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

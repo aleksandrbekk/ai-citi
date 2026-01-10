@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { StyleSelector } from '@/components/carousel/StyleSelector'
 import { STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL } from '@/lib/carouselStyles'
+import { BackIcon, CarouselIcon, LoaderIcon, CheckIcon, ImageIcon } from '@/components/ui/icons'
 
 export default function CarouselIndex() {
   const navigate = useNavigate()
@@ -17,7 +17,6 @@ export default function CarouselIndex() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Загружаем первое фото пользователя из галереи при загрузке страницы
   useEffect(() => {
     const loadUserPhoto = async () => {
       const telegramUser = getTelegramUser()
@@ -45,7 +44,6 @@ export default function CarouselIndex() {
     setIsSubmitting(true)
     setError(null)
     try {
-      // Получаем конфигурацию выбранного стиля
       const styleConfig = STYLE_CONFIGS[style]
 
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
@@ -56,7 +54,6 @@ export default function CarouselIndex() {
           topic: topic.trim(),
           userPhoto: userPhoto || '',
           cta: cta.trim() || '',
-          // Новые поля с полными JSON конфигурациями
           styleId: style,
           styleConfig: styleConfig,
           vasiaCore: VASIA_CORE,
@@ -74,64 +71,110 @@ export default function CarouselIndex() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
-      <div className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-zinc-800 px-4 py-3 flex items-center gap-3 z-10">
-        <button onClick={() => navigate('/agents')} className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg">
-          <ArrowLeft size={20} />
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-24">
+      {/* Декоративные элементы */}
+      <div className="absolute top-0 right-0 w-80 h-80 bg-orange-100/50 rounded-full blur-3xl" />
+      <div className="absolute bottom-40 left-0 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl" />
+
+      {/* Header */}
+      <div className="sticky top-0 z-20 nav-glass px-4 py-4 flex items-center gap-3">
+        <button
+          onClick={() => navigate('/agents')}
+          className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
+        >
+          <BackIcon size={24} className="text-gray-700" />
         </button>
-        <h1 className="text-xl font-bold">🎨 Карусели</h1>
+        <div className="flex items-center gap-2">
+          <CarouselIcon size={24} className="text-orange-500" />
+          <h1 className="text-xl font-bold text-gray-900">Карусели</h1>
+        </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="relative z-10 p-4 space-y-6">
+        {/* Тема карусели */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">📝 Тема карусели <span className="text-orange-500">*</span></label>
+          <label className="text-sm font-medium text-gray-700">
+            📝 Тема карусели <span className="text-orange-500">*</span>
+          </label>
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="Например: 5 ошибок новичков в МЛМ"
-            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none focus:border-orange-500 focus:outline-none"
+            className="w-full p-4 glass-input text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
             rows={3}
           />
         </div>
 
         {/* Индикатор статуса фото */}
-        {userPhoto ? (
-          <div className="flex items-center gap-2 text-sm text-white/60">
-            <span>✅</span>
-            <span>Фото загружено из профиля</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 text-sm text-yellow-500">
-            <span>⚠️</span>
-            <span>Загрузите фото в профиле для персонализации</span>
-          </div>
-        )}
+        <div className="glass-card p-4">
+          {userPhoto ? (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                <CheckIcon size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-gray-900 font-medium">Фото загружено</p>
+                <p className="text-gray-500 text-sm">Из вашего профиля</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <ImageIcon size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <p className="text-gray-900 font-medium">Нет фото</p>
+                <p className="text-gray-500 text-sm">Загрузите в профиле для персонализации</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Селектор стиля */}
         <StyleSelector />
 
+        {/* Призыв к действию */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">📣 Призыв к действию</label>
+          <label className="text-sm font-medium text-gray-700">📣 Призыв к действию</label>
           <textarea
             value={cta}
             onChange={(e) => setCta(e.target.value)}
             placeholder="Например: Пиши МАГИЯ в комментариях — отправлю гайд"
-            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none focus:border-orange-500 focus:outline-none"
+            className="w-full p-4 glass-input text-gray-900 placeholder-gray-400 resize-none focus:outline-none"
             rows={2}
           />
         </div>
 
-        {error && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">{error}</div>}
+        {/* Ошибка */}
+        {error && (
+          <div className="glass-card p-4 border-red-200 bg-red-50/50">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
+        {/* Кнопка создания */}
         <button
           onClick={handleGenerate}
           disabled={isSubmitting || !topic.trim()}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-4 btn-primary text-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:transform-none"
         >
-          {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" />Отправляю...</> : '🎨 Создать карусель'}
+          {isSubmitting ? (
+            <>
+              <LoaderIcon size={24} className="text-white" />
+              Отправляю...
+            </>
+          ) : (
+            <>
+              <CarouselIcon size={24} className="text-white" />
+              Создать карусель
+            </>
+          )}
         </button>
 
-        <p className="text-center text-zinc-500 text-sm">Результат придёт в Telegram через 1-2 минуты</p>
+        {/* Подсказка */}
+        <p className="text-center text-gray-400 text-sm">
+          Результат придёт в Telegram через 1-2 минуты
+        </p>
       </div>
     </div>
   )
