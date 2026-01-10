@@ -174,3 +174,51 @@ export function useCreateLesson() {
     },
   })
 }
+
+export function useDuplicateLesson() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (lessonId: string) => {
+      // Получаем исходный урок
+      const { data: original, error: fetchError } = await supabase
+        .from('course_lessons')
+        .select('*')
+        .eq('id', lessonId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Получаем максимальный order_index в этом модуле
+      const { data: lessons } = await supabase
+        .from('course_lessons')
+        .select('order_index')
+        .eq('module_id', original.module_id)
+        .order('order_index', { ascending: false })
+        .limit(1)
+
+      const maxOrder = lessons?.[0]?.order_index || 0
+
+      // Создаём копию без id и с новым названием
+      const { id, created_at, updated_at, ...lessonData } = original
+      const duplicated = {
+        ...lessonData,
+        title: `${original.title} (копия)`,
+        order_index: maxOrder + 1,
+      }
+
+      const { data: created, error: createError } = await supabase
+        .from('course_lessons')
+        .insert(duplicated)
+        .select()
+        .single()
+
+      if (createError) throw createError
+      return created
+    },
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ['module', created.module_id] })
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+    },
+  })
+}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useModule, useUpdateModule, useCreateModule } from '../../../hooks/admin/useModules'
-import { useCreateLesson } from '../../../hooks/admin/useLessons'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { useCreateLesson, useDuplicateLesson } from '../../../hooks/admin/useLessons'
+import { ArrowLeft, Plus, Copy } from 'lucide-react'
 
 export function ModuleEdit() {
   const { id } = useParams<{ id: string }>()
@@ -13,6 +13,7 @@ export function ModuleEdit() {
   const updateModule = useUpdateModule()
   const createModule = useCreateModule()
   const createLesson = useCreateLesson()
+  const duplicateLesson = useDuplicateLesson()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -70,6 +71,14 @@ export function ModuleEdit() {
       navigate(`/admin/mlm/modules/${id}/lessons/${newLesson.id}`)
     } catch (error) {
       console.error('Ошибка создания урока:', error)
+    }
+  }
+
+  const handleDuplicateLesson = async (lessonId: string) => {
+    try {
+      await duplicateLesson.mutateAsync(lessonId)
+    } catch (error) {
+      console.error('Ошибка копирования урока:', error)
     }
   }
 
@@ -204,12 +213,22 @@ export function ModuleEdit() {
                     Порядок: {lesson.order_index} {lesson.has_homework && '• Домашнее задание'}
                   </div>
                 </div>
-                <Link
-                  to={`/admin/mlm/modules/${id}/lessons/${lesson.id}`}
-                  className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors inline-block"
-                >
-                  Редактировать
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleDuplicateLesson(lesson.id)}
+                    disabled={duplicateLesson.isPending}
+                    className="p-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                    title="Копировать урок"
+                  >
+                    <Copy size={18} />
+                  </button>
+                  <Link
+                    to={`/admin/mlm/modules/${id}/lessons/${lesson.id}`}
+                    className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors inline-block"
+                  >
+                    Редактировать
+                  </Link>
+                </div>
               </div>
             ))}
 
