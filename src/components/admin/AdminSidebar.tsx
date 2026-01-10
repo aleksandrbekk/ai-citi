@@ -1,8 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { 
+import {
   LayoutDashboard,
-  Users, 
-  GraduationCap, 
+  Users,
+  GraduationCap,
   Settings,
   BookOpen,
   UserCheck,
@@ -10,7 +10,6 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  Shield,
   HelpCircle
 } from 'lucide-react'
 import { useState } from 'react'
@@ -25,7 +24,6 @@ export function AdminSidebar() {
 
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },
-    { to: '/admin/whitelist', icon: Shield, label: 'Whitelist' },
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
   ]
 
