@@ -1,0 +1,179 @@
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../../../lib/supabase'
+import { BarChart3, Users, DollarSign, TrendingUp, Calendar } from 'lucide-react'
+
+export default function AnalyticsTab() {
+  const { data: clients } = useQuery({
+    queryKey: ['premium_clients'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('premium_clients')
+        .select('*')
+        .order('created_at', { ascending: true })
+      return data || []
+    }
+  })
+
+  const now = new Date()
+
+  // Статистика
+  const stats = {
+    total: clients?.length || 0,
+    active: clients?.filter(c => new Date(c.expires_at) > now).length || 0,
+    expiring: clients?.filter(c => {
+      const days = Math.ceil((new Date(c.expires_at).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      return days > 0 && days <= 7
+    }).length || 0,
+    expired: clients?.filter(c => new Date(c.expires_at) <= now).length || 0,
+    totalLTV: clients?.reduce((sum, c) => sum + (c.total_paid_usd || 0), 0) || 0,
+    avgLTV: clients?.length ? Math.round((clients.reduce((sum, c) => sum + (c.total_paid_usd || 0), 0)) / clients.length) : 0
+  }
+
+  // По тарифам
+  const byPlan = {
+    basic: clients?.filter(c => c.plan === 'basic').length || 0,
+    pro: clients?.filter(c => c.plan === 'pro').length || 0,
+    vip: clients?.filter(c => c.plan === 'vip').length || 0
+  }
+
+  // По источникам
+  const bySources = clients?.reduce((acc, c) => {
+    const source = c.source || 'unknown'
+    acc[source] = (acc[source] || 0) + 1
+    return acc
+  }, {} as Record<string, number>) || {}
+
+  // По месяцам (последние 6 месяцев)
+  const byMonth = clients?.reduce((acc, c) => {
+    const date = new Date(c.created_at)
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    acc[key] = (acc[key] || 0) + 1
+    return acc
+  }, {} as Record<string, number>) || {}
+
+  const StatCard = ({ icon: Icon, label, value, subvalue, color }: any) => (
+    <div className="bg-zinc-800 rounded-xl p-4">
+      <div className="flex items-center gap-3 mb-2">
+        <div className={`p-2 rounded-lg ${color}`}>
+          <Icon size={20} />
+        </div>
+        <span className="text-zinc-400 text-sm">{label}</span>
+      </div>
+      <div className="text-2xl font-bold text-white">{value}</div>
+      {subvalue && <div className="text-zinc-500 text-sm mt-1">{subvalue}</div>}
+    </div>
+  )
+
+  const ProgressBar = ({ label, value, total, color }: any) => {
+    const percent = total > 0 ? Math.round((value / total) * 100) : 0
+    return (
+      <div className="mb-3">
+        <div className="flex justify-between text-sm mb-1">
+          <span className="text-zinc-400">{label}</span>
+          <span className="text-white">{value} ({percent}%)</span>
+        </div>
+        <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+          <div className={`h-full ${color} rounded-full`} style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Основные метрики */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard 
+          icon={Users} 
+          label="Всего клиентов" 
+          value={stats.total}
+          color="bg-blue-500/20 text-blue-400"
+        />
+        <StatCard 
+          icon={TrendingUp} 
+          label="Активных" 
+          value={stats.active}
+          subvalue={`${stats.expiring} истекает скоро`}
+          color="bg-green-500/20 text-green-400"
+        />
+        <StatCard 
+          icon={DollarSign} 
+          label="Общий LTV" 
+          value={`$${stats.totalLTV}`}
+          subvalue={`Средний: $${stats.avgLTV}`}
+          color="bg-yellow-500/20 text-yellow-400"
+        />
+        <StatCard 
+          icon={Calendar} 
+          label="Просрочено" 
+          value={stats.expired}
+          color="bg-red-500/20 text-red-400"
+        />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* По тарифам */}
+        <div className="bg-zinc-900 rounded-xl p-5">
+          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 size={18} /> Распределение по тарифам
+          </h3>
+          <ProgressBar label="Basic" value={byPlan.basic} total={stats.total} color="bg-blue-500" />
+          <ProgressBar label="Pro" value={byPlan.pro} total={stats.total} color="bg-purple-500" />
+          <ProgressBar label="VIP" value={byPlan.vip} total={stats.total} color="bg-yellow-500" />
+        </div>
+
+        {/* По источникам */}
+        <div className="bg-zinc-900 rounded-xl p-5">
+          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+            <TrendingUp size={18} /> Источники клиентов
+          </h3>
+          {Object.entries(bySources).length > 0 ? (
+            Object.entries(bySources)
+              .sort((a, b) => (b[1] as number) - (a[1] as number))
+              .map(([source, count]) => (
+                <ProgressBar 
+                  key={source} 
+                  label={source} 
+                  value={count as number} 
+                  total={stats.total} 
+                  color="bg-cyan-500" 
+                />
+              ))
+          ) : (
+            <p className="text-zinc-500">Нет данных</p>
+          )}
+        </div>
+      </div>
+
+      {/* По месяцам */}
+      <div className="bg-zinc-900 rounded-xl p-5">
+        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+          <Calendar size={18} /> Регистрации по месяцам
+        </h3>
+        <div className="flex items-end gap-2 h-32">
+          {Object.entries(byMonth)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .slice(-6)
+            .map(([month, count]) => {
+              const countNum = count as number
+              const maxCount = Math.max(...(Object.values(byMonth) as number[]))
+              const height = maxCount > 0 ? (countNum / maxCount) * 100 : 0
+              return (
+                <div key={month} className="flex-1 flex flex-col items-center">
+                  <div 
+                    className="w-full bg-blue-500 rounded-t"
+                    style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
+                  />
+                  <span className="text-xs text-zinc-500 mt-2">{month.slice(5)}</span>
+                  <span className="text-xs text-white">{countNum}</span>
+                </div>
+              )
+            })}
+        </div>
+        {Object.keys(byMonth).length === 0 && (
+          <p className="text-zinc-500 text-center">Нет данных</p>
+        )}
+      </div>
+    </div>
+  )
+}
