@@ -1,13 +1,32 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModules } from '../../../hooks/admin/useModules'
+import { Switch } from '../../../components/ui/switch'
 import { Plus, BookOpen } from 'lucide-react'
 
 export function ModulesList() {
   const navigate = useNavigate()
-  const { modules, isLoading, error } = useModules()
+  const { modules, isLoading, error, updateModule } = useModules()
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set())
 
   const getTariffLabel = (tariff: string) => {
     return tariff === 'platinum' ? 'Platinum' : 'Standard'
+  }
+
+  const handleToggleActive = async (moduleId: string, currentActive: boolean) => {
+    setTogglingIds(prev => new Set(prev).add(moduleId))
+
+    const success = await updateModule(moduleId, { is_active: !currentActive })
+
+    if (!success) {
+      console.error('Failed to update module active status')
+    }
+
+    setTogglingIds(prev => {
+      const next = new Set(prev)
+      next.delete(moduleId)
+      return next
+    })
   }
 
   if (isLoading) {
@@ -50,11 +69,6 @@ export function ModulesList() {
                 <BookOpen size={24} className="text-blue-500" />
                 <h2 className="text-xl font-semibold text-white">{module.title}</h2>
               </div>
-              {!module.is_active && (
-                <span className="px-2 py-1 text-xs bg-zinc-700 text-zinc-400 rounded">
-                  Неактивен
-                </span>
-              )}
             </div>
 
             {module.description && (
@@ -74,6 +88,18 @@ export function ModulesList() {
 
             <div className="text-xs text-zinc-500 mb-4">
               Порядок: {module.order_index}
+            </div>
+
+            {/* Переключатель активности */}
+            <div className="flex items-center justify-between mb-4 py-2 px-3 bg-zinc-700/50 rounded-lg">
+              <span className="text-sm text-zinc-300">
+                {module.is_active ? 'Активен' : 'Неактивен'}
+              </span>
+              <Switch
+                checked={module.is_active}
+                onCheckedChange={() => handleToggleActive(module.id, module.is_active)}
+                disabled={togglingIds.has(module.id)}
+              />
             </div>
 
             <button
