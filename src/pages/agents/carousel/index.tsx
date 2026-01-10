@@ -12,32 +12,46 @@ const SAVED_STYLE_KEY = 'carousel_default_style'
 // Telegram WebApp
 const tg = window.Telegram?.WebApp
 
-// SVG иконки
-const CarouselSvgIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="6" width="7" height="12" rx="1" />
-    <rect x="8.5" y="4" width="7" height="16" rx="1" />
-    <rect x="15" y="6" width="7" height="12" rx="1" />
+// Превью стилей (JPEG)
+const STYLE_PREVIEWS: Record<StyleId, string> = {
+  APPLE_GLASSMORPHISM: '/styles/apple.jpg',
+  AESTHETIC_BEIGE: '/styles/beige.jpg',
+  SOFT_PINK_EDITORIAL: '/styles/pink.jpg',
+  MINIMALIST_LINE_ART: '/styles/minimal.jpg',
+  GRADIENT_MESH_3D: '/styles/gradient.jpg',
+}
+
+// SVG иконки (thin-line, без эмодзи)
+const CarouselIcon = ({ className = '' }: { className?: string }) => (
+  <svg className={className} width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="6" width="6" height="12" rx="1" />
+    <rect x="9" y="4" width="6" height="16" rx="1" />
+    <rect x="16" y="6" width="6" height="12" rx="1" />
   </svg>
 )
 
-const CameraSvgIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+const CameraIcon = ({ className = '' }: { className?: string }) => (
+  <svg className={className} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
     <circle cx="12" cy="13" r="4" />
   </svg>
 )
 
-const StyleSvgIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-    <path d="M2 17l10 5 10-5" />
-    <path d="M2 12l10 5 10-5" />
+const MegaphoneIcon = ({ className = '' }: { className?: string }) => (
+  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 11l18-5v12L3 13v-2z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
   </svg>
 )
 
-const ChevronRightIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const MessageIcon = ({ className = '' }: { className?: string }) => (
+  <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+)
+
+const ChevronIcon = ({ className = '' }: { className?: string }) => (
+  <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6" />
   </svg>
 )
@@ -73,20 +87,12 @@ export default function CarouselIndex() {
       }
 
       tg.BackButton.onClick(handleBack)
-
-      return () => {
-        tg.BackButton.offClick(handleBack)
-      }
+      return () => { tg.BackButton.offClick(handleBack) }
     }
   }, [showStyleModal, showCtaPage, navigate])
 
-  // Скрываем BackButton при размонтировании
   useEffect(() => {
-    return () => {
-      if (tg?.BackButton) {
-        tg.BackButton.hide()
-      }
-    }
+    return () => { tg?.BackButton?.hide() }
   }, [])
 
   // Загружаем сохранённый стиль
@@ -130,7 +136,6 @@ export default function CarouselIndex() {
     setIsSubmitting(true)
     setError(null)
 
-    // Формируем CTA
     let ctaValue = ''
     if (ctaType === 'PRODUCT') {
       ctaValue = ctaKeyword || 'МАГИЯ'
@@ -165,7 +170,7 @@ export default function CarouselIndex() {
 
       setStatus('generating')
       navigate('/agents/carousel/generating')
-    } catch (err) {
+    } catch {
       setError('Не удалось отправить запрос')
     } finally {
       setIsSubmitting(false)
@@ -177,125 +182,114 @@ export default function CarouselIndex() {
   // ========== CTA PAGE ==========
   if (showCtaPage) {
     return (
-      <div className="min-h-screen bg-white">
-        {/* Safe area */}
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100">
         <div className="h-[100px]" />
 
         <div className="px-4 pb-8">
           {/* Header */}
           <div className="flex items-center gap-3 mb-2">
-            <MegaphoneSvgIcon />
+            <MegaphoneIcon className="text-orange-500" />
             <h1 className="text-2xl font-bold text-gray-900">Призыв к действию</h1>
           </div>
           <p className="text-gray-500 mb-6">Что должен сделать читатель?</p>
 
           {/* Segment Control */}
-          <div className="flex bg-gray-100 rounded-full p-1 mb-6">
+          <div className="flex bg-white/60 backdrop-blur-xl rounded-2xl p-1.5 mb-6 border border-white/50 shadow-lg">
             <button
               onClick={() => setCtaType('PRODUCT')}
-              className={`flex-1 py-3 px-4 rounded-full text-sm font-medium transition-all ${ctaType === 'PRODUCT'
-                ? 'bg-orange-500 text-white shadow-lg'
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${ctaType === 'PRODUCT'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
                 : 'text-gray-600'
                 }`}
             >
-              🏷️ Продажа
+              Продажа
             </button>
             <button
               onClick={() => setCtaType('ENGAGEMENT')}
-              className={`flex-1 py-3 px-4 rounded-full text-sm font-medium transition-all ${ctaType === 'ENGAGEMENT'
-                ? 'bg-orange-500 text-white shadow-lg'
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${ctaType === 'ENGAGEMENT'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
                 : 'text-gray-600'
                 }`}
             >
-              📈 Охват
+              Охват
             </button>
           </div>
 
-          {/* Content based on type */}
           {ctaType === 'PRODUCT' ? (
             <>
               {/* Card */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 p-4 mb-4 flex items-center gap-4 shadow-lg">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                   <CheckIcon size={20} className="text-white" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <MessageSvgIcon />
-                    <span className="font-semibold text-gray-900">Написать кодовое слово</span>
+                    <MessageIcon className="text-gray-400" />
+                    <span className="font-semibold text-gray-900">Кодовое слово</span>
                   </div>
-                  <p className="text-sm text-gray-500">Пользователь пишет ваше слово в директ</p>
+                  <p className="text-sm text-gray-500">Клиент напишет его в директ</p>
                 </div>
               </div>
 
-              {/* Input */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ваше кодовое слово
+              {/* Input Card */}
+              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 p-4 shadow-lg mb-6">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Ваше слово
                 </label>
                 <input
                   type="text"
                   value={ctaKeyword}
                   onChange={(e) => setCtaKeyword(e.target.value.toUpperCase())}
                   placeholder="МАГИЯ"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  className="w-full px-4 py-3 rounded-xl bg-white/80 border border-gray-200 text-gray-900 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
                 <p className="text-xs text-gray-400 mt-2">Например: СТАРТ, ХОЧУ, VIP</p>
               </div>
             </>
           ) : (
-            <>
-              {/* Engagement options */}
-              <div className="space-y-3">
-                {[
-                  { id: 'SUBSCRIBE' as const, label: 'Подпишись', icon: '🔔' },
-                  { id: 'COMMENT' as const, label: 'Напиши в комментах', icon: '💬' },
-                  { id: 'SAVE' as const, label: 'Сохрани', icon: '💾' },
-                ].map(option => (
-                  <button
-                    key={option.id}
-                    onClick={() => setEngagementType(option.id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${engagementType === option.id
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-gray-200 bg-white'
-                      }`}
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${engagementType === option.id ? 'bg-orange-500' : 'bg-gray-100'
-                      }`}>
-                      {engagementType === option.id ? (
-                        <CheckIcon size={20} className="text-white" />
-                      ) : (
-                        <span className="text-xl">{option.icon}</span>
-                      )}
-                    </div>
-                    <span className="font-medium text-gray-900">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
+            <div className="space-y-3 mb-6">
+              {[
+                { id: 'SUBSCRIBE' as const, label: 'Подпишись', desc: 'Призыв подписаться' },
+                { id: 'COMMENT' as const, label: 'Комментируй', desc: 'Напиши в комментах' },
+                { id: 'SAVE' as const, label: 'Сохрани', desc: 'Сохрани себе пост' },
+              ].map(option => (
+                <button
+                  key={option.id}
+                  onClick={() => setEngagementType(option.id)}
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl transition-all shadow-lg ${engagementType === option.id
+                    ? 'border-orange-500 bg-orange-50/80'
+                    : 'border-white/50 bg-white/70'
+                    }`}
+                >
+                  <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-lg ${engagementType === option.id
+                    ? 'bg-gradient-to-br from-orange-500 to-orange-600'
+                    : 'bg-gray-100'
+                    }`}>
+                    {engagementType === option.id && <CheckIcon size={20} className="text-white" />}
+                  </div>
+                  <div className="text-left">
+                    <span className="font-semibold text-gray-900 block">{option.label}</span>
+                    <span className="text-sm text-gray-500">{option.desc}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
 
-          {/* Error */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
+            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
               {error}
             </div>
           )}
 
-          {/* Generate Button */}
           <button
             onClick={handleGenerate}
             disabled={isSubmitting}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-lg shadow-lg shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2 mt-6"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
-              <>
-                <LoaderIcon size={20} className="animate-spin" />
-                Создание...
-              </>
-            ) : (
-              <>✨ Создать карусель</>
-            )}
+              <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
+            ) : 'Создать карусель'}
           </button>
         </div>
       </div>
@@ -304,83 +298,93 @@ export default function CarouselIndex() {
 
   // ========== MAIN PAGE ==========
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100">
       {/* Safe area */}
       <div className="h-[100px]" />
 
       <div className="px-4 pb-8">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="text-orange-500">
-            <CarouselSvgIcon />
+        {/* Main Glassmorphism Card */}
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl p-5">
+
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+              <CarouselIcon className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Создай карусель</h1>
+              <p className="text-xs text-gray-500">AI сгенерирует 9 слайдов</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Новая карусель</h1>
-        </div>
 
-        {/* Topic Input Card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 mb-4">
-          <label className="block text-sm font-medium text-gray-500 mb-2">
-            О чём будет карусель?
-          </label>
-          <textarea
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="Например: 5 способов увеличить продажи в сетевом..."
-            className="w-full h-40 resize-none bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-base"
-          />
-        </div>
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
 
-        {/* Photo & Style Buttons */}
-        <div className="flex gap-3 mb-4">
-          {/* Photo Button */}
-          <button className="flex-1 bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-3">
-            <div className="text-gray-400">
+          {/* Topic Input */}
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-600 mb-2">Тема</label>
+            <textarea
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Например: 5 способов увеличить продажи в сетевом..."
+              className="w-full h-32 px-4 py-3 rounded-xl bg-white/80 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
+
+          {/* Photo & Style Row */}
+          <div className="flex gap-3 mb-5">
+            {/* Photo Button */}
+            <button className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors">
               {userPhoto ? (
-                <img src={userPhoto} alt="Фото" className="w-10 h-10 rounded-full object-cover" />
+                <img src={userPhoto} alt="" className="w-11 h-11 rounded-full object-cover ring-2 ring-green-500 ring-offset-2" />
               ) : (
-                <CameraSvgIcon />
+                <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+                  <CameraIcon className="text-gray-400" />
+                </div>
               )}
-            </div>
-            <div className="flex-1 text-left">
-              <span className="font-medium text-gray-900">Фото</span>
-              {userPhoto && <span className="text-green-500 ml-1">✓</span>}
-            </div>
-            <ChevronRightIcon />
-          </button>
+              <div className="flex-1 text-left">
+                <span className="font-medium text-gray-900 block">Фото</span>
+                {userPhoto && <span className="text-xs text-green-500">Загружено</span>}
+              </div>
+              <ChevronIcon className="text-gray-400" />
+            </button>
 
-          {/* Style Button */}
-          <button
-            onClick={() => setShowStyleModal(true)}
-            className="flex-1 bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-3"
-          >
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: currentStyleMeta?.previewColor + '20' }}
+            {/* Style Button */}
+            <button
+              onClick={() => setShowStyleModal(true)}
+              className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors"
             >
-              <StyleSvgIcon />
+              <img
+                src={STYLE_PREVIEWS[style]}
+                alt={currentStyleMeta?.name}
+                className="w-11 h-11 rounded-lg object-cover"
+              />
+              <div className="flex-1 text-left">
+                <span className="font-medium text-gray-900 block">Стиль</span>
+                <span className="text-xs text-gray-500 truncate block">{currentStyleMeta?.name}</span>
+              </div>
+              <ChevronIcon className="text-gray-400" />
+            </button>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
+              {error}
             </div>
-            <div className="flex-1 text-left">
-              <span className="font-medium text-gray-900">Стиль</span>
-              <p className="text-xs text-gray-500 truncate">{currentStyleMeta?.name}</p>
-            </div>
-            <ChevronRightIcon />
+          )}
+
+          {/* Create Button */}
+          <button
+            onClick={handleCreate}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30"
+          >
+            Создать
           </button>
         </div>
-
-        {/* Error */}
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Create Button */}
-        <button
-          onClick={handleCreate}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold text-lg shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
-        >
-          ✨ Создать
-        </button>
       </div>
 
       {/* Style Modal */}
@@ -399,20 +403,6 @@ export default function CarouselIndex() {
   )
 }
 
-// ========== HELPER ICONS ==========
-const MegaphoneSvgIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
-    <path d="M3 11l18-5v12L3 13v-2z" />
-    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
-  </svg>
-)
-
-const MessageSvgIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-  </svg>
-)
-
 // ========== STYLE MODAL ==========
 interface StyleModalProps {
   currentStyle: StyleId
@@ -428,13 +418,8 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
       <div className="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="p-4 text-center border-b border-gray-100">
@@ -442,67 +427,58 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
         </div>
 
         {/* Hero Preview */}
-        <div className="aspect-[4/5] bg-gray-100 relative overflow-hidden">
-          <div
-            className="w-full h-full flex items-center justify-center text-6xl"
-            style={{ backgroundColor: selectedMeta?.previewColor + '30' }}
-          >
-            {selectedMeta?.emoji}
-          </div>
-          {/* Style name overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+        <div className="aspect-square bg-gray-100 relative overflow-hidden">
+          <img
+            src={STYLE_PREVIEWS[selectedStyle]}
+            alt={selectedMeta?.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
             <p className="text-white font-semibold text-lg">{selectedMeta?.name}</p>
+            <p className="text-white/70 text-sm">{selectedMeta?.description}</p>
           </div>
         </div>
 
         {/* Style Thumbnails */}
-        <div className="p-4 flex justify-center gap-3">
+        <div className="p-4 flex justify-center gap-2">
           {STYLES_INDEX.map(s => (
             <button
               key={s.id}
               onClick={() => setSelectedStyle(s.id)}
-              className={`w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all ${selectedStyle === s.id
-                ? 'ring-3 ring-orange-500 ring-offset-2 scale-110'
+              className={`w-14 h-14 rounded-xl overflow-hidden transition-all ${selectedStyle === s.id
+                ? 'ring-2 ring-orange-500 ring-offset-2 scale-110'
                 : 'opacity-60 hover:opacity-100'
                 }`}
-              style={{ backgroundColor: s.previewColor + '30' }}
             >
-              {s.emoji}
+              <img
+                src={STYLE_PREVIEWS[s.id]}
+                alt={s.name}
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>
 
-        {/* Style Info */}
-        <div className="px-4 pb-2 text-center">
-          <p className="text-xl font-semibold text-gray-900">
-            {selectedMeta?.emoji} {selectedMeta?.name}
-          </p>
-          <p className="text-sm text-gray-500">{selectedMeta?.description}</p>
-        </div>
-
-        {/* Save as default */}
-        <div className="px-4 py-3 flex items-center justify-between">
+        {/* Save toggle */}
+        <div className="px-4 py-3 flex items-center justify-between border-t border-gray-100">
           <span className="text-sm text-gray-600">Сохранить как основной</span>
           <button
             onClick={() => setSaveAsDefault(!saveAsDefault)}
-            className={`w-12 h-7 rounded-full transition-colors ${saveAsDefault ? 'bg-orange-500' : 'bg-gray-300'
-              }`}
+            className={`w-12 h-7 rounded-full transition-colors relative ${saveAsDefault ? 'bg-orange-500' : 'bg-gray-300'}`}
           >
-            <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${saveAsDefault ? 'translate-x-6' : 'translate-x-1'
+            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${saveAsDefault ? 'left-6' : 'left-1'
               }`} />
           </button>
         </div>
 
         {/* Button */}
-        <div className="p-4">
+        <div className="p-4 pt-0">
           <button
             onClick={() => {
-              if (saveAsDefault) {
-                localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
-              }
+              if (saveAsDefault) localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
               onSelect(selectedStyle)
             }}
-            className="w-full py-3 rounded-xl bg-orange-500 text-white font-semibold"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg"
           >
             Готово
           </button>
