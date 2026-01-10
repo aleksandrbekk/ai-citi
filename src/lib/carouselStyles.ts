@@ -138,10 +138,10 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             style_footer: "STYLE: Photorealistic, NOT illustration. Cinematic lighting, studio quality. Premium minimal aesthetic. 8K resolution."
         },
         slide_templates: {
-            HOOK: "Instagram carousel slide, 3:4 aspect ratio (1080x1440px generation at 1024x1365).\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, LARGE SCALE — 80% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nGlassmorphism card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" (small, bottom right)\n\n{style_footer}",
-            CONTENT: "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nHEADLINE (TOP LEFT):\nOrange gradient badge: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\nTransition text: \"{TRANSITION}\"\n\nNo person. Clean infographic style.\n\n{style_footer}",
-            CTA: "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nTOP LEFT: Orange gradient banner with white text: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nBOTTOM:\nSmaller glassmorphism card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\nBackground: White to light orange gradient (#FFFFFF → #FFF5F0), energetic uplifting feel.\n\nCENTER:\nLarge glassmorphism card (prominent, centered)\nTop line (HUGE, bold black): \"ОТПРАВЬ ЭТО\"\nBottom line (large, orange #FF5A1F): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person. Bright, shareable, viral aesthetic.\n\n{style_footer}"
+            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, LARGE SCALE — 80% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nGlassmorphism card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" (small, bottom right)\n\n{style_footer}",
+            CONTENT: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT):\nOrange gradient badge: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\nTransition text: \"{TRANSITION}\"\n\nNo person. Clean infographic style.\n\n{style_footer}",
+            CTA: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nTOP LEFT: Orange gradient banner with white text: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nBOTTOM:\nSmaller glassmorphism card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
+            VIRAL: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\nBackground: White to light orange gradient (#FFFFFF → #FFF5F0), energetic uplifting feel.\n\nCENTER:\nLarge glassmorphism card (prominent, centered)\nTop line (HUGE, bold black): \"ОТПРАВЬ ЭТО\"\nBottom line (large, orange #FF5A1F): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person. Bright, shareable, viral aesthetic.\n\n{style_footer}"
         }
     },
 
@@ -196,10 +196,10 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             style_footer: "STYLE: Photorealistic, editorial quality. Warm natural lighting. Cozy luxury aesthetic. 8K resolution."
         },
         slide_templates: {
-            HOOK: "Instagram carousel slide, 3:4 aspect ratio.\n\n{background}\n\nHEADLINE (TOP LEFT):\n{cards_headline}\nMain: \"{HEADLINE_1}\"\nSub: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\n\n{decorations_hook}\n\nBOTTOM:\nWarm frosted glass card: \"{BOTTOM_TEXT}\"\n\n{style_footer}",
-            CONTENT: "Instagram carousel slide, 3:4 aspect ratio.\n\n{background}\n\nHEADLINE:\nElegant cream banner: \"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
-            CTA: "Instagram carousel slide, 3:4 aspect ratio.\n\n{background}\n\nTOP: Elegant cream banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\n\nCTA CARD:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "Instagram carousel slide, 3:4 aspect ratio.\n\nBackground: Soft beige to warm cream gradient.\n\nCENTER:\nElegant card with gold border\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person.\n\n{style_footer}"
+            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT):\n{cards_headline}\nMain: \"{HEADLINE_1}\"\nSub: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\n\n{decorations_hook}\n\nBOTTOM:\nWarm frosted glass card: \"{BOTTOM_TEXT}\"\n\n{style_footer}",
+            CONTENT: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\nElegant cream banner: \"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
+            CTA: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nTOP: Elegant cream banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\n\nCTA CARD:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
+            VIRAL: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\nBackground: Soft beige to warm cream gradient.\n\nCENTER:\nElegant card with gold border\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person.\n\n{style_footer}"
         }
     },
 
@@ -255,10 +255,10 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             style_footer: "STYLE: Photorealistic, high-fashion editorial. Vogue magazine aesthetic. 8K resolution."
         },
         slide_templates: {
-            HOOK: "Instagram carousel slide, 3:4 aspect ratio.\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\"\n\"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\n\n{decorations_hook}\n\nBOTTOM:\n\"{BOTTOM_TEXT}\"\n\n{style_footer}",
-            CONTENT: "Instagram carousel slide.\n\n{background}\n\nHEADLINE:\n\"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
-            CTA: "Instagram carousel slide.\n\n{background}\n\nTOP:\n\"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "Instagram carousel slide.\n\nBackground: Soft pink gradient.\n\nCENTER:\nElegant card\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person.\n\n{style_footer}"
+            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\"\n\"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\n\n{decorations_hook}\n\nBOTTOM:\n\"{BOTTOM_TEXT}\"\n\n{style_footer}",
+            CONTENT: "[TECHNICAL: Instagram slide]\n\n{background}\n\nHEADLINE:\n\"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
+            CTA: "[TECHNICAL: Instagram slide]\n\n{background}\n\nTOP:\n\"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
+            VIRAL: "[TECHNICAL: Instagram slide]\n\nBackground: Soft pink gradient.\n\nCENTER:\nElegant card\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person.\n\n{style_footer}"
         }
     },
 
@@ -314,10 +314,10 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             style_footer: "STYLE: Photorealistic person, minimalist design. Maximum white space. Thin lines only. 8K resolution."
         },
         slide_templates: {
-            HOOK: "Instagram carousel slide, 3:4 aspect ratio.\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\"\n\"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: CENTER or RIGHT\nScale: 60-70% (leave breathing room)\n\n{decorations_hook}\n\nBOTTOM:\n\"{BOTTOM_TEXT}\" →\n\n{style_footer}",
-            CONTENT: "Instagram carousel slide.\n\n{background}\n\nHEADLINE:\n\"{HEADLINE}\" (one orange word)\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\nThin line art decorations\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
-            CTA: "Instagram carousel slide.\n\n{background}\n\nTOP:\n\"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT\nLots of white space\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "Instagram carousel slide.\n\n{background}\n\nCENTER:\nMinimal card, thin black border\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\" (orange)\n\n{viral_elements}\n\nMaximum white space.\n\n{style_footer}"
+            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\"\n\"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: CENTER or RIGHT\nScale: 60-70% (leave breathing room)\n\n{decorations_hook}\n\nBOTTOM:\n\"{BOTTOM_TEXT}\" →\n\n{style_footer}",
+            CONTENT: "[TECHNICAL: Instagram slide]\n\n{background}\n\nHEADLINE:\n\"{HEADLINE}\" (one orange word)\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\nThin line art decorations\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
+            CTA: "[TECHNICAL: Instagram slide]\n\n{background}\n\nTOP:\n\"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT\nLots of white space\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
+            VIRAL: "[TECHNICAL: Instagram slide]\n\n{background}\n\nCENTER:\nMinimal card, thin black border\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\" (orange)\n\n{viral_elements}\n\nMaximum white space.\n\n{style_footer}"
         }
     },
 
@@ -373,10 +373,10 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             style_footer: "STYLE: Photorealistic person, futuristic design. Vibrant gradient mesh. Colored lighting. 8K resolution."
         },
         slide_templates: {
-            HOOK: "Instagram carousel slide, 3:4 aspect ratio.\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\" (bold white or gradient)\n\"{HEADLINE_2}\" (glowing)\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\nRim lighting in purple/blue/pink\n\n{decorations_hook}\n\nBOTTOM:\nDark glass card: \"{BOTTOM_TEXT}\"\n\"Листай →\" (glowing)\n\n{style_footer}",
-            CONTENT: "Instagram carousel slide.\n\n{background}\n\nHEADLINE:\nGradient or glowing: \"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n3D floating elements\n\nBOTTOM:\n\"{TRANSITION}\" (glowing)\n\nNo person.\n\n{style_footer}",
-            CTA: "Instagram carousel slide.\n\n{background}\n\nTOP:\nGradient banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\nColorful rim lighting\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "Instagram carousel slide.\n\n{background}\n\nCENTER:\nLarge dark glass card with gradient glow\n\"ОТПРАВЬ ЭТО\" (bold white)\n\"{VIRAL_TARGET}\" (gradient)\n\n{viral_elements}\n\n3D orbs floating.\n\n{style_footer}"
+            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\" (bold white or gradient)\n\"{HEADLINE_2}\" (glowing)\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\nRim lighting in purple/blue/pink\n\n{decorations_hook}\n\nBOTTOM:\nDark glass card: \"{BOTTOM_TEXT}\"\n\"Листай →\" (glowing)\n\n{style_footer}",
+            CONTENT: "[TECHNICAL: Instagram slide]\n\n{background}\n\nHEADLINE:\nGradient or glowing: \"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n3D floating elements\n\nBOTTOM:\n\"{TRANSITION}\" (glowing)\n\nNo person.\n\n{style_footer}",
+            CTA: "[TECHNICAL: Instagram slide]\n\n{background}\n\nTOP:\nGradient banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\nColorful rim lighting\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
+            VIRAL: "[TECHNICAL: Instagram slide]\n\n{background}\n\nCENTER:\nLarge dark glass card with gradient glow\n\"ОТПРАВЬ ЭТО\" (bold white)\n\"{VIRAL_TARGET}\" (gradient)\n\n{viral_elements}\n\n3D orbs floating.\n\n{style_footer}"
         }
     }
 }

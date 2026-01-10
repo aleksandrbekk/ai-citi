@@ -3,7 +3,6 @@
   "name": "Apple Glassmorphism",
   "description": "Универсальный премиум стиль. Белый фон, стеклянные карточки, оранжевые акценты. Подходит для любой аудитории.",
   "audience": "universal",
-  
   "colors": {
     "background_primary": "#FFFFFF",
     "background_gradient": "linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)",
@@ -14,14 +13,12 @@
     "card_background": "rgba(255, 255, 255, 0.7)",
     "card_border": "rgba(255, 255, 255, 0.5)"
   },
-  
   "typography": {
     "style": "bold modern sans-serif (SF Pro Display style)",
     "headline": "bold, black #1A1A1A, clean edges",
     "body": "medium weight, #1A1A1A",
     "accent_text": "bold, white on orange gradient"
   },
-  
   "cards": {
     "style": "glassmorphism",
     "blur": "20px backdrop blur",
@@ -29,47 +26,32 @@
     "shadow": "soft drop shadow, 0 8px 32px rgba(0,0,0,0.1)",
     "border_radius": "24px"
   },
-  
   "person": {
     "outfit_hook": "black hoodie OR dark blazer (depends on topic)",
     "outfit_cta": "crisp white shirt, top button open, relaxed professional",
     "lighting": "studio lighting, soft shadows, Apple product photography style",
     "aesthetic": "clean, professional, confident"
   },
-  
   "decorations": {
     "elements": "subtle orange glow effects, floating glass particles, soft light rays",
     "3d_objects": "glossy 3D icons with orange accents, floating elements",
     "particles": "subtle sparkles, light dust particles"
   },
-  
   "prompt_blocks": {
     "background": "WHITE background #FFFFFF, clean and bright. Premium minimal Apple-style aesthetic. Subtle light gradient from top.",
-    
     "cards_content": "Glassmorphism cards: frosted glass effect with 20px blur, white tint rgba(255,255,255,0.7), subtle white border, soft drop shadow. Border radius 24px. Clean modern look.",
-    
     "cards_headline": "White paper STICKER tilted 3-7° with torn ripped edges, strong drop shadow. Bold black text. Below: orange gradient badge (#FF8A3D to #FF5A1F) with white text.",
-    
     "person_hook": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: black hoodie or dark blazer. Pose: [POSE]. Expression: [EMOTION], theatrical, exaggerated. Lighting: studio quality, soft shadows. CRITICAL: Do NOT invent facial features.",
-    
     "person_cta": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: crisp white shirt, top button open, relaxed professional. Pose: open palm gesture toward CTA card. Expression: warm, inviting, friendly genuine smile. Lighting: warm golden hour feel. CRITICAL: Do NOT invent facial features.",
-    
     "decorations_hook": "Visual elements: [PROPS]. Floating 3D elements with orange glow (#FF5A1F). Subtle particles and sparkles. Soft shadows under all elements.",
-    
     "cta_card": "Large frosted glass card with strong orange glow (#FF5A1F). Top line (black): 'ПИШИ:'. Main line (HUGE, orange #FF5A1F, neon glow effect): '[PRODUCT_CODE]'. Sparkles and light particles around the code.",
-    
     "viral_elements": "3D paper airplane with orange motion trail. Share icons (Telegram, WhatsApp style) floating. Energy lines and particles. Button: '💾 СОХРАНИ'.",
-    
     "style_footer": "STYLE: Photorealistic, NOT illustration. Cinematic lighting, studio quality. Premium minimal aesthetic. 8K resolution."
   },
-  
   "slide_templates": {
-    "HOOK": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px generation at 1024x1365).\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, LARGE SCALE — 80% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nGlassmorphism card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" (small, bottom right)\n\n{style_footer}",
-    
-    "CONTENT": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nHEADLINE (TOP LEFT):\nOrange gradient badge: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\nTransition text: \"{TRANSITION}\"\n\nNo person. Clean infographic style.\n\n{style_footer}",
-    
-    "CTA": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nTOP LEFT: Orange gradient banner with white text: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nBOTTOM:\nSmaller glassmorphism card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
-    
-    "VIRAL": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\nBackground: White to light orange gradient (#FFFFFF → #FFF5F0), energetic uplifting feel.\n\nCENTER:\nLarge glassmorphism card (prominent, centered)\nTop line (HUGE, bold black): \"ОТПРАВЬ ЭТО\"\nBottom line (large, orange #FF5A1F): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person. Bright, shareable, viral aesthetic.\n\n{style_footer}"
+    "HOOK": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, LARGE SCALE — 80% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nGlassmorphism card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" (small, bottom right)\n\n{style_footer}",
+    "CONTENT": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT):\nOrange gradient badge: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\nTransition text: \"{TRANSITION}\"\n\nNo person. Clean infographic style.\n\n{style_footer}",
+    "CTA": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nTOP LEFT: Orange gradient banner with white text: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nBOTTOM:\nSmaller glassmorphism card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
+    "VIRAL": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\nBackground: White to light orange gradient (#FFFFFF → #FFF5F0), energetic uplifting feel.\n\nCENTER:\nLarge glassmorphism card (prominent, centered)\nTop line (HUGE, bold black): \"ОТПРАВЬ ЭТО\"\nBottom line (large, orange #FF5A1F): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person. Bright, shareable, viral aesthetic.\n\n{style_footer}"
   }
 }

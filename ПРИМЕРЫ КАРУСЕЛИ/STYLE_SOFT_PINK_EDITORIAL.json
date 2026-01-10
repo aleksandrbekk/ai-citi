@@ -3,7 +3,6 @@
   "name": "Soft Pink Editorial",
   "description": "Нежный розовый стиль в эстетике модного журнала. Blush pink, элегантная типографика, rose gold акценты. Для женской аудитории.",
   "audience": "female",
-  
   "colors": {
     "background_primary": "#FFF5F5",
     "background_gradient": "linear-gradient(180deg, #FFF5F5 0%, #FFE4E1 50%, #FFC0CB 100%)",
@@ -15,14 +14,12 @@
     "card_background": "rgba(255, 245, 245, 0.7)",
     "card_border": "rgba(183, 110, 121, 0.2)"
   },
-  
   "typography": {
     "style": "elegant high-fashion serif (Didot / Bodoni style)",
     "headline": "thin elegant serif, deep mauve #4A3540, editorial fashion",
     "body": "light elegant serif, sophisticated",
     "accent_text": "rose gold or white on dusty rose"
   },
-  
   "cards": {
     "style": "soft blush glassmorphism",
     "blur": "18px backdrop blur",
@@ -30,47 +27,32 @@
     "shadow": "soft pink shadow, 0 8px 32px rgba(183,110,121,0.1)",
     "border_radius": "16px"
   },
-  
   "person": {
     "outfit_hook": "dusty rose silk blouse OR soft pink cashmere, editorial fashion",
     "outfit_cta": "cream or white elegant top, minimal rose gold jewelry",
     "lighting": "soft diffused pink-tinted light, editorial beauty lighting",
     "aesthetic": "high-fashion editorial, Vogue-style portrait, soft glam"
   },
-  
   "decorations": {
     "elements": "dried roses, soft fabric draping, rose petals, elegant minimalism",
     "3d_objects": "rose gold geometric shapes, pink-tinted glass elements",
     "particles": "soft pink petals floating, rose gold dust"
   },
-  
   "prompt_blocks": {
     "background": "Background: soft blush pink gradient, flowing from pale pink #FFF5F5 through blush #FFE4E1 to soft rose #FFC0CB. Soft diffused editorial lighting. High-fashion magazine aesthetic.",
-    
     "cards_content": "Frosted glass cards with soft pink tint rgba(255,245,245,0.7). Subtle rose border rgba(183,110,121,0.2). Delicate shadow. Elegant corners 16px. Editorial magazine layout feel.",
-    
     "cards_headline": "Elegant editorial banner, thin serif typography (Didot/Bodoni style). Deep mauve text #4A3540. Rose gold accent line. High-fashion magazine headline aesthetic.",
-    
     "person_hook": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: dusty rose silk blouse or soft pink cashmere, editorial fashion. Soft glam makeup, dewy skin. Pose: [POSE]. Expression: [EMOTION], editorial, expressive. Lighting: soft beauty lighting, pink-tinted. CRITICAL: Do NOT invent facial features.",
-    
     "person_cta": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: cream or white elegant top, minimal rose gold jewelry. Soft natural makeup. Pose: elegant gesture toward CTA card. Expression: warm, inviting, soft confident smile. Lighting: soft flattering glow. CRITICAL: Do NOT invent facial features.",
-    
     "decorations_hook": "Decorative elements: dried roses in soft pink, delicate fabric draping, rose petals floating. [PROPS] with rose/pink treatment. Soft pink particles in air.",
-    
     "cta_card": "Elegant frosted pink card with rose gold border and soft glow. Top line (deep mauve #4A3540): 'ПИШИ:'. Main line (LARGE, rose gold #B76E79, elegant glow): '[PRODUCT_CODE]'. Soft rose petals and sparkles around.",
-    
     "viral_elements": "Elegant paper airplane in rose gold and pink. Share icons in soft rose tones. Floating rose petals. Button with rose border: '💾 СОХРАНИ'.",
-    
     "style_footer": "STYLE: Photorealistic, high-fashion editorial quality. Soft diffused lighting with pink tint. Vogue magazine aesthetic. Elegant, feminine, sophisticated. 8K resolution."
   },
-  
   "slide_templates": {
-    "HOOK": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px generation at 1024x1365).\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, EDITORIAL SCALE — 75% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nSoft pink frosted card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" in elegant script\n\n{style_footer}",
-    
-    "CONTENT": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nHEADLINE (TOP LEFT):\nEditorial banner with rose accent: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nDECORATIVE: Dried roses, soft pink elements\n\nBOTTOM:\nTransition text in elegant serif: \"{TRANSITION}\"\n\nNo person. High-fashion editorial infographic.\n\n{style_footer}",
-    
-    "CTA": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nTOP LEFT: Elegant editorial banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, elegant confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nDECORATIVE: Rose petals, soft pink light rays\n\nBOTTOM:\nElegant pink glass card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
-    
-    "VIRAL": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\nBackground: Soft pink gradient, delicate and inviting, editorial feel.\n\nCENTER:\nElegant large card with rose gold border\nTop line (LARGE, elegant serif, mauve #4A3540): \"ОТПРАВЬ ЭТО\"\nBottom line (rose #B76E79): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nDECORATIVE: Floating rose petals, soft particles\n\nNo person. Elegant, feminine, shareable aesthetic.\n\n{style_footer}"
+    "HOOK": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, EDITORIAL SCALE — 75% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nSoft pink frosted card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" in elegant script\n\n{style_footer}",
+    "CONTENT": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT):\nEditorial banner with rose accent: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nDECORATIVE: Dried roses, soft pink elements\n\nBOTTOM:\nTransition text in elegant serif: \"{TRANSITION}\"\n\nNo person. High-fashion editorial infographic.\n\n{style_footer}",
+    "CTA": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nTOP LEFT: Elegant editorial banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, elegant confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nDECORATIVE: Rose petals, soft pink light rays\n\nBOTTOM:\nElegant pink glass card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
+    "VIRAL": "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\nBackground: Soft pink gradient, delicate and inviting, editorial feel.\n\nCENTER:\nElegant large card with rose gold border\nTop line (LARGE, elegant serif, mauve #4A3540): \"ОТПРАВЬ ЭТО\"\nBottom line (rose #B76E79): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nDECORATIVE: Floating rose petals, soft particles\n\nNo person. Elegant, feminine, shareable aesthetic.\n\n{style_footer}"
   }
 }
