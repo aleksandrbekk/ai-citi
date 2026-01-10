@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 
 export interface Module {
@@ -14,6 +15,7 @@ export interface Module {
   updated_at?: string
 }
 
+// Старый хук для обратной совместимости
 export function useModules() {
   const [modules, setModules] = useState<Module[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -100,4 +102,76 @@ export function useModules() {
     deleteModule,
     reload: loadModules
   }
+}
+
+// React Query хуки для админки
+export function useModule(id: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['module', id],
+    queryFn: async () => {
+      const { data: module, error: moduleError } = await supabase
+        .from('course_modules')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (moduleError) throw moduleError
+
+      const { data: lessons, error: lessonsError } = await supabase
+        .from('course_lessons')
+        .select('*')
+        .eq('module_id', id)
+        .order('order_index', { ascending: true })
+
+      if (lessonsError) throw lessonsError
+
+      return {
+        module,
+        lessons: lessons || [],
+      }
+    },
+    enabled: options?.enabled !== false && !!id,
+  })
+}
+
+export function useUpdateModule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Module> }) => {
+      const { data: updated, error } = await supabase
+        .from('course_modules')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return updated
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+      queryClient.invalidateQueries({ queryKey: ['module', variables.id] })
+    },
+  })
+}
+
+export function useCreateModule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: Partial<Module>) => {
+      const { data: created, error } = await supabase
+        .from('course_modules')
+        .insert(data)
+        .select()
+        .single()
+
+      if (error) throw error
+      return created
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+    },
+  })
 }

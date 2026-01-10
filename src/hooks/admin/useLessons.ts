@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 
 export interface Lesson {
@@ -110,4 +111,66 @@ export function useLessons(moduleId?: string) {
     deleteLesson,
     reload: loadLessons
   }
+}
+
+// React Query хуки для админки
+export function useLesson(id: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['lesson', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('course_lessons')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) throw error
+      return data as Lesson
+    },
+    enabled: options?.enabled !== false && !!id,
+  })
+}
+
+export function useUpdateLesson() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Lesson> }) => {
+      const { data: updated, error } = await supabase
+        .from('course_lessons')
+        .update(data)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return updated
+    },
+    onSuccess: (updated, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['module', updated.module_id] })
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+    },
+  })
+}
+
+export function useCreateLesson() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: Partial<Lesson>) => {
+      const { data: created, error } = await supabase
+        .from('course_lessons')
+        .insert(data)
+        .select()
+        .single()
+
+      if (error) throw error
+      return created
+    },
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ['module', created.module_id] })
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+    },
+  })
 }

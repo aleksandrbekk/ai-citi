@@ -33,6 +33,20 @@ import QuizAnalytics from './pages/quizzes/analytics'
 import AdminPanel from './pages/admin/index'
 import CarouselDesignsPage from './pages/carousel-designs/index'
 
+// Admin imports
+import { AdminLayout, AdminProtectedRoute } from './components/admin'
+import { AdminLogin } from './pages/admin/Login'
+import { AdminCRM } from './pages/admin/CRM'
+import { AdminSettings } from './pages/admin/Settings'
+import { MlmDashboard } from './pages/admin/mlm/MlmDashboard'
+import { ModulesList } from './pages/admin/modules/ModulesList'
+import { ModuleEdit } from './pages/admin/modules/ModuleEdit'
+import { LessonEdit } from './pages/admin/modules/LessonEdit'
+import { StudentsList } from './pages/admin/students/StudentsList'
+import { StudentCreate } from './pages/admin/students/StudentCreate'
+import { StudentEdit } from './pages/admin/students/StudentEdit'
+import AdminHomeworkReview from './pages/admin/HomeworkReview'
+
 const queryClient = new QueryClient()
 
 function AppContent() {
@@ -131,6 +145,28 @@ function AppContent() {
       <Routes>
         <Route path="/curator" element={<CuratorReview />} />
         <Route path="/admin" element={<AdminPanel />} />
+        
+        {/* ========== АДМИНКА ========== */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
+        <Route path="/admin" element={<AdminProtectedRoute />}>
+          <Route element={<AdminLayout />}>
+            {/* CRM */}
+            <Route index element={<AdminCRM />} />
+            <Route path="settings" element={<AdminSettings />} />
+
+            {/* МЛМ Лагерь */}
+            <Route path="mlm" element={<MlmDashboard />} />
+            <Route path="mlm/modules" element={<ModulesList />} />
+            <Route path="mlm/modules/:id" element={<ModuleEdit />} />
+            <Route path="mlm/modules/:moduleId/lessons/:lessonId" element={<LessonEdit />} />
+            <Route path="mlm/students" element={<StudentsList />} />
+            <Route path="mlm/students/new" element={<StudentCreate />} />
+            <Route path="mlm/students/:id" element={<StudentEdit />} />
+            <Route path="mlm/homework" element={<AdminHomeworkReview />} />
+          </Route>
+        </Route>
+        
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
