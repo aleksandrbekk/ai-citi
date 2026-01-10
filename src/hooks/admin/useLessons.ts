@@ -175,6 +175,26 @@ export function useCreateLesson() {
   })
 }
 
+export function useDeleteLesson() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ lessonId, moduleId }: { lessonId: string; moduleId: string }) => {
+      const { error } = await supabase
+        .from('course_lessons')
+        .delete()
+        .eq('id', lessonId)
+
+      if (error) throw error
+      return { moduleId }
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['module', result.moduleId] })
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+    },
+  })
+}
+
 export function useDuplicateLesson() {
   const queryClient = useQueryClient()
 

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useModule, useUpdateModule, useCreateModule } from '../../../hooks/admin/useModules'
-import { useCreateLesson, useDuplicateLesson } from '../../../hooks/admin/useLessons'
-import { ArrowLeft, Plus, Copy } from 'lucide-react'
+import { useCreateLesson, useDuplicateLesson, useDeleteLesson } from '../../../hooks/admin/useLessons'
+import { ArrowLeft, Plus, Copy, Trash2 } from 'lucide-react'
 
 export function ModuleEdit() {
   const { id } = useParams<{ id: string }>()
@@ -14,6 +14,7 @@ export function ModuleEdit() {
   const createModule = useCreateModule()
   const createLesson = useCreateLesson()
   const duplicateLesson = useDuplicateLesson()
+  const deleteLesson = useDeleteLesson()
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -79,6 +80,19 @@ export function ModuleEdit() {
       await duplicateLesson.mutateAsync(lessonId)
     } catch (error) {
       console.error('Ошибка копирования урока:', error)
+    }
+  }
+
+  const handleDeleteLesson = async (lessonId: string, lessonTitle: string) => {
+    if (!id) return
+
+    const confirmed = window.confirm(`Удалить урок "${lessonTitle}"?`)
+    if (!confirmed) return
+
+    try {
+      await deleteLesson.mutateAsync({ lessonId, moduleId: id })
+    } catch (error) {
+      console.error('Ошибка удаления урока:', error)
     }
   }
 
@@ -221,6 +235,14 @@ export function ModuleEdit() {
                     title="Копировать урок"
                   >
                     <Copy size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
+                    disabled={deleteLesson.isPending}
+                    className="p-2 bg-zinc-700 hover:bg-red-600 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                    title="Удалить урок"
+                  >
+                    <Trash2 size={18} />
                   </button>
                   <Link
                     to={`/admin/mlm/modules/${id}/lessons/${lesson.id}`}
