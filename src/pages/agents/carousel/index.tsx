@@ -298,13 +298,13 @@ export default function CarouselIndex() {
 
   // ========== MAIN PAGE ==========
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100 flex flex-col">
       {/* Safe area */}
-      <div className="h-[100px]" />
+      <div className="h-[100px] flex-shrink-0" />
 
-      <div className="px-4 pb-8">
+      <div className="px-4 pb-8 flex-1 flex flex-col">
         {/* Main Glassmorphism Card */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl p-5">
+        <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl p-5 flex-1 flex flex-col">
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-5">
@@ -321,13 +321,13 @@ export default function CarouselIndex() {
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
 
           {/* Topic Input */}
-          <div className="mb-5">
+          <div className="mb-5 flex-1 flex flex-col">
             <label className="block text-sm font-medium text-gray-600 mb-2">Тема</label>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Например: 5 способов увеличить продажи в сетевом..."
-              className="w-full h-32 px-4 py-3 rounded-xl bg-white/80 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
+              className="w-full flex-1 min-h-[120px] px-4 py-3 rounded-xl bg-white/80 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
             />
           </div>
 
@@ -355,18 +355,18 @@ export default function CarouselIndex() {
             {/* Style Button */}
             <button
               onClick={() => setShowStyleModal(true)}
-              className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors"
+              className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors min-w-0"
             >
               <img
                 src={STYLE_PREVIEWS[style]}
                 alt={currentStyleMeta?.name}
-                className="w-11 h-11 rounded-lg object-cover"
+                className="w-11 h-11 rounded-lg object-cover flex-shrink-0"
               />
-              <div className="flex-1 text-left">
+              <div className="flex-1 text-left min-w-0 overflow-hidden">
                 <span className="font-medium text-gray-900 block">Стиль</span>
-                <span className="text-xs text-gray-500 truncate block">{currentStyleMeta?.name}</span>
+                <span className="text-xs text-gray-500 truncate block max-w-[80px]">{currentStyleMeta?.name}</span>
               </div>
-              <ChevronIcon className="text-gray-400" />
+              <ChevronIcon className="text-gray-400 flex-shrink-0" />
             </button>
           </div>
 
