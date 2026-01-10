@@ -1,0 +1,283 @@
+{
+  "id": "VASIA_CORE",
+  "version": "1.0",
+  "description": "Справочники для генерации каруселей: позы, эмоции, реквизит, формулы заголовков",
+  
+  "poses": {
+    "SHOCK": {
+      "ru": "Руки у головы",
+      "prompt": "Hands on head, shocked expression, wide eyes"
+    },
+    "EUREKA": {
+      "ru": "Палец вверх",
+      "prompt": "Pointing up with index finger, eureka moment"
+    },
+    "QUESTION": {
+      "ru": "Руки разведены",
+      "prompt": "Arms spread wide, palms up, really?! expression"
+    },
+    "CONFIDENT": {
+      "ru": "Руки скрещены",
+      "prompt": "Arms crossed, confident smirk"
+    },
+    "POINTING": {
+      "ru": "Указывает на что-то",
+      "prompt": "Pointing or gesturing toward card or element"
+    },
+    "DISAPPOINTED": {
+      "ru": "Держит голову",
+      "prompt": "Hand on forehead, disappointed look"
+    },
+    "TIRED": {
+      "ru": "Потирает глаза",
+      "prompt": "Rubbing eyes, exhausted expression"
+    },
+    "VICTORY": {
+      "ru": "Кулак вверх",
+      "prompt": "Fist pump, celebrating"
+    },
+    "SHRUG": {
+      "ru": "Пожимает плечами",
+      "prompt": "Shrugging, ironic smile"
+    },
+    "SECRET": {
+      "ru": "Палец у губ",
+      "prompt": "Finger on lips, I will tell you a secret"
+    },
+    "DENIAL": {
+      "ru": "Перечёркивает руками",
+      "prompt": "Crossing arms in X, no way gesture"
+    },
+    "PRESENTING": {
+      "ru": "Открытая ладонь",
+      "prompt": "Open palm gesture toward content"
+    },
+    "THINKING": {
+      "ru": "Рука у подбородка",
+      "prompt": "Hand on chin, thinking pose, analytical gaze"
+    }
+  },
+  
+  "emotions": {
+    "HOOK_PROBLEM": {
+      "ru": "Шок / Возмущение",
+      "prompt": "Shocked, frustrated, are you serious?!"
+    },
+    "HOOK_PROVOKE": {
+      "ru": "Дерзость",
+      "prompt": "Confident smirk, raised eyebrow, challenging"
+    },
+    "HOOK_ANALYZE": {
+      "ru": "Задумчивость",
+      "prompt": "Thoughtful, analytical, slight squint"
+    },
+    "EMPATHY": {
+      "ru": "Сочувствие",
+      "prompt": "Empathetic, understanding, slight concern"
+    },
+    "DISAPPOINTMENT": {
+      "ru": "Разочарование",
+      "prompt": "Disappointed, I have seen this too many times"
+    },
+    "CONFIDENCE": {
+      "ru": "Уверенность",
+      "prompt": "Confident, knowing smile, I got this"
+    },
+    "FRIENDLY": {
+      "ru": "Дружелюбие",
+      "prompt": "Warm smile, inviting, approachable"
+    },
+    "PROUD": {
+      "ru": "Гордость",
+      "prompt": "Proud, satisfied, accomplished"
+    }
+  },
+  
+  "props_by_topic": {
+    "no_leads": {
+      "ru": "Нет заявок",
+      "props": "Magnifying glass + empty phone screen",
+      "metaphor": "Искать нечего"
+    },
+    "cold_spam": {
+      "ru": "Холодный спам",
+      "props": "Ushanka hat, frost on beard, frozen phone covered in ice",
+      "metaphor": "Тебя морозят"
+    },
+    "burnout": {
+      "ru": "Выгорание",
+      "props": "Firefighter helmet, smoke, flames",
+      "metaphor": "Горишь на работе"
+    },
+    "team_leaves": {
+      "ru": "Команда уходит",
+      "props": "Empty chairs behind, abandoned desks",
+      "metaphor": "Все сбежали"
+    },
+    "content_void": {
+      "ru": "Контент в пустоту",
+      "props": "Megaphone pointing to empty space",
+      "metaphor": "Никто не слышит"
+    },
+    "money_drain": {
+      "ru": "Деньги утекают",
+      "props": "Leaky bucket with coins falling out",
+      "metaphor": "Слив бюджета"
+    },
+    "ai_automation": {
+      "ru": "AI автоматизация",
+      "props": "Control panel, holographic screens, robot helpers",
+      "metaphor": "Контроль над всем"
+    },
+    "business_chaos": {
+      "ru": "Хаос в бизнесе",
+      "props": "Flying papers, scattered documents, mess",
+      "metaphor": "Нет системы"
+    },
+    "analysis": {
+      "ru": "Разбор ошибок",
+      "props": "Detective magnifying glass, folder labeled CASE FILE",
+      "metaphor": "Расследование"
+    },
+    "time_running": {
+      "ru": "Время утекает",
+      "props": "Hourglass, broken clock",
+      "metaphor": "Дедлайн горит"
+    },
+    "secret_success": {
+      "ru": "Секрет успеха",
+      "props": "Safe door slightly open, golden glow inside",
+      "metaphor": "Ценная информация"
+    },
+    "breakthrough": {
+      "ru": "Прорыв",
+      "props": "Brick wall with hole punched through",
+      "metaphor": "Пробил барьер"
+    },
+    "fresh_start": {
+      "ru": "Старт с нуля",
+      "props": "Starting blocks, running track",
+      "metaphor": "Готов к забегу"
+    },
+    "income_growth": {
+      "ru": "Рост дохода",
+      "props": "3D chart with arrow going up",
+      "metaphor": "Наглядный рост"
+    },
+    "transformation": {
+      "ru": "До / После",
+      "props": "Two phones: old cracked vs new shiny",
+      "metaphor": "Трансформация"
+    }
+  },
+  
+  "headline_formulas": {
+    "number_fail": {
+      "formula": "[ЧИСЛО] + [НЕГАТИВ]",
+      "examples": ["47 ОТКАЗОВ ЗА ДЕНЬ", "0 ЗАЯВОК ЗА 30 ДНЕЙ", "НАПИСАЛ 500 — ОТВЕТИЛИ 3"]
+    },
+    "action_shock": {
+      "formula": "[СДЕЛАЛ] — [ШОК]",
+      "examples": ["УДАЛИЛ ИНСТАГРАМ — ДОХОД ×3", "УВОЛИЛ КОМАНДУ — ВЫРОС В 2 РАЗА"]
+    },
+    "provoke": {
+      "formula": "[СПОРНОЕ УТВЕРЖДЕНИЕ]?",
+      "examples": ["MLM — ПИРАМИДА?", "СЕТЕВОЙ МЁРТВ?"]
+    },
+    "contrast": {
+      "formula": "[А] vs [Б]",
+      "examples": ["СПАМ vs ВОРОНКА", "ХАОС vs СИСТЕМА"]
+    },
+    "confession": {
+      "formula": "Я [НЕГАТИВ] [ВРЕМЯ]",
+      "examples": ["Я ВРАЛ 3 ГОДА", "Я СЛИЛ 200К НА РЕКЛАМУ"]
+    },
+    "secret": {
+      "formula": "[КТО] СКРЫВАЮТ [ЧТО]",
+      "examples": ["ЧТО СКРЫВАЮТ ТОПЫ", "СЕКРЕТ КОТОРЫЙ НЕ РАССКАЖУТ"]
+    },
+    "ultimatum": {
+      "formula": "[СДЕЛАЙ] ИЛИ [ПОСЛЕДСТВИЕ]",
+      "examples": ["ВНЕДРИ ИЛИ СЛИВАЙ", "АВТОМАТИЗИРУЙ ИЛИ ВЫГОРИ"]
+    }
+  },
+  
+  "transform_boring_to_hook": {
+    "Команда не растёт": "СЛИЛ 47 НОВИЧКОВ",
+    "Нет заявок": "0 ЗАЯВОК ЗА 30 ДНЕЙ",
+    "Холодный трафик не работает": "НАПИСАЛ 500 — ОТВЕТИЛИ 3",
+    "Выгорание на работе": "РАБОТАЛ 14 ЧАСОВ = 12 000₽",
+    "Контент не заходит": "30 ПОСТОВ В ПУСТОТУ",
+    "Партнёры уходят": "8 ИЗ 10 СБЕЖАЛИ",
+    "Нужна система": "ХАОС СОЖРАЛ БИЗНЕС",
+    "AI помогает": "AI ЗАМЕНИЛ 3 СОТРУДНИКОВ"
+  },
+  
+  "viral_targets": {
+    "mistakes_newbie": "ТОМУ КТО СЛИВАЕТ КОМАНДУ",
+    "ai_automation": "КТО ЕЩЁ НЕ ИСПОЛЬЗУЕТ AI",
+    "content_struggle": "КТО МУЧАЕТСЯ С КОНТЕНТОМ",
+    "no_system": "КТО РАБОТАЕТ БЕЗ СИСТЕМЫ",
+    "burnout": "КТО ВЫГОРАЕТ НА РАБОТЕ",
+    "company_choice": "ТОМУ КТО ВЫБИРАЕТ КОМПАНИЮ",
+    "universal": "ПАРТНЁРУ ИЗ СЕТЕВОГО"
+  },
+  
+  "transition_phrases": [
+    "И знаете что?",
+    "Короче",
+    "Давайте честно...",
+    "По факту",
+    "Простыми словами",
+    "А теперь главное...",
+    "Но это ещё не всё...",
+    "Смотри дальше →"
+  ],
+  
+  "outfit_by_context": {
+    "ai_tech": {
+      "ru": "AI, технологии",
+      "hook": "black hoodie",
+      "cta": "dark modern jacket"
+    },
+    "money_business": {
+      "ru": "Деньги, бизнес",
+      "hook": "dark blazer",
+      "cta": "white shirt"
+    },
+    "mistakes_pain": {
+      "ru": "Ошибки, провалы",
+      "hook": "wrinkled t-shirt or unbuttoned shirt",
+      "cta": "clean white shirt"
+    },
+    "system_order": {
+      "ru": "Система, порядок",
+      "hook": "white shirt",
+      "cta": "light blazer"
+    },
+    "energy_start": {
+      "ru": "Энергия, старт",
+      "hook": "sport jacket or track top",
+      "cta": "casual polo"
+    },
+    "lifestyle": {
+      "ru": "Lifestyle, свобода",
+      "hook": "light t-shirt",
+      "cta": "casual linen shirt"
+    },
+    "expert": {
+      "ru": "Эксперт, обучение",
+      "hook": "turtleneck or sweater",
+      "cta": "white shirt"
+    }
+  },
+  
+  "person_block_template": "Generate the person EXACTLY as shown in the reference photo provided. Match face, hair, skin tone, and all facial features with photographic precision. The reference image is the ONLY source for the person's appearance. CRITICAL: Do NOT invent or change any facial features.",
+  
+  "technical": {
+    "aspect_ratio": "3:4",
+    "size_final": "1080x1440",
+    "size_generation": "1024x1365",
+    "quality": "8K resolution, photorealistic, NOT illustration"
+  }
+}

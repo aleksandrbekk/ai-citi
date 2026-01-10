@@ -1,11 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { type StyleId, getDefaultStyle } from '@/lib/carouselStyles'
 
 export type TemplateId = 'mistakes' | 'myths' | 'checklist' | 'before-after' | 'steps' | 'custom'
 
 export type AudiencePreset = 'networkers' | 'experts' | 'moms' | 'freelancers' | 'custom'
 
-export type StylePreset = 'ai-citi' | 'minimal' | 'bright'
+// Re-export StyleId for components
+export type { StyleId }
+
+// Legacy alias (deprecated, use StyleId)
+export type StylePreset = StyleId
 
 export type CarouselStatus = 'idle' | 'generating' | 'completed' | 'error'
 
@@ -15,25 +20,25 @@ interface CarouselState {
   // Шаблон
   selectedTemplate: TemplateId | null
   customTemplateDescription: string
-  
+
   // Настройки
   userPhoto: string | null
   audience: AudiencePreset
   customAudience: string
   style: StylePreset
   mode: CarouselMode
-  
+
   // Контент
   variables: Record<string, string>
   ctaText: string
   ctaQuestion: string
   ctaBenefits: string
-  
+
   // Результат
   generatedSlides: string[]
   status: CarouselStatus
   error: string | null
-  
+
   // Действия
   setTemplate: (template: TemplateId | null) => void
   setCustomTemplateDescription: (description: string) => void
@@ -59,7 +64,7 @@ const initialState = {
   userPhoto: null,
   audience: 'networkers' as AudiencePreset,
   customAudience: '',
-  style: 'ai-citi' as StylePreset,
+  style: getDefaultStyle(),
   mode: 'ai' as CarouselMode,
   variables: {},
   ctaText: '',
@@ -74,7 +79,7 @@ export const useCarouselStore = create<CarouselState>()(
   persist(
     (set) => ({
       ...initialState,
-      
+
       setTemplate: (template) => set({ selectedTemplate: template }),
       setCustomTemplateDescription: (description) => set({ customTemplateDescription: description }),
       setUserPhoto: (photo) => set({ userPhoto: photo }),

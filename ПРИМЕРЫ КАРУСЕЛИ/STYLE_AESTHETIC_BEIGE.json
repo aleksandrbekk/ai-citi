@@ -1,0 +1,75 @@
+{
+  "id": "AESTHETIC_BEIGE",
+  "name": "Aesthetic Beige",
+  "description": "Тёплый уютный стиль. Бежевые градиенты, золотые акценты, элегантная типографика. Идеален для женской аудитории.",
+  "audience": "female",
+  
+  "colors": {
+    "background_primary": "#F5F0E8",
+    "background_gradient": "linear-gradient(180deg, #F5F0E8 0%, #E8DDD0 50%, #D2B48C 100%)",
+    "accent_primary": "#D4AF37",
+    "accent_secondary": "#8B7355",
+    "text_primary": "#5D4037",
+    "text_secondary": "#8B7355",
+    "card_background": "rgba(255, 253, 250, 0.6)",
+    "card_border": "rgba(212, 175, 55, 0.3)"
+  },
+  
+  "typography": {
+    "style": "elegant serif (Playfair Display / Didot style)",
+    "headline": "elegant serif, chocolate brown #5D4037, refined",
+    "body": "light serif or sans-serif, warm brown tones",
+    "accent_text": "gold #D4AF37 or cream on brown"
+  },
+  
+  "cards": {
+    "style": "soft glassmorphism with warmth",
+    "blur": "15px backdrop blur",
+    "border": "1px solid rgba(212,175,55,0.3) gold tint",
+    "shadow": "warm soft shadow, 0 8px 32px rgba(93,64,55,0.1)",
+    "border_radius": "20px"
+  },
+  
+  "person": {
+    "outfit_hook": "camel cashmere sweater OR cream knit cardigan, elegant neutral tones",
+    "outfit_cta": "cream silk blouse OR soft beige blazer, luxurious fabric texture",
+    "lighting": "warm natural window light, golden hour, soft diffused",
+    "aesthetic": "soft editorial portrait, cozy luxury, approachable elegance"
+  },
+  
+  "decorations": {
+    "elements": "dried pampas grass, neutral ceramic vases, woven textures, natural linen",
+    "3d_objects": "gold geometric shapes, cream colored 3D elements",
+    "particles": "soft golden dust, warm light particles"
+  },
+  
+  "prompt_blocks": {
+    "background": "Background: warm beige gradient, flowing from soft cream #F5F0E8 at top through warm tan #E8DDD0 to rich beige #D2B48C at bottom. Soft diffused natural lighting. Cozy luxury interior design aesthetic.",
+    
+    "cards_content": "Frosted glass cards with warm cream tint rgba(255,253,250,0.6). Subtle gold border rgba(212,175,55,0.3). Soft warm shadow. Elegant rounded corners 20px. Premium understated luxury feel.",
+    
+    "cards_headline": "Cream colored elegant banner with chocolate brown text (#5D4037). Elegant serif typography (Playfair/Didot style). Gold accent elements. Refined, sophisticated look.",
+    
+    "person_hook": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: camel cashmere sweater, cream knit, elegant neutral tones. Soft natural makeup look. Pose: [POSE]. Expression: [EMOTION], refined, expressive. Lighting: warm window light, golden hour glow. CRITICAL: Do NOT invent facial features.",
+    
+    "person_cta": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: cream silk blouse or soft beige blazer, luxurious fabric. Minimal elegant jewelry (gold). Pose: graceful gesture toward CTA card. Expression: warm, genuine smile, inviting, approachable elegance. Lighting: soft golden glow. CRITICAL: Do NOT invent facial features.",
+    
+    "decorations_hook": "Decorative elements: dried pampas grass arrangement, neutral ceramic vase, woven basket texture visible. Soft golden particles floating. [PROPS] with warm beige/gold treatment.",
+    
+    "cta_card": "Elegant frosted cream card with gold border and soft glow. Top line (chocolate brown #5D4037): 'ПИШИ:'. Main line (LARGE, gold #D4AF37, elegant glow): '[PRODUCT_CODE]'. Subtle gold sparkles around text.",
+    
+    "viral_elements": "Elegant paper airplane in cream/gold. Share icons in muted warm tones. Soft golden particles. Button with gold border: '💾 СОХРАНИ'.",
+    
+    "style_footer": "STYLE: Photorealistic, editorial quality. Warm natural lighting. Cozy luxury aesthetic like high-end interior design magazine. Soft, inviting, elegant. 8K resolution."
+  },
+  
+  "slide_templates": {
+    "HOOK": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px generation at 1024x1365).\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, ELEGANT SCALE — 75% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nWarm frosted glass card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" in elegant script\n\n{style_footer}",
+    
+    "CONTENT": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nHEADLINE (TOP LEFT):\nElegant cream banner with gold accent: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nDECORATIVE: Dried pampas grass in corner, soft shadows\n\nBOTTOM:\nTransition text in elegant serif: \"{TRANSITION}\"\n\nNo person. Refined editorial infographic style.\n\n{style_footer}",
+    
+    "CTA": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nTOP LEFT: Elegant cream banner with gold border: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, graceful confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nDECORATIVE: Pampas grass, soft golden light rays\n\nBOTTOM:\nElegant glass card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
+    
+    "VIRAL": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\nBackground: Soft beige to warm cream gradient, gentle and inviting.\n\nCENTER:\nElegant large card with gold border\nTop line (LARGE, elegant serif, brown #5D4037): \"ОТПРАВЬ ЭТО\"\nBottom line (gold #D4AF37): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nDECORATIVE: Pampas grass silhouettes, warm particles\n\nNo person. Elegant, shareable, warm aesthetic.\n\n{style_footer}"
+  }
+}

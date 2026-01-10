@@ -1,0 +1,99 @@
+{
+  "version": "1.0",
+  "updated": "2025-01-10",
+  "description": "Carousel Style System - 5 visual styles for Instagram carousel generator",
+  
+  "styles_index": [
+    {
+      "id": "APPLE_GLASSMORPHISM",
+      "name": "Apple Glassmorphism",
+      "emoji": "🍎",
+      "audience": "universal",
+      "preview_color": "#FF5A1F",
+      "file": "STYLE_APPLE_GLASSMORPHISM.json"
+    },
+    {
+      "id": "AESTHETIC_BEIGE",
+      "name": "Aesthetic Beige",
+      "emoji": "🤎",
+      "audience": "female",
+      "preview_color": "#D2B48C",
+      "file": "STYLE_AESTHETIC_BEIGE.json"
+    },
+    {
+      "id": "SOFT_PINK_EDITORIAL",
+      "name": "Soft Pink Editorial",
+      "emoji": "🌸",
+      "audience": "female",
+      "preview_color": "#FFC0CB",
+      "file": "STYLE_SOFT_PINK_EDITORIAL.json"
+    },
+    {
+      "id": "MINIMALIST_LINE_ART",
+      "name": "Minimalist Line Art",
+      "emoji": "✏️",
+      "audience": "universal",
+      "preview_color": "#1A1A1A",
+      "file": "STYLE_MINIMALIST_LINE_ART.json"
+    },
+    {
+      "id": "GRADIENT_MESH_3D",
+      "name": "Gradient Mesh 3D",
+      "emoji": "🌈",
+      "audience": "universal",
+      "preview_color": "#667EEA",
+      "file": "STYLE_GRADIENT_MESH_3D.json"
+    }
+  ],
+  
+  "usage_guide": {
+    "how_to_apply": "1. Get style by ID from styles_index\n2. Load corresponding JSON file\n3. Use prompt_blocks to build visual_task\n4. Replace placeholders with actual content",
+    
+    "placeholders": {
+      "HEADLINE_1": "Main headline text",
+      "HEADLINE_2": "Sub headline text",
+      "BOTTOM_TEXT": "Bottom card text",
+      "TRANSITION": "Transition phrase to next slide",
+      "CTA_HEADLINE": "CTA slide headline",
+      "PRODUCT_CODE": "Product code (АГЕНТЫ, МАГИЯ, etc)",
+      "BENEFIT_TEXT": "What user gets",
+      "VIRAL_TARGET": "Who to send to",
+      "POSE": "Person pose description",
+      "EMOTION": "Person emotion description",
+      "PROPS": "Props/objects in scene",
+      "CONTENT_LAYOUT": "Content layout description"
+    },
+    
+    "prompt_block_assembly": {
+      "HOOK_slide": [
+        "background",
+        "cards_headline (with HEADLINE_1, HEADLINE_2)",
+        "person_hook (with POSE, EMOTION)",
+        "decorations_hook (with PROPS)",
+        "style_footer"
+      ],
+      "CONTENT_slide": [
+        "background",
+        "cards_content",
+        "CONTENT_LAYOUT",
+        "style_footer"
+      ],
+      "CTA_slide": [
+        "background",
+        "person_cta",
+        "cta_card (with PRODUCT_CODE)",
+        "style_footer"
+      ],
+      "VIRAL_slide": [
+        "background or custom gradient",
+        "viral_elements",
+        "style_footer"
+      ]
+    }
+  },
+  
+  "compatibility": {
+    "formats": ["BATTLE", "REVIEW", "DEFENSE", "MISTAKES", "MYTHS", "STEPS", "BEFORE_AFTER"],
+    "note": "All styles are compatible with all formats. Style defines VISUAL, Format defines STRUCTURE."
+  }
+}

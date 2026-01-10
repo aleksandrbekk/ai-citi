@@ -4,14 +4,16 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
+import { StyleSelector } from '@/components/carousel/StyleSelector'
+import { STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL } from '@/lib/carouselStyles'
 
 export default function CarouselIndex() {
   const navigate = useNavigate()
-  const { setStatus, userPhoto, setUserPhoto } = useCarouselStore()
-  
+  const { setStatus, userPhoto, setUserPhoto, style } = useCarouselStore()
+
   const [topic, setTopic] = useState('')
   const [cta, setCta] = useState('')
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,14 +45,22 @@ export default function CarouselIndex() {
     setIsSubmitting(true)
     setError(null)
     try {
+      // Получаем конфигурацию выбранного стиля
+      const styleConfig = STYLE_CONFIGS[style]
+
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chatId,
           topic: topic.trim(),
-          userPhoto: userPhoto || '', // Фото автоматически загружается из профиля
+          userPhoto: userPhoto || '',
           cta: cta.trim() || '',
+          // Новые поля с полными JSON конфигурациями
+          styleId: style,
+          styleConfig: styleConfig,
+          vasiaCore: VASIA_CORE,
+          formatConfig: FORMAT_UNIVERSAL,
         }),
       })
       if (!response.ok) throw new Error('Ошибка отправки')
@@ -96,6 +106,9 @@ export default function CarouselIndex() {
             <span>Загрузите фото в профиле для персонализации</span>
           </div>
         )}
+
+        {/* Селектор стиля */}
+        <StyleSelector />
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-300">📣 Призыв к действию</label>

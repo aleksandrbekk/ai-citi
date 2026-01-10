@@ -1,0 +1,76 @@
+{
+  "id": "MINIMALIST_LINE_ART",
+  "name": "Minimalist Line Art",
+  "description": "Экстремальный минимализм. Чисто белый фон, тонкие чёрные линии, один оранжевый акцент. Универсальный интеллектуальный стиль.",
+  "audience": "universal",
+  
+  "colors": {
+    "background_primary": "#FFFFFF",
+    "background_gradient": "solid #FFFFFF (no gradient)",
+    "accent_primary": "#FF5A1F",
+    "accent_secondary": "#FF8A3D",
+    "text_primary": "#1A1A1A",
+    "text_secondary": "#666666",
+    "line_art": "#1A1A1A",
+    "card_background": "rgba(255, 255, 255, 0.95)",
+    "card_border": "#1A1A1A 1px solid"
+  },
+  
+  "typography": {
+    "style": "clean modern sans-serif, thin to medium weight",
+    "headline": "medium weight sans-serif, black #1A1A1A, clean geometric",
+    "body": "light weight, generous letter spacing",
+    "accent_text": "medium weight, orange #FF5A1F"
+  },
+  
+  "cards": {
+    "style": "minimal with thin black border",
+    "blur": "none or very subtle",
+    "border": "1px solid #1A1A1A, clean thin line",
+    "shadow": "minimal or none, maybe subtle 0 2px 8px rgba(0,0,0,0.05)",
+    "border_radius": "8px (subtle) or 0px (sharp)"
+  },
+  
+  "person": {
+    "outfit_hook": "simple white t-shirt OR white minimalist clothing",
+    "outfit_cta": "clean white shirt OR simple white top",
+    "lighting": "flat, even lighting, minimal shadows, bright",
+    "aesthetic": "clean editorial portrait, lots of negative space, minimal"
+  },
+  
+  "decorations": {
+    "elements": "thin black continuous line drawings (1-2px), single orange accent element",
+    "3d_objects": "simple line-art icons, ONE orange element only",
+    "particles": "none or minimal thin lines"
+  },
+  
+  "prompt_blocks": {
+    "background": "Background: PURE WHITE #FFFFFF. No gradients. Extreme minimalism. Generous white space (at least 30% empty). Clean, bright, airy.",
+    
+    "cards_content": "Minimal cards with thin black border (1px solid #1A1A1A). Very subtle or no shadow. Sharp or slightly rounded corners (8px max). White background. Clean typography.",
+    
+    "cards_headline": "Simple black text on white. Clean sans-serif typography. ONE orange accent element only (#FF5A1F). No decorative borders or complex styling.",
+    
+    "person_hook": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: simple white t-shirt or white minimalist clothing. Pose: [POSE]. Expression: [EMOTION], natural, understated. Lighting: flat even lighting, minimal shadows. Lots of white space around figure. CRITICAL: Do NOT invent facial features.",
+    
+    "person_cta": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: clean white shirt, simple. Pose: simple gesture toward CTA. Expression: genuine smile, approachable. Lighting: bright, flat, clean. CRITICAL: Do NOT invent facial features.",
+    
+    "decorations_hook": "Line art elements: thin black continuous line drawings (1-2px weight). Abstract flowing lines. [PROPS] rendered as simple line illustrations. ONE SINGLE orange accent element (#FF5A1F). Generous white space.",
+    
+    "cta_card": "Minimal card with thin black border. White background. Top line (black, clean): 'ПИШИ:'. Main line (MEDIUM, orange #FF5A1F): '[PRODUCT_CODE]'. No heavy effects. Clean and simple. Small orange dot or line accent.",
+    
+    "viral_elements": "Simple line art paper airplane. Minimal share icons as thin line drawings. ONE orange accent. Clean and airy. Simple button outline: '💾 СОХРАНИ'.",
+    
+    "style_footer": "STYLE: Photorealistic person, minimalist design elements. Extreme clean aesthetic. Maximum white space. Thin lines only (1-2px). ONE orange accent. 8K resolution."
+  },
+  
+  "slide_templates": {
+    "HOOK": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px generation at 1024x1365).\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\" (clean black sans-serif)\nSub text: \"{HEADLINE_2}\" (orange accent #FF5A1F)\n\nPERSON:\n{person_hook}\nPosition: CENTER or slightly RIGHT\nFraming: chest up, surrounded by WHITE SPACE\nScale: 60-70% of frame width (leave breathing room)\n\n{decorations_hook}\n\nBOTTOM:\nSimple text: \"{BOTTOM_TEXT}\"\nMinimal indicator: \"→\"\n\n{style_footer}",
+    
+    "CONTENT": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nHEADLINE (TOP LEFT):\nClean black text with one orange word: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\nThin line art decorations around content\n\nLots of WHITE SPACE between elements\n\nBOTTOM:\nSimple text: \"{TRANSITION}\"\n\nNo person. Extreme minimal infographic.\n\n{style_footer}",
+    
+    "CTA": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nTOP LEFT: Simple clean headline: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT side\nFraming: chest up, lots of white space\n\nMAIN CTA (CENTER-RIGHT):\n{cta_card}\n\nGenerous white space everywhere\n\nBOTTOM:\nSimple text: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
+    
+    "VIRAL": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nCENTER:\nMinimal card with thin black border\nTop line (clean black): \"ОТПРАВЬ ЭТО\"\nBottom line (orange #FF5A1F): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nMaximum white space. Clean and airy.\n\nNo person. Extreme minimal aesthetic.\n\n{style_footer}"
+  }
+}
