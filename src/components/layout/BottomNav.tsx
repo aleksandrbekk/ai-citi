@@ -15,8 +15,12 @@ export function BottomNav() {
   const location = useLocation()
   const isKeyboardOpen = useUIStore((s) => s.isKeyboardOpen)
 
-  // Скрываем навигацию на страницах квизов и просмотра дизайнов
-  if (location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs')) {
+  // Скрываем навигацию на страницах где она мешает
+  if (
+    location.pathname.startsWith('/quiz/') ||
+    location.pathname.startsWith('/carousel-designs') ||
+    location.pathname.startsWith('/agents/carousel')  // Скрываем на страницах каруселей
+  ) {
     return null
   }
 

@@ -4,10 +4,13 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
-import { BackIcon, CarouselIcon, LoaderIcon, CheckIcon, SendIcon, SparkleIcon } from '@/components/ui/icons'
+import { CarouselIcon, LoaderIcon, CheckIcon, SendIcon, SparkleIcon } from '@/components/ui/icons'
 
 // Ключ для localStorage
 const SAVED_STYLE_KEY = 'carousel_default_style'
+
+// Telegram WebApp
+const tg = window.Telegram?.WebApp
 
 export default function CarouselIndex() {
   const navigate = useNavigate()
@@ -21,6 +24,36 @@ export default function CarouselIndex() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Telegram BackButton
+  useEffect(() => {
+    if (tg?.BackButton) {
+      tg.BackButton.show()
+
+      const handleBack = () => {
+        if (step > 1) {
+          setStep(step - 1)
+        } else {
+          navigate('/agents')
+        }
+      }
+
+      tg.BackButton.onClick(handleBack)
+
+      return () => {
+        tg.BackButton.offClick(handleBack)
+      }
+    }
+  }, [step, navigate])
+
+  // Скрываем BackButton при размонтировании
+  useEffect(() => {
+    return () => {
+      if (tg?.BackButton) {
+        tg.BackButton.hide()
+      }
+    }
+  }, [])
 
   // Загружаем сохранённый стиль
   useEffect(() => {
@@ -105,15 +138,9 @@ export default function CarouselIndex() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-orange-100/50 rounded-full blur-3xl" />
       <div className="absolute bottom-40 left-0 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl" />
 
-      {/* Header */}
-      <div className="sticky top-0 z-20 nav-glass px-4 py-4 flex items-center gap-3">
-        <button
-          onClick={() => step > 1 ? setStep(step - 1) : navigate('/agents')}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
-        >
-          <BackIcon size={24} className="text-gray-700" />
-        </button>
-        <div className="flex items-center gap-2">
+      {/* Header - только заголовок, кнопка назад через Telegram */}
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg px-4 py-4">
+        <div className="flex items-center justify-center gap-2">
           <CarouselIcon size={24} className="text-orange-500" />
           <h1 className="text-xl font-bold text-gray-900">Создание карусели</h1>
         </div>
