@@ -16,7 +16,7 @@ export default function ModulePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 p-4 pb-24">
       {/* Шапка */}
       <div className="flex items-center gap-3 mb-6">
         <Link to={`/school/${tariffSlug}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
@@ -31,14 +31,14 @@ export default function ModulePage() {
           <Link
             key={lesson.id}
             to={`/school/${tariffSlug}/${moduleId}/lesson/${lesson.id}`}
-            className="flex items-center gap-3 p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500 transition-all"
+            className="flex items-center gap-3 p-4 rounded-xl glass-card border border-gray-200 hover:border-orange-500 transition-all"
           >
             <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm font-medium">
               {index + 1}
             </div>
             <div className="flex-1">
               <div className="font-medium">{lesson.title}</div>
-              <div className="flex items-center gap-3 text-sm text-zinc-400 mt-1">
+              <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
                 {lesson.video_url && (
                   <span className="flex items-center gap-1">
                     <Play className="w-3 h-3" /> Видео
@@ -51,13 +51,13 @@ export default function ModulePage() {
                 )}
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-zinc-500" />
+            <ChevronRight className="w-5 h-5 text-gray-400" />
           </Link>
         ))}
       </div>
 
       {(!lessons || lessons.length === 0) && (
-        <div className="text-center text-zinc-500 py-12">
+        <div className="text-center text-gray-400 py-12">
           Уроки скоро появятся
         </div>
       )}

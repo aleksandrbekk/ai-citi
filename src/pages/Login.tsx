@@ -35,11 +35,11 @@ export default function Login() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center p-6">
       <div className="text-center">
         <div className="text-6xl mb-4">🏙️</div>
-        <h1 className="text-3xl font-bold text-white mb-2">AI CITI</h1>
-        <p className="text-zinc-400 mb-8">Войдите через Telegram для доступа к платформе</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">AI CITI</h1>
+        <p className="text-gray-500 mb-8">Войдите через Telegram для доступа к платформе</p>
         <div id="telegram-login-container" className="flex justify-center"></div>
       </div>
     </div>

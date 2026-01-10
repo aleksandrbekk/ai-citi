@@ -17,12 +17,12 @@ export default function CarouselGenerating() {
   }, [navigate, setStatus])
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         {/* Заголовок */}
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Отправляю запрос...</h1>
-          <p className="text-zinc-400">Подождите несколько секунд</p>
+          <p className="text-gray-500">Подождите несколько секунд</p>
         </div>
 
         {/* Анимация загрузки */}

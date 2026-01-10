@@ -103,9 +103,9 @@ export default function CarouselContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-zinc-800 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate('/agents/carousel/settings')}
           className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg"
@@ -118,55 +118,55 @@ export default function CarouselContent() {
       <div className="p-4 space-y-4">
         {/* Поле "Тема карусели" */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">Тема карусели</label>
+          <label className="text-sm font-medium text-gray-600">Тема карусели</label>
           <textarea
             value={variables.topic || ''}
             onChange={(e) => setVariable('topic', e.target.value)}
             placeholder="Например: 5 ошибок новичков в МЛМ"
-            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none"
             rows={3}
           />
         </div>
 
         {/* Поле "Заголовок CTA" */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">🎯 Заголовок CTA</label>
+          <label className="text-sm font-medium text-gray-600">🎯 Заголовок CTA</label>
           <input
             type="text"
             value={ctaQuestion}
             onChange={(e) => setCtaQuestion(e.target.value)}
             placeholder="Например: Хочешь так же?"
-            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500"
           />
         </div>
 
         {/* Поле "Призыв к действию" */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">📣 Призыв к действию</label>
+          <label className="text-sm font-medium text-gray-600">📣 Призыв к действию</label>
           <textarea
             value={ctaText}
             onChange={(e) => setCtaText(e.target.value)}
             placeholder="Например: НАПИШИ СЛОВО КОМПАНИЯ — ОТПРАВЛЮ ГАЙД"
-            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none"
             rows={3}
           />
         </div>
 
         {/* Поле "Что получит" */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">🎁 Что получит (через запятую)</label>
+          <label className="text-sm font-medium text-gray-600">🎁 Что получит (через запятую)</label>
           <input
             type="text"
             value={ctaBenefits}
             onChange={(e) => setCtaBenefits(e.target.value)}
             placeholder="Бесплатный урок, Пошаговая инструкция, Поддержка"
-            className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500"
           />
         </div>
 
         <button
           onClick={handleGenerate}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg"
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-gray-900 rounded-xl font-semibold text-lg"
         >
           🎨 Создать карусель
         </button>

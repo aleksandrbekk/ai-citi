@@ -25,9 +25,9 @@ export default function CarouselSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-zinc-800 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate('/agents/carousel')}
           className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg"
@@ -51,7 +51,7 @@ export default function CarouselSettings() {
         <button
           onClick={handleNext}
           disabled={!userPhoto}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-gray-900 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {userPhoto ? 'Далее →' : 'Выберите фото'}
         </button>

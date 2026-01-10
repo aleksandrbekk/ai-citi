@@ -114,30 +114,30 @@ export default function CuratorReview() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-zinc-800 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
         <Link to="/" className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg">
           <ArrowLeft size={20} />
         </Link>
         <div>
           <h1 className="font-bold">Проверка ДЗ</h1>
-          <p className="text-xs text-zinc-500">На проверке: {submissions?.length || 0}</p>
+          <p className="text-xs text-gray-400">На проверке: {submissions?.length || 0}</p>
         </div>
       </div>
 
       <div className="p-4">
         {isLoading ? (
-          <p className="text-center text-zinc-500 py-8">Загрузка...</p>
+          <p className="text-center text-gray-400 py-8">Загрузка...</p>
         ) : submissions?.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-3">✅</div>
-            <p className="text-zinc-400">Все задания проверены!</p>
+            <p className="text-gray-500">Все задания проверены!</p>
           </div>
         ) : (
           <div className="space-y-4">
             {submissions?.map((sub: any) => (
-              <div key={sub.id} className="bg-zinc-900 rounded-2xl p-4">
+              <div key={sub.id} className="glass-card rounded-2xl p-4">
                 {/* Инфо об ученике */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-bold">
@@ -147,7 +147,7 @@ export default function CuratorReview() {
                     <p className="font-medium">
                       {sub.users?.first_name} {sub.users?.last_name}
                     </p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-gray-400">
                       @{sub.users?.username || 'нет username'}
                     </p>
                   </div>
@@ -155,7 +155,7 @@ export default function CuratorReview() {
 
                 {/* Урок */}
                 <div className="bg-zinc-800 rounded-xl p-3 mb-3">
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-gray-400">
                     Модуль {sub.course_lessons?.course_modules?.order_index}: {sub.course_lessons?.course_modules?.title}
                   </p>
                   <p className="text-sm text-orange-400">
@@ -166,7 +166,7 @@ export default function CuratorReview() {
                 {/* Текстовый ответ */}
                 {sub.answer_text && (
                   <div className="bg-zinc-800 rounded-xl p-3 mb-3">
-                    <p className="text-xs text-zinc-500 mb-1">Ответ:</p>
+                    <p className="text-xs text-gray-400 mb-1">Ответ:</p>
                     <p className="text-sm whitespace-pre-wrap">{sub.answer_text}</p>
                   </div>
                 )}
@@ -174,7 +174,7 @@ export default function CuratorReview() {
                 {/* Ответы на квиз */}
                 {sub.quiz_answers && sub.quizData && (
                   <div className="bg-zinc-800 rounded-xl p-3 mb-3">
-                    <p className="text-xs text-zinc-500 mb-2">Тест:</p>
+                    <p className="text-xs text-gray-400 mb-2">Тест:</p>
                     <div className="space-y-2">
                       {Object.entries(sub.quiz_answers).map(([questionId, optionIds]: [string, any]) => {
                         const question = sub.quizData.questions?.find((q: any) => q.id === questionId)
@@ -182,7 +182,7 @@ export default function CuratorReview() {
                         
                         return (
                           <div key={questionId} className="border-l-2 border-zinc-600 pl-2">
-                            <p className="text-xs text-zinc-400">{question?.question}</p>
+                            <p className="text-xs text-gray-500">{question?.question}</p>
                             {selectedOptions?.map((opt: any) => (
                               <p key={opt.id} className={`text-sm ${opt.is_correct ? 'text-green-400' : 'text-red-400'}`}>
                                 • {opt.option_text} {opt.is_correct ? '✓' : '✗'}

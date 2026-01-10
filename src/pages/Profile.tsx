@@ -59,20 +59,20 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Профиль</h1>
 
-        <div className="bg-zinc-900/50 rounded-xl p-4 space-y-4">
+        <div className="glass-card/50 rounded-xl p-4 space-y-4">
           <div>
             <h2 className="text-lg font-semibold mb-1">📸 Фото для каруселей</h2>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-gray-500">
               Загрузите до 3 фото где хорошо видно лицо
             </p>
           </div>
 
           {isLoading ? (
-            <div className="text-zinc-400 text-sm">Загрузка...</div>
+            <div className="text-gray-500 text-sm">Загрузка...</div>
           ) : (
             <div className="grid grid-cols-3 gap-3">
               {[0, 1, 2].map((index) => (
@@ -88,7 +88,7 @@ export default function Profile() {
             </div>
           )}
           
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-gray-400">
             Первое фото используется по умолчанию
           </p>
         </div>

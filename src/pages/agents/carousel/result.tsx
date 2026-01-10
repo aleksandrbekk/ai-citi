@@ -11,13 +11,13 @@ export default function CarouselResult() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-4 flex flex-col">
-      <h1 className="text-xl font-bold text-white mb-6">✅ Запрос отправлен!</h1>
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-4 flex flex-col">
+      <h1 className="text-xl font-bold text-gray-900 mb-6">✅ Запрос отправлен!</h1>
       
       <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
         <div className="text-6xl mb-6">🎨</div>
         
-        <h2 className="text-2xl font-bold text-white mb-4">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
           Карусель генерируется
         </h2>
         
@@ -38,7 +38,7 @@ export default function CarouselResult() {
 
       <button
         onClick={handleNewCarousel}
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold"
+        className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-gray-900 font-semibold"
       >
         🎨 Создать новую карусель
       </button>
