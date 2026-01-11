@@ -223,7 +223,7 @@ export default function MiniAdmin() {
   ]
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24 pt-14">
+    <div className="min-h-screen bg-black text-white pb-24 pt-[100px]">
       {/* Tabs */}
       <div className="bg-black border-b border-zinc-800">
         <div className="flex overflow-x-auto px-4 py-3 gap-2">
