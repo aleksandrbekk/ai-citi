@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PhotoUploader } from '@/components/carousel/PhotoUploader'
 import { getUserPhotoGallery, savePhotoToSlot, deletePhotoFromSlot, getUserPhoto, deleteFromCloudinary, type GalleryPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
+import { Settings } from 'lucide-react'
+
+// Админские telegram ID
+const ADMIN_IDS = [643763835, 190202791]
 
 export default function Profile() {
+  const navigate = useNavigate()
+  const telegramUser = getTelegramUser()
+  const isAdmin = telegramUser?.id && ADMIN_IDS.includes(telegramUser.id)
   const [photos, setPhotos] = useState<(string | null)[]>([null, null, null])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -61,7 +69,18 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       <div className="p-4 space-y-6">
-        <h1 className="text-2xl font-bold">Профиль</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Профиль</h1>
+          {isAdmin && (
+            <button
+              onClick={() => navigate('/mini-admin')}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-colors"
+            >
+              <Settings size={18} />
+              Админка
+            </button>
+          )}
+        </div>
 
         <div className="glass-card/50 rounded-xl p-4 space-y-4">
           <div>

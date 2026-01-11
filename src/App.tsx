@@ -32,6 +32,7 @@ import TakeQuiz from './pages/quizzes/take'
 import QuizAnalytics from './pages/quizzes/analytics'
 import AdminPanel from './pages/admin/index'
 import CarouselDesignsPage from './pages/carousel-designs/index'
+import MiniAdmin from './pages/mini-admin/index'
 
 // Admin imports
 import { AdminLayout, AdminProtectedRoute } from './components/admin'
@@ -179,6 +180,7 @@ function AppContent() {
           </Route>
         </Route>
         
+        <Route path="/mini-admin" element={<MiniAdmin />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
