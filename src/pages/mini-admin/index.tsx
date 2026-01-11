@@ -227,6 +227,7 @@ export default function MiniAdmin() {
   // Создаём Map для быстрой проверки статусов
   const premiumMap = new Map<number, string>(premiumClients.map((c: PremiumClient) => [c.telegram_id, c.plan]))
   const studentMap = new Map<number, string>(students.map((s: Student) => [s.telegram_id, s.tariff]))
+  const usersMap = new Map<number, User>(users.map((u: User) => [u.telegram_id, u]))
 
   // Нет доступа
   if (!isAdmin) {
@@ -439,29 +440,42 @@ export default function MiniAdmin() {
             <div>
               <h3 className="font-semibold mb-3">Платные клиенты ({premiumClients.length})</h3>
               <div className="space-y-2">
-                {premiumClients.map((client: PremiumClient) => (
-                  <div
-                    key={client.id}
-                    className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg"
-                  >
-                    <div>
-                      <div className="font-medium">{client.telegram_id}</div>
-                      <div className="text-sm text-zinc-500">
-                        {client.plan} • {formatDate(client.created_at)}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (confirm('Удалить клиента?')) {
-                          deleteClient.mutate(client.id)
-                        }
-                      }}
-                      className="p-2 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded-lg"
+                {premiumClients.map((client: PremiumClient) => {
+                  const userInfo = usersMap.get(client.telegram_id)
+                  const displayName = userInfo?.first_name || userInfo?.username || String(client.telegram_id)
+
+                  return (
+                    <div
+                      key={client.id}
+                      className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-lg"
                     >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{displayName}</span>
+                          <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                            {client.plan.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="text-sm text-zinc-500">
+                          {userInfo?.username ? `@${userInfo.username} • ` : ''}{client.telegram_id}
+                        </div>
+                        <div className="text-xs text-zinc-600 mt-1">
+                          Добавлен: {formatDate(client.created_at)}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Удалить клиента ${displayName}?`)) {
+                            deleteClient.mutate(client.id)
+                          }
+                        }}
+                        className="p-2 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded-lg"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -515,32 +529,49 @@ export default function MiniAdmin() {
             <div>
               <h3 className="font-semibold mb-3">Ученики школы ({students.length})</h3>
               <div className="space-y-2">
-                {students.map((student: Student) => (
-                  <div
-                    key={student.id}
-                    className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg"
-                  >
-                    <div>
-                      <div className="font-medium">{student.telegram_id}</div>
-                      <div className="text-sm text-zinc-500">
-                        {student.tariff} • {formatDate(student.created_at)}
-                        {!student.is_active && (
-                          <span className="text-red-400 ml-2">неактивен</span>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (confirm('Удалить ученика?')) {
-                          deleteStudent.mutate(student.id)
-                        }
-                      }}
-                      className="p-2 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded-lg"
+                {students.map((student: Student) => {
+                  const userInfo = usersMap.get(student.telegram_id)
+                  const displayName = userInfo?.first_name || userInfo?.username || String(student.telegram_id)
+
+                  return (
+                    <div
+                      key={student.id}
+                      className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-lg"
                     >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{displayName}</span>
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${
+                            student.tariff === 'platinum'
+                              ? 'bg-purple-500/20 text-purple-400'
+                              : 'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {student.tariff === 'platinum' ? 'PLATINUM' : 'STANDARD'}
+                          </span>
+                        </div>
+                        <div className="text-sm text-zinc-500">
+                          {userInfo?.username ? `@${userInfo.username} • ` : ''}{student.telegram_id}
+                        </div>
+                        <div className="text-xs text-zinc-600 mt-1">
+                          Добавлен: {formatDate(student.created_at)}
+                          {!student.is_active && (
+                            <span className="text-red-400 ml-2">• неактивен</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Удалить ученика ${displayName}?`)) {
+                            deleteStudent.mutate(student.id)
+                          }
+                        }}
+                        className="p-2 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded-lg"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
