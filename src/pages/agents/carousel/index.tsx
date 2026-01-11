@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, supabase } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
+
+// Cloudinary config
+const CLOUDINARY_CLOUD = 'ds8ylsl2x'
+const CLOUDINARY_PRESET = 'carousel_unsigned'
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`
 
 // Ключ для localStorage
 const SAVED_STYLE_KEY = 'carousel_default_style'
@@ -80,6 +85,11 @@ export default function CarouselIndex() {
   const [engagementType, setEngagementType] = useState<'SUBSCRIBE' | 'COMMENT' | 'SAVE'>('SUBSCRIBE')
   const [showCtaPage, setShowCtaPage] = useState(false)
 
+  // Photo upload state
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
 
@@ -123,7 +133,7 @@ export default function CarouselIndex() {
       tg.BackButton.onClick(handleBack)
       return () => { tg.BackButton.offClick(handleBack) }
     }
-  }, [showStyleModal, showCtaPage, navigate])
+  }, [showStyleModal, showCtaPage, showPhotoModal, navigate])
 
   useEffect(() => {
     return () => { tg?.BackButton?.hide() }
@@ -148,6 +158,53 @@ export default function CarouselIndex() {
     }
     loadUserPhoto()
   }, [setUserPhoto])
+
+  // Функция загрузки фото
+  const handlePhotoUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setError('Выберите изображение')
+      return
+    }
+
+    const user = getTelegramUser()
+    if (!user?.id) {
+      setError('Не удалось определить пользователя')
+      return
+    }
+
+    setIsUploadingPhoto(true)
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', CLOUDINARY_PRESET)
+      formData.append('folder', `carousel-users/${user.id}`)
+
+      const response = await fetch(CLOUDINARY_URL, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error('Ошибка загрузки')
+
+      const data = await response.json()
+      const photoUrl = data.secure_url
+
+      setUserPhoto(photoUrl)
+      setShowPhotoModal(false)
+      await savePhotoToSlot(user.id, photoUrl, 0)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить фото')
+    } finally {
+      setIsUploadingPhoto(false)
+    }
+  }
+
+  const handleRemovePhoto = () => {
+    setUserPhoto(null)
+    setShowPhotoModal(false)
+  }
 
   const handleCreate = () => {
     if (!topic.trim()) {
@@ -413,7 +470,10 @@ export default function CarouselIndex() {
           {/* Photo & Style Row */}
           <div className="flex gap-3 mb-5">
             {/* Photo Button */}
-            <button className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors">
+            <button
+              onClick={() => setShowPhotoModal(true)}
+              className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors"
+            >
               {userPhoto ? (
                 <img src={userPhoto} alt="" className="w-11 h-11 rounded-full object-cover ring-2 ring-green-500 ring-offset-2" />
               ) : (
@@ -423,7 +483,11 @@ export default function CarouselIndex() {
               )}
               <div className="flex-1 text-left">
                 <span className="font-medium text-gray-900 block">Фото</span>
-                {userPhoto && <span className="text-xs text-green-500">Загружено</span>}
+                {userPhoto ? (
+                  <span className="text-xs text-green-500">Загружено</span>
+                ) : (
+                  <span className="text-xs text-gray-500">Добавить</span>
+                )}
               </div>
               <ChevronIcon className="text-gray-400" />
             </button>
@@ -473,6 +537,18 @@ export default function CarouselIndex() {
             setShowStyleModal(false)
           }}
           onClose={() => setShowStyleModal(false)}
+        />
+      )}
+
+      {/* Photo Modal */}
+      {showPhotoModal && (
+        <PhotoModal
+          photo={userPhoto}
+          isUploading={isUploadingPhoto}
+          fileInputRef={fileInputRef}
+          onUpload={handlePhotoUpload}
+          onRemove={handleRemovePhoto}
+          onClose={() => setShowPhotoModal(false)}
         />
       )}
     </div>
@@ -558,6 +634,84 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
           >
             Готово
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ========== PHOTO MODAL ==========
+interface PhotoModalProps {
+  photo: string | null
+  isUploading: boolean
+  fileInputRef: React.RefObject<HTMLInputElement | null>
+  onUpload: (file: File) => void
+  onRemove: () => void
+  onClose: () => void
+}
+
+function PhotoModal({ photo, isUploading, fileInputRef, onUpload, onRemove, onClose }: PhotoModalProps) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) onUpload(file)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="p-4 text-center border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">Твоё фото</h2>
+          <p className="text-sm text-gray-500">Будет на слайдах карусели</p>
+        </div>
+
+        <div className="p-6">
+          {photo ? (
+            <div className="relative">
+              <img src={photo} alt="Фото" className="w-full aspect-square rounded-2xl object-cover" />
+              <button onClick={onRemove} className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl border-2 border-dashed border-gray-300 hover:border-orange-400 cursor-pointer bg-gray-50">
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              {isUploading ? (
+                <div className="text-center">
+                  <LoaderIcon size={32} className="text-orange-500 animate-spin mx-auto mb-2" />
+                  <span className="text-gray-500">Загрузка...</span>
+                </div>
+              ) : (
+                <>
+                  <CameraIcon className="text-gray-400 mb-3" />
+                  <span className="text-gray-600 font-medium">Нажмите для загрузки</span>
+                  <span className="text-sm text-gray-400 mt-1">JPG, PNG до 10MB</span>
+                </>
+              )}
+            </label>
+          )}
+        </div>
+
+        <div className="p-4 pt-0 flex gap-3">
+          {photo ? (
+            <>
+              <button onClick={() => fileInputRef.current?.click()} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50">
+                Заменить
+              </button>
+              <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg">
+                Готово
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </>
+          ) : (
+            <button onClick={onClose} className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50">
+              Закрыть
+            </button>
+          )}
         </div>
       </div>
     </div>
