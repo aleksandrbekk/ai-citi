@@ -467,46 +467,46 @@ export default function CarouselIndex() {
           {/* Divider */}
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent mb-5" />
 
-          {/* Photo & Style Row */}
-          <div className="flex gap-3 mb-5">
-            {/* Photo Button */}
+          {/* Photo & Style Cards */}
+          <div className="space-y-3 mb-5">
+            {/* Photo Card */}
             <button
               onClick={() => setShowPhotoModal(true)}
-              className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors"
+              className="w-full bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-4 hover:border-orange-300 hover:shadow-md transition-all"
             >
               {userPhoto ? (
-                <img src={userPhoto} alt="" className="w-11 h-11 rounded-full object-cover ring-2 ring-green-500 ring-offset-2" />
+                <img src={userPhoto} alt="" className="w-14 h-14 rounded-full object-cover ring-2 ring-orange-500 ring-offset-2" />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <CameraIcon className="text-gray-400" />
                 </div>
               )}
               <div className="flex-1 text-left">
-                <span className="font-medium text-gray-900 block">Фото</span>
+                <span className="font-semibold text-gray-900 block">Твоё фото</span>
                 {userPhoto ? (
-                  <span className="text-xs text-green-500">Загружено</span>
+                  <span className="text-sm text-green-600">Загружено ✓</span>
                 ) : (
-                  <span className="text-xs text-gray-500">Добавить</span>
+                  <span className="text-sm text-gray-500">Нажми чтобы добавить</span>
                 )}
               </div>
               <ChevronIcon className="text-gray-400" />
             </button>
 
-            {/* Style Button */}
+            {/* Style Card */}
             <button
               onClick={() => setShowStyleModal(true)}
-              className="flex-1 bg-white/80 rounded-2xl border border-gray-200 p-4 flex items-center gap-3 hover:border-orange-300 transition-colors min-w-0"
+              className="w-full bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-4 hover:border-orange-300 hover:shadow-md transition-all"
             >
               <img
                 src={STYLE_PREVIEWS[style]}
                 alt={currentStyleMeta?.name}
-                className="w-11 h-11 rounded-lg object-cover flex-shrink-0"
+                className="w-14 h-14 rounded-xl object-cover ring-1 ring-gray-200"
               />
-              <div className="flex-1 text-left min-w-0 overflow-hidden">
-                <span className="font-medium text-gray-900 block">Стиль</span>
-                <span className="text-xs text-gray-500 truncate block max-w-[80px]">{currentStyleMeta?.name}</span>
+              <div className="flex-1 text-left">
+                <span className="font-semibold text-gray-900 block">Стиль</span>
+                <span className="text-sm text-orange-600">{currentStyleMeta?.name}</span>
               </div>
-              <ChevronIcon className="text-gray-400 flex-shrink-0" />
+              <ChevronIcon className="text-gray-400" />
             </button>
           </div>
 
