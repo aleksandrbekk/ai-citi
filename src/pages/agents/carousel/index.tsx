@@ -273,7 +273,7 @@ export default function CarouselIndex() {
   // ========== CTA PAGE ==========
   if (showCtaPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100">
+      <div className="min-h-screen bg-white">
         <div className="h-[100px]" />
 
         <div className="px-4 pb-8">
@@ -390,7 +390,7 @@ export default function CarouselIndex() {
   // ========== LOADING ==========
   if (isCheckingAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <LoaderIcon size={32} className="animate-spin text-orange-500 mx-auto mb-3" />
           <p className="text-gray-500">Проверка доступа...</p>
@@ -402,7 +402,7 @@ export default function CarouselIndex() {
   // ========== NO ACCESS ==========
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100 flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <div className="h-[100px] flex-shrink-0" />
 
         <div className="px-4 pb-8 flex-1 flex flex-col items-center justify-center">
@@ -431,7 +431,7 @@ export default function CarouselIndex() {
 
   // ========== MAIN PAGE ==========
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Safe area */}
       <div className="h-[100px] flex-shrink-0" />
 
