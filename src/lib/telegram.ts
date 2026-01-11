@@ -24,24 +24,22 @@ export function getInitData(): string | null {
   return webApp?.initData || null
 }
 
-// Расширяем тему Telegram
+// Инициализация Telegram WebApp (БЕЗ разворачивания на весь экран)
 export function expandWebApp() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return null;
 
   tg.ready();
-  tg.expand();
-  
-  // Fullscreen методы (если доступны)
+  // НЕ вызываем tg.expand() и tg.requestFullscreen()
+  // чтобы приложение оставалось в компактном мобильном виде
+
+  // Отключаем вертикальные свайпы для навигации
   try {
-    if (typeof tg.requestFullscreen === 'function') {
-      tg.requestFullscreen();
-    }
     if (typeof tg.disableVerticalSwipes === 'function') {
       tg.disableVerticalSwipes();
     }
   } catch (e) {
-    console.log('Fullscreen methods not available');
+    console.log('disableVerticalSwipes not available');
   }
 
   return tg;
@@ -56,7 +54,7 @@ export function initTelegram() {
 export function isMobileTelegram(): boolean {
   const tg = window.Telegram?.WebApp;
   if (!tg) return false;
-  
+
   const platform = (tg as any).platform;
   // android, ios — мобильные
   // tdesktop, macos, web — десктоп/браузер
