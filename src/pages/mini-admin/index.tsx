@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import {
-  ArrowLeft,
   Users,
   UserPlus,
   BarChart3,
@@ -225,20 +224,9 @@ export default function MiniAdmin() {
 
   return (
     <div className="min-h-screen bg-black text-white pb-24">
-      {/* Header */}
-      <div className="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-zinc-800 z-10">
-        <div className="p-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate('/profile')}
-            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-lg font-bold">Мини-админка</h1>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex overflow-x-auto px-4 pb-2 gap-2">
+      {/* Tabs - без sticky, просто фиксированный блок */}
+      <div className="bg-black border-b border-zinc-800 pt-2">
+        <div className="flex overflow-x-auto px-4 pb-3 gap-2">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -256,7 +244,7 @@ export default function MiniAdmin() {
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 space-y-4">
         {/* TAB: Пользователи */}
         {activeTab === 'users' && (
           <div className="space-y-4">
