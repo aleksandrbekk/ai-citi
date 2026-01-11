@@ -37,10 +37,12 @@ interface PremiumClient {
 
 interface Student {
   id: string
-  telegram_id: number
-  tariff: string
+  user_id: string
+  tariff_slug: string
   is_active: boolean
+  expires_at: string | null
   created_at: string
+  user?: User
 }
 
 type Tab = 'users' | 'add-client' | 'add-student' | 'analytics'
@@ -89,13 +91,13 @@ export default function MiniAdmin() {
     enabled: isAdmin
   })
 
-  // Загрузка студентов
+  // Загрузка студентов (из user_tariffs)
   const { data: students = [] } = useQuery<Student[]>({
     queryKey: ['mini-admin-students'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('course_students')
-        .select('*')
+        .from('user_tariffs')
+        .select('id, user_id, tariff_slug, is_active, expires_at, created_at')
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as Student[]
@@ -135,12 +137,35 @@ export default function MiniAdmin() {
     }
   })
 
-  // Добавление студента
+  // Добавление студента (создаём user + user_tariff)
   const addStudent = useMutation({
     mutationFn: async ({ telegram_id, tariff }: { telegram_id: number; tariff: string }) => {
+      // Проверяем, есть ли уже пользователь
+      let userId: string
+
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegram_id)
+        .single()
+
+      if (existingUser) {
+        userId = existingUser.id
+      } else {
+        // Создаём пользователя
+        const { data: newUser, error: userError } = await supabase
+          .from('users')
+          .insert({ telegram_id })
+          .select()
+          .single()
+        if (userError) throw userError
+        userId = newUser.id
+      }
+
+      // Создаём тариф
       const { data, error } = await supabase
-        .from('course_students')
-        .insert({ telegram_id, tariff, is_active: true })
+        .from('user_tariffs')
+        .insert({ user_id: userId, tariff_slug: tariff, is_active: true })
         .select()
         .single()
       if (error) throw error
@@ -148,16 +173,17 @@ export default function MiniAdmin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-students'] })
+      queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
       setNewStudentId('')
       setNewStudentTariff('standard')
     }
   })
 
-  // Удаление студента
+  // Удаление студента (из user_tariffs)
   const deleteStudent = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('course_students')
+        .from('user_tariffs')
         .delete()
         .eq('id', id)
       if (error) throw error
@@ -226,8 +252,17 @@ export default function MiniAdmin() {
 
   // Создаём Map для быстрой проверки статусов
   const premiumMap = new Map<number, string>(premiumClients.map((c: PremiumClient) => [c.telegram_id, c.plan]))
-  const studentMap = new Map<number, string>(students.map((s: Student) => [s.telegram_id, s.tariff]))
   const usersMap = new Map<number, User>(users.map((u: User) => [u.telegram_id, u]))
+  const usersMapById = new Map<string, User>(users.map((u: User) => [u.id, u]))
+
+  // studentMap: telegram_id -> tariff_slug (нужно найти telegram_id через user_id)
+  const studentMap = new Map<number, string>()
+  students.forEach((s: Student) => {
+    const user = usersMapById.get(s.user_id)
+    if (user) {
+      studentMap.set(user.telegram_id, s.tariff_slug)
+    }
+  })
 
   // Нет доступа
   if (!isAdmin) {
@@ -527,11 +562,11 @@ export default function MiniAdmin() {
 
             {/* Список учеников */}
             <div>
-              <h3 className="font-semibold mb-3">Ученики школы ({students.length})</h3>
+              <h3 className="font-semibold mb-3">Ученики лагеря ({students.length})</h3>
               <div className="space-y-2">
                 {students.map((student: Student) => {
-                  const userInfo = usersMap.get(student.telegram_id)
-                  const displayName = userInfo?.first_name || userInfo?.username || String(student.telegram_id)
+                  const userInfo = usersMapById.get(student.user_id)
+                  const displayName = userInfo?.first_name || userInfo?.username || String(userInfo?.telegram_id || student.user_id)
 
                   return (
                     <div
@@ -542,15 +577,15 @@ export default function MiniAdmin() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{displayName}</span>
                           <span className={`px-2 py-0.5 text-xs rounded-full ${
-                            student.tariff === 'platinum'
+                            student.tariff_slug === 'platinum'
                               ? 'bg-purple-500/20 text-purple-400'
                               : 'bg-blue-500/20 text-blue-400'
                           }`}>
-                            {student.tariff === 'platinum' ? 'PLATINUM' : 'STANDARD'}
+                            {student.tariff_slug === 'platinum' ? 'PLATINUM' : 'STANDARD'}
                           </span>
                         </div>
                         <div className="text-sm text-zinc-500">
-                          {userInfo?.username ? `@${userInfo.username} • ` : ''}{student.telegram_id}
+                          {userInfo?.username ? `@${userInfo.username} • ` : ''}{userInfo?.telegram_id || '—'}
                         </div>
                         <div className="text-xs text-zinc-600 mt-1">
                           Добавлен: {formatDate(student.created_at)}
