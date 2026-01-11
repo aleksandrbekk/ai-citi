@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto } from '@/lib/supabase'
+import { getFirstUserPhoto, supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -56,6 +57,14 @@ const ChevronIcon = ({ className = '' }: { className?: string }) => (
   </svg>
 )
 
+// Иконка замка
+const LockIcon = ({ className = '' }: { className?: string }) => (
+  <svg className={className} width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
 export default function CarouselIndex() {
   const navigate = useNavigate()
   const { setStatus, userPhoto, setUserPhoto, style, setStyle } = useCarouselStore()
@@ -70,6 +79,31 @@ export default function CarouselIndex() {
   const [ctaKeyword, setCtaKeyword] = useState('')
   const [engagementType, setEngagementType] = useState<'SUBSCRIBE' | 'COMMENT' | 'SAVE'>('SUBSCRIBE')
   const [showCtaPage, setShowCtaPage] = useState(false)
+
+  // Получаем telegram_id пользователя
+  const telegramUser = getTelegramUser()
+
+  // Проверка доступа - есть ли пользователь в premium_clients
+  const { data: hasAccess, isLoading: isCheckingAccess } = useQuery({
+    queryKey: ['carousel-access', telegramUser?.id],
+    queryFn: async () => {
+      if (!telegramUser?.id) return false
+
+      const { data, error } = await supabase
+        .from('premium_clients')
+        .select('id')
+        .eq('telegram_id', telegramUser.id)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Error checking access:', error)
+        return false
+      }
+
+      return !!data
+    },
+    enabled: !!telegramUser?.id,
+  })
 
   // Telegram BackButton
   useEffect(() => {
@@ -291,6 +325,48 @@ export default function CarouselIndex() {
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
             ) : 'Создать карусель'}
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ========== LOADING ==========
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100 flex items-center justify-center">
+        <div className="text-center">
+          <LoaderIcon size={32} className="animate-spin text-orange-500 mx-auto mb-3" />
+          <p className="text-gray-500">Проверка доступа...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ========== NO ACCESS ==========
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-100 flex flex-col">
+        <div className="h-[100px] flex-shrink-0" />
+
+        <div className="px-4 pb-8 flex-1 flex flex-col items-center justify-center">
+          <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl p-8 text-center max-w-sm">
+            <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-6">
+              <LockIcon className="text-orange-500" />
+            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h1>
+
+            <p className="text-gray-500 mb-6">
+              Создание каруселей доступно только для платных клиентов. Оформите подписку, чтобы получить доступ к этой функции.
+            </p>
+
+            <button
+              onClick={() => navigate('/agents')}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30"
+            >
+              Назад
+            </button>
+          </div>
         </div>
       </div>
     )
