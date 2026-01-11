@@ -223,10 +223,10 @@ export default function MiniAdmin() {
   ]
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24">
-      {/* Tabs - без sticky, просто фиксированный блок */}
-      <div className="bg-black border-b border-zinc-800 pt-2">
-        <div className="flex overflow-x-auto px-4 pb-3 gap-2">
+    <div className="min-h-screen bg-black text-white pb-24 pt-14">
+      {/* Tabs */}
+      <div className="bg-black border-b border-zinc-800">
+        <div className="flex overflow-x-auto px-4 py-3 gap-2">
           {tabs.map(tab => (
             <button
               key={tab.id}
