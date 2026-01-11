@@ -51,80 +51,54 @@
 }
 
 /* =============================================================================
-   DESKTOP: Mobile Preview Mode
-   На десктопе показываем приложение как мобильное устройство
-   ============================================================================= */
-@media (min-width: 768px) {
-
-  html,
-  body {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%) !important;
-    min-height: 100vh;
-  }
-
-  #root {
-    max-width: 430px;
-    min-height: 100vh;
-    margin: 0 auto;
-    background: #ffffff;
-    box-shadow:
-      0 0 80px rgba(255, 90, 31, 0.15),
-      0 0 40px rgba(0, 0, 0, 0.3);
-    border-radius: 0;
-    overflow: hidden;
-    position: relative;
-  }
-}
-
-/* =============================================================================
    APPLE GLASSMORPHISM LIGHT THEME
    ============================================================================= */
 :root {
   --radius: 0.625rem;
-
+  
   /* Background & Foreground */
   --background: #FFFFFF;
   --foreground: #1A1A1A;
-
+  
   /* Cards */
   --card: rgba(255, 255, 255, 0.7);
   --card-foreground: #1A1A1A;
-
+  
   /* Popover */
   --popover: #FFFFFF;
   --popover-foreground: #1A1A1A;
-
+  
   /* Primary - Orange */
   --primary: #FF5A1F;
   --primary-foreground: #FFFFFF;
-
+  
   /* Secondary */
   --secondary: #F5F5F7;
   --secondary-foreground: #1A1A1A;
-
+  
   /* Muted */
   --muted: #F5F5F7;
   --muted-foreground: #666666;
-
+  
   /* Accent */
   --accent: #FF8A3D;
   --accent-foreground: #FFFFFF;
-
+  
   /* Destructive */
   --destructive: #EF4444;
-
+  
   /* Border & Input */
   --border: rgba(0, 0, 0, 0.1);
   --input: rgba(0, 0, 0, 0.05);
   --ring: #FF5A1F;
-
+  
   /* Charts */
   --chart-1: #FF5A1F;
   --chart-2: #3B82F6;
   --chart-3: #10B981;
   --chart-4: #F59E0B;
   --chart-5: #8B5CF6;
-
+  
   /* Sidebar */
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1A1A1A;
@@ -170,7 +144,6 @@
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
@@ -285,15 +258,8 @@
    ANIMATIONS
    ============================================================================= */
 @keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
 .animate-float {
@@ -301,15 +267,8 @@
 }
 
 @keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(255, 90, 31, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 40px rgba(255, 90, 31, 0.5);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 90, 31, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(255, 90, 31, 0.5); }
 }
 
 .animate-pulse-glow {
