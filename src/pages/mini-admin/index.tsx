@@ -56,6 +56,7 @@ export default function MiniAdmin() {
   const [newClientPlan, setNewClientPlan] = useState('basic')
   const [newStudentId, setNewStudentId] = useState('')
   const [newStudentTariff, setNewStudentTariff] = useState('standard')
+  const [newUserId, setNewUserId] = useState('')
 
   // Проверяем доступ
   const isAdmin = Boolean(telegramUser?.id && ADMIN_IDS.includes(telegramUser.id))
@@ -166,6 +167,37 @@ export default function MiniAdmin() {
     }
   })
 
+  // Добавление пользователя
+  const addUser = useMutation({
+    mutationFn: async (telegram_id: number) => {
+      const { data, error } = await supabase
+        .from('users')
+        .insert({ telegram_id })
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
+      setNewUserId('')
+    }
+  })
+
+  // Удаление пользователя
+  const deleteUser = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
+    }
+  })
+
   // Фильтрация пользователей
   const filteredUsers = users.filter((user: User) => {
     if (!search) return true
@@ -248,6 +280,35 @@ export default function MiniAdmin() {
         {/* TAB: Пользователи */}
         {activeTab === 'users' && (
           <div className="space-y-4">
+            {/* Форма добавления пользователя */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <UserPlus size={18} />
+                Добавить пользователя
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Telegram ID"
+                  value={newUserId}
+                  onChange={(e) => setNewUserId(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                />
+                <button
+                  onClick={() => {
+                    if (newUserId) {
+                      addUser.mutate(parseInt(newUserId))
+                    }
+                  }}
+                  disabled={!newUserId || addUser.isPending}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Поиск */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
               <input
@@ -278,28 +339,40 @@ export default function MiniAdmin() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <div className="font-medium flex items-center gap-2">
                             {user.first_name || user.username || 'Без имени'}
                             {online && (
                               <span className="w-2 h-2 bg-green-500 rounded-full" />
                             )}
                           </div>
-                          <div className="text-sm text-zinc-500">
+                          <div className="text-sm text-zinc-500 truncate">
                             {user.username ? `@${user.username}` : ''} • {user.telegram_id}
                           </div>
                         </div>
-                        <div className="flex gap-1">
-                          {isPremium && (
-                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">
-                              {premiumMap.get(user.telegram_id)}
-                            </span>
-                          )}
-                          {isStudent && (
-                            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">
-                              {studentMap.get(user.telegram_id)}
-                            </span>
-                          )}
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            {isPremium && (
+                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">
+                                {premiumMap.get(user.telegram_id)}
+                              </span>
+                            )}
+                            {isStudent && (
+                              <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">
+                                {studentMap.get(user.telegram_id)}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Удалить пользователя ${user.first_name || user.username || user.telegram_id}?`)) {
+                                deleteUser.mutate(user.id)
+                              }
+                            }}
+                            className="p-2 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded-lg"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                       <div className="text-xs text-zinc-600 mt-2">
