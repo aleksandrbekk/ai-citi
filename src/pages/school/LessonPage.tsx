@@ -269,16 +269,16 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-[300px]">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-[300px]">
       <div className="max-w-3xl mx-auto px-4">
         {/* Шапка */}
         <div className="relative flex items-center justify-between mb-4 h-10">
           {/* Назад к модулю */}
-          <button 
-            onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)} 
+          <button
+            onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)}
             className="p-2 bg-zinc-800 rounded-lg z-10"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </button>
 
           {/* Название — по центру */}
@@ -288,17 +288,17 @@ export default function LessonPage() {
 
           {/* Навигация между уроками */}
           <div className="flex items-center gap-1 z-10">
-            <button 
+            <button
               onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
               disabled={!prevLesson}
-              className={`p-2 ${prevLesson ? 'text-white' : 'text-zinc-600'}`}
+              className={`p-2 ${prevLesson ? 'text-gray-900' : 'text-gray-300'}`}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <button 
+            <button
               onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
               disabled={!nextLesson}
-              className={`p-2 ${nextLesson ? 'text-white' : 'text-zinc-600'}`}
+              className={`p-2 ${nextLesson ? 'text-gray-900' : 'text-gray-300'}`}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -346,9 +346,9 @@ export default function LessonPage() {
 
       {/* Описание урока */}
       {lesson?.description && (
-        <div className="bg-gray-800/50 rounded-xl p-3 mb-4">
-          <p className="text-xs font-medium text-white mb-2">В этом уроке:</p>
-          <p className="text-xs text-gray-400 whitespace-pre-wrap">{linkifyText(lesson.description)}</p>
+        <div className="bg-white/80 border border-gray-200 rounded-xl p-3 mb-4">
+          <p className="text-xs font-medium text-gray-900 mb-2">В этом уроке:</p>
+          <p className="text-xs text-gray-600 whitespace-pre-wrap">{linkifyText(lesson.description)}</p>
         </div>
       )}
 
@@ -363,11 +363,11 @@ export default function LessonPage() {
                 href={material.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-orange-500 transition-all"
+                className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-orange-500 transition-all"
               >
                 <FileText className="w-5 h-5 text-orange-500" />
                 <span className="flex-1">{material.title || 'Материал'}</span>
-                <ExternalLink className="w-4 h-4 text-zinc-500" />
+                <ExternalLink className="w-4 h-4 text-gray-400" />
               </a>
             ))}
           </div>
@@ -381,8 +381,8 @@ export default function LessonPage() {
           
           {/* Описание задания */}
           {lesson.homework_description && (
-            <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 mb-4">
-              <p className="text-zinc-300 whitespace-pre-wrap">{lesson.homework_description}</p>
+            <div className="p-4 rounded-lg bg-white border border-gray-200 mb-4">
+              <p className="text-gray-700 whitespace-pre-wrap">{lesson.homework_description}</p>
             </div>
           )}
 
@@ -407,14 +407,14 @@ export default function LessonPage() {
               </div>
               
               {/* Твой ответ */}
-              <p className="text-sm text-zinc-400 mb-2">Твой ответ:</p>
-              <p className="text-sm text-zinc-300 whitespace-pre-wrap mb-2">{mySubmission.answer_text}</p>
-              
+              <p className="text-sm text-gray-500 mb-2">Твой ответ:</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{mySubmission.answer_text}</p>
+
               {/* Комментарий куратора */}
               {mySubmission.curator_comment && (
-                <div className="mt-3 pt-3 border-t border-zinc-700">
-                  <p className="text-sm text-blue-400 mb-1">Комментарий куратора:</p>
-                  <p className="text-sm text-white">{mySubmission.curator_comment}</p>
+                <div className="mt-3 pt-3 border-t border-gray-300">
+                  <p className="text-sm text-blue-600 mb-1">Комментарий куратора:</p>
+                  <p className="text-sm text-gray-900">{mySubmission.curator_comment}</p>
                 </div>
               )}
             </div>
@@ -424,9 +424,9 @@ export default function LessonPage() {
           {quizzes.length > 0 && (
             <div className="space-y-4 mb-4">
               {quizzes.map((quiz, qIndex) => (
-                <div key={quiz.id} className="bg-zinc-900 rounded-xl p-4">
+                <div key={quiz.id} className="bg-white border border-gray-200 rounded-xl p-4">
                   <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
-                  
+
                   {quiz.question_type === 'image' ? (
                     <div className="grid grid-cols-2 gap-2">
                       {quiz.quiz_options?.map((opt: any) => (
@@ -435,7 +435,7 @@ export default function LessonPage() {
                           className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
                             userAnswers[quiz.id]?.includes(opt.id)
                               ? 'border-orange-500'
-                              : 'border-zinc-700'
+                              : 'border-gray-200'
                           }`}
                         >
                           <input
@@ -459,10 +459,10 @@ export default function LessonPage() {
                             }}
                             className="sr-only"
                           />
-                          <img 
-                            src={opt.image_url} 
-                            alt={opt.option_text || ''} 
-                            className="w-full h-auto object-contain bg-zinc-800"
+                          <img
+                            src={opt.image_url}
+                            alt={opt.option_text || ''}
+                            className="w-full h-auto object-contain bg-gray-100"
                           />
                         </label>
                       ))}
@@ -475,7 +475,7 @@ export default function LessonPage() {
                           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
                             userAnswers[quiz.id]?.includes(opt.id)
                               ? 'bg-orange-500/20 border-2 border-orange-500'
-                              : 'bg-zinc-800 border-2 border-transparent hover:border-zinc-600'
+                              : 'bg-gray-100 border-2 border-transparent hover:border-gray-300'
                           }`}
                         >
                           <input
@@ -522,15 +522,15 @@ export default function LessonPage() {
                     setKeyboardOpen(true)
                     // Задержка чтобы клавиатура успела появиться
                     setTimeout(() => {
-                      textareaRef.current?.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'center' 
+                      textareaRef.current?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
                       })
                     }, 300)
                   }}
                   onBlur={() => setKeyboardOpen(false)}
                   placeholder="Напиши свой ответ..."
-                  className="w-full h-32 p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none resize-none mb-4"
+                  className="w-full h-32 p-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none resize-none mb-4"
                 />
               )}
 
