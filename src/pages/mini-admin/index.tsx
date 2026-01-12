@@ -121,6 +121,10 @@ export default function MiniAdmin() {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-premium'] })
       setNewClientId('')
       setNewClientPlan('basic')
+      alert('✅ Клиент добавлен!')
+    },
+    onError: (error: any) => {
+      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -177,6 +181,10 @@ export default function MiniAdmin() {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
       setNewStudentId('')
       setNewStudentTariff('standard')
+      alert('✅ Ученик добавлен!')
+    },
+    onError: (error: any) => {
+      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -208,6 +216,10 @@ export default function MiniAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
       setNewUserId('')
+      alert('✅ Пользователь добавлен!')
+    },
+    onError: (error: any) => {
+      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -471,12 +483,7 @@ export default function MiniAdmin() {
                 type="button"
                 disabled={!newClientId || addClient.isPending}
                 onClick={() => {
-                  if (newClientId && !addClient.isPending) {
-                    addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
-                  }
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault()
+                  alert('Клик! ID: ' + newClientId + ', plan: ' + newClientPlan)
                   if (newClientId && !addClient.isPending) {
                     addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
                   }
