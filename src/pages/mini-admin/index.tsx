@@ -318,38 +318,40 @@ export default function MiniAdmin() {
         {activeTab === 'users' && (
           <div className="space-y-4">
             {/* Форма добавления пользователя */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (newUserId) {
-                  addUser.mutate(parseInt(newUserId))
-                }
-              }}
-              className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3"
-            >
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <UserPlus size={18} />
                 Добавить пользователя
               </h3>
               <div className="flex gap-2">
                 <input
-                  type="tel"
+                  type="text"
                   inputMode="numeric"
-                  pattern="[0-9]*"
                   placeholder="Telegram ID"
                   value={newUserId}
                   onChange={(e) => setNewUserId(e.target.value.replace(/\D/g, ''))}
                   className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                 />
                 <button
-                  type="submit"
+                  type="button"
                   disabled={!newUserId || addUser.isPending}
-                  className="px-4 py-2 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center gap-2"
+                  onClick={() => {
+                    if (newUserId && !addUser.isPending) {
+                      addUser.mutate(parseInt(newUserId))
+                    }
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault()
+                    if (newUserId && !addUser.isPending) {
+                      addUser.mutate(parseInt(newUserId))
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center gap-2 select-none touch-manipulation"
                 >
                   <Plus size={18} />
                 </button>
               </div>
-            </form>
+            </div>
 
             {/* Поиск */}
             <div className="relative">
@@ -437,15 +439,7 @@ export default function MiniAdmin() {
         {activeTab === 'add-client' && (
           <div className="space-y-6">
             {/* Форма добавления */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (newClientId) {
-                  addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
-                }
-              }}
-              className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4"
-            >
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
                 <UserPlus size={18} />
                 Добавить платного клиента
@@ -453,9 +447,8 @@ export default function MiniAdmin() {
               <div>
                 <label className="text-sm text-zinc-400 mb-1 block">Telegram ID</label>
                 <input
-                  type="tel"
+                  type="text"
                   inputMode="numeric"
-                  pattern="[0-9]*"
                   placeholder="123456789"
                   value={newClientId}
                   onChange={(e) => setNewClientId(e.target.value.replace(/\D/g, ''))}
@@ -475,14 +468,25 @@ export default function MiniAdmin() {
                 </select>
               </div>
               <button
-                type="submit"
+                type="button"
                 disabled={!newClientId || addClient.isPending}
-                className="w-full py-3 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
+                onClick={() => {
+                  if (newClientId && !addClient.isPending) {
+                    addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault()
+                  if (newClientId && !addClient.isPending) {
+                    addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
+                  }
+                }}
+                className="w-full py-4 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2 select-none touch-manipulation"
               >
                 <Plus size={18} />
                 {addClient.isPending ? 'Добавление...' : 'Добавить'}
               </button>
-            </form>
+            </div>
 
             {/* Список клиентов */}
             <div>
@@ -533,15 +537,7 @@ export default function MiniAdmin() {
         {activeTab === 'add-student' && (
           <div className="space-y-6">
             {/* Форма добавления */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (newStudentId) {
-                  addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
-                }
-              }}
-              className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4"
-            >
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
                 <GraduationCap size={18} />
                 Добавить ученика
@@ -549,9 +545,8 @@ export default function MiniAdmin() {
               <div>
                 <label className="text-sm text-zinc-400 mb-1 block">Telegram ID</label>
                 <input
-                  type="tel"
+                  type="text"
                   inputMode="numeric"
-                  pattern="[0-9]*"
                   placeholder="123456789"
                   value={newStudentId}
                   onChange={(e) => setNewStudentId(e.target.value.replace(/\D/g, ''))}
@@ -570,14 +565,25 @@ export default function MiniAdmin() {
                 </select>
               </div>
               <button
-                type="submit"
+                type="button"
                 disabled={!newStudentId || addStudent.isPending}
-                className="w-full py-3 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
+                onClick={() => {
+                  if (newStudentId && !addStudent.isPending) {
+                    addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault()
+                  if (newStudentId && !addStudent.isPending) {
+                    addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
+                  }
+                }}
+                className="w-full py-4 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2 select-none touch-manipulation"
               >
                 <Plus size={18} />
                 {addStudent.isPending ? 'Добавление...' : 'Добавить'}
               </button>
-            </form>
+            </div>
 
             {/* Список учеников */}
             <div>
