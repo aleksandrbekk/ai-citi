@@ -59,6 +59,17 @@ interface Student {
   user?: User
 }
 
+interface Payment {
+  id: string
+  telegram_id: number
+  amount: number
+  currency: string
+  source: string
+  payment_method: string
+  paid_at: string
+  created_at: string
+}
+
 type Tab = 'users' | 'add-client' | 'add-student' | 'analytics'
 
 export default function MiniAdmin() {
@@ -82,6 +93,11 @@ export default function MiniAdmin() {
   })
   const [showAddClientModal, setShowAddClientModal] = useState(false)
   const [selectedClient, setSelectedClient] = useState<PremiumClient | null>(null)
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false)
+  const [newPaymentAmount, setNewPaymentAmount] = useState('')
+  const [newPaymentCurrency, setNewPaymentCurrency] = useState('RUB')
+  const [newPaymentSource, setNewPaymentSource] = useState('manual')
+  const [newPaymentMethod, setNewPaymentMethod] = useState('card')
 
   // Проверяем доступ
   const isAdmin = Boolean(telegramUser?.id && ADMIN_IDS.includes(telegramUser.id))
@@ -129,6 +145,20 @@ export default function MiniAdmin() {
     enabled: isAdmin
   })
 
+  // Загрузка платежей
+  const { data: payments = [] } = useQuery<Payment[]>({
+    queryKey: ['mini-admin-payments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .order('paid_at', { ascending: false })
+      if (error) throw error
+      return data as Payment[]
+    },
+    enabled: isAdmin
+  })
+
   // Добавление платного клиента
   const addClient = useMutation({
     mutationFn: async ({ telegram_id, plan }: { telegram_id: number; plan: string }) => {
@@ -166,6 +196,37 @@ export default function MiniAdmin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-premium'] })
+    }
+  })
+
+  // Добавление платежа
+  const addPayment = useMutation({
+    mutationFn: async ({ telegram_id, amount, currency, source, payment_method }: {
+      telegram_id: number
+      amount: number
+      currency: string
+      source: string
+      payment_method: string
+    }) => {
+      const { data, error } = await supabase
+        .from('payments')
+        .insert({ telegram_id, amount, currency, source, payment_method })
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mini-admin-payments'] })
+      setNewPaymentAmount('')
+      setNewPaymentCurrency('RUB')
+      setNewPaymentSource('manual')
+      setNewPaymentMethod('card')
+      setShowAddPaymentModal(false)
+      alert('✅ Платёж добавлен!')
+    },
+    onError: (error: any) => {
+      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -324,6 +385,42 @@ export default function MiniAdmin() {
       months.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) })
     }
     return months
+  }
+
+  // Фильтруем платежи по выбранному месяцу
+  const filteredPayments = payments.filter((p: Payment) => {
+    const paymentDate = new Date(p.paid_at)
+    const paymentMonth = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}`
+    return paymentMonth === selectedMonth
+  })
+
+  // Статистика платежей по валютам
+  const paymentStats = {
+    RUB: filteredPayments.filter(p => p.currency === 'RUB').reduce((sum, p) => sum + p.amount, 0),
+    USD: filteredPayments.filter(p => p.currency === 'USD').reduce((sum, p) => sum + p.amount, 0),
+    USDT: filteredPayments.filter(p => p.currency === 'USDT').reduce((sum, p) => sum + p.amount, 0),
+    EUR: filteredPayments.filter(p => p.currency === 'EUR').reduce((sum, p) => sum + p.amount, 0),
+    totalPayments: filteredPayments.length,
+    avgCheck: filteredPayments.length > 0
+      ? Math.round(filteredPayments.reduce((sum, p) => sum + p.amount, 0) / filteredPayments.length)
+      : 0
+  }
+
+  // Платежи клиента (для детальной карточки)
+  const getClientPayments = (telegramId: number) => {
+    return payments.filter(p => p.telegram_id === telegramId)
+  }
+
+  // Статистика клиента из платежей
+  const getClientStats = (telegramId: number) => {
+    const clientPayments = getClientPayments(telegramId)
+    return {
+      total_paid: clientPayments.reduce((sum, p) => sum + p.amount, 0),
+      payments_count: clientPayments.length,
+      last_payment_at: clientPayments.length > 0 ? clientPayments[0].paid_at : null,
+      source: clientPayments.length > 0 ? clientPayments[0].source : null,
+      payment_method: clientPayments.length > 0 ? clientPayments[0].payment_method : null
+    }
   }
 
   // Создаём Map для быстрой проверки статусов
@@ -546,19 +643,19 @@ export default function MiniAdmin() {
             <div className="grid grid-cols-4 gap-2">
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">RUB</div>
-                <div className="text-xl font-bold text-white">0</div>
+                <div className="text-xl font-bold text-white">{formatAmount(paymentStats.RUB)}</div>
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">USD</div>
-                <div className="text-xl font-bold text-yellow-400">0</div>
+                <div className="text-xl font-bold text-yellow-400">{formatAmount(paymentStats.USD)}</div>
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">USDT</div>
-                <div className="text-xl font-bold text-green-400">0</div>
+                <div className="text-xl font-bold text-green-400">{formatAmount(paymentStats.USDT)}</div>
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">EUR</div>
-                <div className="text-xl font-bold text-yellow-400">0</div>
+                <div className="text-xl font-bold text-yellow-400">{formatAmount(paymentStats.EUR)}</div>
               </div>
             </div>
 
@@ -570,11 +667,11 @@ export default function MiniAdmin() {
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">Оплат</div>
-                <div className="text-2xl font-bold text-green-400">0</div>
+                <div className="text-2xl font-bold text-green-400">{paymentStats.totalPayments}</div>
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">Ср. чек</div>
-                <div className="text-2xl font-bold text-green-400">0</div>
+                <div className="text-2xl font-bold text-green-400">{formatAmount(paymentStats.avgCheck)}</div>
               </div>
             </div>
 
@@ -606,6 +703,7 @@ export default function MiniAdmin() {
                 const daysRemaining = getDaysRemaining(client.expires_at)
                 const expiresDate = client.expires_at ? formatDate(client.expires_at) : '—'
                 const startDate = formatDateShort(client.created_at)
+                const clientStats = getClientStats(client.telegram_id)
 
                 return (
                   <div
@@ -645,15 +743,15 @@ export default function MiniAdmin() {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mb-3">
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Оплачено</span>
-                        <span className="text-white">{formatAmount(client.total_paid)} ₽</span>
+                        <span className="text-white">{formatAmount(clientStats.total_paid)} ₽</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Платежей</span>
-                        <span className="text-white">{client.payments_count || 0}</span>
+                        <span className="text-white">{clientStats.payments_count}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Источник</span>
-                        <span className="text-white">{client.source || '—'}</span>
+                        <span className="text-white">{clientStats.source || client.source || '—'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Начало</span>
@@ -669,9 +767,9 @@ export default function MiniAdmin() {
                       <span className={`px-2 py-1 rounded-lg text-xs ${client.has_chat_access ? 'bg-green-500/20 text-green-400' : 'bg-zinc-800 text-zinc-500'}`}>
                         • Чат
                       </span>
-                      {client.source && (
+                      {(clientStats.source || client.source) && (
                         <span className="px-2 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-400">
-                          💳 {client.source}
+                          💳 {clientStats.source || client.source}
                         </span>
                       )}
                     </div>
@@ -743,7 +841,7 @@ export default function MiniAdmin() {
             )}
 
             {/* Модалка деталей клиента */}
-            {selectedClient && (
+            {selectedClient && !showAddPaymentModal && (
               <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center">
                 <div className="bg-zinc-900 rounded-t-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                   {/* Заголовок */}
@@ -768,32 +866,37 @@ export default function MiniAdmin() {
 
                   <div className="p-4 space-y-4">
                     {/* Детальная информация */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between py-2 border-b border-zinc-800">
-                        <span className="text-zinc-500">Всего оплачено</span>
-                        <span className="font-medium">{formatAmount(selectedClient.total_paid)} ₽</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-zinc-800">
-                        <span className="text-zinc-500">Платежей</span>
-                        <span className="font-medium">{selectedClient.payments_count || 0}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-zinc-800">
-                        <span className="text-zinc-500">Источник</span>
-                        <span className="font-medium">{selectedClient.source || '—'}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-zinc-800">
-                        <span className="text-zinc-500">Последний платёж</span>
-                        <span className="font-medium">{selectedClient.last_payment_at ? formatDate(selectedClient.last_payment_at) : '—'}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-zinc-800">
-                        <span className="text-zinc-500">Метод оплаты</span>
-                        <span className="font-medium">💳 {selectedClient.payment_method || 'Карта'}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-zinc-800">
-                        <span className="text-zinc-500">Клиент с</span>
-                        <span className="font-medium">{formatDate(selectedClient.created_at)}</span>
-                      </div>
-                    </div>
+                    {(() => {
+                      const stats = getClientStats(selectedClient.telegram_id)
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                            <span className="text-zinc-500">Всего оплачено</span>
+                            <span className="font-medium">{formatAmount(stats.total_paid)} ₽</span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                            <span className="text-zinc-500">Платежей</span>
+                            <span className="font-medium">{stats.payments_count}</span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                            <span className="text-zinc-500">Источник</span>
+                            <span className="font-medium">{stats.source || selectedClient.source || '—'}</span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                            <span className="text-zinc-500">Последний платёж</span>
+                            <span className="font-medium">{stats.last_payment_at ? formatDate(stats.last_payment_at) : '—'}</span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                            <span className="text-zinc-500">Метод оплаты</span>
+                            <span className="font-medium">💳 {stats.payment_method || selectedClient.payment_method || 'Карта'}</span>
+                          </div>
+                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                            <span className="text-zinc-500">Клиент с</span>
+                            <span className="font-medium">{formatDate(selectedClient.created_at)}</span>
+                          </div>
+                        </div>
+                      )
+                    })()}
 
                     {/* Статус доступа */}
                     <div className="bg-zinc-800/50 rounded-xl p-4">
@@ -820,6 +923,13 @@ export default function MiniAdmin() {
 
                     {/* Кнопки действий */}
                     <div className="space-y-2">
+                      <button
+                        onClick={() => setShowAddPaymentModal(true)}
+                        className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-medium flex items-center justify-center gap-2"
+                      >
+                        <CreditCard size={18} />
+                        Добавить платёж
+                      </button>
                       <button className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-medium flex items-center justify-center gap-2">
                         <MessageCircle size={18} />
                         Написать сообщение
@@ -841,6 +951,94 @@ export default function MiniAdmin() {
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Модалка добавления платежа */}
+            {showAddPaymentModal && selectedClient && (
+              <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center">
+                <div className="bg-zinc-900 rounded-t-2xl w-full max-w-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold">Добавить платёж</h3>
+                    <button onClick={() => setShowAddPaymentModal(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div className="text-sm text-zinc-500 mb-2">
+                    Клиент: {usersMap.get(selectedClient.telegram_id)?.username
+                      ? `@${usersMap.get(selectedClient.telegram_id)?.username}`
+                      : selectedClient.telegram_id}
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-400 mb-1 block">Сумма</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="1000"
+                      value={newPaymentAmount}
+                      onChange={(e) => setNewPaymentAmount(e.target.value.replace(/\D/g, ''))}
+                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-400 mb-1 block">Валюта</label>
+                    <select
+                      value={newPaymentCurrency}
+                      onChange={(e) => setNewPaymentCurrency(e.target.value)}
+                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                    >
+                      <option value="RUB">RUB (₽)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="USDT">USDT</option>
+                      <option value="EUR">EUR (€)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-400 mb-1 block">Источник</label>
+                    <select
+                      value={newPaymentSource}
+                      onChange={(e) => setNewPaymentSource(e.target.value)}
+                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                    >
+                      <option value="manual">Вручную</option>
+                      <option value="lava.top">lava.top</option>
+                      <option value="stripe">Stripe</option>
+                      <option value="crypto">Крипто</option>
+                      <option value="other">Другое</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-zinc-400 mb-1 block">Метод оплаты</label>
+                    <select
+                      value={newPaymentMethod}
+                      onChange={(e) => setNewPaymentMethod(e.target.value)}
+                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                    >
+                      <option value="card">Карта</option>
+                      <option value="crypto">Крипто</option>
+                      <option value="cash">Наличные</option>
+                      <option value="transfer">Перевод</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!newPaymentAmount || addPayment.isPending}
+                    onClick={() => {
+                      if (newPaymentAmount && selectedClient) {
+                        addPayment.mutate({
+                          telegram_id: selectedClient.telegram_id,
+                          amount: parseFloat(newPaymentAmount),
+                          currency: newPaymentCurrency,
+                          source: newPaymentSource,
+                          payment_method: newPaymentMethod
+                        })
+                      }
+                    }}
+                    className="w-full py-4 bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium"
+                  >
+                    {addPayment.isPending ? 'Добавление...' : 'Добавить платёж'}
+                  </button>
                 </div>
               </div>
             )}
