@@ -525,6 +525,27 @@ export default function CarouselIndex() {
             Создать
           </button>
         </div>
+
+        {/* Carousel Sets Section */}
+        <div className="mt-4 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl overflow-hidden">
+          <div className="relative">
+            <img
+              src="/carousel-sets-cover.jpg"
+              alt="Наборы каруселей"
+              className="w-full h-32 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+              <div>
+                <h3 className="text-white font-bold text-lg">Наборы каруселей</h3>
+                <p className="text-white/80 text-xs">Готовые темы для бизнеса</p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-medium border border-white/30">
+                Скоро
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Style Modal */}
