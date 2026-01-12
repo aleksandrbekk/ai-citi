@@ -166,9 +166,22 @@ export default function MiniAdmin() {
       const expiresAt = new Date()
       expiresAt.setFullYear(expiresAt.getFullYear() + 1)
 
+      // Пробуем найти пользователя в таблице users
+      const { data: userInfo } = await supabase
+        .from('users')
+        .select('username, first_name')
+        .eq('telegram_id', telegram_id)
+        .single()
+
       const { data, error } = await supabase
         .from('premium_clients')
-        .insert({ telegram_id, plan, expires_at: expiresAt.toISOString() })
+        .insert({
+          telegram_id,
+          plan,
+          expires_at: expiresAt.toISOString(),
+          username: userInfo?.username || null,
+          first_name: userInfo?.first_name || null
+        })
         .select()
         .single()
       if (error) throw error
