@@ -85,6 +85,7 @@ export default function MiniAdmin() {
 
   // Premium tab states
   const [premiumSearch, setPremiumSearch] = useState('')
+  const [filterPlan, setFilterPlan] = useState<string>('all')
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -441,8 +442,13 @@ export default function MiniAdmin() {
   const usersMap = new Map<number, User>(users.map((u: User) => [u.telegram_id, u]))
   const usersMapById = new Map<string, User>(users.map((u: User) => [u.id, u]))
 
-  // Фильтрация клиентов по поиску
+  // Фильтрация клиентов по поиску и тарифу
   const filteredPremiumClients = premiumClients.filter((client: PremiumClient) => {
+    // Фильтр по тарифу
+    if (filterPlan !== 'all' && client.plan?.toLowerCase() !== filterPlan.toLowerCase()) {
+      return false
+    }
+    // Поиск
     if (!premiumSearch) return true
     const searchLower = premiumSearch.toLowerCase()
     const userInfo = usersMap.get(client.telegram_id)
@@ -688,18 +694,28 @@ export default function MiniAdmin() {
               </div>
             </div>
 
-            {/* Поиск + кнопка добавления */}
+            {/* Поиск + фильтр + кнопка добавления */}
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
                 <input
                   type="text"
-                  placeholder="Поиск по имени или ID..."
+                  placeholder="Поиск..."
                   value={premiumSearch}
                   onChange={(e) => setPremiumSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500"
                 />
               </div>
+              <select
+                value={filterPlan}
+                onChange={(e) => setFilterPlan(e.target.value)}
+                className="px-3 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-sm"
+              >
+                <option value="all">Все</option>
+                <option value="basic">Basic</option>
+                <option value="pro">Pro</option>
+                <option value="vip">VIP</option>
+              </select>
               <button
                 onClick={() => setShowAddClientModal(true)}
                 className="w-12 h-12 bg-emerald-500 hover:bg-emerald-600 rounded-xl flex items-center justify-center"
