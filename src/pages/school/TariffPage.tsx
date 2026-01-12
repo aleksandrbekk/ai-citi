@@ -57,7 +57,7 @@ export default function TariffPage() {
       {/* Шапка */}
       <div className="flex items-center gap-3 mb-6">
         <Link to="/school" className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-white" />
         </Link>
         <h1 className="text-xl font-bold text-orange-500">{tariffNames[tariffSlug || ''] || 'Курс'}</h1>
       </div>
