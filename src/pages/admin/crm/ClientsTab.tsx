@@ -358,7 +358,7 @@ export function ClientsTab() {
           {clients?.length === 0 ? 'Нет клиентов' : 'Ничего не найдено'}
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-3">
           {filteredClients.map((client) => {
             const user = usersMap.get(client.telegram_id)
             const displayName = client.username || user?.username || client.first_name || user?.first_name
