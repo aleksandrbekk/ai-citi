@@ -15,9 +15,7 @@ import {
   Shield,
   X,
   ChevronRight,
-  ChevronDown,
-  MessageCircle,
-  Link2
+  ChevronDown
 } from 'lucide-react'
 
 // Админские telegram ID
@@ -913,14 +911,6 @@ export default function MiniAdmin() {
                       >
                         <CreditCard size={18} />
                         Добавить платёж
-                      </button>
-                      <button className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-medium flex items-center justify-center gap-2">
-                        <MessageCircle size={18} />
-                        Написать сообщение
-                      </button>
-                      <button className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-medium flex items-center justify-center gap-2">
-                        <Link2 size={18} />
-                        Отправить ссылку-приглашение
                       </button>
                       <button
                         onClick={() => {
