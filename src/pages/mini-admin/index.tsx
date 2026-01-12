@@ -318,7 +318,15 @@ export default function MiniAdmin() {
         {activeTab === 'users' && (
           <div className="space-y-4">
             {/* Форма добавления пользователя */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (newUserId) {
+                  addUser.mutate(parseInt(newUserId))
+                }
+              }}
+              className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3"
+            >
               <h3 className="font-semibold flex items-center gap-2">
                 <UserPlus size={18} />
                 Добавить пользователя
@@ -334,19 +342,14 @@ export default function MiniAdmin() {
                   className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                 />
                 <button
-                  type="button"
-                  onClick={() => {
-                    if (newUserId) {
-                      addUser.mutate(parseInt(newUserId))
-                    }
-                  }}
+                  type="submit"
                   disabled={!newUserId || addUser.isPending}
                   className="px-4 py-2 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center gap-2"
                 >
                   <Plus size={18} />
                 </button>
               </div>
-            </div>
+            </form>
 
             {/* Поиск */}
             <div className="relative">
@@ -434,7 +437,15 @@ export default function MiniAdmin() {
         {activeTab === 'add-client' && (
           <div className="space-y-6">
             {/* Форма добавления */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (newClientId) {
+                  addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
+                }
+              }}
+              className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4"
+            >
               <h3 className="font-semibold flex items-center gap-2">
                 <UserPlus size={18} />
                 Добавить платного клиента
@@ -464,19 +475,14 @@ export default function MiniAdmin() {
                 </select>
               </div>
               <button
-                type="button"
-                onClick={() => {
-                  if (newClientId) {
-                    addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
-                  }
-                }}
+                type="submit"
                 disabled={!newClientId || addClient.isPending}
                 className="w-full py-3 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
                 {addClient.isPending ? 'Добавление...' : 'Добавить'}
               </button>
-            </div>
+            </form>
 
             {/* Список клиентов */}
             <div>
@@ -527,7 +533,15 @@ export default function MiniAdmin() {
         {activeTab === 'add-student' && (
           <div className="space-y-6">
             {/* Форма добавления */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (newStudentId) {
+                  addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
+                }
+              }}
+              className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4"
+            >
               <h3 className="font-semibold flex items-center gap-2">
                 <GraduationCap size={18} />
                 Добавить ученика
@@ -556,19 +570,14 @@ export default function MiniAdmin() {
                 </select>
               </div>
               <button
-                type="button"
-                onClick={() => {
-                  if (newStudentId) {
-                    addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
-                  }
-                }}
+                type="submit"
                 disabled={!newStudentId || addStudent.isPending}
                 className="w-full py-3 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
                 {addStudent.isPending ? 'Добавление...' : 'Добавить'}
               </button>
-            </div>
+            </form>
 
             {/* Список учеников */}
             <div>
