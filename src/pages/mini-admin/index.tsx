@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
@@ -399,14 +399,16 @@ export default function MiniAdmin() {
   }
 
   // Фильтруем платежи по выбранному месяцу
-  const filteredPayments = payments.filter((p: Payment) => {
-    const paymentDate = new Date(p.paid_at)
-    const paymentMonth = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}`
-    return paymentMonth === selectedMonth
-  })
+  const filteredPayments = useMemo(() => {
+    return payments.filter((p: Payment) => {
+      const paymentDate = new Date(p.paid_at)
+      const paymentMonth = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}`
+      return paymentMonth === selectedMonth
+    })
+  }, [payments, selectedMonth])
 
   // Статистика платежей по валютам
-  const paymentStats = {
+  const paymentStats = useMemo(() => ({
     RUB: filteredPayments.filter(p => p.currency === 'RUB').reduce((sum, p) => sum + p.amount, 0),
     USD: filteredPayments.filter(p => p.currency === 'USD').reduce((sum, p) => sum + p.amount, 0),
     USDT: filteredPayments.filter(p => p.currency === 'USDT').reduce((sum, p) => sum + p.amount, 0),
@@ -415,7 +417,7 @@ export default function MiniAdmin() {
     avgCheck: filteredPayments.length > 0
       ? Math.round(filteredPayments.reduce((sum, p) => sum + p.amount, 0) / filteredPayments.length)
       : 0
-  }
+  }), [filteredPayments])
 
   // Платежи клиента (для детальной карточки)
   const getClientPayments = (telegramId: number) => {
