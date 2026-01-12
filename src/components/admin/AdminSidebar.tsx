@@ -41,7 +41,7 @@ export function AdminSidebar() {
   const isMLMActive = location.pathname.startsWith('/admin/mlm')
 
   return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col h-screen">
+    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col h-screen sticky top-0">
       {/* Логотип */}
       <div className="p-6 border-b border-zinc-800">
         <h1 className="text-xl font-bold text-white">AI CITI</h1>

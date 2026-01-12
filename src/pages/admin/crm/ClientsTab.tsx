@@ -33,6 +33,7 @@ interface Payment {
 export function ClientsTab() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
+  const [filterPlan, setFilterPlan] = useState<string>('all')
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date()
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -142,6 +143,11 @@ export function ClientsTab() {
   const filteredClients = useMemo(() => {
     if (!clients) return []
     return clients.filter(client => {
+      // Фильтр по тарифу
+      if (filterPlan !== 'all' && client.plan?.toLowerCase() !== filterPlan.toLowerCase()) {
+        return false
+      }
+      // Поиск
       if (!search) return true
       const searchLower = search.toLowerCase()
       const user = usersMap.get(client.telegram_id)
@@ -153,7 +159,7 @@ export function ClientsTab() {
         user?.first_name?.toLowerCase().includes(searchLower)
       )
     })
-  }, [clients, search, usersMap])
+  }, [clients, search, filterPlan, usersMap])
 
   // Добавление клиента
   const addClient = useMutation({
@@ -329,7 +335,7 @@ export function ClientsTab() {
         </div>
       </div>
 
-      {/* Поиск и добавление */}
+      {/* Поиск, фильтр и добавление */}
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
@@ -341,6 +347,16 @@ export function ClientsTab() {
             className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
           />
         </div>
+        <select
+          value={filterPlan}
+          onChange={(e) => setFilterPlan(e.target.value)}
+          className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-700"
+        >
+          <option value="all">Все тарифы</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Pro</option>
+          <option value="vip">VIP</option>
+        </select>
         <button
           onClick={() => setShowAddClientModal(true)}
           className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors flex items-center gap-2"
