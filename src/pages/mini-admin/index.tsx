@@ -109,9 +109,13 @@ export default function MiniAdmin() {
   // Добавление платного клиента
   const addClient = useMutation({
     mutationFn: async ({ telegram_id, plan }: { telegram_id: number; plan: string }) => {
+      // expires_at - через 1 год
+      const expiresAt = new Date()
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+
       const { data, error } = await supabase
         .from('premium_clients')
-        .insert({ telegram_id, plan })
+        .insert({ telegram_id, plan, expires_at: expiresAt.toISOString() })
         .select()
         .single()
       if (error) throw error
@@ -483,7 +487,6 @@ export default function MiniAdmin() {
                 type="button"
                 disabled={!newClientId || addClient.isPending}
                 onClick={() => {
-                  alert('Клик! ID: ' + newClientId + ', plan: ' + newClientPlan)
                   if (newClientId && !addClient.isPending) {
                     addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
                   }
