@@ -24,16 +24,31 @@ export function getInitData(): string | null {
   return webApp?.initData || null
 }
 
-// Инициализация Telegram WebApp (БЕЗ разворачивания на весь экран)
+// Инициализация Telegram WebApp
+// Fullscreen ТОЛЬКО на мобильных (iOS/Android), на десктопе — компактный режим
 export function expandWebApp() {
   const tg = window.Telegram?.WebApp;
   if (!tg) return null;
 
   tg.ready();
-  // НЕ вызываем tg.expand() и tg.requestFullscreen()
-  // чтобы приложение оставалось в компактном мобильном виде
 
-  // Отключаем вертикальные свайпы для навигации
+  // Определяем платформу
+  const platform = (tg as any).platform;
+  const isMobile = platform === 'android' || platform === 'ios';
+
+  // Fullscreen только на мобильных
+  if (isMobile) {
+    tg.expand();
+    try {
+      if (typeof tg.requestFullscreen === 'function') {
+        tg.requestFullscreen();
+      }
+    } catch (e) {
+      console.log('requestFullscreen not available');
+    }
+  }
+
+  // Отключаем вертикальные свайпы для навигации (везде)
   try {
     if (typeof tg.disableVerticalSwipes === 'function') {
       tg.disableVerticalSwipes();
