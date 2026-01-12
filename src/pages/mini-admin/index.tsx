@@ -324,20 +324,23 @@ export default function MiniAdmin() {
               </h3>
               <div className="flex gap-2">
                 <input
-                  type="number"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="Telegram ID"
                   value={newUserId}
-                  onChange={(e) => setNewUserId(e.target.value)}
+                  onChange={(e) => setNewUserId(e.target.value.replace(/\D/g, ''))}
                   className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                 />
                 <button
+                  type="button"
                   onClick={() => {
                     if (newUserId) {
                       addUser.mutate(parseInt(newUserId))
                     }
                   }}
                   disabled={!newUserId || addUser.isPending}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center gap-2"
                 >
                   <Plus size={18} />
                 </button>
@@ -438,10 +441,12 @@ export default function MiniAdmin() {
               <div>
                 <label className="text-sm text-zinc-400 mb-1 block">Telegram ID</label>
                 <input
-                  type="number"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="123456789"
                   value={newClientId}
-                  onChange={(e) => setNewClientId(e.target.value)}
+                  onChange={(e) => setNewClientId(e.target.value.replace(/\D/g, ''))}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                 />
               </div>
@@ -458,13 +463,14 @@ export default function MiniAdmin() {
                 </select>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   if (newClientId) {
                     addClient.mutate({ telegram_id: parseInt(newClientId), plan: newClientPlan })
                   }
                 }}
                 disabled={!newClientId || addClient.isPending}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
+                className="w-full py-3 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
                 {addClient.isPending ? 'Добавление...' : 'Добавить'}
@@ -528,10 +534,12 @@ export default function MiniAdmin() {
               <div>
                 <label className="text-sm text-zinc-400 mb-1 block">Telegram ID</label>
                 <input
-                  type="number"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   placeholder="123456789"
                   value={newStudentId}
-                  onChange={(e) => setNewStudentId(e.target.value)}
+                  onChange={(e) => setNewStudentId(e.target.value.replace(/\D/g, ''))}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                 />
               </div>
@@ -547,13 +555,14 @@ export default function MiniAdmin() {
                 </select>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   if (newStudentId) {
                     addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
                   }
                 }}
                 disabled={!newStudentId || addStudent.isPending}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
+                className="w-full py-3 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2"
               >
                 <Plus size={18} />
                 {addStudent.isPending ? 'Добавление...' : 'Добавить'}
