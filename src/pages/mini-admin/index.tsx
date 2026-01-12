@@ -774,12 +774,6 @@ export default function MiniAdmin() {
 
                     {/* Теги */}
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-1 rounded-lg text-xs ${client.has_channel_access ? 'bg-green-500/20 text-green-400' : 'bg-zinc-800 text-zinc-500'}`}>
-                        • Канал
-                      </span>
-                      <span className={`px-2 py-1 rounded-lg text-xs ${client.has_chat_access ? 'bg-green-500/20 text-green-400' : 'bg-zinc-800 text-zinc-500'}`}>
-                        • Чат
-                      </span>
                       {(clientStats.source || client.source) && (
                         <span className="px-2 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-400">
                           💳 {clientStats.source || client.source}
@@ -910,29 +904,6 @@ export default function MiniAdmin() {
                         </div>
                       )
                     })()}
-
-                    {/* Статус доступа */}
-                    <div className="bg-zinc-800/50 rounded-xl p-4">
-                      <div className="text-xs text-zinc-500 uppercase mb-3">Статус доступа</div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className={`flex flex-col items-center justify-center p-4 rounded-xl ${selectedClient.has_channel_access ? 'bg-green-500/20' : 'bg-zinc-800'}`}>
-                          {selectedClient.has_channel_access ? (
-                            <span className="text-green-400 text-2xl mb-1">✓</span>
-                          ) : (
-                            <X className="text-zinc-500 w-6 h-6 mb-1" />
-                          )}
-                          <span className={selectedClient.has_channel_access ? 'text-green-400' : 'text-zinc-500'}>Канал</span>
-                        </div>
-                        <div className={`flex flex-col items-center justify-center p-4 rounded-xl ${selectedClient.has_chat_access ? 'bg-green-500/20' : 'bg-zinc-800'}`}>
-                          {selectedClient.has_chat_access ? (
-                            <span className="text-green-400 text-2xl mb-1">✓</span>
-                          ) : (
-                            <X className="text-zinc-500 w-6 h-6 mb-1" />
-                          )}
-                          <span className={selectedClient.has_chat_access ? 'text-green-400' : 'text-zinc-500'}>Чат</span>
-                        </div>
-                      </div>
-                    </div>
 
                     {/* Кнопки действий */}
                     <div className="space-y-2">

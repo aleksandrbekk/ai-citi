@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import {
-  Plus, Search, X, ChevronRight, MessageCircle, Link2, CreditCard, Users, TrendingUp
+  Plus, Search, X, ChevronRight, CreditCard, Users, TrendingUp
 } from 'lucide-react'
 
 interface PremiumClient {
@@ -424,18 +424,6 @@ export function ClientsTab() {
 
                 {/* Теги */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  {client.has_channel_access && (
-                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                      Канал
-                    </span>
-                  )}
-                  {client.has_chat_access && (
-                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                      Чат
-                    </span>
-                  )}
                   {client.source && (
                     <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded flex items-center gap-1">
                       <CreditCard className="w-3 h-3" />
@@ -587,22 +575,6 @@ export function ClientsTab() {
                   </div>
                 )
               })()}
-
-              {/* Доступы */}
-              <div className="flex gap-3">
-                <div className={`flex-1 p-3 rounded-lg border ${selectedClient.has_channel_access ? 'bg-green-500/10 border-green-500/30' : 'bg-zinc-800 border-zinc-700'}`}>
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className={`w-4 h-4 ${selectedClient.has_channel_access ? 'text-green-500' : 'text-zinc-500'}`} />
-                    <span className={selectedClient.has_channel_access ? 'text-green-500' : 'text-zinc-500'}>Канал</span>
-                  </div>
-                </div>
-                <div className={`flex-1 p-3 rounded-lg border ${selectedClient.has_chat_access ? 'bg-blue-500/10 border-blue-500/30' : 'bg-zinc-800 border-zinc-700'}`}>
-                  <div className="flex items-center gap-2">
-                    <Link2 className={`w-4 h-4 ${selectedClient.has_chat_access ? 'text-blue-500' : 'text-zinc-500'}`} />
-                    <span className={selectedClient.has_chat_access ? 'text-blue-500' : 'text-zinc-500'}>Чат</span>
-                  </div>
-                </div>
-              </div>
 
               {/* История платежей */}
               <div className="border-t border-zinc-800 pt-4">
