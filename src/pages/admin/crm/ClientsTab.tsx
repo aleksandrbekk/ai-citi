@@ -1,62 +1,210 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { 
-  Plus, Search, MoreVertical, DollarSign, Trash2
+import {
+  Plus, Search, X, ChevronRight, MessageCircle, Link2, CreditCard, Users, TrendingUp
 } from 'lucide-react'
 
-interface Client {
+interface PremiumClient {
   id: string
   telegram_id: number
   username: string | null
   first_name: string | null
   plan: string
-  started_at: string
-  expires_at: string
-  in_channel: boolean
-  in_chat: boolean
+  created_at: string
+  expires_at?: string
+  source?: string
+  payment_method?: string
+  has_channel_access?: boolean
+  has_chat_access?: boolean
+}
+
+interface Payment {
+  id: string
+  telegram_id: number
+  amount: number
+  currency: string
   source: string
-  tags: string[]
-  total_paid_usd: number
-  payments_count: number
-  notes: string | null
+  payment_method: string
+  paid_at: string
+  created_at: string
 }
 
 export function ClientsTab() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [filterPlan, setFilterPlan] = useState<string>('all')
-  const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+  const [showAddClientModal, setShowAddClientModal] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<PremiumClient | null>(null)
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false)
+
+  // Форма платежа
+  const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentCurrency, setPaymentCurrency] = useState('RUB')
+  const [paymentSource, setPaymentSource] = useState('manual')
+  const [paymentMethod, setPaymentMethod] = useState('card')
+
+  // Форма нового клиента
+  const [newClientTelegramId, setNewClientTelegramId] = useState('')
+  const [newClientPlan, setNewClientPlan] = useState('BASIC')
 
   // Загрузка клиентов
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['premium-clients'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('premium_clients')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as Client[]
+      return data as PremiumClient[]
     }
   })
 
+  // Загрузка всех пользователей для поиска username
+  const { data: usersData } = useQuery({
+    queryKey: ['all-users-for-premium'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('telegram_id, username, first_name')
+      if (error) throw error
+      return data
+    }
+  })
+
+  const usersMap = useMemo(() => {
+    const map = new Map<number, { username?: string; first_name?: string }>()
+    usersData?.forEach(u => {
+      map.set(u.telegram_id, { username: u.username, first_name: u.first_name })
+    })
+    return map
+  }, [usersData])
+
+  // Загрузка платежей
+  const { data: payments } = useQuery({
+    queryKey: ['all-payments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .order('paid_at', { ascending: false })
+      if (error) throw error
+      return data as Payment[]
+    }
+  })
+
+  // Фильтруем платежи по выбранному месяцу
+  const filteredPayments = useMemo(() => {
+    if (!payments) return []
+    return payments.filter(p => {
+      const paidDate = new Date(p.paid_at)
+      const monthStr = `${paidDate.getFullYear()}-${String(paidDate.getMonth() + 1).padStart(2, '0')}`
+      return monthStr === selectedMonth
+    })
+  }, [payments, selectedMonth])
+
+  // Статистика платежей
+  const paymentStats = useMemo(() => {
+    return {
+      RUB: filteredPayments.filter(p => p.currency === 'RUB').reduce((sum, p) => sum + p.amount, 0),
+      USD: filteredPayments.filter(p => p.currency === 'USD').reduce((sum, p) => sum + p.amount, 0),
+      USDT: filteredPayments.filter(p => p.currency === 'USDT').reduce((sum, p) => sum + p.amount, 0),
+      EUR: filteredPayments.filter(p => p.currency === 'EUR').reduce((sum, p) => sum + p.amount, 0),
+      totalPayments: filteredPayments.length,
+      avgCheck: filteredPayments.length > 0
+        ? Math.round(filteredPayments.reduce((sum, p) => sum + p.amount, 0) / filteredPayments.length)
+        : 0
+    }
+  }, [filteredPayments])
+
+  // Функция для получения статистики клиента из payments
+  const getClientStats = (telegramId: number) => {
+    if (!payments) return { totalPaid: 0, paymentsCount: 0, lastPaymentAt: null }
+    const clientPayments = payments.filter(p => p.telegram_id === telegramId)
+    return {
+      totalPaid: clientPayments.reduce((sum, p) => sum + p.amount, 0),
+      paymentsCount: clientPayments.length,
+      lastPaymentAt: clientPayments[0]?.paid_at || null
+    }
+  }
+
+  // Функция для получения платежей клиента
+  const getClientPayments = (telegramId: number) => {
+    if (!payments) return []
+    return payments.filter(p => p.telegram_id === telegramId)
+  }
+
+  // Фильтрация клиентов
+  const filteredClients = useMemo(() => {
+    if (!clients) return []
+    return clients.filter(client => {
+      if (!search) return true
+      const searchLower = search.toLowerCase()
+      const user = usersMap.get(client.telegram_id)
+      return (
+        client.telegram_id.toString().includes(search) ||
+        client.username?.toLowerCase().includes(searchLower) ||
+        user?.username?.toLowerCase().includes(searchLower) ||
+        client.first_name?.toLowerCase().includes(searchLower) ||
+        user?.first_name?.toLowerCase().includes(searchLower)
+      )
+    })
+  }, [clients, search, usersMap])
+
   // Добавление клиента
   const addClient = useMutation({
-    mutationFn: async (newClient: Partial<Client>) => {
+    mutationFn: async ({ telegram_id, plan }: { telegram_id: number; plan: string }) => {
+      const expiresAt = new Date()
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+
+      // Пробуем найти пользователя в таблице users
+      const { data: userInfo } = await supabase
+        .from('users')
+        .select('username, first_name')
+        .eq('telegram_id', telegram_id)
+        .single()
+
       const { data, error } = await supabase
         .from('premium_clients')
-        .insert(newClient)
+        .insert({
+          telegram_id,
+          plan,
+          expires_at: expiresAt.toISOString(),
+          username: userInfo?.username || null,
+          first_name: userInfo?.first_name || null
+        })
         .select()
         .single()
       if (error) throw error
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
-      setShowAddModal(false)
+      queryClient.invalidateQueries({ queryKey: ['premium-clients'] })
+      setShowAddClientModal(false)
+      setNewClientTelegramId('')
+      setNewClientPlan('BASIC')
+    }
+  })
+
+  // Добавление платежа
+  const addPayment = useMutation({
+    mutationFn: async (data: { telegram_id: number; amount: number; currency: string; source: string; payment_method: string }) => {
+      const { error } = await supabase
+        .from('payments')
+        .insert(data)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-payments'] })
+      setShowAddPaymentModal(false)
+      setPaymentAmount('')
+      setPaymentCurrency('RUB')
+      setPaymentSource('manual')
+      setPaymentMethod('card')
     }
   })
 
@@ -70,765 +218,535 @@ export function ClientsTab() {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['premium-clients'] })
       setSelectedClient(null)
     }
   })
 
-  // Обновление клиента
-  const updateClient = useMutation({
-    mutationFn: async ({ id, data }: { id: string, data: Partial<Client> }) => {
-      const { error } = await supabase
-        .from('premium_clients')
-        .update(data)
-        .eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] })
-    }
-  })
-
-  // Фильтрация
-  const filteredClients = clients?.filter(client => {
-    // Поиск
-    if (search) {
-      const searchLower = search.toLowerCase()
-      const matchesSearch = 
-        client.telegram_id.toString().includes(search) ||
-        client.username?.toLowerCase().includes(searchLower) ||
-        client.first_name?.toLowerCase().includes(searchLower)
-      if (!matchesSearch) return false
-    }
-    // Фильтр по плану
-    if (filterPlan !== 'all' && client.plan !== filterPlan) return false
-    // Фильтр по статусу
-    if (filterStatus !== 'all') {
-      const daysLeft = Math.ceil((new Date(client.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-      if (filterStatus === 'active' && daysLeft <= 0) return false
-      if (filterStatus === 'expiring' && (daysLeft <= 0 || daysLeft > 7)) return false
-      if (filterStatus === 'expired' && daysLeft > 0) return false
-    }
-    return true
-  })
-
-  // Расчёт дней до истечения
-  const getDaysLeft = (expiresAt: string) => {
-    const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    return days
+  // Хелперы
+  const formatDateShort = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
   }
 
-  // Цвет статуса
-  const getStatusColor = (expiresAt: string) => {
-    const days = getDaysLeft(expiresAt)
-    if (days <= 0) return 'text-red-500 bg-red-500/10'
-    if (days <= 7) return 'text-yellow-500 bg-yellow-500/10'
-    return 'text-green-500 bg-green-500/10'
+  const getDaysRemaining = (expiresAt?: string) => {
+    if (!expiresAt) return null
+    const now = new Date()
+    const exp = new Date(expiresAt)
+    const diff = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    return diff
   }
 
-  const getStatusText = (expiresAt: string) => {
-    const days = getDaysLeft(expiresAt)
-    if (days <= 0) return `Истёк ${Math.abs(days)} дн. назад`
-    if (days === 1) return '1 день'
-    return `${days} дн.`
+  const formatAmount = (amount: number, currency: string) => {
+    if (currency === 'RUB') return `${amount.toLocaleString('ru-RU')} ₽`
+    if (currency === 'USD') return `$${amount.toLocaleString('en-US')}`
+    if (currency === 'USDT') return `${amount.toLocaleString('en-US')} USDT`
+    if (currency === 'EUR') return `€${amount.toLocaleString('en-US')}`
+    return `${amount} ${currency}`
   }
+
+  const getMonthOptions = () => {
+    const months = []
+    const now = new Date()
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const label = d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })
+      months.push({ value, label })
+    }
+    return months
+  }
+
+  const activeClientsCount = clients?.filter(c => {
+    const days = getDaysRemaining(c.expires_at)
+    return days === null || days > 0
+  }).length || 0
 
   return (
-    <div>
-      {/* Фильтры и поиск */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        {/* Поиск */}
-        <div className="relative flex-1 min-w-[200px]">
+    <div className="space-y-6">
+      {/* Статистика */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        {/* Заголовок с выбором месяца */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-semibold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            Статистика платежей
+          </h3>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm"
+          >
+            {getMonthOptions().map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Суммы по валютам */}
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          <div className="bg-zinc-800 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-white">{paymentStats.RUB.toLocaleString('ru-RU')} ₽</div>
+            <div className="text-xs text-zinc-500">RUB</div>
+          </div>
+          <div className="bg-zinc-800 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-white">${paymentStats.USD.toLocaleString('en-US')}</div>
+            <div className="text-xs text-zinc-500">USD</div>
+          </div>
+          <div className="bg-zinc-800 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-white">{paymentStats.USDT.toLocaleString('en-US')}</div>
+            <div className="text-xs text-zinc-500">USDT</div>
+          </div>
+          <div className="bg-zinc-800 rounded-lg p-3 text-center">
+            <div className="text-lg font-bold text-white">€{paymentStats.EUR.toLocaleString('en-US')}</div>
+            <div className="text-xs text-zinc-500">EUR</div>
+          </div>
+        </div>
+
+        {/* Статистика: Активных, Оплат, Ср. чек */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="w-4 h-4 text-blue-400" />
+              <span className="text-xs text-zinc-500">Активных</span>
+            </div>
+            <div className="text-xl font-bold text-white">{activeClientsCount}</div>
+          </div>
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <CreditCard className="w-4 h-4 text-green-400" />
+              <span className="text-xs text-zinc-500">Оплат</span>
+            </div>
+            <div className="text-xl font-bold text-white">{paymentStats.totalPayments}</div>
+          </div>
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-4 h-4 text-orange-400" />
+              <span className="text-xs text-zinc-500">Ср. чек</span>
+            </div>
+            <div className="text-xl font-bold text-white">{paymentStats.avgCheck.toLocaleString('ru-RU')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Поиск и добавление */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
           <input
             type="text"
             placeholder="Поиск по ID, username, имени..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
+            className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
           />
         </div>
-
-        {/* Фильтр по плану */}
-        <select
-          value={filterPlan}
-          onChange={(e) => setFilterPlan(e.target.value)}
-          className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-zinc-700"
-        >
-          <option value="all">Все тарифы</option>
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="vip">VIP</option>
-        </select>
-
-        {/* Фильтр по статусу */}
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-zinc-700"
-        >
-          <option value="all">Все статусы</option>
-          <option value="active">Активные</option>
-          <option value="expiring">Истекает скоро</option>
-          <option value="expired">Просроченные</option>
-        </select>
-
-        {/* Кнопка добавления */}
         <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          onClick={() => setShowAddClientModal(true)}
+          className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Добавить
+          <span className="hidden sm:inline">Добавить</span>
         </button>
       </div>
 
-      {/* Таблица */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-zinc-800">
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Пользователь</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Тариф</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Источник</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Истекает</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">LTV</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Статус</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
-                  Загрузка...
-                </td>
-              </tr>
-            ) : filteredClients?.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
-                  {clients?.length === 0 ? 'Нет клиентов' : 'Ничего не найдено'}
-                </td>
-              </tr>
-            ) : (
-              filteredClients?.map((client) => (
-                <tr 
-                  key={client.id} 
-                  className={`border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer ${
-                    getDaysLeft(client.expires_at) <= 0 ? 'bg-red-500/5' : 
-                    getDaysLeft(client.expires_at) <= 7 ? 'bg-yellow-500/5' : ''
-                  }`}
-                  onClick={() => setSelectedClient(client)}
-                >
-                  <td className="px-4 py-3">
+      {/* Список клиентов */}
+      {isLoading ? (
+        <div className="text-center py-8 text-zinc-500">Загрузка...</div>
+      ) : filteredClients.length === 0 ? (
+        <div className="text-center py-8 text-zinc-500">
+          {clients?.length === 0 ? 'Нет клиентов' : 'Ничего не найдено'}
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {filteredClients.map((client) => {
+            const user = usersMap.get(client.telegram_id)
+            const displayName = client.username || user?.username || client.first_name || user?.first_name
+            const daysLeft = getDaysRemaining(client.expires_at)
+            const stats = getClientStats(client.telegram_id)
+
+            return (
+              <div
+                key={client.id}
+                onClick={() => setSelectedClient(client)}
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors cursor-pointer"
+              >
+                {/* Шапка карточки */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-lg text-white">
+                      {(displayName?.[0] || '?').toUpperCase()}
+                    </div>
                     <div>
                       <div className="font-medium text-white">
-                        {client.first_name || 'Без имени'}
+                        {displayName ? `@${displayName}` : `ID: ${client.telegram_id}`}
                       </div>
-                      <div className="text-sm text-zinc-500">
-                        {client.username ? `@${client.username}` : client.telegram_id}
-                      </div>
+                      <div className="text-xs text-zinc-500">{client.telegram_id}</div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-sm rounded">
-                      {client.plan}
+                  </div>
+                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">
+                    {client.plan}
+                  </span>
+                </div>
+
+                {/* Осталось и истекает */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-zinc-800/50 rounded-lg p-2">
+                    <div className="text-xs text-zinc-500">Осталось</div>
+                    <div className={`text-lg font-bold ${
+                      daysLeft === null ? 'text-zinc-400' :
+                      daysLeft <= 0 ? 'text-red-500' :
+                      daysLeft <= 7 ? 'text-yellow-500' : 'text-green-500'
+                    }`}>
+                      {daysLeft === null ? '∞' : daysLeft <= 0 ? 'Истёк' : `${daysLeft} дн.`}
+                    </div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded-lg p-2">
+                    <div className="text-xs text-zinc-500">Истекает</div>
+                    <div className="text-white font-medium">
+                      {client.expires_at
+                        ? new Date(client.expires_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : '—'
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {/* Оплачено и платежей */}
+                <div className="flex items-center justify-between text-sm mb-3">
+                  <div className="text-zinc-400">
+                    Оплачено: <span className="text-white">{stats.totalPaid.toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                  <div className="text-zinc-400">
+                    Платежей: <span className="text-white">{stats.paymentsCount}</span>
+                  </div>
+                </div>
+
+                {/* Теги */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {client.has_channel_access && (
+                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                      Канал
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-400 text-sm">
-                    {client.source}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm">
-                      <div className={getStatusColor(client.expires_at).split(' ')[0]}>
-                        {getStatusText(client.expires_at)}
-                      </div>
-                      <div className="text-zinc-500 text-xs">
-                        {new Date(client.expires_at).toLocaleDateString('ru')}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-white">
-                    ${client.total_paid_usd}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      {client.in_channel && (
-                        <span className="w-2 h-2 bg-green-500 rounded-full" title="В канале" />
-                      )}
-                      {client.in_chat && (
-                        <span className="w-2 h-2 bg-blue-500 rounded-full" title="В чате" />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button className="p-2 hover:bg-zinc-700 rounded-lg transition-colors">
-                      <MoreVertical className="w-4 h-4 text-zinc-400" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                  )}
+                  {client.has_chat_access && (
+                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                      Чат
+                    </span>
+                  )}
+                  {client.source && (
+                    <span className="px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded flex items-center gap-1">
+                      <CreditCard className="w-3 h-3" />
+                      {client.source}
+                    </span>
+                  )}
+                </div>
+
+                {/* Подсказка */}
+                <div className="text-center text-xs text-zinc-600 mt-3 pt-3 border-t border-zinc-800 flex items-center justify-center gap-1">
+                  Нажмите для деталей <ChevronRight className="w-3 h-3" />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Модалка добавления клиента */}
-      {showAddModal && (
-        <AddClientModal
-          onClose={() => setShowAddModal(false)}
-          onAdd={(data) => addClient.mutate(data)}
-          isLoading={addClient.isPending}
-        />
+      {showAddClientModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Добавить клиента</h2>
+              <button onClick={() => setShowAddClientModal(false)} className="text-zinc-500 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Telegram ID</label>
+                <input
+                  type="number"
+                  value={newClientTelegramId}
+                  onChange={(e) => setNewClientTelegramId(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                  placeholder="123456789"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Тариф</label>
+                <select
+                  value={newClientPlan}
+                  onChange={(e) => setNewClientPlan(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                >
+                  <option value="BASIC">BASIC</option>
+                  <option value="PRO">PRO</option>
+                  <option value="VIP">VIP</option>
+                </select>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (newClientTelegramId) {
+                    addClient.mutate({
+                      telegram_id: parseInt(newClientTelegramId),
+                      plan: newClientPlan
+                    })
+                  }
+                }}
+                disabled={addClient.isPending || !newClientTelegramId}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                {addClient.isPending ? 'Добавление...' : 'Добавить'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Модалка деталей клиента */}
       {selectedClient && (
-        <ClientDetailModal
-          client={selectedClient}
-          onClose={() => setSelectedClient(null)}
-          onDelete={() => deleteClient.mutate(selectedClient.id)}
-          onUpdate={(data) => updateClient.mutate({ id: selectedClient.id, data })}
-        />
-      )}
-    </div>
-  )
-}
-
-// Модалка добавления клиента
-function AddClientModal({ 
-  onClose, 
-  onAdd, 
-  isLoading 
-}: { 
-  onClose: () => void
-  onAdd: (data: Partial<Client>) => void
-  isLoading: boolean
-}) {
-  const [form, setForm] = useState({
-    telegram_id: '',
-    username: '',
-    first_name: '',
-    plan: 'basic',
-    days: '30',
-    source: 'manual',
-    notes: ''
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + parseInt(form.days))
-    
-    onAdd({
-      telegram_id: parseInt(form.telegram_id),
-      username: form.username || null,
-      first_name: form.first_name || null,
-      plan: form.plan,
-      expires_at: expiresAt.toISOString(),
-      source: form.source,
-      notes: form.notes || null
-    })
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Добавить клиента</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white">✕</button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">Telegram ID *</label>
-            <input
-              type="number"
-              required
-              value={form.telegram_id}
-              onChange={(e) => setForm({...form, telegram_id: e.target.value})}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              placeholder="123456789"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">Username</label>
-            <input
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm({...form, username: e.target.value})}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              placeholder="username"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">Имя</label>
-            <input
-              type="text"
-              value={form.first_name}
-              onChange={(e) => setForm({...form, first_name: e.target.value})}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              placeholder="Иван"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Тариф</label>
-              <select
-                value={form.plan}
-                onChange={(e) => setForm({...form, plan: e.target.value})}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              >
-                <option value="basic">Basic</option>
-                <option value="pro">Pro</option>
-                <option value="vip">VIP</option>
-              </select>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Шапка */}
+            <div className="sticky top-0 bg-zinc-900 border-b border-zinc-800 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center text-xl text-white">
+                  {((selectedClient.username || selectedClient.first_name)?.[0] || '?').toUpperCase()}
+                </div>
+                <div>
+                  <div className="font-bold text-white text-lg">
+                    {selectedClient.username ? `@${selectedClient.username}` : selectedClient.first_name || `ID: ${selectedClient.telegram_id}`}
+                  </div>
+                  <div className="text-sm text-zinc-500">{selectedClient.telegram_id}</div>
+                </div>
+              </div>
+              <button onClick={() => setSelectedClient(null)} className="text-zinc-500 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
             </div>
 
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Дней подписки</label>
-              <input
-                type="number"
-                value={form.days}
-                onChange={(e) => setForm({...form, days: e.target.value})}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-                placeholder="30"
-              />
-            </div>
-          </div>
+            <div className="p-4 space-y-4">
+              {/* Основная информация */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-zinc-800 rounded-lg p-3">
+                  <div className="text-xs text-zinc-500 mb-1">Тариф</div>
+                  <div className="text-white font-medium">{selectedClient.plan}</div>
+                </div>
+                <div className="bg-zinc-800 rounded-lg p-3">
+                  <div className="text-xs text-zinc-500 mb-1">Осталось</div>
+                  {(() => {
+                    const days = getDaysRemaining(selectedClient.expires_at)
+                    return (
+                      <div className={`font-medium ${
+                        days === null ? 'text-zinc-400' :
+                        days <= 0 ? 'text-red-500' :
+                        days <= 7 ? 'text-yellow-500' : 'text-green-500'
+                      }`}>
+                        {days === null ? '∞' : days <= 0 ? `Истёк ${Math.abs(days)} дн. назад` : `${days} дн.`}
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">Источник</label>
-            <select
-              value={form.source}
-              onChange={(e) => setForm({...form, source: e.target.value})}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-            >
-              <option value="manual">Вручную</option>
-              <option value="lava">Lava</option>
-              <option value="crypto">Crypto</option>
-              <option value="migration">Миграция</option>
-            </select>
-          </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-zinc-800 rounded-lg p-3">
+                  <div className="text-xs text-zinc-500 mb-1">Истекает</div>
+                  <div className="text-white">
+                    {selectedClient.expires_at
+                      ? new Date(selectedClient.expires_at).toLocaleDateString('ru-RU')
+                      : '—'
+                    }
+                  </div>
+                </div>
+                <div className="bg-zinc-800 rounded-lg p-3">
+                  <div className="text-xs text-zinc-500 mb-1">Начало</div>
+                  <div className="text-white">{formatDateShort(selectedClient.created_at)}</div>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm text-zinc-400 mb-1">Заметка</label>
-            <textarea
-              value={form.notes}
-              onChange={(e) => setForm({...form, notes: e.target.value})}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600 resize-none"
-              rows={2}
-              placeholder="Комментарий..."
-            />
-          </div>
+              {/* Статистика платежей */}
+              {(() => {
+                const stats = getClientStats(selectedClient.telegram_id)
+                return (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-zinc-800 rounded-lg p-3">
+                      <div className="text-xs text-zinc-500 mb-1">Всего оплачено</div>
+                      <div className="text-white font-medium">{stats.totalPaid.toLocaleString('ru-RU')} ₽</div>
+                    </div>
+                    <div className="bg-zinc-800 rounded-lg p-3">
+                      <div className="text-xs text-zinc-500 mb-1">Платежей</div>
+                      <div className="text-white font-medium">{stats.paymentsCount}</div>
+                    </div>
+                  </div>
+                )
+              })()}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
-          >
-            {isLoading ? 'Добавление...' : 'Добавить клиента'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
+              {/* Доступы */}
+              <div className="flex gap-3">
+                <div className={`flex-1 p-3 rounded-lg border ${selectedClient.has_channel_access ? 'bg-green-500/10 border-green-500/30' : 'bg-zinc-800 border-zinc-700'}`}>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className={`w-4 h-4 ${selectedClient.has_channel_access ? 'text-green-500' : 'text-zinc-500'}`} />
+                    <span className={selectedClient.has_channel_access ? 'text-green-500' : 'text-zinc-500'}>Канал</span>
+                  </div>
+                </div>
+                <div className={`flex-1 p-3 rounded-lg border ${selectedClient.has_chat_access ? 'bg-blue-500/10 border-blue-500/30' : 'bg-zinc-800 border-zinc-700'}`}>
+                  <div className="flex items-center gap-2">
+                    <Link2 className={`w-4 h-4 ${selectedClient.has_chat_access ? 'text-blue-500' : 'text-zinc-500'}`} />
+                    <span className={selectedClient.has_chat_access ? 'text-blue-500' : 'text-zinc-500'}>Чат</span>
+                  </div>
+                </div>
+              </div>
 
-// Модалка деталей клиента
-function ClientDetailModal({
-  client,
-  onClose,
-  onDelete,
-  onUpdate
-}: {
-  client: Client
-  onClose: () => void
-  onDelete: () => void
-  onUpdate: (data: Partial<Client>) => void
-}) {
-  const queryClient = useQueryClient()
-  const [isEditing, setIsEditing] = useState(false)
-  const [form, setForm] = useState({
-    first_name: client.first_name || '',
-    username: client.username || '',
-    plan: client.plan,
-    days: '30',
-    source: client.source,
-    notes: client.notes || '',
-    in_channel: client.in_channel,
-    in_chat: client.in_chat
-  })
-  
-  const [newPayment, setNewPayment] = useState({ amount: '', description: '' })
-  const [showPaymentForm, setShowPaymentForm] = useState(false)
+              {/* История платежей */}
+              <div className="border-t border-zinc-800 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-white font-medium">История платежей</h4>
+                  <button
+                    onClick={() => setShowAddPaymentModal(true)}
+                    className="text-green-500 hover:text-green-400 text-sm flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Добавить платёж
+                  </button>
+                </div>
 
-  // Загрузка платежей
-  const { data: payments, refetch: refetchPayments } = useQuery({
-    queryKey: ['payments', client.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('client_id', client.id)
-        .order('payment_date', { ascending: false })
-      return data || []
-    },
-    enabled: !!client.id
-  })
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {getClientPayments(selectedClient.telegram_id).length > 0 ? (
+                    getClientPayments(selectedClient.telegram_id).map((payment) => (
+                      <div key={payment.id} className="bg-zinc-800 rounded-lg p-3 flex items-center justify-between">
+                        <div>
+                          <div className="text-green-400 font-medium">{formatAmount(payment.amount, payment.currency)}</div>
+                          <div className="text-xs text-zinc-500">{payment.source} • {payment.payment_method}</div>
+                        </div>
+                        <div className="text-xs text-zinc-500">
+                          {new Date(payment.paid_at).toLocaleDateString('ru-RU')}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-zinc-500 py-4">Нет платежей</div>
+                  )}
+                </div>
+              </div>
 
-  // Функция добавления платежа
-  const handleAddPayment = async () => {
-    if (!newPayment.amount || !client.id) return
-    
-    const amount = parseFloat(newPayment.amount)
-    
-    // Создаём платёж
-    await supabase.from('payments').insert({
-      client_id: client.id,
-      amount,
-      description: newPayment.description || null
-    })
-    
-    // Обновляем LTV клиента
-    const newLTV = (client.total_paid_usd || 0) + amount
-    await supabase
-      .from('premium_clients')
-      .update({ total_paid_usd: newLTV })
-      .eq('id', client.id)
-    
-    // Обновляем данные
-    refetchPayments()
-    queryClient.invalidateQueries({ queryKey: ['clients'] })
-    setNewPayment({ amount: '', description: '' })
-    setShowPaymentForm(false)
-  }
-
-  // Функция удаления платежа
-  const handleDeletePayment = async (paymentId: string, amount: number) => {
-    if (!confirm('Удалить платёж?')) return
-    
-    await supabase.from('payments').delete().eq('id', paymentId)
-    
-    // Обновляем LTV
-    const newLTV = Math.max(0, (client.total_paid_usd || 0) - amount)
-    await supabase
-      .from('premium_clients')
-      .update({ total_paid_usd: newLTV })
-      .eq('id', client.id)
-    
-    refetchPayments()
-    queryClient.invalidateQueries({ queryKey: ['clients'] })
-  }
-
-  const daysLeft = Math.ceil((new Date(client.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-
-  const handleSave = () => {
-    const updates: Partial<Client> = {
-      first_name: form.first_name || null,
-      username: form.username || null,
-      plan: form.plan,
-      source: form.source,
-      notes: form.notes || null,
-      in_channel: form.in_channel,
-      in_chat: form.in_chat
-    }
-    
-    // Если указаны дни — продлить подписку
-    if (form.days && parseInt(form.days) > 0) {
-      const newExpires = new Date()
-      newExpires.setDate(newExpires.getDate() + parseInt(form.days))
-      updates.expires_at = newExpires.toISOString()
-    }
-    
-    onUpdate(updates)
-    setIsEditing(false)
-  }
-
-  if (isEditing) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-white">Редактировать клиента</h2>
-            <button onClick={() => setIsEditing(false)} className="text-zinc-500 hover:text-white">✕</button>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Telegram ID</label>
-              <input
-                type="text"
-                disabled
-                value={client.telegram_id}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-500 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Имя</label>
-              <input
-                type="text"
-                value={form.first_name}
-                onChange={(e) => setForm({...form, first_name: e.target.value})}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Username</label>
-              <input
-                type="text"
-                value={form.username}
-                onChange={(e) => setForm({...form, username: e.target.value})}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-zinc-400 mb-1">Тариф</label>
-                <select
-                  value={form.plan}
-                  onChange={(e) => setForm({...form, plan: e.target.value})}
-                  className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
+              {/* Кнопки действий */}
+              <div className="flex gap-3 pt-4 border-t border-zinc-800">
+                <button
+                  onClick={() => setShowAddPaymentModal(true)}
+                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  <option value="basic">Basic</option>
-                  <option value="pro">Pro</option>
-                  <option value="vip">VIP</option>
+                  <CreditCard className="w-4 h-4" />
+                  Добавить платёж
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Удалить клиента?')) {
+                      deleteClient.mutate(selectedClient.id)
+                    }
+                  }}
+                  className="py-3 px-4 bg-red-600/20 hover:bg-red-600/30 text-red-500 rounded-lg transition-colors"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модалка добавления платежа */}
+      {showAddPaymentModal && selectedClient && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Добавить платёж</h2>
+              <button onClick={() => setShowAddPaymentModal(false)} className="text-zinc-500 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Сумма</label>
+                <input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                  placeholder="10000"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Валюта</label>
+                <select
+                  value={paymentCurrency}
+                  onChange={(e) => setPaymentCurrency(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                >
+                  <option value="RUB">RUB (₽)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="USDT">USDT</option>
+                  <option value="EUR">EUR (€)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Продлить на (дней)</label>
-                <input
-                  type="number"
-                  value={form.days}
-                  onChange={(e) => setForm({...form, days: e.target.value})}
-                  className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-                  placeholder="0"
-                />
+                <label className="block text-sm text-zinc-400 mb-1">Источник</label>
+                <select
+                  value={paymentSource}
+                  onChange={(e) => setPaymentSource(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                >
+                  <option value="manual">Вручную</option>
+                  <option value="lava.top">Lava.top</option>
+                  <option value="crypto">Crypto</option>
+                  <option value="bank">Банк</option>
+                </select>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Источник</label>
-              <select
-                value={form.source}
-                onChange={(e) => setForm({...form, source: e.target.value})}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600"
-              >
-                <option value="manual">Вручную</option>
-                <option value="lava">Lava</option>
-                <option value="crypto">Crypto</option>
-                <option value="migration">Миграция</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm text-zinc-400 mb-1">Метод оплаты</label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                >
+                  <option value="card">Карта</option>
+                  <option value="crypto">Крипта</option>
+                  <option value="sbp">СБП</option>
+                  <option value="cash">Наличные</option>
+                </select>
+              </div>
 
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.in_channel}
-                  onChange={(e) => setForm({...form, in_channel: e.target.checked})}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
-                />
-                <span className="text-sm text-zinc-400">В канале</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.in_chat}
-                  onChange={(e) => setForm({...form, in_chat: e.target.checked})}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800"
-                />
-                <span className="text-sm text-zinc-400">В чате</span>
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-sm text-zinc-400 mb-1">Заметка</label>
-              <textarea
-                value={form.notes}
-                onChange={(e) => setForm({...form, notes: e.target.value})}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-zinc-600 resize-none"
-                rows={2}
-              />
-            </div>
-
-            <div className="flex gap-2 pt-4">
               <button
-                onClick={handleSave}
-                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                onClick={() => {
+                  if (paymentAmount && selectedClient) {
+                    addPayment.mutate({
+                      telegram_id: selectedClient.telegram_id,
+                      amount: parseFloat(paymentAmount),
+                      currency: paymentCurrency,
+                      source: paymentSource,
+                      payment_method: paymentMethod
+                    })
+                  }
+                }}
+                disabled={addPayment.isPending || !paymentAmount}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
               >
-                Сохранить
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="flex-1 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
-              >
-                Отмена
+                {addPayment.isPending ? 'Сохранение...' : 'Сохранить платёж'}
               </button>
             </div>
           </div>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 w-full max-w-md">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">
-            {client.first_name || client.username || `ID: ${client.telegram_id}`}
-          </h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white">✕</button>
-        </div>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">Telegram ID</div>
-              <div className="text-white font-mono">{client.telegram_id}</div>
-            </div>
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">Username</div>
-              <div className="text-white">{client.username ? `@${client.username}` : '—'}</div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">Тариф</div>
-              <div className="text-white">{client.plan}</div>
-            </div>
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">Осталось</div>
-              <div className={daysLeft <= 0 ? 'text-red-500' : daysLeft <= 7 ? 'text-yellow-500' : 'text-green-500'}>
-                {daysLeft <= 0 ? `Истёк ${Math.abs(daysLeft)} дн. назад` : `${daysLeft} дн.`}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">LTV</div>
-              <div className="text-white">${client.total_paid_usd}</div>
-            </div>
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">Платежей</div>
-              <div className="text-white">{client.payments_count}</div>
-            </div>
-          </div>
-
-          <div className="bg-zinc-800 rounded-lg p-3">
-            <div className="text-xs text-zinc-500 mb-1">Источник</div>
-            <div className="text-white">{client.source}</div>
-          </div>
-
-          {client.notes && (
-            <div className="bg-zinc-800 rounded-lg p-3">
-              <div className="text-xs text-zinc-500 mb-1">Заметка</div>
-              <div className="text-white text-sm">{client.notes}</div>
-            </div>
-          )}
-
-          {/* История платежей */}
-          <div className="border-t border-zinc-700 pt-4 mt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-white font-medium flex items-center gap-2">
-                <DollarSign size={16} /> История платежей
-              </h4>
-              <button
-                onClick={() => setShowPaymentForm(!showPaymentForm)}
-                className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1"
-              >
-                <Plus size={14} /> Добавить
-              </button>
-            </div>
-
-            {/* Форма нового платежа */}
-            {showPaymentForm && (
-              <div className="bg-zinc-800 rounded-lg p-3 mb-3 space-y-2">
-                <input
-                  type="number"
-                  placeholder="Сумма ($)"
-                  value={newPayment.amount}
-                  onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
-                  className="w-full bg-zinc-700 text-white rounded px-3 py-2 text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Описание (опционально)"
-                  value={newPayment.description}
-                  onChange={(e) => setNewPayment({ ...newPayment, description: e.target.value })}
-                  className="w-full bg-zinc-700 text-white rounded px-3 py-2 text-sm"
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAddPayment}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded py-2 text-sm"
-                  >
-                    Сохранить
-                  </button>
-                  <button
-                    onClick={() => setShowPaymentForm(false)}
-                    className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white rounded py-2 text-sm"
-                  >
-                    Отмена
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Список платежей */}
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {payments && payments.length > 0 ? (
-                payments.map((payment: any) => (
-                  <div key={payment.id} className="flex items-center justify-between bg-zinc-800 rounded-lg p-3">
-                    <div>
-                      <div className="text-green-400 font-medium">${payment.amount}</div>
-                      {payment.description && (
-                        <div className="text-zinc-500 text-xs">{payment.description}</div>
-                      )}
-                      <div className="text-zinc-600 text-xs">
-                        {new Date(payment.payment_date).toLocaleDateString('ru-RU')}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeletePayment(payment.id, payment.amount)}
-                      className="text-red-400 hover:text-red-300 p-1"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p className="text-zinc-500 text-sm text-center py-2">Нет платежей</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Редактировать
-            </button>
-            <button
-              onClick={onDelete}
-              className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-            >
-              Удалить
-            </button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   )
 }
