@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
+import { ArrowLeft } from 'lucide-react'
 
 export function AdminLogin() {
   const [username, setUsername] = useState('')
@@ -22,10 +23,19 @@ export function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-4">
+      {/* Кнопка назад */}
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-4 left-4 flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+      >
+        <ArrowLeft size={20} />
+        <span>Назад</span>
+      </button>
+
       <div className="bg-zinc-800 rounded-2xl p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center text-white mb-2">AI CITI</h1>
         <p className="text-zinc-400 text-center mb-8">Админ-панель</p>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-zinc-400 mb-2">Логин</label>
@@ -47,9 +57,9 @@ export function AdminLogin() {
               placeholder="••••••••"
             />
           </div>
-          
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -62,3 +72,4 @@ export function AdminLogin() {
     </div>
   )
 }
+
