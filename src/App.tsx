@@ -62,7 +62,7 @@ function AppContent() {
   const setTariffs = useAuthStore((state) => state.setTariffs)
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
-  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs')
+  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer'
 
   useEffect(() => {
     expandWebApp()
@@ -128,6 +128,7 @@ function AppContent() {
     return (
       <QueryClientProvider client={queryClient}>
         <Routes>
+          <Route path="/offer" element={<Offer />} />
           <Route path="/quiz/:id" element={<TakeQuiz />} />
           <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
         </Routes>
@@ -181,7 +182,6 @@ function AppContent() {
         </Route>
 
         <Route path="/mini-admin" element={<MiniAdmin />} />
-        <Route path="/offer" element={<Offer />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Profile />} />
           <Route path="agents" element={<Agents />} />
