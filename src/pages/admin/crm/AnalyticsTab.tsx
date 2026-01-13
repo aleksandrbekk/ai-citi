@@ -31,6 +31,8 @@ export default function AnalyticsTab() {
 
   // По тарифам
   const byPlan = {
+    platinum: clients?.filter(c => c.plan === 'platinum').length || 0,
+    standard: clients?.filter(c => c.plan === 'standard').length || 0,
     basic: clients?.filter(c => c.plan === 'basic').length || 0,
     pro: clients?.filter(c => c.plan === 'pro').length || 0,
     vip: clients?.filter(c => c.plan === 'vip').length || 0
@@ -83,29 +85,29 @@ export default function AnalyticsTab() {
     <div className="space-y-6">
       {/* Основные метрики */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard 
-          icon={Users} 
-          label="Всего клиентов" 
+        <StatCard
+          icon={Users}
+          label="Всего клиентов"
           value={stats.total}
           color="bg-blue-500/20 text-blue-400"
         />
-        <StatCard 
-          icon={TrendingUp} 
-          label="Активных" 
+        <StatCard
+          icon={TrendingUp}
+          label="Активных"
           value={stats.active}
           subvalue={`${stats.expiring} истекает скоро`}
           color="bg-green-500/20 text-green-400"
         />
-        <StatCard 
-          icon={DollarSign} 
-          label="Общий LTV" 
+        <StatCard
+          icon={DollarSign}
+          label="Общий LTV"
           value={`$${stats.totalLTV}`}
           subvalue={`Средний: $${stats.avgLTV}`}
           color="bg-yellow-500/20 text-yellow-400"
         />
-        <StatCard 
-          icon={Calendar} 
-          label="Просрочено" 
+        <StatCard
+          icon={Calendar}
+          label="Просрочено"
           value={stats.expired}
           color="bg-red-500/20 text-red-400"
         />
@@ -117,6 +119,8 @@ export default function AnalyticsTab() {
           <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
             <BarChart3 size={18} /> Распределение по тарифам
           </h3>
+          <ProgressBar label="Платина" value={byPlan.platinum} total={stats.total} color="bg-amber-500" />
+          <ProgressBar label="Стандарт" value={byPlan.standard} total={stats.total} color="bg-green-500" />
           <ProgressBar label="Basic" value={byPlan.basic} total={stats.total} color="bg-blue-500" />
           <ProgressBar label="Pro" value={byPlan.pro} total={stats.total} color="bg-purple-500" />
           <ProgressBar label="VIP" value={byPlan.vip} total={stats.total} color="bg-yellow-500" />
@@ -131,12 +135,12 @@ export default function AnalyticsTab() {
             Object.entries(bySources)
               .sort((a, b) => (b[1] as number) - (a[1] as number))
               .map(([source, count]) => (
-                <ProgressBar 
-                  key={source} 
-                  label={source} 
-                  value={count as number} 
-                  total={stats.total} 
-                  color="bg-cyan-500" 
+                <ProgressBar
+                  key={source}
+                  label={source}
+                  value={count as number}
+                  total={stats.total}
+                  color="bg-cyan-500"
                 />
               ))
           ) : (
@@ -160,7 +164,7 @@ export default function AnalyticsTab() {
               const height = maxCount > 0 ? (countNum / maxCount) * 100 : 0
               return (
                 <div key={month} className="flex-1 flex flex-col items-center">
-                  <div 
+                  <div
                     className="w-full bg-blue-500 rounded-t"
                     style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
                   />

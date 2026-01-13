@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 
 // Админские telegram ID
-const ADMIN_IDS = [643763835, 190202791]
+const ADMIN_IDS = [643763835, 190202791, 1762872372]
 
 interface User {
   id: string
@@ -503,11 +503,10 @@ export default function MiniAdmin() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${activeTab === tab.id
                   ? 'bg-blue-600 text-white'
                   : 'bg-zinc-800 text-zinc-400'
-              }`}
+                }`}
             >
               <tab.icon size={16} />
               {tab.label}
@@ -580,11 +579,10 @@ export default function MiniAdmin() {
                   return (
                     <div
                       key={user.id}
-                      className={`p-4 rounded-lg border ${
-                        online
+                      className={`p-4 rounded-lg border ${online
                           ? 'bg-green-500/10 border-green-500/30'
                           : 'bg-zinc-900 border-zinc-800'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
@@ -1105,11 +1103,10 @@ export default function MiniAdmin() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{displayName}</span>
-                          <span className={`px-2 py-0.5 text-xs rounded-full ${
-                            student.tariff_slug === 'platinum'
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${student.tariff_slug === 'platinum'
                               ? 'bg-purple-500/20 text-purple-400'
                               : 'bg-blue-500/20 text-blue-400'
-                          }`}>
+                            }`}>
                             {student.tariff_slug === 'platinum' ? 'PLATINUM' : 'STANDARD'}
                           </span>
                         </div>

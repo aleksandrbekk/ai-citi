@@ -353,6 +353,8 @@ export function ClientsTab() {
           className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-700"
         >
           <option value="all">Все тарифы</option>
+          <option value="platinum">Платина</option>
+          <option value="standard">Стандарт</option>
           <option value="basic">Basic</option>
           <option value="pro">Pro</option>
           <option value="vip">VIP</option>
@@ -409,11 +411,10 @@ export function ClientsTab() {
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div className="bg-zinc-800/50 rounded-lg p-2">
                     <div className="text-xs text-zinc-500">Осталось</div>
-                    <div className={`text-lg font-bold ${
-                      daysLeft === null ? 'text-zinc-400' :
+                    <div className={`text-lg font-bold ${daysLeft === null ? 'text-zinc-400' :
                       daysLeft <= 0 ? 'text-red-500' :
-                      daysLeft <= 7 ? 'text-yellow-500' : 'text-green-500'
-                    }`}>
+                        daysLeft <= 7 ? 'text-yellow-500' : 'text-green-500'
+                      }`}>
                       {daysLeft === null ? '∞' : daysLeft <= 0 ? 'Истёк' : `${daysLeft} дн.`}
                     </div>
                   </div>
@@ -488,6 +489,8 @@ export function ClientsTab() {
                   onChange={(e) => setNewClientPlan(e.target.value)}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                 >
+                  <option value="platinum">Платина</option>
+                  <option value="standard">Стандарт</option>
                   <option value="BASIC">BASIC</option>
                   <option value="PRO">PRO</option>
                   <option value="VIP">VIP</option>
@@ -547,11 +550,10 @@ export function ClientsTab() {
                   {(() => {
                     const days = getDaysRemaining(selectedClient.expires_at)
                     return (
-                      <div className={`font-medium ${
-                        days === null ? 'text-zinc-400' :
+                      <div className={`font-medium ${days === null ? 'text-zinc-400' :
                         days <= 0 ? 'text-red-500' :
-                        days <= 7 ? 'text-yellow-500' : 'text-green-500'
-                      }`}>
+                          days <= 7 ? 'text-yellow-500' : 'text-green-500'
+                        }`}>
                         {days === null ? '∞' : days <= 0 ? `Истёк ${Math.abs(days)} дн. назад` : `${days} дн.`}
                       </div>
                     )

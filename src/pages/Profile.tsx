@@ -3,7 +3,7 @@ import { getTelegramUser } from '@/lib/telegram'
 import { Settings } from 'lucide-react'
 
 // Админские telegram ID
-const ADMIN_IDS = [643763835, 190202791]
+const ADMIN_IDS = [643763835, 190202791, 1762872372]
 
 export default function Profile() {
   const navigate = useNavigate()

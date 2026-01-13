@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CityIcon, SparkleIcon, LoaderIcon } from '@/components/ui/icons'
 
 // ID администраторов — им показываем обычную главную
-const ADMIN_IDS = [643763835, 1762872372]
+const ADMIN_IDS = [643763835, 190202791, 1762872372]
 
 export default function Home() {
   const navigate = useNavigate()

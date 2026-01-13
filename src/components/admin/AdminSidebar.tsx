@@ -18,7 +18,7 @@ import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
 export function AdminSidebar() {
   const location = useLocation()
   const logout = useAdminAuth((s) => s.logout)
-  const [mlmOpen, setMlmOpen] = useState(
+  const [schoolOpen, setSchoolOpen] = useState(
     location.pathname.startsWith('/admin/mlm')
   )
 
@@ -27,7 +27,7 @@ export function AdminSidebar() {
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
   ]
 
-  const mlmLinks = [
+  const schoolLinks = [
     { to: '/admin/mlm', icon: LayoutDashboard, label: 'Обзор' },
     { to: '/admin/mlm/modules', icon: BookOpen, label: 'Модули' },
     { to: '/admin/mlm/students', icon: UserCheck, label: 'Ученики' },
@@ -38,7 +38,7 @@ export function AdminSidebar() {
     { to: '/admin/settings', icon: Settings, label: 'Настройки' },
   ]
 
-  const isMLMActive = location.pathname.startsWith('/admin/mlm')
+  const isSchoolActive = location.pathname.startsWith('/admin/mlm')
 
   return (
     <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col h-screen sticky top-0">
@@ -56,10 +56,9 @@ export function AdminSidebar() {
             to={link.to}
             end={link.to === '/admin'}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                ? 'bg-blue-600 text-white'
+                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
               }`
             }
           >
@@ -68,39 +67,37 @@ export function AdminSidebar() {
           </NavLink>
         ))}
 
-        {/* МЛМ Лагерь - раскрывающийся */}
+        {/* Школа (Курс) - раскрывающийся */}
         <div className="pt-2">
           <button
-            onClick={() => setMlmOpen(!mlmOpen)}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-              isMLMActive
+            onClick={() => setSchoolOpen(!schoolOpen)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isSchoolActive
                 ? 'bg-zinc-800 text-white'
                 : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <GraduationCap className="w-5 h-5" />
-              МЛМ Лагерь
+              Школа
             </div>
-            {mlmOpen ? (
+            {schoolOpen ? (
               <ChevronDown className="w-4 h-4" />
             ) : (
               <ChevronRight className="w-4 h-4" />
             )}
           </button>
 
-          {mlmOpen && (
+          {schoolOpen && (
             <div className="ml-4 mt-1 space-y-1">
-              {mlmLinks.map(link => (
+              {schoolLinks.map(link => (
                 <NavLink
                   key={link.to}
                   to={link.to}
                   end={link.to === '/admin/mlm'}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors ${
-                      isActive
-                        ? 'bg-blue-600 text-white'
-                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                    `flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors ${isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
                     }`
                   }
                 >
@@ -121,10 +118,9 @@ export function AdminSidebar() {
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                ? 'bg-blue-600 text-white'
+                : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
               }`
             }
           >
