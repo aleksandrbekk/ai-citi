@@ -7,7 +7,6 @@ import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
-import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
 import { Agents } from '@/pages/Agents'
 import { Missions } from '@/pages/Missions'
@@ -89,7 +88,7 @@ function AppContent() {
         if (savedUser) {
           try {
             telegramUser = JSON.parse(savedUser)
-          } catch {}
+          } catch { }
         }
       }
 
@@ -108,7 +107,7 @@ function AppContent() {
       } else {
         setHasAccess(null)
       }
-      
+
       setIsChecking(false)
     }
 
@@ -151,7 +150,7 @@ function AppContent() {
       <Routes>
         <Route path="/curator" element={<CuratorReview />} />
         <Route path="/admin" element={<AdminPanel />} />
-        
+
         {/* ========== АДМИНКА ========== */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -179,11 +178,10 @@ function AppContent() {
             <Route path="mlm/homework" element={<AdminHomeworkReview />} />
           </Route>
         </Route>
-        
+
         <Route path="/mini-admin" element={<MiniAdmin />} />
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="profile" element={<Profile />} />
+          <Route index element={<Profile />} />
           <Route path="agents" element={<Agents />} />
           <Route path="school" element={<SchoolIndex />} />
           <Route path="school/:tariffSlug" element={<TariffPage />} />
