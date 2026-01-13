@@ -32,6 +32,7 @@ import QuizAnalytics from './pages/quizzes/analytics'
 import AdminPanel from './pages/admin/index'
 import CarouselDesignsPage from './pages/carousel-designs/index'
 import MiniAdmin from './pages/mini-admin/index'
+import { Offer } from './pages/Offer'
 
 // Admin imports
 import { AdminLayout, AdminProtectedRoute } from './components/admin'
@@ -180,6 +181,7 @@ function AppContent() {
         </Route>
 
         <Route path="/mini-admin" element={<MiniAdmin />} />
+        <Route path="/offer" element={<Offer />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Profile />} />
           <Route path="agents" element={<Agents />} />
