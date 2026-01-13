@@ -2,6 +2,11 @@ import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
 import { CityIcon, SchoolIcon, BotIcon, ShopIcon, UserIcon } from '@/components/ui/icons'
+import { Shield } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+// ID администраторов
+const ADMIN_IDS = [643763835, 190202791, 1762872372]
 
 const navItems = [
   { path: '/', Icon: CityIcon, label: 'Город' },
@@ -14,12 +19,32 @@ const navItems = [
 export function BottomNav() {
   const location = useLocation()
   const isKeyboardOpen = useUIStore((s) => s.isKeyboardOpen)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    const savedUser = localStorage.getItem('tg_user')
+    let telegramId = tg?.initDataUnsafe?.user?.id
+
+    if (!telegramId && savedUser) {
+      try {
+        telegramId = JSON.parse(savedUser).id
+      } catch {
+        // ignore
+      }
+    }
+
+    if (telegramId && ADMIN_IDS.includes(telegramId)) {
+      setIsAdmin(true)
+    }
+  }, [])
 
   // Скрываем навигацию на страницах где она мешает
   if (
     location.pathname.startsWith('/quiz/') ||
     location.pathname.startsWith('/carousel-designs') ||
-    location.pathname.startsWith('/agents/carousel')  // Скрываем на страницах каруселей
+    location.pathname.startsWith('/agents/carousel') ||
+    location.pathname.startsWith('/admin')  // Скрываем в админке
   ) {
     return null
   }
@@ -48,7 +73,24 @@ export function BottomNav() {
             </Link>
           )
         })}
+
+        {/* Кнопка Админ - только для админов */}
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
+              location.pathname.startsWith('/admin')
+                ? "text-amber-500"
+                : "text-gray-400 hover:text-gray-600"
+            )}
+          >
+            <Shield size={22} className={location.pathname.startsWith('/admin') ? 'text-amber-500' : ''} />
+            <span className="text-[10px] font-medium">Админ</span>
+          </Link>
+        )}
       </div>
     </nav>
   )
 }
+
