@@ -64,8 +64,8 @@ export function BottomNav() {
           <span className="text-[10px] font-medium">Профиль</span>
         </Link>
 
-        {/* Школа - только для клиентов с тарифом (НЕ для админов) */}
-        {hasSchoolAccess && !isAdmin && (
+        {/* Школа - для всех клиентов с тарифом */}
+        {hasSchoolAccess && (
           <Link
             to="/school"
             className={cn(
