@@ -67,9 +67,9 @@ export default function Home() {
           AI <span className="text-primary">CITI</span>
         </motion.h1>
 
-        {/* Персонаж на стеклянном подиуме */}
+        {/* Персонаж (на земле, без подиума) */}
         <motion.div
-          className="relative cursor-pointer"
+          className="relative cursor-pointer z-10"
           onClick={handleTap}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -81,21 +81,17 @@ export default function Home() {
             else if (info.offset.x > 50) handleSwipe('right')
           }}
         >
-          {/* Стеклянный подиум */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-4">
-            <div className="w-full h-full bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent rounded-full blur-sm" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-full" />
-          </div>
+          {/* Тень под персонажем (касание земли) */}
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/10 blur-xl rounded-[100%]" />
 
-          {/* Свечение подиума */}
+          {/* Мягкое свечение за персонажем */}
           <motion.div
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-40 h-8 bg-cyan-400/20 rounded-full blur-xl"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyan-400/20 blur-[60px] rounded-full pointer-events-none"
             animate={{
-              opacity: [0.3, 0.6, 0.3],
-              scale: [0.9, 1.1, 0.9],
+              opacity: [0.3, 0.5, 0.3],
             }}
             transition={{
-              duration: 2,
+              duration: 3,
               repeat: Infinity,
               ease: "easeInOut",
             }}
@@ -105,21 +101,21 @@ export default function Home() {
           <motion.img
             src="/images/neurochik.png"
             alt="Нейрончик"
-            className="relative w-52 h-auto drop-shadow-2xl"
+            className="relative w-64 h-auto drop-shadow-2xl"
             animate={{
-              y: [0, -8, 0],
+              y: [0, -4, 0], // Меньшая амплитуда, "дыхание" а не полет
             }}
             transition={{
-              duration: 3,
+              duration: 4,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           />
         </motion.div>
 
-        {/* Режим */}
+        {/* Режим - Glass Pill с циановым свечением */}
         <motion.div
-          className="mt-8 flex items-center gap-4"
+          className="mt-6 flex items-center justify-between gap-4 w-full max-w-xs"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -127,28 +123,31 @@ export default function Home() {
           <button
             onClick={() => handleSwipe('right')}
             disabled={currentMode === 0}
-            className="p-2 text-muted-foreground hover:text-primary disabled:opacity-30 transition-colors"
+            className="p-3 text-muted-foreground/60 hover:text-primary disabled:opacity-20 transition-colors"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={20} />
           </button>
 
-          <motion.div
+          <motion.button
             key={currentMode}
-            className="glass-card px-6 py-3 flex items-center gap-2"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
+            onClick={handleTap}
+            className="relative group px-8 py-4 flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white/60 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_rgba(6,182,212,0.15)] transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <span className="text-xl">{modes[currentMode].icon}</span>
-            <span className="font-semibold text-foreground">{modes[currentMode].label}</span>
-          </motion.div>
+            {/* Внутреннее свечение */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            <span className="text-2xl relative z-10 drop-shadow-sm">{modes[currentMode].icon}</span>
+            <span className="font-bold text-foreground relative z-10 text-lg tracking-tight">{modes[currentMode].label}</span>
+          </motion.button>
 
           <button
             onClick={() => handleSwipe('left')}
             disabled={currentMode === modes.length - 1}
-            className="p-2 text-muted-foreground hover:text-primary disabled:opacity-30 transition-colors"
+            className="p-3 text-muted-foreground/60 hover:text-primary disabled:opacity-20 transition-colors"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={20} />
           </button>
         </motion.div>
 
