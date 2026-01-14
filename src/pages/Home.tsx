@@ -26,14 +26,16 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF5F0] via-[#FFF8F5] to-white text-foreground pb-20 overflow-hidden relative">
-      {/* Safe area для TMA header */}
+    <div className="min-h-screen bg-white text-foreground pb-20 overflow-hidden relative">
+      {/* Safe area для TMA header - белый фон сливается */}
       <div className="h-[100px]" />
 
+      {/* Градиентный фон начинается после safe area */}
+      <div className="absolute top-[100px] left-0 right-0 bottom-0 bg-gradient-to-b from-[#FFF5F0] to-white pointer-events-none" />
+
       {/* Декоративный фон */}
-      <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-      <div className="absolute top-20 right-0 w-72 h-72 bg-gradient-radial from-primary/10 to-transparent rounded-full blur-3xl translate-x-1/3 pointer-events-none" />
-      <div className="absolute top-40 left-0 w-48 h-48 bg-gradient-radial from-cyan-400/10 to-transparent rounded-full blur-2xl -translate-x-1/3 pointer-events-none" />
+      <div className="absolute top-[120px] right-0 w-72 h-72 bg-gradient-radial from-primary/10 to-transparent rounded-full blur-3xl translate-x-1/3 pointer-events-none" />
+      <div className="absolute top-[180px] left-0 w-48 h-48 bg-gradient-radial from-cyan-400/10 to-transparent rounded-full blur-2xl -translate-x-1/3 pointer-events-none" />
 
       {/* Мерцающие частицы */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
