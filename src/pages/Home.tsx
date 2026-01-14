@@ -26,21 +26,29 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white text-foreground pb-20 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF5F0] via-[#FFF8F5] to-white text-foreground pb-20 overflow-hidden relative">
+      {/* Safe area для TMA header */}
+      <div className="h-[100px]" />
+
+      {/* Декоративный фон */}
+      <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+      <div className="absolute top-20 right-0 w-72 h-72 bg-gradient-radial from-primary/10 to-transparent rounded-full blur-3xl translate-x-1/3 pointer-events-none" />
+      <div className="absolute top-40 left-0 w-48 h-48 bg-gradient-radial from-cyan-400/10 to-transparent rounded-full blur-2xl -translate-x-1/3 pointer-events-none" />
+
       {/* Мерцающие частицы */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(25)].map((_, i) => (
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1.5 h-1.5 bg-primary/20 rounded-full"
+            className="absolute w-1 h-1 bg-primary/30 rounded-full"
             style={{
-              left: `${10 + Math.random() * 80}%`,
-              top: `${20 + Math.random() * 60}%`,
+              left: `${15 + Math.random() * 70}%`,
+              top: `${25 + Math.random() * 50}%`,
             }}
             animate={{
-              y: [0, -20, 0],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [0.8, 1.2, 0.8],
+              y: [0, -15, 0],
+              opacity: [0.3, 0.7, 0.3],
+              scale: [0.8, 1.3, 0.8],
             }}
             transition={{
               duration: 3 + Math.random() * 2,
@@ -51,7 +59,7 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="relative flex flex-col items-center justify-center min-h-screen px-6">
+      <div className="relative flex flex-col items-center px-6">
         {/* Логотип */}
         <motion.h1
           className="text-3xl font-bold text-foreground tracking-tight mb-8"
@@ -154,8 +162,8 @@ export default function Home() {
               key={index}
               onClick={() => setCurrentMode(index)}
               className={`w-2 h-2 rounded-full transition-all ${index === currentMode
-                  ? 'bg-primary w-6'
-                  : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                ? 'bg-primary w-6'
+                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
             />
           ))}
