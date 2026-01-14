@@ -7,29 +7,9 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24 overflow-hidden">
-      {/* Фоновые частицы */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-secondary/30 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.3, 0.8, 0.3],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+      {/* Декоративные элементы */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-1/3 left-0 w-48 h-48 bg-gradient-to-tr from-primary/5 to-transparent rounded-full blur-2xl -translate-x-1/2" />
 
       <div className="relative p-6 space-y-8">
         {/* Приветствие */}
@@ -39,8 +19,8 @@ export default function Profile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <p className="text-secondary text-sm font-medium mb-1">Добро пожаловать в</p>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-secondary via-foreground to-primary bg-clip-text text-transparent">
+          <p className="text-primary text-sm font-medium mb-1">Добро пожаловать в</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             AI CITI
           </h1>
         </motion.div>
@@ -53,12 +33,12 @@ export default function Profile() {
           transition={{ duration: 0.8, delay: 0.3 }}
         >
           <div className="relative">
-            {/* Свечение за персонажем */}
+            {/* Мягкое свечение */}
             <motion.div
-              className="absolute inset-0 bg-secondary/20 blur-3xl rounded-full"
+              className="absolute inset-0 bg-primary/10 blur-3xl rounded-full"
               animate={{
                 scale: [1, 1.2, 1],
-                opacity: [0.3, 0.5, 0.3],
+                opacity: [0.2, 0.4, 0.2],
               }}
               transition={{
                 duration: 3,
@@ -67,14 +47,13 @@ export default function Profile() {
               }}
             />
 
-            {/* Персонаж с анимацией покачивания */}
+            {/* Персонаж */}
             <motion.img
               src="/images/neurochik.png"
               alt="Нейрончик"
-              className="relative w-48 h-auto drop-shadow-2xl"
+              className="relative w-44 h-auto drop-shadow-xl"
               animate={{
-                y: [0, -10, 0],
-                rotate: [-2, 2, -2],
+                y: [0, -8, 0],
               }}
               transition={{
                 duration: 4,
@@ -83,12 +62,12 @@ export default function Profile() {
               }}
             />
 
-            {/* Пульсирующие кружки вокруг */}
+            {/* Декоративные кружки */}
             <motion.div
-              className="absolute -top-4 -right-4 w-8 h-8 border-2 border-secondary rounded-full"
+              className="absolute -top-2 -right-2 w-6 h-6 border-2 border-primary/50 rounded-full"
               animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.8, 0, 0.8],
+                scale: [1, 1.3, 1],
+                opacity: [0.6, 0, 0.6],
               }}
               transition={{
                 duration: 2,
@@ -96,10 +75,10 @@ export default function Profile() {
               }}
             />
             <motion.div
-              className="absolute -bottom-2 -left-4 w-6 h-6 border-2 border-primary rounded-full"
+              className="absolute -bottom-1 -left-2 w-4 h-4 bg-accent/30 rounded-full"
               animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.8, 0, 0.8],
+                scale: [1, 1.4, 1],
+                opacity: [0.5, 0, 0.5],
               }}
               transition={{
                 duration: 2,
@@ -117,8 +96,8 @@ export default function Profile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
         >
-          <h2 className="text-xl font-semibold">
-            Привет, <span className="text-secondary">{firstName}</span>! 👋
+          <h2 className="text-xl font-semibold text-foreground">
+            Привет, <span className="text-primary">{firstName}</span>! 👋
           </h2>
           <p className="text-muted-foreground text-sm max-w-xs mx-auto">
             Я Нейрончик — твой AI-помощник. Готов создавать контент вместе с тобой!
@@ -137,23 +116,27 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-3">
             <motion.a
               href="/agents"
-              className="bg-secondary/10 border border-secondary/30 rounded-2xl p-4 text-center hover:border-secondary/50 transition-all"
-              whileHover={{ scale: 1.02 }}
+              className="glass-card p-4 text-center hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="text-2xl mb-2">🤖</div>
-              <p className="font-medium text-sm">AI Агенты</p>
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/5 flex items-center justify-center">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <p className="font-semibold text-sm text-foreground">AI Агенты</p>
               <p className="text-xs text-muted-foreground mt-1">Создать контент</p>
             </motion.a>
 
             <motion.a
               href="/shop"
-              className="bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center hover:border-primary/50 transition-all"
-              whileHover={{ scale: 1.02 }}
+              className="glass-card p-4 text-center hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="text-2xl mb-2">🛒</div>
-              <p className="font-medium text-sm">Магазин</p>
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-accent/10 to-primary/5 flex items-center justify-center">
+                <span className="text-2xl">🛒</span>
+              </div>
+              <p className="font-semibold text-sm text-foreground">Магазин</p>
               <p className="text-xs text-muted-foreground mt-1">Тарифы и бонусы</p>
             </motion.a>
           </div>
@@ -162,17 +145,17 @@ export default function Profile() {
         {/* Карточка пользователя */}
         {telegramUser && (
           <motion.div
-            className="bg-card backdrop-blur-xl border border-border rounded-2xl p-4"
+            className="glass-card-strong p-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.2 }}
           >
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center text-xl font-bold text-white">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xl font-bold text-white shadow-lg">
                 {telegramUser.first_name?.[0] || '?'}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold">
+                <h3 className="font-semibold text-foreground">
                   {telegramUser.first_name} {telegramUser.last_name || ''}
                 </h3>
                 {telegramUser.username && (
@@ -181,7 +164,7 @@ export default function Profile() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Статус</p>
-                <p className="text-secondary text-sm font-medium">Активен</p>
+                <p className="text-primary text-sm font-medium">Активен</p>
               </div>
             </div>
           </motion.div>
@@ -190,4 +173,3 @@ export default function Profile() {
     </div>
   )
 }
-
