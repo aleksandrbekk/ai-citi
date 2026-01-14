@@ -7,6 +7,7 @@ import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
+import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
 import { Agents } from '@/pages/Agents'
 import { Missions } from '@/pages/Missions'
@@ -183,7 +184,8 @@ function AppContent() {
 
         <Route path="/mini-admin" element={<MiniAdmin />} />
         <Route path="/" element={<Layout />}>
-          <Route index element={<Profile />} />
+          <Route index element={<Home />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="agents" element={<Agents />} />
           <Route path="school" element={<SchoolIndex />} />
           <Route path="school/:tariffSlug" element={<TariffPage />} />

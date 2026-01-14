@@ -1,79 +1,108 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CityIcon, SparkleIcon, LoaderIcon } from '@/components/ui/icons'
-
-// ID администраторов — им показываем обычную главную
-const ADMIN_IDS = [643763835, 190202791, 1762872372]
+import { motion } from 'framer-motion'
 
 export default function Home() {
-  const navigate = useNavigate()
-  const [userName, setUserName] = useState('')
-  const [isChecking, setIsChecking] = useState(true)
-
-  useEffect(() => {
-    // Получаем данные пользователя
-    const tg = window.Telegram?.WebApp
-    const savedUser = localStorage.getItem('tg_user')
-    let telegramId = tg?.initDataUnsafe?.user?.id
-    let firstName = tg?.initDataUnsafe?.user?.first_name
-
-    if (!telegramId && savedUser) {
-      try {
-        const user = JSON.parse(savedUser)
-        telegramId = user.id
-        firstName = user.first_name
-      } catch {
-        // ignore
-      }
-    }
-
-    setUserName(firstName || 'Гость')
-
-    // Если НЕ админ — редирект на карусели
-    if (telegramId && !ADMIN_IDS.includes(telegramId)) {
-      navigate('/agents/carousel', { replace: true })
-      return
-    }
-
-    setIsChecking(false)
-  }, [navigate])
-
-  // Пока проверяем — показываем лоадер
-  if (isChecking) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
-        <LoaderIcon size={48} className="text-orange-500" />
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col items-center justify-center px-4">
-      {/* Декоративные элементы */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-orange-100/40 rounded-full blur-3xl" />
-
-      {/* Контент */}
-      <div className="relative z-10 text-center">
-        {/* Логотип */}
-        <div className="mb-6 inline-flex">
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-xl shadow-orange-500/30 animate-float">
-            <CityIcon className="w-12 h-12 text-white" />
-          </div>
+    <div className="min-h-screen bg-background text-foreground pb-24 overflow-hidden">
+      {/* Header вывеска - бесшовно сверху */}
+      <div className="bg-gradient-to-r from-primary via-accent to-primary pt-safe-area-top">
+        <div className="px-6 py-4 pb-6">
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              AI CITI
+            </h1>
+            <p className="text-white/80 text-xs mt-1">Твой AI-помощник</p>
+          </motion.div>
         </div>
+        {/* Плавный переход */}
+        <div className="h-6 bg-gradient-to-b from-primary/20 to-transparent" />
+      </div>
 
-        {/* Приветствие */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Привет, {userName}!
-        </h1>
-        <p className="text-gray-500 mb-8 flex items-center justify-center gap-2">
-          <SparkleIcon size={18} className="text-orange-500" />
-          Добро пожаловать в НЕЙРОГОРОД
-          <SparkleIcon size={18} className="text-orange-500" />
-        </p>
+      {/* Декоративные элементы */}
+      <div className="absolute top-32 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/5 rounded-full blur-3xl translate-x-1/2" />
+      <div className="absolute bottom-1/3 left-0 w-48 h-48 bg-gradient-to-tr from-primary/5 to-transparent rounded-full blur-2xl -translate-x-1/2" />
 
-        {/* Админ-панель */}
-        <p className="text-sm text-gray-400">Панель администратора</p>
+      <div className="relative px-6 space-y-6 pt-4">
+        {/* Быстрые действия */}
+        <motion.div
+          className="space-y-3"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <p className="text-xs text-muted-foreground uppercase tracking-wider text-center">Что будем делать?</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            <motion.a
+              href="/agents"
+              className="glass-card p-4 text-center hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/5 flex items-center justify-center">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <p className="font-semibold text-sm text-foreground">AI Агенты</p>
+              <p className="text-xs text-muted-foreground mt-1">Создать контент</p>
+            </motion.a>
+
+            <motion.a
+              href="/shop"
+              className="glass-card p-4 text-center hover:shadow-lg transition-all"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-accent/10 to-primary/5 flex items-center justify-center">
+                <span className="text-2xl">🛒</span>
+              </div>
+              <p className="font-semibold text-sm text-foreground">Магазин</p>
+              <p className="text-xs text-muted-foreground mt-1">Тарифы и бонусы</p>
+            </motion.a>
+          </div>
+        </motion.div>
+
+        {/* Персонаж Нейрончик - внизу */}
+        <motion.div
+          className="flex justify-center pt-6"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+        >
+          <div className="relative">
+            {/* Мягкое свечение */}
+            <motion.div
+              className="absolute inset-0 bg-primary/10 blur-3xl rounded-full"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            {/* Персонаж */}
+            <motion.img
+              src="/images/neurochik.png"
+              alt="Нейрончик"
+              className="relative w-36 h-auto drop-shadow-xl"
+              animate={{
+                y: [0, -6, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </div>
+        </motion.div>
       </div>
     </div>
   )
