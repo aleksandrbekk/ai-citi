@@ -78,6 +78,29 @@ export default function Home() {
         {/* Контейнер для низа: Робот + Кнопки */}
         <div className="flex flex-col items-center w-full pb-4">
 
+          {/* Статусная плашка над роботом (Vision Glass стиль) */}
+          <motion.div
+            className="mb-6 px-6 py-3 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-3"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            {/* Зеленая точка статуса (пульсирующая) */}
+            <motion.div
+              className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.8, 1, 0.8],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+            <span className="text-lg font-medium text-foreground/80 tracking-wide">Ассистент</span>
+          </motion.div>
+
           {/* Персонаж (на земле, без подиума) */}
           <motion.div
             className="relative cursor-pointer z-10"
