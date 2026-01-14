@@ -26,31 +26,39 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF5F0] to-white text-foreground pb-20 overflow-hidden relative pt-[70px]">
+    <div className="min-h-screen bg-[#FFF8F5] text-foreground pb-20 overflow-hidden relative pt-[70px]">
 
-      {/* Декоративный фон */}
-      <div className="absolute top-20 right-0 w-72 h-72 bg-gradient-radial from-primary/10 to-transparent rounded-full blur-3xl translate-x-1/3 pointer-events-none" />
-      <div className="absolute top-40 left-0 w-48 h-48 bg-gradient-radial from-cyan-400/10 to-transparent rounded-full blur-2xl -translate-x-1/3 pointer-events-none" />
+      {/* Сложный премиум фон как на референсе */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Верхний теплый свет (солнечное свечение) */}
+        <div className="absolute -top-[20%] -left-[10%] w-[120%] h-[60%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-100/40 via-orange-50/20 to-transparent blur-3xl opacity-80" />
 
-      {/* Мерцающие частицы */}
+        {/* Мягкий циановый свет за персонажем (Aurora effect) */}
+        <div className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[150%] h-[50%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-cyan-100/30 via-white/50 to-transparent blur-[80px]" />
+
+        {/* Нижний белый градиент для чистоты */}
+        <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-white via-white/80 to-transparent" />
+      </div>
+
+      {/* Мерцающие частицы (немного усилим для магии) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(25)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-primary/30 rounded-full"
+            className="absolute w-1 h-1 bg-gradient-to-tr from-orange-200 to-cyan-200 rounded-full blur-[0.5px]"
             style={{
-              left: `${15 + Math.random() * 70}%`,
-              top: `${25 + Math.random() * 50}%`,
+              left: `${10 + Math.random() * 80}%`,
+              top: `${15 + Math.random() * 70}%`,
             }}
             animate={{
-              y: [0, -15, 0],
-              opacity: [0.3, 0.7, 0.3],
-              scale: [0.8, 1.3, 0.8],
+              y: [0, -20, 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [0.8, 1.4, 0.8],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: 3 + Math.random() * 3,
               repeat: Infinity,
-              delay: Math.random() * 3,
+              delay: Math.random() * 2,
             }}
           />
         ))}

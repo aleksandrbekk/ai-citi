@@ -40,10 +40,10 @@ export function expandWebApp() {
   try {
     const tgAny = tg as any;
     if (typeof tgAny.setHeaderColor === 'function') {
-      tgAny.setHeaderColor('#FFF5F0');
+      tgAny.setHeaderColor('#FFF8F5');
     }
     if (typeof tgAny.setBackgroundColor === 'function') {
-      tgAny.setBackgroundColor('#FFF5F0');
+      tgAny.setBackgroundColor('#FFF8F5');
     }
   } catch (e) {
     console.log('setHeaderColor/setBackgroundColor not available');
