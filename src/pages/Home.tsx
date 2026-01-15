@@ -26,7 +26,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F5] text-foreground pb-20 overflow-hidden relative pt-[70px]">
+    <div className="min-h-screen bg-[#FFF8F5] text-foreground pb-20 overflow-hidden relative">
 
       {/* Сложный премиум фон как на референсе */}
       <div className="absolute inset-0 pointer-events-none">

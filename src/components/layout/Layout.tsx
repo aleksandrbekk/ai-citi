@@ -18,7 +18,7 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col pt-[70px]">
       <main className="flex-1 overflow-auto">
         <div className="pb-20">
           <Outlet />
