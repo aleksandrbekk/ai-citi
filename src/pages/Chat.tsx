@@ -470,7 +470,7 @@ export default function Chat() {
       />
 
       {/* Input */}
-      <div className="sticky bottom-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-4 py-3 pb-safe">
+      <div className={`sticky bottom-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-4 py-3 ${needsPadding ? 'pb-8' : 'pb-safe'}`}>
         <div className="flex gap-2 items-end">
           {/* Attach button */}
           <button
