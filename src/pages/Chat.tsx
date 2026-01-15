@@ -259,7 +259,7 @@ export default function Chat() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Напиши сообщение..."
-            className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 text-gray-800 placeholder:text-gray-400 max-h-[120px]"
+            className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
             rows={1}
             disabled={isLoading}
           />

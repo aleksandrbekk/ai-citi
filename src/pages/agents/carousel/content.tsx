@@ -123,7 +123,7 @@ export default function CarouselContent() {
             value={variables.topic || ''}
             onChange={(e) => setVariable('topic', e.target.value)}
             placeholder="Например: 5 ошибок новичков в МЛМ"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none caret-gray-800"
             rows={3}
           />
         </div>
@@ -136,7 +136,7 @@ export default function CarouselContent() {
             value={ctaQuestion}
             onChange={(e) => setCtaQuestion(e.target.value)}
             placeholder="Например: Хочешь так же?"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 caret-gray-800"
           />
         </div>
 
@@ -147,7 +147,7 @@ export default function CarouselContent() {
             value={ctaText}
             onChange={(e) => setCtaText(e.target.value)}
             placeholder="Например: НАПИШИ СЛОВО КОМПАНИЯ — ОТПРАВЛЮ ГАЙД"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none caret-gray-800"
             rows={3}
           />
         </div>
@@ -160,7 +160,7 @@ export default function CarouselContent() {
             value={ctaBenefits}
             onChange={(e) => setCtaBenefits(e.target.value)}
             placeholder="Бесплатный урок, Пошаговая инструкция, Поддержка"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500"
+            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 caret-gray-800"
           />
         </div>
 
