@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
-import { SchoolIcon, BotIcon, ShopIcon, UserIcon } from '@/components/ui/icons'
+import { SchoolIcon, BotIcon, ShopIcon, UserIcon, HomeIcon } from '@/components/ui/icons'
 import { Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
@@ -50,7 +50,7 @@ export function BottomNav() {
     <nav className={`fixed bottom-0 left-0 right-0 z-50 nav-glass transition-transform duration-200 safe-bottom ${isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
       }`}>
       <div className="flex items-center justify-around h-16 px-2">
-        {/* Профиль (главная) */}
+        {/* Главная */}
         <Link
           to="/"
           className={cn(
@@ -60,7 +60,21 @@ export function BottomNav() {
               : "text-gray-400 hover:text-gray-600"
           )}
         >
-          <UserIcon size={22} className={location.pathname === '/' ? 'text-orange-500' : ''} />
+          <HomeIcon size={22} className={location.pathname === '/' ? 'text-orange-500' : ''} />
+          <span className="text-[10px] font-medium">Главная</span>
+        </Link>
+
+        {/* Профиль */}
+        <Link
+          to="/profile"
+          className={cn(
+            "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
+            location.pathname === '/profile'
+              ? "text-orange-500"
+              : "text-gray-400 hover:text-gray-600"
+          )}
+        >
+          <UserIcon size={22} className={location.pathname === '/profile' ? 'text-orange-500' : ''} />
           <span className="text-[10px] font-medium">Профиль</span>
         </Link>
 
