@@ -75,17 +75,7 @@ export function Shop() {
 
   return (
     <div className="min-h-screen bg-white pb-24">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 px-6 py-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Магазин
-          </h1>
-          <p className="text-white/80 text-xs mt-1">Купи монеты для генерации</p>
-        </div>
-      </div>
-
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-4 space-y-6">
         {/* Текущий баланс */}
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
           <div className="flex items-center gap-3">
