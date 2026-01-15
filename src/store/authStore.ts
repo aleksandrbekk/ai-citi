@@ -54,7 +54,7 @@ const DEFAULT_PROFILE: Profile = {
   level: 1,
   xp: 0,
   xp_to_next_level: 100,
-  coins: 0,
+  coins: 3, // Новые пользователи получают 3 монеты
   premium_coins: 0,
   subscription: 'free',
   stats: { learning: 0, content: 0, sales: 0, discipline: 0 },

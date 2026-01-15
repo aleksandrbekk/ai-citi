@@ -304,3 +304,91 @@ export async function deleteFromCloudinary(photoUrl: string): Promise<boolean> {
     return false
   }
 }
+
+// ===========================================
+// СИСТЕМА МОНЕТ
+// ===========================================
+
+export interface SpendCoinsResult {
+  success: boolean
+  error?: string
+  previous_balance?: number
+  spent?: number
+  new_balance?: number
+  current_balance?: number
+  required?: number
+}
+
+/**
+ * Получить баланс монет пользователя
+ */
+export async function getCoinBalance(telegramId: number): Promise<number> {
+  const { data, error } = await supabase
+    .rpc('get_coin_balance', { p_telegram_id: telegramId })
+
+  if (error) {
+    console.error('Error getting coin balance:', error)
+    return 0
+  }
+
+  return data || 0
+}
+
+/**
+ * Списать монеты за генерацию
+ */
+export async function spendCoinsForGeneration(
+  telegramId: number,
+  amount: number = 1,
+  description: string = 'Генерация карусели'
+): Promise<SpendCoinsResult> {
+  const { data, error } = await supabase
+    .rpc('spend_coins', {
+      p_telegram_id: telegramId,
+      p_amount: amount,
+      p_type: 'generation',
+      p_description: description,
+      p_metadata: {}
+    })
+
+  if (error) {
+    console.error('Error spending coins:', error)
+    return { success: false, error: error.message }
+  }
+
+  return data as SpendCoinsResult
+}
+
+/**
+ * Начислить монеты
+ */
+export async function addCoins(
+  telegramId: number,
+  amount: number,
+  type: 'purchase' | 'subscription' | 'referral' | 'bonus',
+  description: string
+): Promise<SpendCoinsResult> {
+  const { data, error } = await supabase
+    .rpc('add_coins', {
+      p_telegram_id: telegramId,
+      p_amount: amount,
+      p_type: type,
+      p_description: description,
+      p_metadata: {}
+    })
+
+  if (error) {
+    console.error('Error adding coins:', error)
+    return { success: false, error: error.message }
+  }
+
+  return data as SpendCoinsResult
+}
+
+/**
+ * Проверить достаточно ли монет
+ */
+export async function hasEnoughCoins(telegramId: number, required: number = 1): Promise<boolean> {
+  const balance = await getCoinBalance(telegramId)
+  return balance >= required
+}

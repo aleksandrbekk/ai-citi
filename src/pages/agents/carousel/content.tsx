@@ -1,26 +1,33 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Coins } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto } from '@/lib/supabase'
+import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
   const { selectedTemplate, variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
+  const [coinBalance, setCoinBalance] = useState<number>(0)
+  const [isLoadingCoins, setIsLoadingCoins] = useState(true)
 
-  // Загружаем первое фото пользователя из галереи при загрузке страницы
+  // Загружаем фото и баланс монет при загрузке страницы
   useEffect(() => {
-    const loadUserPhoto = async () => {
+    const loadData = async () => {
       const telegramUser = getTelegramUser()
       if (telegramUser?.id) {
+        // Загружаем фото
         const photoFromDb = await getFirstUserPhoto(telegramUser.id)
         if (photoFromDb) {
           setUserPhoto(photoFromDb)
         }
+        // Загружаем баланс монет
+        const balance = await getCoinBalance(telegramUser.id)
+        setCoinBalance(balance)
       }
+      setIsLoadingCoins(false)
     }
-    loadUserPhoto()
+    loadData()
   }, [setUserPhoto])
 
   if (!selectedTemplate) {
@@ -38,7 +45,7 @@ export default function CarouselContent() {
     // Получаем telegram_id из Telegram WebApp
     const tg = window.Telegram?.WebApp
     const chatId = tg?.initDataUnsafe?.user?.id
-    
+
     // Проверка chatId
     if (!chatId || typeof chatId !== 'number') {
       alert('Ошибка: Не удалось определить Telegram ID. Убедитесь, что вы открыли приложение через Telegram.')
@@ -46,6 +53,25 @@ export default function CarouselContent() {
       navigate('/agents/carousel')
       return
     }
+
+    // Проверка баланса монет
+    if (coinBalance < 1) {
+      alert('Недостаточно монет для генерации! Пополните баланс в магазине.')
+      navigate('/shop')
+      return
+    }
+
+    // Списываем монету
+    const spendResult = await spendCoinsForGeneration(chatId, 1, `Генерация карусели: ${variables.topic}`)
+    if (!spendResult.success) {
+      alert(spendResult.error === 'Not enough coins'
+        ? 'Недостаточно монет для генерации!'
+        : 'Ошибка при списании монет. Попробуйте позже.')
+      return
+    }
+
+    // Обновляем локальный баланс
+    setCoinBalance(spendResult.new_balance || 0)
 
     // Фото уже загружено в useEffect
     const finalUserPhoto = userPhoto
@@ -74,6 +100,8 @@ export default function CarouselContent() {
       topic: requestData.topic,
       cta_text: requestData.cta_text,
       hasUserPhoto: !!finalUserPhoto,
+      coinsSpent: 1,
+      newBalance: spendResult.new_balance,
     })
 
     setStatus('generating')
@@ -164,11 +192,24 @@ export default function CarouselContent() {
           />
         </div>
 
+        {/* Баланс монет */}
+        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-xl">
+          <div className="flex items-center gap-2">
+            <Coins className="w-5 h-5 text-orange-500" />
+            <span className="text-sm text-gray-600">Ваш баланс:</span>
+            <span className="font-bold text-gray-900">
+              {isLoadingCoins ? '...' : coinBalance} монет
+            </span>
+          </div>
+          <span className="text-xs text-gray-500">-1 за генерацию</span>
+        </div>
+
         <button
           onClick={handleGenerate}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-gray-900 rounded-xl font-semibold text-lg"
+          disabled={coinBalance < 1 || isLoadingCoins}
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          🎨 Создать карусель
+          {coinBalance < 1 && !isLoadingCoins ? '⚠️ Недостаточно монет' : '🎨 Создать карусель'}
         </button>
       </div>
     </div>

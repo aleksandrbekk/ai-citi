@@ -1,9 +1,25 @@
+import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
+import { getCoinBalance } from '@/lib/supabase'
 import { motion } from 'framer-motion'
+import { Coins, Sparkles } from 'lucide-react'
 
 export default function Profile() {
   const telegramUser = getTelegramUser()
   const firstName = telegramUser?.first_name || 'Друг'
+  const [coinBalance, setCoinBalance] = useState<number>(0)
+  const [isLoadingCoins, setIsLoadingCoins] = useState(true)
+
+  useEffect(() => {
+    const loadCoins = async () => {
+      if (telegramUser?.id) {
+        const balance = await getCoinBalance(telegramUser.id)
+        setCoinBalance(balance)
+      }
+      setIsLoadingCoins(false)
+    }
+    loadCoins()
+  }, [telegramUser?.id])
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-24 overflow-hidden">
@@ -41,6 +57,40 @@ export default function Profile() {
           <h2 className="text-xl font-semibold text-foreground">
             Привет, <span className="text-primary">{firstName}</span>! 👋
           </h2>
+        </motion.div>
+
+        {/* Баланс монет */}
+        <motion.div
+          className="glass-card-strong p-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                <Coins className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Монеты для генерации</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-foreground">
+                    {isLoadingCoins ? '...' : coinBalance}
+                  </span>
+                  <Sparkles className="w-4 h-4 text-yellow-500" />
+                </div>
+              </div>
+            </div>
+            <a
+              href="/shop"
+              className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
+            >
+              Купить
+            </a>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            1 монета = 1 генерация карусели
+          </p>
         </motion.div>
 
         {/* Быстрые действия */}
