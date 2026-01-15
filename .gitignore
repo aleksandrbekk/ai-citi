@@ -29,3 +29,4 @@ gen-lang-client-*.json
 # Playwright artifacts
 .playwright-mcp/
 .env.local
+ИНСТРУКЦИИ .md
