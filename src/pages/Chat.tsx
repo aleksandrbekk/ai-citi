@@ -49,7 +49,20 @@ export default function Chat() {
   const hasPaidAccess = tariffs.length > 0
   const needsPadding = getTMAPadding()
 
-  const [messages, setMessages] = useState<Message[]>([])
+  // Загрузка истории из localStorage
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem('chat-history')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Убираем attachments с blob URL (они не сохраняются)
+        return parsed.map((m: Message) => ({ ...m, attachments: undefined }))
+      }
+    } catch (e) {
+      console.error('Failed to load chat history:', e)
+    }
+    return []
+  })
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [attachments, setAttachments] = useState<Attachment[]>([])
@@ -65,6 +78,19 @@ export default function Chat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  // Сохранение истории в localStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Сохраняем только текст, без attachments
+      const toSave = messages.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content
+      }))
+      localStorage.setItem('chat-history', JSON.stringify(toSave))
+    }
+  }, [messages])
 
   useEffect(() => {
     scrollToBottom()
