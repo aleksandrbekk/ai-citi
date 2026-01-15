@@ -162,7 +162,7 @@ export function Shop() {
       <div className="px-4 space-y-3">
         {activeTab === 'coins' && (
           <>
-            <p className="text-xs text-gray-500 text-center">1 монета = 1 генерация карусели</p>
+            <p className="text-xs text-gray-500 text-center">1 монета = 1 слайд</p>
             {coinPackages.map((pkg) => {
               const Icon = pkg.icon
               return (

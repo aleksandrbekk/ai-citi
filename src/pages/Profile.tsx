@@ -66,7 +66,7 @@ export default function Profile() {
             </Link>
           </div>
           <p className="text-xs text-gray-500 mt-3">
-            1 монета = 1 генерация карусели
+            1 монета = 1 слайд
           </p>
         </div>
 

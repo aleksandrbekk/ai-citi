@@ -5,10 +5,10 @@
 -- ===========================================
 
 -- Обновляем дефолтное значение монет для новых пользователей
-ALTER TABLE profiles ALTER COLUMN coins SET DEFAULT 3;
+ALTER TABLE profiles ALTER COLUMN coins SET DEFAULT 1;
 
--- Даём 3 монеты всем существующим пользователям у которых 0 монет
-UPDATE profiles SET coins = 3 WHERE coins = 0;
+-- Даём 1 монету всем существующим пользователям у которых 0 монет
+UPDATE profiles SET coins = 1 WHERE coins = 0;
 
 -- Создаём таблицу истории транзакций монет
 CREATE TABLE IF NOT EXISTS coin_transactions (
