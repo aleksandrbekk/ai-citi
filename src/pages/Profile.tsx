@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
-import { Coins, Sparkles } from 'lucide-react'
+import { Coins, Sparkles, Gift } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Profile() {
@@ -41,34 +41,56 @@ export default function Profile() {
           </h2>
         </div>
 
-        {/* Баланс монет */}
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
-                <Coins className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Монеты для генерации</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {isLoadingCoins ? '...' : coinBalance}
-                  </span>
-                  <Sparkles className="w-4 h-4 text-yellow-500" />
+        {/* Баланс монет или бесплатная генерация */}
+        {coinBalance > 0 ? (
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                  <Coins className="w-6 h-6 text-white" />
                 </div>
+                <div>
+                  <p className="text-xs text-gray-500">Ваш баланс</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {isLoadingCoins ? '...' : coinBalance}
+                    </span>
+                    <Sparkles className="w-4 h-4 text-yellow-500" />
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/shop"
+                className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold rounded-full shadow-lg"
+              >
+                Купить
+              </Link>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              1 монета = 1 слайд
+            </p>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
+                <Gift className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900">Бесплатный старт</p>
+                <p className="text-sm text-gray-600">
+                  Вам доступна <span className="font-bold text-green-600">1 генерация</span> одного слайда
+                </p>
               </div>
             </div>
             <Link
               to="/shop"
-              className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold rounded-full shadow-lg"
+              className="block w-full mt-3 py-2 text-center bg-gradient-to-r from-orange-500 to-orange-400 text-white text-sm font-semibold rounded-xl"
             >
-              Купить
+              Купить больше генераций
             </Link>
           </div>
-          <p className="text-xs text-gray-500 mt-3">
-            1 монета = 1 слайд
-          </p>
-        </div>
+        )}
 
         {/* Карточка пользователя */}
         {telegramUser && (
