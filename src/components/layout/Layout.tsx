@@ -6,6 +6,12 @@ import { LoaderIcon } from '@/components/ui/icons'
 export function Layout() {
   const { isLoading } = useAuth()
 
+  // Проверяем, запущено ли в Telegram Mini App на мобильном
+  const tg = window.Telegram?.WebApp
+  const isTMA = !!(tg?.initData && tg.initData.length > 0)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const needsPadding = isTMA && isMobile
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
@@ -18,7 +24,7 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col pt-[100px]">
+    <div className={`min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
       <main className="flex-1 overflow-auto">
         <div className="pb-20">
           <Outlet />

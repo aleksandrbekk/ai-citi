@@ -5,6 +5,14 @@ import { ArrowLeft, Send, Loader2, Bot, User, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
+// Проверка TMA на мобильном для отступа
+const getTMAPadding = () => {
+  const tg = window.Telegram?.WebApp
+  const isTMA = !!(tg?.initData && tg.initData.length > 0)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  return isTMA && isMobile
+}
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -15,6 +23,7 @@ export default function Chat() {
   const navigate = useNavigate()
   const tariffs = useAuthStore((state) => state.tariffs)
   const hasPaidAccess = tariffs.length > 0
+  const needsPadding = getTMAPadding()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -97,9 +106,9 @@ export default function Chat() {
   // Если нет подписки - показываем экран блокировки
   if (!hasPaidAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col pt-[100px]">
+      <div className={`min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
         {/* Header */}
-        <div className="sticky top-[100px] z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3`}>
           <button
             onClick={() => navigate('/')}
             className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
@@ -145,9 +154,9 @@ export default function Chat() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col pt-[100px]">
+    <div className={`min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
       {/* Header */}
-      <div className="sticky top-[100px] z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+      <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3`}>
         <button
           onClick={() => navigate('/')}
           className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
