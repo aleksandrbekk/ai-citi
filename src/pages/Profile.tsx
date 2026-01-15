@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
-import { Coins, Sparkles, Bot, ShoppingCart } from 'lucide-react'
+import { Coins, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Profile() {
@@ -68,35 +68,6 @@ export default function Profile() {
           <p className="text-xs text-gray-500 mt-3">
             1 монета = 1 генерация карусели
           </p>
-        </div>
-
-        {/* Быстрые действия */}
-        <div className="space-y-3">
-          <p className="text-xs text-gray-500 uppercase tracking-wider text-center">Что будем делать?</p>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              to="/agents"
-              className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-orange-50 flex items-center justify-center">
-                <Bot className="w-6 h-6 text-orange-500" />
-              </div>
-              <p className="font-semibold text-sm text-gray-900">AI Агенты</p>
-              <p className="text-xs text-gray-500 mt-1">Создать контент</p>
-            </Link>
-
-            <Link
-              to="/shop"
-              className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-orange-50 flex items-center justify-center">
-                <ShoppingCart className="w-6 h-6 text-orange-500" />
-              </div>
-              <p className="font-semibold text-sm text-gray-900">Магазин</p>
-              <p className="text-xs text-gray-500 mt-1">Тарифы и бонусы</p>
-            </Link>
-          </div>
         </div>
 
         {/* Карточка пользователя */}
