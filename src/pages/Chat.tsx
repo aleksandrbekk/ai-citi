@@ -480,17 +480,31 @@ export default function Chat() {
             <Paperclip size={20} />
           </button>
 
-          {/* Text input */}
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Напиши сообщение..."
-            className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
-            rows={1}
-            disabled={isLoading}
-          />
+          {/* Text input or Recording indicator */}
+          {isRecording ? (
+            <div className="flex-1 px-4 py-3 bg-red-50 border-2 border-red-400 rounded-2xl flex items-center gap-3">
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-red-600 font-medium">Слушаю...</span>
+              <div className="flex gap-1 ml-auto">
+                <span className="w-1 h-4 bg-red-400 rounded-full animate-[bounce_0.5s_ease-in-out_infinite]" />
+                <span className="w-1 h-6 bg-red-500 rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.1s]" />
+                <span className="w-1 h-4 bg-red-400 rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.2s]" />
+                <span className="w-1 h-5 bg-red-500 rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.3s]" />
+                <span className="w-1 h-3 bg-red-400 rounded-full animate-[bounce_0.5s_ease-in-out_infinite_0.4s]" />
+              </div>
+            </div>
+          ) : (
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Напиши сообщение..."
+              className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
+              rows={1}
+              disabled={isLoading}
+            />
+          )}
 
           {/* Voice button */}
           <button
