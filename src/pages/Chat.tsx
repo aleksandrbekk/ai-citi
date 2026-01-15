@@ -99,7 +99,7 @@ export default function Chat() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 pt-12 flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
             className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
@@ -147,7 +147,7 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 pt-12 flex items-center gap-3">
         <button
           onClick={() => navigate('/')}
           className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
