@@ -1,11 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, Calendar, X, Loader2, Clock } from 'lucide-react'
 import { usePosts } from '@/hooks/usePosts'
 
+// ID Александра - только он имеет доступ к постеру
+const ALLOWED_USER_ID = 643763835
+
 export default function PosterCreate() {
   const navigate = useNavigate()
   const { createPost, isLoading, error } = usePosts()
+
+  // Проверка доступа
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    let userId: number | null = null
+    if (tg?.initDataUnsafe?.user?.id) {
+      userId = tg.initDataUnsafe.user.id
+    } else {
+      const savedUser = localStorage.getItem('tg_user')
+      if (savedUser) {
+        try { userId = JSON.parse(savedUser).id } catch {}
+      }
+    }
+    if (userId !== ALLOWED_USER_ID) {
+      navigate('/')
+    }
+  }, [navigate])
   
   const [caption, setCaption] = useState('')
   const [mediaFiles, setMediaFiles] = useState<File[]>([])

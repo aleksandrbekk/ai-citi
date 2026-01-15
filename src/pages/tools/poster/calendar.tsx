@@ -5,6 +5,9 @@ import { usePosts } from '@/hooks/usePosts'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, getDay } from 'date-fns'
 import { ru } from 'date-fns/locale'
 
+// ID Александра - только он имеет доступ к постеру
+const ALLOWED_USER_ID = 643763835
+
 interface Post {
   id: string
   caption: string
@@ -21,6 +24,23 @@ export default function PosterCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Проверка доступа
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    let userId: number | null = null
+    if (tg?.initDataUnsafe?.user?.id) {
+      userId = tg.initDataUnsafe.user.id
+    } else {
+      const savedUser = localStorage.getItem('tg_user')
+      if (savedUser) {
+        try { userId = JSON.parse(savedUser).id } catch {}
+      }
+    }
+    if (userId !== ALLOWED_USER_ID) {
+      navigate('/')
+    }
+  }, [navigate])
 
   useEffect(() => {
     loadPosts()

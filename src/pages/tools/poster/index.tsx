@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Calendar, Image, Trash2, Edit, Send } from 'lucide-react'
+import { Plus, Calendar, Image, Trash2, Edit, Send, Lock } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { usePosts, usePublishToInstagram } from '@/hooks/usePosts'
+
+// ID Александра - только он имеет доступ к постеру
+const ALLOWED_USER_ID = 643763835
 
 interface Post {
   id: string
@@ -32,9 +36,31 @@ export default function PosterDashboard() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  // Проверка доступа по Telegram ID
+  const getTelegramUserId = (): number | null => {
+    const tg = window.Telegram?.WebApp
+    if (tg?.initDataUnsafe?.user?.id) {
+      return tg.initDataUnsafe.user.id
+    }
+    const savedUser = localStorage.getItem('tg_user')
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser).id
+      } catch {
+        return null
+      }
+    }
+    return null
+  }
+
+  const currentUserId = getTelegramUserId()
+  const hasAccess = currentUserId === ALLOWED_USER_ID
+
   useEffect(() => {
-    loadPosts()
-  }, [])
+    if (hasAccess) {
+      loadPosts()
+    }
+  }, [hasAccess])
 
   const loadPosts = async () => {
     setIsLoading(true)
@@ -73,6 +99,33 @@ export default function PosterDashboard() {
   const drafts = posts.filter(p => p.status === 'draft')
   const scheduled = posts.filter(p => p.status === 'scheduled')
   const published = posts.filter(p => p.status === 'published')
+
+  // Если нет доступа - показываем экран блокировки
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-sm"
+        >
+          <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+            <Lock size={40} className="text-gray-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h2>
+          <p className="text-gray-500 mb-6">
+            Нейропостер доступен только для администраторов.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
+          >
+            На главную
+          </button>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pb-24">

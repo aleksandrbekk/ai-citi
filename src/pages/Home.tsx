@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 const modes = [
   { id: 'chat', label: 'Чат с AI', icon: '💬', path: '/chat' },
   { id: 'carousel', label: 'Карусели', icon: '🎠', path: '/agents/carousel' },
-  { id: 'poster', label: 'Постеры', icon: '📝', path: '/tools/poster' },
   { id: 'school', label: 'Школа', icon: '📚', path: '/school' },
   { id: 'shop', label: 'Магазин', icon: '🛒', path: '/shop' },
 ]

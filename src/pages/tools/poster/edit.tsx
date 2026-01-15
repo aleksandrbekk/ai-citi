@@ -4,10 +4,30 @@ import { ArrowLeft, Upload, Calendar, Clock, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePosts } from '@/hooks/usePosts'
 
+// ID Александра - только он имеет доступ к постеру
+const ALLOWED_USER_ID = 643763835
+
 export default function PosterEdit() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const { getPost, updatePost, isLoading, error } = usePosts()
+
+  // Проверка доступа
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    let userId: number | null = null
+    if (tg?.initDataUnsafe?.user?.id) {
+      userId = tg.initDataUnsafe.user.id
+    } else {
+      const savedUser = localStorage.getItem('tg_user')
+      if (savedUser) {
+        try { userId = JSON.parse(savedUser).id } catch {}
+      }
+    }
+    if (userId !== ALLOWED_USER_ID) {
+      navigate('/')
+    }
+  }, [navigate])
   
   const [caption, setCaption] = useState('')
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
