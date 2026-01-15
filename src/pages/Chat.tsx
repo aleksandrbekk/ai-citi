@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, Bot, User, Lock } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, Bot, User, Lock, Paperclip, Mic, MicOff, X, Image, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -13,10 +13,19 @@ const getTMAPadding = () => {
   return isTMA && isMobile
 }
 
+interface Attachment {
+  id: string
+  type: 'image' | 'file'
+  name: string
+  url: string
+  file?: File
+}
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  attachments?: Attachment[]
 }
 
 export default function Chat() {
@@ -28,8 +37,15 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [isRecording, setIsRecording] = useState(false)
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const recognitionRef = useRef<any>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -47,17 +63,95 @@ export default function Chat() {
     }
   }, [input])
 
+  // Инициализация голосового ввода
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition()
+      recognitionRef.current.continuous = true
+      recognitionRef.current.interimResults = true
+      recognitionRef.current.lang = 'ru-RU'
+
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = ''
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript
+          }
+        }
+        if (finalTranscript) {
+          setInput(prev => prev + finalTranscript)
+        }
+      }
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        setIsRecording(false)
+      }
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false)
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+    }
+  }, [])
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      alert('Голосовой ввод не поддерживается в вашем браузере')
+      return
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      recognitionRef.current.start()
+      setIsRecording(true)
+    }
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file') => {
+    const files = e.target.files
+    if (!files) return
+
+    Array.from(files).forEach(file => {
+      const attachment: Attachment = {
+        id: Date.now().toString() + Math.random(),
+        type,
+        name: file.name,
+        url: URL.createObjectURL(file),
+        file
+      }
+      setAttachments(prev => [...prev, attachment])
+    })
+
+    setShowAttachMenu(false)
+    e.target.value = ''
+  }
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id))
+  }
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return
+    if ((!input.trim() && attachments.length === 0) || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim()
+      content: input.trim(),
+      attachments: attachments.length > 0 ? [...attachments] : undefined
     }
 
     setMessages(prev => [...prev, userMessage])
     setInput('')
+    setAttachments([])
     setIsLoading(true)
 
     try {
@@ -67,10 +161,12 @@ export default function Chat() {
         content: m.content
       }))
 
+      // TODO: Обработка вложений на бэкенде
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: {
           message: userMessage.content,
-          history
+          history,
+          // attachments: userMessage.attachments // для будущей обработки
         }
       })
 
@@ -190,7 +286,7 @@ export default function Chat() {
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Привет!</h2>
             <p className="text-gray-500 max-w-sm mx-auto">
-              Я твой AI-ассистент. Задай мне любой вопрос о платформе, контенте или бизнесе.
+              Я твой AI-ассистент. Задай мне любой вопрос, прикрепи фото или запиши голосовое сообщение.
             </p>
           </motion.div>
         )}
@@ -209,14 +305,36 @@ export default function Chat() {
                 </div>
               )}
 
-              <div
-                className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-                  message.role === 'user'
-                    ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md'
-                    : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
-                }`}
-              >
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+              <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : ''}`}>
+                {/* Вложения */}
+                {message.attachments && message.attachments.length > 0 && (
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {message.attachments.map(att => (
+                      <div key={att.id} className="relative">
+                        {att.type === 'image' ? (
+                          <img src={att.url} alt={att.name} className="max-w-[200px] max-h-[150px] rounded-xl object-cover" />
+                        ) : (
+                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-xl">
+                            <FileText size={16} className="text-gray-500" />
+                            <span className="text-sm text-gray-700 truncate max-w-[150px]">{att.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {message.content && (
+                  <div
+                    className={`px-4 py-3 rounded-2xl ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md'
+                        : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                  </div>
+                )}
               </div>
 
               {message.role === 'user' && (
@@ -250,9 +368,90 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Attachments preview */}
+      {attachments.length > 0 && (
+        <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+          <div className="flex gap-2 overflow-x-auto">
+            {attachments.map(att => (
+              <div key={att.id} className="relative flex-shrink-0">
+                {att.type === 'image' ? (
+                  <img src={att.url} alt={att.name} className="w-16 h-16 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-16 h-16 bg-white border border-gray-200 rounded-lg flex flex-col items-center justify-center">
+                    <FileText size={20} className="text-gray-400" />
+                    <span className="text-[10px] text-gray-500 truncate w-14 text-center">{att.name}</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => removeAttachment(att.id)}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Attach menu */}
+      <AnimatePresence>
+        {showAttachMenu && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="px-4 py-2 bg-white border-t border-gray-100"
+          >
+            <div className="flex gap-4">
+              <button
+                onClick={() => imageInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl"
+              >
+                <Image size={20} />
+                <span className="text-sm font-medium">Фото</span>
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-xl"
+              >
+                <FileText size={20} />
+                <span className="text-sm font-medium">Файл</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hidden file inputs */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => handleFileSelect(e, 'image')}
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => handleFileSelect(e, 'file')}
+      />
+
       {/* Input */}
       <div className="sticky bottom-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-4 py-3 pb-safe">
         <div className="flex gap-2 items-end">
+          {/* Attach button */}
+          <button
+            onClick={() => setShowAttachMenu(!showAttachMenu)}
+            className={`p-3 rounded-full transition-all ${showAttachMenu ? 'bg-orange-100 text-orange-500' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+          >
+            <Paperclip size={20} />
+          </button>
+
+          {/* Text input */}
           <textarea
             ref={inputRef}
             value={input}
@@ -263,9 +462,19 @@ export default function Chat() {
             rows={1}
             disabled={isLoading}
           />
+
+          {/* Voice button */}
+          <button
+            onClick={toggleRecording}
+            className={`p-3 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+          >
+            {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+
+          {/* Send button */}
           <button
             onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && attachments.length === 0) || isLoading}
             className="p-3 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-orange-500/30 active:scale-95"
           >
             {isLoading ? (
