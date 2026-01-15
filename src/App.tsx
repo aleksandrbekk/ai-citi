@@ -34,6 +34,7 @@ import AdminPanel from './pages/admin/index'
 import CarouselDesignsPage from './pages/carousel-designs/index'
 import MiniAdmin from './pages/mini-admin/index'
 import { Offer } from './pages/Offer'
+import Chat from './pages/Chat'
 
 // Admin imports
 import { AdminLayout, AdminProtectedRoute } from './components/admin'
@@ -183,6 +184,7 @@ function AppContent() {
         </Route>
 
         <Route path="/mini-admin" element={<MiniAdmin />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />

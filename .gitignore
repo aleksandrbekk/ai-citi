@@ -30,3 +30,4 @@ gen-lang-client-*.json
 .playwright-mcp/
 .env.local
 ИНСТРУКЦИИ .md
+google-credentials.json
