@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
-import { motion } from 'framer-motion'
-import { Coins, Sparkles } from 'lucide-react'
+import { Coins, Sparkles, Bot, ShoppingCart } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function Profile() {
   const telegramUser = getTelegramUser()
@@ -22,181 +22,114 @@ export default function Profile() {
   }, [telegramUser?.id])
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-24 overflow-hidden">
-      {/* Header вывеска - бесшовно сверху */}
-      <div className="bg-gradient-to-r from-primary via-accent to-primary pt-safe-area-top">
-        <div className="px-6 py-4 pb-6">
-          <motion.div
-            className="text-center"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              AI CITI
-            </h1>
-            <p className="text-white/80 text-xs mt-1">Твой AI-помощник</p>
-          </motion.div>
+    <div className="min-h-screen bg-white pb-24">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 px-6 py-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            AI CITI
+          </h1>
+          <p className="text-white/80 text-xs mt-1">Твой AI-помощник</p>
         </div>
-        {/* Плавный переход */}
-        <div className="h-6 bg-gradient-to-b from-primary/20 to-transparent" />
       </div>
 
-      {/* Декоративные элементы */}
-      <div className="absolute top-32 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/5 rounded-full blur-3xl translate-x-1/2" />
-      <div className="absolute bottom-1/3 left-0 w-48 h-48 bg-gradient-to-tr from-primary/5 to-transparent rounded-full blur-2xl -translate-x-1/2" />
-
-      <div className="relative px-6 space-y-6">
-        {/* Приветствие пользователя */}
-        <motion.div
-          className="text-center pt-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <h2 className="text-xl font-semibold text-foreground">
-            Привет, <span className="text-primary">{firstName}</span>! 👋
+      <div className="px-4 py-6 space-y-6">
+        {/* Приветствие */}
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Привет, <span className="text-orange-500">{firstName}</span>! 👋
           </h2>
-        </motion.div>
+        </div>
 
         {/* Баланс монет */}
-        <motion.div
-          className="glass-card-strong p-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
                 <Coins className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Монеты для генерации</p>
+                <p className="text-xs text-gray-500">Монеты для генерации</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-foreground">
+                  <span className="text-2xl font-bold text-gray-900">
                     {isLoadingCoins ? '...' : coinBalance}
                   </span>
                   <Sparkles className="w-4 h-4 text-yellow-500" />
                 </div>
               </div>
             </div>
-            <a
-              href="/shop"
-              className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
+            <Link
+              to="/shop"
+              className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-semibold rounded-full shadow-lg"
             >
               Купить
-            </a>
+            </Link>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-xs text-gray-500 mt-3">
             1 монета = 1 генерация карусели
           </p>
-        </motion.div>
+        </div>
 
         {/* Быстрые действия */}
-        <motion.div
-          className="space-y-3"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <p className="text-xs text-muted-foreground uppercase tracking-wider text-center">Что будем делать?</p>
+        <div className="space-y-3">
+          <p className="text-xs text-gray-500 uppercase tracking-wider text-center">Что будем делать?</p>
 
           <div className="grid grid-cols-2 gap-3">
-            <motion.a
-              href="/agents"
-              className="glass-card p-4 text-center hover:shadow-lg transition-all"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+            <Link
+              to="/agents"
+              className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-all"
             >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/5 flex items-center justify-center">
-                <span className="text-2xl">🤖</span>
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-orange-50 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-orange-500" />
               </div>
-              <p className="font-semibold text-sm text-foreground">AI Агенты</p>
-              <p className="text-xs text-muted-foreground mt-1">Создать контент</p>
-            </motion.a>
+              <p className="font-semibold text-sm text-gray-900">AI Агенты</p>
+              <p className="text-xs text-gray-500 mt-1">Создать контент</p>
+            </Link>
 
-            <motion.a
-              href="/shop"
-              className="glass-card p-4 text-center hover:shadow-lg transition-all"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+            <Link
+              to="/shop"
+              className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-all"
             >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-accent/10 to-primary/5 flex items-center justify-center">
-                <span className="text-2xl">🛒</span>
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-orange-50 flex items-center justify-center">
+                <ShoppingCart className="w-6 h-6 text-orange-500" />
               </div>
-              <p className="font-semibold text-sm text-foreground">Магазин</p>
-              <p className="text-xs text-muted-foreground mt-1">Тарифы и бонусы</p>
-            </motion.a>
+              <p className="font-semibold text-sm text-gray-900">Магазин</p>
+              <p className="text-xs text-gray-500 mt-1">Тарифы и бонусы</p>
+            </Link>
           </div>
-        </motion.div>
+        </div>
 
         {/* Карточка пользователя */}
         {telegramUser && (
-          <motion.div
-            className="glass-card-strong p-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-          >
+          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xl font-bold text-white shadow-lg">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-orange-400 flex items-center justify-center text-xl font-bold text-white shadow-lg">
                 {telegramUser.first_name?.[0] || '?'}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">
+                <h3 className="font-semibold text-gray-900">
                   {telegramUser.first_name} {telegramUser.last_name || ''}
                 </h3>
                 {telegramUser.username && (
-                  <p className="text-muted-foreground text-sm">@{telegramUser.username}</p>
+                  <p className="text-gray-500 text-sm">@{telegramUser.username}</p>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Статус</p>
-                <p className="text-primary text-sm font-medium">Активен</p>
+                <p className="text-xs text-gray-500">Статус</p>
+                <p className="text-orange-500 text-sm font-medium">Активен</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
-        {/* Персонаж Нейрончик - внизу */}
-        <motion.div
-          className="flex justify-center pt-4"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.9 }}
-        >
-          <div className="relative">
-            {/* Мягкое свечение */}
-            <motion.div
-              className="absolute inset-0 bg-primary/10 blur-3xl rounded-full"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.2, 0.4, 0.2],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            {/* Персонаж */}
-            <motion.img
-              src="/images/neurochik.png"
-              alt="Нейрончик"
-              className="relative w-36 h-auto drop-shadow-xl"
-              animate={{
-                y: [0, -6, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </div>
-        </motion.div>
+        {/* Персонаж */}
+        <div className="flex justify-center pt-4">
+          <img
+            src="/images/neurochik.png"
+            alt="Нейрончик"
+            className="w-32 h-auto"
+          />
+        </div>
       </div>
     </div>
   )
