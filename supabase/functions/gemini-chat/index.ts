@@ -17,6 +17,8 @@ const SYSTEM_PROMPT = `Ты — AI-ассистент платформы AI CITI
 - Использовании AI-инструментов на платформе
 - Общих вопросах о бизнесе
 
+Если пользователь прикрепил изображение — опиши что на нём и ответь на вопрос связанный с ним.
+
 Отвечай дружелюбно, по-русски, кратко и по делу.
 Используй эмодзи уместно.
 Если не знаешь ответ — честно скажи об этом.`
@@ -84,17 +86,22 @@ async function getAccessToken(credentials: any): Promise<string> {
   return data.access_token
 }
 
+interface ImageAttachment {
+  mimeType: string
+  data: string // base64 encoded
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { message, history = [] } = await req.json()
+    const { message, history = [], images = [] } = await req.json()
 
-    if (!message) {
+    if (!message && images.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Message is required' }),
+        JSON.stringify({ error: 'Message or image is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -107,14 +114,36 @@ serve(async (req) => {
     const credentials = JSON.parse(credentialsJson)
     const token = await getAccessToken(credentials)
 
+    // Собираем parts для текущего сообщения
+    const currentMessageParts: any[] = []
+
+    // Добавляем изображения
+    if (images && images.length > 0) {
+      for (const img of images as ImageAttachment[]) {
+        currentMessageParts.push({
+          inlineData: {
+            mimeType: img.mimeType,
+            data: img.data
+          }
+        })
+      }
+    }
+
+    // Добавляем текст
+    if (message) {
+      currentMessageParts.push({ text: message })
+    } else if (images.length > 0) {
+      currentMessageParts.push({ text: "Что на этом изображении?" })
+    }
+
     const contents = [
       { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-      { role: "model", parts: [{ text: "Понял! Я готов помогать пользователям AI CITI." }] },
+      { role: "model", parts: [{ text: "Понял! Я готов помогать пользователям AI CITI. Могу анализировать изображения и отвечать на вопросы." }] },
       ...history.map((msg: { role: string; content: string }) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       })),
-      { role: "user", parts: [{ text: message }] }
+      { role: "user", parts: currentMessageParts }
     ]
 
     const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`

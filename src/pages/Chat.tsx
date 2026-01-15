@@ -21,6 +21,21 @@ interface Attachment {
   file?: File
 }
 
+// Конвертация файла в base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      // Убираем prefix "data:image/jpeg;base64," и оставляем только base64
+      const result = reader.result as string
+      const base64 = result.split(',')[1]
+      resolve(base64)
+    }
+    reader.onerror = (error) => reject(error)
+  })
+}
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -161,12 +176,26 @@ export default function Chat() {
         content: m.content
       }))
 
-      // TODO: Обработка вложений на бэкенде
+      // Подготавливаем изображения для отправки
+      const images: { mimeType: string; data: string }[] = []
+
+      if (userMessage.attachments) {
+        for (const att of userMessage.attachments) {
+          if (att.type === 'image' && att.file) {
+            const base64 = await fileToBase64(att.file)
+            images.push({
+              mimeType: att.file.type || 'image/jpeg',
+              data: base64
+            })
+          }
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: {
           message: userMessage.content,
           history,
-          // attachments: userMessage.attachments // для будущей обработки
+          images: images.length > 0 ? images : undefined
         }
       })
 
