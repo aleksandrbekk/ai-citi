@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const PROJECT_ID = "gen-lang-client-0824207691"
+const PROJECT_ID = "gen-lang-client-0102901194"
 const LOCATION = "us-central1"
 const MODEL = "gemini-2.0-flash-001"
 
