@@ -118,18 +118,8 @@ export function Shop() {
               <button
                 key={pkg.id}
                 onClick={() => handleBuyPackage(pkg.id)}
-                className={`w-full bg-white border-2 rounded-2xl p-4 text-left transition-all hover:shadow-lg ${
-                  pkg.popular ? 'border-orange-400' : 'border-gray-200'
-                } ${selectedPackage === pkg.id ? 'ring-2 ring-orange-500' : ''}`}
+                className={`w-full bg-white border-2 border-gray-200 rounded-2xl p-4 text-left transition-all hover:shadow-lg ${selectedPackage === pkg.id ? 'ring-2 ring-orange-500' : ''}`}
               >
-                {pkg.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-orange-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                      Популярный
-                    </span>
-                  </div>
-                )}
-
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg ${pkg.shadow}`}>
