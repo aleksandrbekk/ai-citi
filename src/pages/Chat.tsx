@@ -97,9 +97,9 @@ export default function Chat() {
   // Если нет подписки - показываем экран блокировки
   if (!hasPaidAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col pt-[70px]">
+      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col pt-[100px]">
         {/* Header */}
-        <div className="sticky top-[70px] z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <div className="sticky top-[100px] z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
             className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
@@ -145,9 +145,9 @@ export default function Chat() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col pt-[70px]">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col pt-[100px]">
       {/* Header */}
-      <div className="sticky top-[70px] z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-[100px] z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate('/')}
           className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
