@@ -183,14 +183,14 @@ export default function UtmTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold">UTM Ссылки</h3>
-          <p className="text-sm text-[#94A3B8]">Создавайте ссылки для отслеживания источников трафика</p>
+          <p className="text-sm text-[#94A3B8]">Отслеживание источников трафика</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg transition-colors w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           Создать ссылку
@@ -210,15 +210,15 @@ export default function UtmTab() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-[#94A3B8] mb-1">Название *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Например: Реклама в Instagram"
-                  className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
+                  placeholder="Реклама в Instagram"
+                  className="w-full px-4 py-2.5 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
                   required
                 />
               </div>
@@ -230,12 +230,12 @@ export default function UtmTab() {
                     value={formData.short_code}
                     onChange={(e) => setFormData({ ...formData, short_code: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
                     placeholder="auto"
-                    className="flex-1 px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
+                    className="flex-1 px-4 py-2.5 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
                   />
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, short_code: generateShortCode() })}
-                    className="px-3 py-2 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
+                    className="px-3 py-2.5 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
                   >
                     <Link2 className="w-4 h-4" />
                   </button>
@@ -243,25 +243,25 @@ export default function UtmTab() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_source (откуда трафик)</label>
+                <label className="block text-sm text-[#94A3B8] mb-1">Источник (utm_source)</label>
                 <input
                   type="text"
                   value={formData.utm_source}
                   onChange={(e) => setFormData({ ...formData, utm_source: e.target.value })}
-                  placeholder="instagram, telegram, youtube"
-                  className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
+                  placeholder="instagram, telegram"
+                  className="w-full px-4 py-2.5 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
               <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_medium (тип рекламы)</label>
+                <label className="block text-sm text-[#94A3B8] mb-1">Тип (utm_medium)</label>
                 <input
                   type="text"
                   value={formData.utm_medium}
                   onChange={(e) => setFormData({ ...formData, utm_medium: e.target.value })}
-                  placeholder="stories, post, reels, banner"
-                  className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
+                  placeholder="stories, post, reels"
+                  className="w-full px-4 py-2.5 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
             </div>
@@ -274,19 +274,19 @@ export default function UtmTab() {
               </code>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="flex-1 py-2 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg transition-colors font-medium"
-              >
-                {editingCampaign ? 'Сохранить' : 'Создать'}
-              </button>
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-2 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
+                className="flex-1 sm:flex-initial px-6 py-2.5 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
               >
                 Отмена
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg transition-colors font-medium"
+              >
+                {editingCampaign ? 'Сохранить' : 'Создать'}
               </button>
             </div>
           </form>
@@ -294,34 +294,34 @@ export default function UtmTab() {
       )}
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-[#1E293B] border border-[#334155] rounded-lg p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
           <div className="flex items-center gap-2 text-[#94A3B8] mb-1">
             <Link2 className="w-4 h-4" />
-            <span className="text-sm">Всего ссылок</span>
+            <span className="text-xs sm:text-sm">Ссылок</span>
           </div>
-          <div className="text-2xl font-bold">{campaigns.length}</div>
+          <div className="text-xl sm:text-2xl font-bold">{campaigns.length}</div>
         </div>
-        <div className="bg-[#1E293B] border border-[#334155] rounded-lg p-4">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
           <div className="flex items-center gap-2 text-[#94A3B8] mb-1">
             <MousePointer className="w-4 h-4" />
-            <span className="text-sm">Всего кликов</span>
+            <span className="text-xs sm:text-sm">Кликов</span>
           </div>
-          <div className="text-2xl font-bold">{campaigns.reduce((sum, c) => sum + c.clicks, 0)}</div>
+          <div className="text-xl sm:text-2xl font-bold">{campaigns.reduce((sum, c) => sum + c.clicks, 0)}</div>
         </div>
-        <div className="bg-[#1E293B] border border-[#334155] rounded-lg p-4">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
           <div className="flex items-center gap-2 text-[#94A3B8] mb-1">
             <Users className="w-4 h-4" />
-            <span className="text-sm">Регистрации</span>
+            <span className="text-xs sm:text-sm">Регистр.</span>
           </div>
-          <div className="text-2xl font-bold text-green-400">{campaigns.reduce((sum, c) => sum + c.registrations, 0)}</div>
+          <div className="text-xl sm:text-2xl font-bold text-green-400">{campaigns.reduce((sum, c) => sum + c.registrations, 0)}</div>
         </div>
-        <div className="bg-[#1E293B] border border-[#334155] rounded-lg p-4">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
           <div className="flex items-center gap-2 text-[#94A3B8] mb-1">
             <ShoppingCart className="w-4 h-4" />
-            <span className="text-sm">Покупки</span>
+            <span className="text-xs sm:text-sm">Покупки</span>
           </div>
-          <div className="text-2xl font-bold text-yellow-400">{campaigns.reduce((sum, c) => sum + c.purchases, 0)}</div>
+          <div className="text-xl sm:text-2xl font-bold text-yellow-400">{campaigns.reduce((sum, c) => sum + c.purchases, 0)}</div>
         </div>
       </div>
 
@@ -342,89 +342,88 @@ export default function UtmTab() {
           {campaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className={`bg-[#1E293B] border rounded-lg p-4 transition-all ${
+              className={`bg-[#1E293B] border rounded-xl p-4 transition-all ${
                 campaign.is_active ? 'border-[#334155]' : 'border-[#334155] opacity-60'
               }`}
             >
-              <div className="flex items-start justify-between gap-4">
+              {/* Header row */}
+              <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold truncate">{campaign.name}</h4>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h4 className="font-semibold text-sm sm:text-base">{campaign.name}</h4>
                     {!campaign.is_active && (
                       <span className="px-2 py-0.5 text-xs bg-[#64748B]/20 text-[#94A3B8] rounded">
-                        Неактивна
+                        Выкл
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#94A3B8] mb-2">
+                  <div className="flex items-center gap-2 text-xs text-[#94A3B8] flex-wrap">
                     {campaign.utm_source && <span className="px-2 py-0.5 bg-[#0F172A] rounded">{campaign.utm_source}</span>}
                     {campaign.utm_medium && <span className="px-2 py-0.5 bg-[#0F172A] rounded">{campaign.utm_medium}</span>}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <code className="text-xs text-[#60A5FA] truncate max-w-md">
-                      {buildUtmUrl(campaign)}
-                    </code>
-                    <button
-                      onClick={() => copyToClipboard(buildUtmUrl(campaign), campaign.id)}
-                      className="p-1 hover:bg-[#334155] rounded transition-colors flex-shrink-0"
-                      title="Копировать"
-                    >
-                      {copiedId === campaign.id ? (
-                        <Check className="w-4 h-4 text-green-400" />
-                      ) : (
-                        <Copy className="w-4 h-4 text-[#94A3B8]" />
-                      )}
-                    </button>
-                  </div>
                 </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="text-center">
-                    <div className="text-[#94A3B8] text-xs">Клики</div>
-                    <div className="font-semibold">{campaign.clicks}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[#94A3B8] text-xs">Уник.</div>
-                    <div className="font-semibold">{campaign.unique_clicks}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[#94A3B8] text-xs">Рег.</div>
-                    <div className="font-semibold text-green-400">{campaign.registrations}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[#94A3B8] text-xs">Покупки</div>
-                    <div className="font-semibold text-yellow-400">{campaign.purchases}</div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1">
+                {/* Actions - always visible */}
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => toggleActive(campaign)}
                     className={`p-2 rounded-lg transition-colors ${
                       campaign.is_active
-                        ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                        : 'bg-[#334155] text-[#94A3B8] hover:bg-[#475569]'
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-[#334155] text-[#94A3B8]'
                     }`}
-                    title={campaign.is_active ? 'Деактивировать' : 'Активировать'}
                   >
-                    {campaign.is_active ? <Eye className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <Eye className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleEdit(campaign)}
                     className="p-2 bg-[#334155] hover:bg-[#475569] rounded-lg transition-colors"
-                    title="Редактировать"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(campaign.id)}
-                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
-                    title="Удалить"
+                    className="p-2 bg-red-500/20 text-red-400 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                </div>
+              </div>
+
+              {/* Link row */}
+              <div className="flex items-center gap-2 bg-[#0F172A] rounded-lg p-2 mb-3">
+                <code className="text-xs text-[#60A5FA] truncate flex-1">
+                  {buildUtmUrl(campaign)}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(buildUtmUrl(campaign), campaign.id)}
+                  className="p-1.5 hover:bg-[#334155] rounded-lg transition-colors flex-shrink-0"
+                >
+                  {copiedId === campaign.id ? (
+                    <Check className="w-4 h-4 text-green-400" />
+                  ) : (
+                    <Copy className="w-4 h-4 text-[#94A3B8]" />
+                  )}
+                </button>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-4 gap-2 text-center text-xs sm:text-sm">
+                <div className="bg-[#0F172A] rounded-lg py-2 px-1">
+                  <div className="text-[#94A3B8] text-[10px] sm:text-xs">Клики</div>
+                  <div className="font-semibold">{campaign.clicks}</div>
+                </div>
+                <div className="bg-[#0F172A] rounded-lg py-2 px-1">
+                  <div className="text-[#94A3B8] text-[10px] sm:text-xs">Уник.</div>
+                  <div className="font-semibold">{campaign.unique_clicks}</div>
+                </div>
+                <div className="bg-[#0F172A] rounded-lg py-2 px-1">
+                  <div className="text-[#94A3B8] text-[10px] sm:text-xs">Рег.</div>
+                  <div className="font-semibold text-green-400">{campaign.registrations}</div>
+                </div>
+                <div className="bg-[#0F172A] rounded-lg py-2 px-1">
+                  <div className="text-[#94A3B8] text-[10px] sm:text-xs">Покупки</div>
+                  <div className="font-semibold text-yellow-400">{campaign.purchases}</div>
                 </div>
               </div>
             </div>
