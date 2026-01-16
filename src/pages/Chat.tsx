@@ -512,19 +512,11 @@ export default function Chat() {
       />
 
       {/* Input */}
-      <div className={`sticky bottom-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-4 py-3 ${needsPadding ? 'pb-8' : 'pb-safe'}`}>
-        <div className="flex gap-2 items-end">
-          {/* Attach button */}
-          <button
-            onClick={() => setShowAttachMenu(!showAttachMenu)}
-            className={`p-3 rounded-full transition-all ${showAttachMenu ? 'bg-orange-100 text-orange-500' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-          >
-            <Paperclip size={20} />
-          </button>
-
+      <div className={`sticky bottom-0 bg-white/80 backdrop-blur-xl px-3 py-3 ${needsPadding ? 'pb-8' : 'pb-safe'}`}>
+        <div className={`border rounded-2xl bg-white shadow-sm transition-all ${isRecording ? 'border-red-400 bg-red-50' : 'border-gray-200 focus-within:border-orange-300 focus-within:shadow-md'}`}>
           {/* Text input or Recording indicator */}
           {isRecording ? (
-            <div className="flex-1 px-4 py-3 bg-red-50 border-2 border-red-400 rounded-2xl flex items-center gap-3">
+            <div className="px-4 py-4 flex items-center gap-3">
               <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
               <span className="text-red-600 font-medium">Слушаю...</span>
               <div className="flex gap-1 ml-auto">
@@ -542,32 +534,44 @@ export default function Chat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Напиши сообщение..."
-              className="flex-1 px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
+              className="w-full px-4 pt-4 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
               rows={1}
               disabled={isLoading}
             />
           )}
 
-          {/* Voice button */}
-          <button
-            onClick={toggleRecording}
-            className={`p-3 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-          >
-            {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-          </button>
+          {/* Bottom buttons row */}
+          <div className="flex items-center justify-between px-3 pb-3">
+            {/* Left: Attach button */}
+            <button
+              onClick={() => setShowAttachMenu(!showAttachMenu)}
+              className={`p-2 rounded-lg transition-all ${showAttachMenu ? 'bg-orange-100 text-orange-500' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+            >
+              <Paperclip size={20} />
+            </button>
 
-          {/* Send button */}
-          <button
-            onClick={sendMessage}
-            disabled={(!input.trim() && attachments.length === 0) || isLoading}
-            className="p-3 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-orange-500/30 active:scale-95"
-          >
-            {isLoading ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <Send size={20} />
-            )}
-          </button>
+            {/* Right: Voice & Send buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleRecording}
+                className={`p-2 rounded-lg transition-all ${isRecording ? 'bg-red-500 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+              >
+                {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+              </button>
+
+              <button
+                onClick={sendMessage}
+                disabled={(!input.trim() && attachments.length === 0) || isLoading}
+                className="p-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-orange-500/30 active:scale-95"
+              >
+                {isLoading ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Send size={20} />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
