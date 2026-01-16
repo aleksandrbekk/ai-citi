@@ -80,10 +80,19 @@ export const useAuthStore = create<AuthState>()(
       debugInfo: null,
 
       login: async () => {
-        // Проверяем, не авторизован ли уже
-        if (get().isAuthenticated && get().user) {
+        // Проверяем startParam для реферальной системы
+        const startParam = getStartParam()
+        const hasReferral = startParam && startParam.startsWith('ref_')
+
+        // Если уже авторизован И нет реферальной ссылки — пропускаем
+        if (get().isAuthenticated && get().user && !hasReferral) {
           console.log('Already authenticated, skipping login')
           return
+        }
+
+        // Если есть реферальная ссылка — принудительно вызываем Edge Function
+        if (hasReferral) {
+          console.log('Referral link detected, forcing Edge Function call:', startParam)
         }
 
         set({ isLoading: true, error: null })
@@ -129,9 +138,6 @@ export const useAuthStore = create<AuthState>()(
 
           console.log('Calling Edge Function...')
           console.log('initData length:', initData.length)
-
-          // Получаем startParam для реферальной системы
-          const startParam = getStartParam()
           console.log('startParam:', startParam)
 
           // Вызываем Edge Function с таймаутом 10 секунд
