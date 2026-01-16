@@ -46,6 +46,7 @@ interface Message {
 export default function Chat() {
   const navigate = useNavigate()
   const tariffs = useAuthStore((state) => state.tariffs)
+  const user = useAuthStore((state) => state.user)
   const hasPaidAccess = tariffs.length > 0
   const needsPadding = getTMAPadding()
 
@@ -221,7 +222,8 @@ export default function Chat() {
         body: {
           message: userMessage.content,
           history,
-          images: images.length > 0 ? images : undefined
+          images: images.length > 0 ? images : undefined,
+          userId: user?.id // Для логирования
         }
       })
 
@@ -397,8 +399,8 @@ export default function Chat() {
                 {message.content && (
                   <div
                     className={`px-4 py-3 rounded-2xl ${message.role === 'user'
-                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md'
-                        : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md'
+                      : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
                       }`}
                   >
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { encode as base64url } from "https://deno.land/std@0.168.0/encoding/base64url.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,9 +9,12 @@ const corsHeaders = {
 
 const PROJECT_ID = "gen-lang-client-0102901194"
 const LOCATION = "us-central1"
-const MODEL = "gemini-2.5-pro-preview-06-05"
 
-// Максимум сообщений в памяти (чтобы не превышать лимит токенов)
+// Дефолтные модели (если не удалось получить из БД)
+const DEFAULT_MODEL = "gemini-2.5-pro-preview-06-05"
+const FALLBACK_MODEL = "gemini-2.5-flash"
+
+// Максимум сообщений в памяти
 const MAX_HISTORY_MESSAGES = 20
 
 const SYSTEM_PROMPT = `Ты — AI-ассистент платформы AI CITI (НЕЙРОГОРОД) на базе Gemini 2.5 Pro.
@@ -33,6 +37,68 @@ const SYSTEM_PROMPT = `Ты — AI-ассистент платформы AI CITI
 - Будь мотивирующим, но практичным
 - Если не знаешь — честно скажи`
 
+// Supabase клиент для логирования
+function getSupabaseClient() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  return createClient(supabaseUrl, supabaseKey)
+}
+
+// Получение настроек чата из БД
+async function getChatSettings() {
+  try {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from('chat_settings')
+      .select('*')
+      .single()
+
+    if (error) throw error
+    return data
+  } catch (e) {
+    console.warn('Failed to get chat settings, using defaults:', e)
+    return {
+      active_model: DEFAULT_MODEL,
+      fallback_model: FALLBACK_MODEL,
+      max_retries: 2
+    }
+  }
+}
+
+// Логирование использования
+async function logUsage(params: {
+  userId?: string
+  inputTokens: number
+  outputTokens: number
+  imagesCount: number
+  model: string
+  success: boolean
+  errorMessage?: string
+}) {
+  try {
+    const supabase = getSupabaseClient()
+
+    // Расчёт стоимости в THB
+    const costThb =
+      (params.inputTokens * 0.000043) +
+      (params.outputTokens * 0.000345) +
+      (params.imagesCount * 0.054)
+
+    await supabase.from('chat_usage').insert({
+      user_id: params.userId || null,
+      input_tokens: params.inputTokens,
+      output_tokens: params.outputTokens,
+      images_count: params.imagesCount,
+      model: params.model,
+      cost_thb: costThb,
+      success: params.success,
+      error_message: params.errorMessage
+    })
+  } catch (e) {
+    console.error('Failed to log usage:', e)
+  }
+}
+
 // Создание JWT токена для Service Account
 async function createJWT(credentials: any): Promise<string> {
   const header = { alg: "RS256", typ: "JWT" }
@@ -50,7 +116,6 @@ async function createJWT(credentials: any): Promise<string> {
   const payloadB64 = base64url(encoder.encode(JSON.stringify(payload)))
   const signInput = `${headerB64}.${payloadB64}`
 
-  // Parse PEM private key
   const pemKey = credentials.private_key
   const pemContent = pemKey
     .replace("-----BEGIN PRIVATE KEY-----", "")
@@ -96,9 +161,56 @@ async function getAccessToken(credentials: any): Promise<string> {
   return data.access_token
 }
 
+// Вызов Gemini API
+async function callGemini(
+  token: string,
+  model: string,
+  contents: any[]
+): Promise<{ reply: string; inputTokens: number; outputTokens: number }> {
+  const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents,
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 8192,
+        topP: 0.9,
+        topK: 40,
+      },
+      safetySettings: [
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
+      ]
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Vertex AI error: ${response.status} - ${errorText}`)
+  }
+
+  const data = await response.json()
+  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Извини, не смог сгенерировать ответ.'
+
+  // Получаем usage метаданные
+  const usageMetadata = data.usageMetadata || {}
+  const inputTokens = usageMetadata.promptTokenCount || 0
+  const outputTokens = usageMetadata.candidatesTokenCount || 0
+
+  return { reply, inputTokens, outputTokens }
+}
+
 interface ImageAttachment {
   mimeType: string
-  data: string // base64 encoded
+  data: string
 }
 
 serve(async (req) => {
@@ -106,8 +218,13 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  let usedModel = DEFAULT_MODEL
+  let inputTokens = 0
+  let outputTokens = 0
+  let imagesCount = 0
+
   try {
-    const { message, history = [], images = [] } = await req.json()
+    const { message, history = [], images = [], userId } = await req.json()
 
     if (!message && images.length === 0) {
       return new Response(
@@ -115,6 +232,12 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Получаем настройки модели
+    const settings = await getChatSettings()
+    usedModel = settings.active_model || DEFAULT_MODEL
+    const fallbackModel = settings.fallback_model || FALLBACK_MODEL
+    const maxRetries = settings.max_retries || 2
 
     const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
     if (!credentialsJson) {
@@ -126,8 +249,8 @@ serve(async (req) => {
 
     // Собираем parts для текущего сообщения
     const currentMessageParts: any[] = []
+    imagesCount = images?.length || 0
 
-    // Добавляем изображения
     if (images && images.length > 0) {
       for (const img of images as ImageAttachment[]) {
         currentMessageParts.push({
@@ -139,14 +262,12 @@ serve(async (req) => {
       }
     }
 
-    // Добавляем текст
     if (message) {
       currentMessageParts.push({ text: message })
     } else if (images.length > 0) {
       currentMessageParts.push({ text: "Что на этом изображении?" })
     }
 
-    // Ограничиваем историю последними N сообщениями
     const limitedHistory = history.slice(-MAX_HISTORY_MESSAGES)
 
     const contents = [
@@ -159,47 +280,70 @@ serve(async (req) => {
       { role: "user", parts: currentMessageParts }
     ]
 
-    const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`
+    // Пробуем основную модель, при ошибке — fallback
+    let result: { reply: string; inputTokens: number; outputTokens: number }
+    let attempts = 0
+    let lastError: Error | null = null
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents,
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 8192,
-          topP: 0.9,
-          topK: 40,
-        },
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
-        ]
-      }),
-    })
+    while (attempts < maxRetries) {
+      try {
+        const modelToUse = attempts === 0 ? usedModel : fallbackModel
+        console.log(`Attempt ${attempts + 1}: using model ${modelToUse}`)
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Vertex AI error:', errorText)
-      throw new Error(`Vertex AI error: ${response.status}`)
+        result = await callGemini(token, modelToUse, contents)
+        usedModel = modelToUse
+        break
+      } catch (e) {
+        lastError = e as Error
+        console.error(`Model ${usedModel} failed:`, e)
+        attempts++
+
+        if (attempts < maxRetries) {
+          console.log(`Switching to fallback model: ${fallbackModel}`)
+          usedModel = fallbackModel
+        }
+      }
     }
 
-    const data = await response.json()
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Извини, не смог сгенерировать ответ.'
+    if (!result!) {
+      throw lastError || new Error('All models failed')
+    }
+
+    inputTokens = result.inputTokens
+    outputTokens = result.outputTokens
+
+    // Логируем успешный запрос
+    await logUsage({
+      userId,
+      inputTokens,
+      outputTokens,
+      imagesCount,
+      model: usedModel,
+      success: true
+    })
 
     return new Response(
-      JSON.stringify({ reply }),
+      JSON.stringify({
+        reply: result.reply,
+        model: usedModel,
+        usage: { inputTokens, outputTokens, imagesCount }
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     console.error('Error:', error)
+
+    // Логируем ошибку
+    await logUsage({
+      inputTokens,
+      outputTokens,
+      imagesCount,
+      model: usedModel,
+      success: false,
+      errorMessage: error.message
+    })
+
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
