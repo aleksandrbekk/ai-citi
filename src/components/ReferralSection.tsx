@@ -2,7 +2,10 @@ import { useReferrals } from '../hooks/useReferrals'
 import { Copy, Check, Users, Coins, Gift } from 'lucide-react'
 
 export function ReferralSection() {
-  const { stats, isLoading, referralLink, handleCopyLink, isCopied } = useReferrals()
+  const { stats, isLoading, referralLink, referralCode, handleCopyLink, isCopied, telegramId } = useReferrals()
+
+  // Отладка
+  console.log('ReferralSection render:', { referralLink, referralCode, telegramId, isLoading })
 
   if (isLoading) {
     return (
@@ -11,6 +14,15 @@ export function ReferralSection() {
           <div className="h-6 bg-purple-200 rounded w-1/3 mb-2"></div>
           <div className="h-4 bg-purple-200 rounded w-2/3"></div>
         </div>
+      </div>
+    )
+  }
+
+  // Если нет telegramId - показываем сообщение
+  if (!telegramId) {
+    return (
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-4">
+        <p className="text-gray-500 text-sm">Реферальная программа доступна в Telegram</p>
       </div>
     )
   }
@@ -32,15 +44,18 @@ export function ReferralSection() {
         <div className="flex gap-2">
           <input
             type="text"
-            value={referralLink}
+            value={referralLink || 'Загрузка...'}
             readOnly
             className="flex-1 px-3 py-2.5 bg-white border border-purple-200 rounded-xl text-sm text-gray-600 truncate"
           />
           <button
             onClick={handleCopyLink}
+            disabled={!referralCode}
             className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${
               isCopied
                 ? 'bg-green-500 text-white'
+                : !referralCode
+                ? 'bg-gray-300 text-gray-500'
                 : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
             }`}
           >
@@ -61,6 +76,13 @@ export function ReferralSection() {
         <p className="text-xs text-gray-500 mt-3">
           +2 монеты за каждого друга, +20% от покупок и трат
         </p>
+
+        {/* Показываем код для отладки */}
+        {referralCode && (
+          <p className="text-xs text-purple-500 mt-2">
+            Твой код: {referralCode}
+          </p>
+        )}
       </div>
 
       {/* Статистика */}

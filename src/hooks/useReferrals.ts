@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getReferralStats, getReferralLink, copyReferralLink, getUserReferralCode, type ReferralStats } from '../lib/referral'
 import { getTelegramUser } from '../lib/telegram'
 
@@ -7,16 +7,35 @@ export function useReferrals() {
   const telegramUser = getTelegramUser()
   const [isCopied, setIsCopied] = useState(false)
 
+  // Логируем для отладки
+  useEffect(() => {
+    console.log('useReferrals - telegramUser:', telegramUser)
+  }, [telegramUser])
+
   // Получаем referral_code пользователя
   const {
     data: referralCode,
-    isLoading: isLoadingCode
+    isLoading: isLoadingCode,
+    error: codeError
   } = useQuery<string | null>({
     queryKey: ['referral-code', telegramUser?.id],
-    queryFn: () => telegramUser?.id ? getUserReferralCode(telegramUser.id) : null,
+    queryFn: async () => {
+      if (!telegramUser?.id) return null
+      console.log('Fetching referral code for:', telegramUser.id)
+      const code = await getUserReferralCode(telegramUser.id)
+      console.log('Got referral code:', code)
+      return code
+    },
     enabled: !!telegramUser?.id,
-    staleTime: 60000, // 1 минута
+    staleTime: 60000,
   })
+
+  // Логируем ошибку
+  useEffect(() => {
+    if (codeError) {
+      console.error('Error fetching referral code:', codeError)
+    }
+  }, [codeError])
 
   // Получаем статистику рефералов
   const {
@@ -27,17 +46,21 @@ export function useReferrals() {
     queryKey: ['referral-stats', telegramUser?.id],
     queryFn: () => telegramUser?.id ? getReferralStats(telegramUser.id) : null,
     enabled: !!telegramUser?.id,
-    staleTime: 30000, // 30 секунд
+    staleTime: 30000,
   })
 
   const referralLink = referralCode ? getReferralLink(referralCode) : ''
+
+  // Логируем результат
+  useEffect(() => {
+    console.log('useReferrals result:', { referralCode, referralLink, stats, isLoadingCode, isLoadingStats })
+  }, [referralCode, referralLink, stats, isLoadingCode, isLoadingStats])
 
   const handleCopyLink = async () => {
     if (!referralCode) return false
     const success = await copyReferralLink(referralCode)
     if (success) {
       setIsCopied(true)
-      // Haptic feedback для Telegram
       window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred('success')
       setTimeout(() => setIsCopied(false), 2000)
     }
