@@ -22,6 +22,12 @@ export function AdminLayout() {
   const location = useLocation()
   const logout = useAdminAuth((s) => s.logout)
 
+  // Проверяем TMA на мобильном
+  const tg = window.Telegram?.WebApp
+  const isTMA = !!(tg?.initData && tg.initData.length > 0)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const needsTopPadding = isTMA && isMobile
+
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
@@ -43,11 +49,13 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b' }}>
-      {/* Safe area background for iOS */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40" style={{ backgroundColor: '#09090b' }} />
+      {/* Safe area background for iOS TMA only */}
+      {needsTopPadding && (
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40" style={{ backgroundColor: '#09090b' }} />
+      )}
 
       {/* Mobile Header */}
-      <header className="lg:hidden sticky top-0 z-50 pt-[100px]" style={{ backgroundColor: '#18181b' }}>
+      <header className={`lg:hidden sticky top-0 z-50 ${needsTopPadding ? 'pt-[100px]' : ''}`} style={{ backgroundColor: '#18181b' }}>
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h1 className="text-lg font-bold text-white">AI CITI</h1>
