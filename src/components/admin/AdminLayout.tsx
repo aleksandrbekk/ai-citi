@@ -59,9 +59,14 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b', overscrollBehavior: 'none' }}>
-      {/* Safe area background for iOS TMA only */}
+      {/* Safe area background for iOS TMA only - TOP */}
       {needsTopPadding && (
         <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40" style={{ backgroundColor: '#09090b' }} />
+      )}
+
+      {/* Safe area background for iOS TMA only - BOTTOM */}
+      {needsTopPadding && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[50px] z-40" style={{ backgroundColor: '#09090b' }} />
       )}
 
       {/* Mobile Header */}
@@ -256,7 +261,7 @@ export function AdminLayout() {
 
         {/* Main Content */}
         <main className="flex-1 min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b' }}>
-          <div className="p-4 lg:p-6 text-white max-w-full overflow-x-hidden">
+          <div className={`p-4 lg:p-6 text-white max-w-full overflow-x-hidden ${needsTopPadding ? 'pb-[70px]' : ''}`}>
             <Outlet />
           </div>
         </main>
