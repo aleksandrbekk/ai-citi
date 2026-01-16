@@ -42,9 +42,9 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950" style={{ backgroundColor: '#09090b' }}>
+    <div className="min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b' }}>
       {/* Mobile Header */}
-      <header className="lg:hidden sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800">
+      <header className="lg:hidden sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800 pt-[100px]">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h1 className="text-lg font-bold text-white">AI CITI</h1>
@@ -234,8 +234,8 @@ export function AdminLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-h-screen bg-zinc-950" style={{ backgroundColor: '#09090b' }}>
-          <div className="p-4 lg:p-6 text-white">
+        <main className="flex-1 min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b' }}>
+          <div className="p-4 lg:p-6 text-white max-w-full overflow-x-hidden">
             <Outlet />
           </div>
         </main>
