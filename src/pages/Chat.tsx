@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, Bot, User, Lock, Paperclip, Mic, MicOff, X, Image, FileText } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, Bot, User, Lock, Paperclip, Mic, MicOff, X, Image, FileText, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 
@@ -314,7 +314,7 @@ export default function Chat() {
         >
           <ArrowLeft size={24} className="text-gray-700" />
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
           <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <Bot size={20} className="text-white" />
           </div>
@@ -322,10 +322,25 @@ export default function Chat() {
             <h1 className="text-lg font-semibold text-gray-900">AI Ассистент</h1>
             <p className="text-xs text-green-500 flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              Онлайн
+              Gemini 2.5 Pro
             </p>
           </div>
         </div>
+        {/* Кнопка очистки чата */}
+        {messages.length > 0 && (
+          <button
+            onClick={() => {
+              if (confirm('Очистить историю чата?')) {
+                setMessages([])
+                localStorage.removeItem('chat-history')
+              }
+            }}
+            className="p-2 hover:bg-red-50 rounded-xl transition-colors text-gray-400 hover:text-red-500"
+            title="Очистить чат"
+          >
+            <Trash2 size={20} />
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -381,11 +396,10 @@ export default function Chat() {
 
                 {message.content && (
                   <div
-                    className={`px-4 py-3 rounded-2xl ${
-                      message.role === 'user'
+                    className={`px-4 py-3 rounded-2xl ${message.role === 'user'
                         ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md'
                         : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
-                    }`}
+                      }`}
                   >
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                   </div>
