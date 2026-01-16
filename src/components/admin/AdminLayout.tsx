@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import {
   Users,
@@ -28,6 +28,16 @@ export function AdminLayout() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const needsTopPadding = isTMA && isMobile
 
+  // Делаем body тёмным для админки
+  useEffect(() => {
+    document.body.style.backgroundColor = '#09090b'
+    document.documentElement.style.backgroundColor = '#09090b'
+    return () => {
+      document.body.style.backgroundColor = ''
+      document.documentElement.style.backgroundColor = ''
+    }
+  }, [])
+
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
@@ -48,7 +58,7 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b' }}>
+    <div className="min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b', overscrollBehavior: 'none' }}>
       {/* Safe area background for iOS TMA only */}
       {needsTopPadding && (
         <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40" style={{ backgroundColor: '#09090b' }} />
