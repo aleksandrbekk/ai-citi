@@ -123,8 +123,42 @@ serve(async (req) => {
         .eq('id', user.id)
         .select()
         .single()
-      
+
       if (updatedUser) user = updatedUser
+
+      // Обработка реферальной ссылки для существующего пользователя (если ещё нет реферера)
+      if (startParam && typeof startParam === 'string' && startParam.startsWith('ref_')) {
+        const referrerTelegramId = parseInt(startParam.replace('ref_', ''), 10)
+
+        if (!isNaN(referrerTelegramId) && referrerTelegramId !== userData.id) {
+          // Проверяем, есть ли уже реферер
+          const { data: existingReferrer } = await supabase
+            .from('referrals')
+            .select('id')
+            .eq('referred_telegram_id', userData.id)
+            .single()
+
+          if (!existingReferrer) {
+            // Регистрируем реферальную связь
+            const { data: registerResult, error: refError } = await supabase.rpc('register_referral', {
+              p_referrer_telegram_id: referrerTelegramId,
+              p_referred_telegram_id: userData.id
+            })
+
+            if (!refError && registerResult?.success) {
+              console.log('Referral registered for existing user:', registerResult)
+
+              // Выплачиваем бонус за регистрацию (2 монеты)
+              const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+                p_referred_telegram_id: userData.id
+              })
+              console.log('Referral bonus paid:', bonusResult)
+            } else {
+              console.log('Referral registration skipped:', refError || registerResult?.error)
+            }
+          }
+        }
+      }
     }
 
     // Получить профиль пользователя
