@@ -1,15 +1,27 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { getReferralStats, getReferralLink, copyReferralLink, type ReferralStats } from '../lib/referral'
+import { getReferralStats, getReferralLink, copyReferralLink, getUserReferralCode, type ReferralStats } from '../lib/referral'
 import { getTelegramUser } from '../lib/telegram'
 
 export function useReferrals() {
   const telegramUser = getTelegramUser()
   const [isCopied, setIsCopied] = useState(false)
 
+  // Получаем referral_code пользователя
+  const {
+    data: referralCode,
+    isLoading: isLoadingCode
+  } = useQuery<string | null>({
+    queryKey: ['referral-code', telegramUser?.id],
+    queryFn: () => telegramUser?.id ? getUserReferralCode(telegramUser.id) : null,
+    enabled: !!telegramUser?.id,
+    staleTime: 60000, // 1 минута
+  })
+
+  // Получаем статистику рефералов
   const {
     data: stats,
-    isLoading,
+    isLoading: isLoadingStats,
     refetch
   } = useQuery<ReferralStats | null>({
     queryKey: ['referral-stats', telegramUser?.id],
@@ -18,11 +30,11 @@ export function useReferrals() {
     staleTime: 30000, // 30 секунд
   })
 
-  const referralLink = telegramUser?.id ? getReferralLink(telegramUser.id) : ''
+  const referralLink = referralCode ? getReferralLink(referralCode) : ''
 
   const handleCopyLink = async () => {
-    if (!telegramUser?.id) return false
-    const success = await copyReferralLink(telegramUser.id)
+    if (!referralCode) return false
+    const success = await copyReferralLink(referralCode)
     if (success) {
       setIsCopied(true)
       // Haptic feedback для Telegram
@@ -34,9 +46,10 @@ export function useReferrals() {
 
   return {
     stats,
-    isLoading,
+    isLoading: isLoadingCode || isLoadingStats,
     refetch,
     referralLink,
+    referralCode,
     handleCopyLink,
     isCopied,
     telegramId: telegramUser?.id

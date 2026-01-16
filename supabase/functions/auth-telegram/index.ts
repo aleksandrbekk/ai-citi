@@ -16,6 +16,8 @@ serve(async (req) => {
   try {
     const { initData, startParam } = await req.json()
 
+    console.log('Auth request received, startParam:', startParam)
+
     if (!initData) {
       return new Response(
         JSON.stringify({ error: 'initData is required' }),
@@ -35,14 +37,14 @@ serve(async (req) => {
     // Парсинг данных пользователя
     const params = new URLSearchParams(initData)
     const userDataString = params.get('user')
-    
+
     if (!userDataString) {
       return new Response(
         JSON.stringify({ error: 'User data not found in initData' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    
+
     const userData = JSON.parse(decodeURIComponent(userDataString))
 
     // Создание Supabase клиента с service role
@@ -60,7 +62,20 @@ serve(async (req) => {
 
     let user = existingUser
 
+    // Извлекаем реферальный код из startParam (ref_06 -> 06)
+    let referrerCode: string | null = null
+    if (startParam && typeof startParam === 'string' && startParam.startsWith('ref_')) {
+      referrerCode = startParam.replace('ref_', '')
+      console.log('Extracted referrer code:', referrerCode)
+    }
+
     if (!user) {
+      // Генерируем реферальный код для нового пользователя
+      const { data: codeResult } = await supabase.rpc('generate_referral_code')
+      const newReferralCode = codeResult || '01'
+
+      console.log('Generated referral code for new user:', newReferralCode)
+
       // Создать нового пользователя
       const { data: newUser, error: createError } = await supabase
         .from('users')
@@ -70,7 +85,8 @@ serve(async (req) => {
           first_name: userData.first_name || null,
           last_name: userData.last_name || null,
           avatar_url: userData.photo_url || null,
-          language_code: userData.language_code || 'ru'
+          language_code: userData.language_code || 'ru',
+          referral_code: newReferralCode
         })
         .select()
         .single()
@@ -82,22 +98,75 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-      
+
       user = newUser
 
       // Обработка реферальной ссылки для нового пользователя
-      if (startParam && typeof startParam === 'string' && startParam.startsWith('ref_')) {
-        const referrerTelegramId = parseInt(startParam.replace('ref_', ''), 10)
+      if (referrerCode) {
+        const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
+          p_referrer_code: referrerCode,
+          p_referred_telegram_id: userData.id
+        })
 
-        if (!isNaN(referrerTelegramId) && referrerTelegramId !== userData.id) {
-          // Регистрируем реферальную связь
-          const { data: registerResult, error: refError } = await supabase.rpc('register_referral', {
-            p_referrer_telegram_id: referrerTelegramId,
+        console.log('Referral registration result:', registerResult, refError)
+
+        if (!refError && registerResult?.success) {
+          console.log('Referral registered:', registerResult)
+
+          // Выплачиваем бонус за регистрацию (2 монеты)
+          const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+            p_referred_telegram_id: userData.id
+          })
+          console.log('Referral bonus paid:', bonusResult)
+        } else {
+          console.log('Referral registration skipped:', refError || registerResult?.error)
+        }
+      }
+    } else {
+      // Обновить данные существующего пользователя
+      const updateData: any = {
+        username: userData.username || user.username,
+        first_name: userData.first_name || user.first_name,
+        last_name: userData.last_name || user.last_name,
+        avatar_url: userData.photo_url || user.avatar_url,
+        updated_at: new Date().toISOString()
+      }
+
+      // Если у пользователя нет referral_code, генерируем
+      if (!user.referral_code) {
+        const { data: codeResult } = await supabase.rpc('generate_referral_code')
+        updateData.referral_code = codeResult || '01'
+        console.log('Generated referral code for existing user:', updateData.referral_code)
+      }
+
+      const { data: updatedUser } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', user.id)
+        .select()
+        .single()
+
+      if (updatedUser) user = updatedUser
+
+      // Обработка реферальной ссылки для существующего пользователя (если ещё нет реферера)
+      if (referrerCode) {
+        // Проверяем, есть ли уже реферер
+        const { data: existingReferrer } = await supabase
+          .from('referrals')
+          .select('id')
+          .eq('referred_telegram_id', userData.id)
+          .single()
+
+        if (!existingReferrer) {
+          const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
+            p_referrer_code: referrerCode,
             p_referred_telegram_id: userData.id
           })
 
+          console.log('Referral registration result for existing user:', registerResult, refError)
+
           if (!refError && registerResult?.success) {
-            console.log('Referral registered:', registerResult)
+            console.log('Referral registered for existing user:', registerResult)
 
             // Выплачиваем бонус за регистрацию (2 монеты)
             const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
@@ -106,56 +175,6 @@ serve(async (req) => {
             console.log('Referral bonus paid:', bonusResult)
           } else {
             console.log('Referral registration skipped:', refError || registerResult?.error)
-          }
-        }
-      }
-    } else {
-      // Обновить данные существующего пользователя
-      const { data: updatedUser } = await supabase
-        .from('users')
-        .update({
-          username: userData.username || user.username,
-          first_name: userData.first_name || user.first_name,
-          last_name: userData.last_name || user.last_name,
-          avatar_url: userData.photo_url || user.avatar_url,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id)
-        .select()
-        .single()
-
-      if (updatedUser) user = updatedUser
-
-      // Обработка реферальной ссылки для существующего пользователя (если ещё нет реферера)
-      if (startParam && typeof startParam === 'string' && startParam.startsWith('ref_')) {
-        const referrerTelegramId = parseInt(startParam.replace('ref_', ''), 10)
-
-        if (!isNaN(referrerTelegramId) && referrerTelegramId !== userData.id) {
-          // Проверяем, есть ли уже реферер
-          const { data: existingReferrer } = await supabase
-            .from('referrals')
-            .select('id')
-            .eq('referred_telegram_id', userData.id)
-            .single()
-
-          if (!existingReferrer) {
-            // Регистрируем реферальную связь
-            const { data: registerResult, error: refError } = await supabase.rpc('register_referral', {
-              p_referrer_telegram_id: referrerTelegramId,
-              p_referred_telegram_id: userData.id
-            })
-
-            if (!refError && registerResult?.success) {
-              console.log('Referral registered for existing user:', registerResult)
-
-              // Выплачиваем бонус за регистрацию (2 монеты)
-              const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
-                p_referred_telegram_id: userData.id
-              })
-              console.log('Referral bonus paid:', bonusResult)
-            } else {
-              console.log('Referral registration skipped:', refError || registerResult?.error)
-            }
           }
         }
       }
@@ -193,7 +212,7 @@ function validateTelegramData(initData: string): boolean {
     const params = new URLSearchParams(initData)
     const hash = params.get('hash')
     params.delete('hash')
-    
+
     const dataCheckString = Array.from(params.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, value]) => `${key}=${value}`)

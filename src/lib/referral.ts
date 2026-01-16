@@ -17,18 +17,18 @@ export interface ReferralStats {
 }
 
 /**
- * Получить реферальную ссылку пользователя
+ * Получить реферальную ссылку пользователя по referral_code
  */
-export function getReferralLink(telegramId: number): string {
-  return `https://t.me/Neirociti_bot/app?startapp=ref_${telegramId}`
+export function getReferralLink(referralCode: string): string {
+  return `https://t.me/Neirociti_bot/app?startapp=ref_${referralCode}`
 }
 
 /**
  * Скопировать реферальную ссылку в буфер обмена
  */
-export async function copyReferralLink(telegramId: number): Promise<boolean> {
+export async function copyReferralLink(referralCode: string): Promise<boolean> {
   try {
-    const link = getReferralLink(telegramId)
+    const link = getReferralLink(referralCode)
     await navigator.clipboard.writeText(link)
     return true
   } catch (error) {
@@ -36,7 +36,7 @@ export async function copyReferralLink(telegramId: number): Promise<boolean> {
     // Fallback для старых браузеров
     try {
       const textArea = document.createElement('textarea')
-      textArea.value = getReferralLink(telegramId)
+      textArea.value = getReferralLink(referralCode)
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
@@ -46,6 +46,24 @@ export async function copyReferralLink(telegramId: number): Promise<boolean> {
       return false
     }
   }
+}
+
+/**
+ * Получить referral_code пользователя по telegram_id
+ */
+export async function getUserReferralCode(telegramId: number): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('referral_code')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching referral code:', error)
+    return null
+  }
+
+  return data?.referral_code || null
 }
 
 /**
@@ -104,12 +122,11 @@ export function isReferralLink(startParam: string | null): boolean {
 }
 
 /**
- * Извлечь telegram_id реферера из start_param
+ * Извлечь referral_code реферера из start_param
  */
-export function getReferrerTelegramId(startParam: string | null): number | null {
+export function getReferrerCode(startParam: string | null): string | null {
   if (!startParam || !startParam.startsWith('ref_')) return null
-  const id = parseInt(startParam.replace('ref_', ''), 10)
-  return isNaN(id) ? null : id
+  return startParam.replace('ref_', '')
 }
 
 /**
