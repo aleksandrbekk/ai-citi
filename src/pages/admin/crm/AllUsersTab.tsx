@@ -140,11 +140,11 @@ export function AllUsersTab() {
     <div className="space-y-4">
       {/* Статистика */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+        <div className="bg-zinc-800 rounded-xl p-3">
           <div className="text-xl font-bold text-white">{users?.length || 0}</div>
           <div className="text-xs text-zinc-500">Всего</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+        <div className="bg-zinc-800 rounded-xl p-3">
           <div className="text-xl font-bold text-blue-400">
             {users?.filter(u => {
               const lastActive = u.last_active_at ? new Date(u.last_active_at) : null
@@ -155,7 +155,7 @@ export function AllUsersTab() {
           </div>
           <div className="text-xs text-zinc-500">За 24ч</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+        <div className="bg-zinc-800 rounded-xl p-3">
           <div className="text-xl font-bold text-green-400">
             {users?.filter(u => {
               const created = new Date(u.created_at)
@@ -165,7 +165,7 @@ export function AllUsersTab() {
           </div>
           <div className="text-xs text-zinc-500">Новых</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+        <div className="bg-zinc-800 rounded-xl p-3">
           <div className="text-xl font-bold text-yellow-400">
             {premiumClients?.length || 0}
           </div>
@@ -181,7 +181,7 @@ export function AllUsersTab() {
           placeholder="Поиск..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
+          className="w-full pl-10 pr-4 py-3 bg-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none"
         />
       </div>
 
@@ -203,7 +203,7 @@ export function AllUsersTab() {
             return (
               <div
                 key={user.id}
-                className={`bg-zinc-900 border border-zinc-800 rounded-xl p-3 ${
+                className={`bg-zinc-800 rounded-xl p-3 ${
                   online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
                 }`}
               >
