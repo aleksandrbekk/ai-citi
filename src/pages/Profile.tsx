@@ -3,6 +3,7 @@ import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { Coins, Sparkles, Gift } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { ReferralSection } from '@/components/ReferralSection'
 
 export default function Profile() {
   const telegramUser = getTelegramUser()
@@ -114,6 +115,9 @@ export default function Profile() {
             </div>
           </div>
         )}
+
+        {/* Реферальная программа */}
+        <ReferralSection />
 
         {/* Персонаж */}
         <div className="flex justify-center pt-4">

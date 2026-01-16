@@ -24,6 +24,11 @@ export function getInitData(): string | null {
   return webApp?.initData || null
 }
 
+export function getStartParam(): string | null {
+  const webApp = getTelegramWebApp()
+  return (webApp as any)?.initDataUnsafe?.start_param || null
+}
+
 // Инициализация Telegram WebApp
 // Fullscreen ТОЛЬКО на мобильных (iOS/Android), на десктопе — компактный режим
 export function expandWebApp() {

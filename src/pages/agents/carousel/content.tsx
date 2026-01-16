@@ -54,15 +54,15 @@ export default function CarouselContent() {
       return
     }
 
-    // Проверка баланса монет
-    if (coinBalance < 1) {
-      alert('Недостаточно монет для генерации! Пополните баланс в магазине.')
+    // Проверка баланса монет (10 монет за генерацию)
+    if (coinBalance < 10) {
+      alert('Недостаточно монет для генерации! Нужно 10 монет. Пополните баланс в магазине.')
       navigate('/shop')
       return
     }
 
-    // Списываем монету
-    const spendResult = await spendCoinsForGeneration(chatId, 1, `Генерация карусели: ${variables.topic}`)
+    // Списываем 10 монет
+    const spendResult = await spendCoinsForGeneration(chatId, 10, `Генерация карусели: ${variables.topic}`)
     if (!spendResult.success) {
       alert(spendResult.error === 'Not enough coins'
         ? 'Недостаточно монет для генерации!'
@@ -100,7 +100,7 @@ export default function CarouselContent() {
       topic: requestData.topic,
       cta_text: requestData.cta_text,
       hasUserPhoto: !!finalUserPhoto,
-      coinsSpent: 1,
+      coinsSpent: 10,
       newBalance: spendResult.new_balance,
     })
 
@@ -201,7 +201,7 @@ export default function CarouselContent() {
               {isLoadingCoins ? '...' : coinBalance} монет
             </span>
           </div>
-          <span className="text-xs text-gray-500">-1 за генерацию</span>
+          <span className="text-xs text-gray-500">-10 за генерацию</span>
         </div>
 
         <button

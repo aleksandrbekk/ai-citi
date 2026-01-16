@@ -14,8 +14,8 @@ serve(async (req) => {
   }
 
   try {
-    const { initData } = await req.json()
-    
+    const { initData, startParam } = await req.json()
+
     if (!initData) {
       return new Response(
         JSON.stringify({ error: 'initData is required' }),
@@ -84,6 +84,31 @@ serve(async (req) => {
       }
       
       user = newUser
+
+      // Обработка реферальной ссылки для нового пользователя
+      if (startParam && typeof startParam === 'string' && startParam.startsWith('ref_')) {
+        const referrerTelegramId = parseInt(startParam.replace('ref_', ''), 10)
+
+        if (!isNaN(referrerTelegramId) && referrerTelegramId !== userData.id) {
+          // Регистрируем реферальную связь
+          const { data: registerResult, error: refError } = await supabase.rpc('register_referral', {
+            p_referrer_telegram_id: referrerTelegramId,
+            p_referred_telegram_id: userData.id
+          })
+
+          if (!refError && registerResult?.success) {
+            console.log('Referral registered:', registerResult)
+
+            // Выплачиваем бонус за регистрацию (2 монеты)
+            const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+              p_referred_telegram_id: userData.id
+            })
+            console.log('Referral bonus paid:', bonusResult)
+          } else {
+            console.log('Referral registration skipped:', refError || registerResult?.error)
+          }
+        }
+      }
     } else {
       // Обновить данные существующего пользователя
       const { data: updatedUser } = await supabase

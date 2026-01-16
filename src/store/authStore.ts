@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
-import { getTelegramUser, getInitData, getTelegramWebApp } from '../lib/telegram'
+import { getTelegramUser, getInitData, getTelegramWebApp, getStartParam } from '../lib/telegram'
 
 export interface User {
   id: string
@@ -130,10 +130,14 @@ export const useAuthStore = create<AuthState>()(
           console.log('Calling Edge Function...')
           console.log('initData length:', initData.length)
 
+          // Получаем startParam для реферальной системы
+          const startParam = getStartParam()
+          console.log('startParam:', startParam)
+
           // Вызываем Edge Function с таймаутом 10 секунд
           const { data, error } = await fetchWithTimeout(
             supabase.functions.invoke('auth-telegram', {
-              body: { initData },
+              body: { initData, startParam },
             }),
             10000
           )
