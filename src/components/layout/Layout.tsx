@@ -2,9 +2,15 @@ import { Outlet } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { useAuth } from '@/hooks/useAuth'
 import { LoaderIcon } from '@/components/ui/icons'
+import { useUtmTracking } from '@/hooks/useUtmTracking'
+import { useAuthStore } from '@/store/authStore'
 
 export function Layout() {
   const { isLoading } = useAuth()
+  const user = useAuthStore((state) => state.user)
+
+  // UTM трекинг
+  useUtmTracking(user?.telegram_id)
 
   // Проверяем, запущено ли в Telegram Mini App на мобильном
   const tg = window.Telegram?.WebApp

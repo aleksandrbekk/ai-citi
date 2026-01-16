@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Users, 
+import {
+  Users,
   GraduationCap,
   FileText,
   Settings,
@@ -12,9 +12,11 @@ import {
   Edit,
   Trash2,
   BarChart3,
-  Search
+  Search,
+  Link2
 } from 'lucide-react'
 import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
+import UtmTab from './crm/UtmTab'
 
 type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'settings'
 
@@ -145,7 +147,7 @@ function CRMSection() {
           onClick={() => setActiveTab('analytics')}
         />
         <TabButton
-          icon={Settings}
+          icon={Link2}
           label="UTM Ссылки"
           active={activeTab === 'utm'}
           onClick={() => setActiveTab('utm')}
@@ -217,11 +219,7 @@ function CRMSection() {
         </div>
       )}
 
-      {activeTab === 'utm' && (
-        <div className="bg-[#1E293B] rounded-lg border border-[#334155] p-6">
-          <p className="text-[#94A3B8]">Раздел UTM ссылок в разработке</p>
-        </div>
-      )}
+      {activeTab === 'utm' && <UtmTab />}
     </div>
   )
 }
