@@ -46,9 +46,6 @@ export default function UtmTab() {
     name: '',
     utm_source: '',
     utm_medium: '',
-    utm_campaign: '',
-    utm_content: '',
-    utm_term: '',
     short_code: '',
     target_url: '/'
   })
@@ -85,9 +82,6 @@ export default function UtmTab() {
 
     if (campaign.utm_source) params.append('utm_source', campaign.utm_source)
     if (campaign.utm_medium) params.append('utm_medium', campaign.utm_medium)
-    if (campaign.utm_campaign) params.append('utm_campaign', campaign.utm_campaign)
-    if (campaign.utm_content) params.append('utm_content', campaign.utm_content)
-    if (campaign.utm_term) params.append('utm_term', campaign.utm_term)
     if (campaign.short_code) params.append('ref', campaign.short_code)
 
     const paramStr = params.toString()
@@ -132,9 +126,6 @@ export default function UtmTab() {
       name: campaign.name,
       utm_source: campaign.utm_source || '',
       utm_medium: campaign.utm_medium || '',
-      utm_campaign: campaign.utm_campaign || '',
-      utm_content: campaign.utm_content || '',
-      utm_term: campaign.utm_term || '',
       short_code: campaign.short_code || '',
       target_url: campaign.target_url || '/'
     })
@@ -178,9 +169,6 @@ export default function UtmTab() {
       name: '',
       utm_source: '',
       utm_medium: '',
-      utm_campaign: '',
-      utm_content: '',
-      utm_term: '',
       short_code: '',
       target_url: '/'
     })
@@ -255,54 +243,24 @@ export default function UtmTab() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_source</label>
+                <label className="block text-sm text-[#94A3B8] mb-1">utm_source (откуда трафик)</label>
                 <input
                   type="text"
                   value={formData.utm_source}
                   onChange={(e) => setFormData({ ...formData, utm_source: e.target.value })}
-                  placeholder="instagram, telegram, google"
+                  placeholder="instagram, telegram, youtube"
                   className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
               <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_medium</label>
+                <label className="block text-sm text-[#94A3B8] mb-1">utm_medium (тип рекламы)</label>
                 <input
                   type="text"
                   value={formData.utm_medium}
                   onChange={(e) => setFormData({ ...formData, utm_medium: e.target.value })}
-                  placeholder="cpc, banner, email"
-                  className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_campaign</label>
-                <input
-                  type="text"
-                  value={formData.utm_campaign}
-                  onChange={(e) => setFormData({ ...formData, utm_campaign: e.target.value })}
-                  placeholder="spring_sale, launch"
-                  className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_content</label>
-                <input
-                  type="text"
-                  value={formData.utm_content}
-                  onChange={(e) => setFormData({ ...formData, utm_content: e.target.value })}
-                  placeholder="banner_top, link_bio"
-                  className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-[#94A3B8] mb-1">utm_term</label>
-                <input
-                  type="text"
-                  value={formData.utm_term}
-                  onChange={(e) => setFormData({ ...formData, utm_term: e.target.value })}
-                  placeholder="keyword"
+                  placeholder="stories, post, reels, banner"
                   className="w-full px-4 py-2 bg-[#1E293B] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
@@ -401,7 +359,6 @@ export default function UtmTab() {
                   <div className="flex items-center gap-2 text-xs text-[#94A3B8] mb-2">
                     {campaign.utm_source && <span className="px-2 py-0.5 bg-[#0F172A] rounded">{campaign.utm_source}</span>}
                     {campaign.utm_medium && <span className="px-2 py-0.5 bg-[#0F172A] rounded">{campaign.utm_medium}</span>}
-                    {campaign.utm_campaign && <span className="px-2 py-0.5 bg-[#0F172A] rounded">{campaign.utm_campaign}</span>}
                   </div>
                   <div className="flex items-center gap-1">
                     <code className="text-xs text-[#60A5FA] truncate max-w-md">
