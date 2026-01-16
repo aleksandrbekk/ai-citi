@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const PROJECT_ID = "gen-lang-client-0102901194"
 const LOCATION = "us-central1"
-const MODEL = "gemini-2.0-flash-001"
+const MODEL = "gemini-2.5-pro-preview-06-05"
 
 const SYSTEM_PROMPT = `Ты — AI-ассистент платформы AI CITI (НЕЙРОГОРОД).
 Ты помогаешь пользователям с вопросами о:
