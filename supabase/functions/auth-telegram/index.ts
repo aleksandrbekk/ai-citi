@@ -71,8 +71,22 @@ serve(async (req) => {
 
     if (!user) {
       // Генерируем реферальный код для нового пользователя
-      const { data: codeResult } = await supabase.rpc('generate_referral_code')
-      const newReferralCode = codeResult || '01'
+      // Получаем максимальный существующий код и добавляем 1
+      const { data: maxCodeData } = await supabase
+        .from('users')
+        .select('referral_code')
+        .not('referral_code', 'is', null)
+        .order('referral_code', { ascending: false })
+        .limit(1)
+        .single()
+
+      let newReferralCode = '01'
+      if (maxCodeData?.referral_code) {
+        const maxNum = parseInt(maxCodeData.referral_code, 10)
+        if (!isNaN(maxNum)) {
+          newReferralCode = String(maxNum + 1).padStart(2, '0')
+        }
+      }
 
       console.log('Generated referral code for new user:', newReferralCode)
 
@@ -134,8 +148,22 @@ serve(async (req) => {
 
       // Если у пользователя нет referral_code, генерируем
       if (!user.referral_code) {
-        const { data: codeResult } = await supabase.rpc('generate_referral_code')
-        updateData.referral_code = codeResult || '01'
+        const { data: maxCodeData } = await supabase
+          .from('users')
+          .select('referral_code')
+          .not('referral_code', 'is', null)
+          .order('referral_code', { ascending: false })
+          .limit(1)
+          .single()
+
+        let newCode = '01'
+        if (maxCodeData?.referral_code) {
+          const maxNum = parseInt(maxCodeData.referral_code, 10)
+          if (!isNaN(maxNum)) {
+            newCode = String(maxNum + 1).padStart(2, '0')
+          }
+        }
+        updateData.referral_code = newCode
         console.log('Generated referral code for existing user:', updateData.referral_code)
       }
 
