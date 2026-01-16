@@ -137,15 +137,15 @@ export function AllUsersTab() {
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       {/* Статистика */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-white">{users?.length || 0}</div>
-          <div className="text-sm text-zinc-500">Всего пользователей</div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+          <div className="text-xl font-bold text-white">{users?.length || 0}</div>
+          <div className="text-xs text-zinc-500">Всего</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-blue-400">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+          <div className="text-xl font-bold text-blue-400">
             {users?.filter(u => {
               const lastActive = u.last_active_at ? new Date(u.last_active_at) : null
               if (!lastActive) return false
@@ -153,182 +153,120 @@ export function AllUsersTab() {
               return now.getTime() - lastActive.getTime() < 86400000
             }).length || 0}
           </div>
-          <div className="text-sm text-zinc-500">Активных за 24ч</div>
+          <div className="text-xs text-zinc-500">За 24ч</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-green-400">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+          <div className="text-xl font-bold text-green-400">
             {users?.filter(u => {
               const created = new Date(u.created_at)
               const now = new Date()
               return now.getTime() - created.getTime() < 86400000
             }).length || 0}
           </div>
-          <div className="text-sm text-zinc-500">Новых за 24ч</div>
+          <div className="text-xs text-zinc-500">Новых</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-2xl font-bold text-yellow-400">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+          <div className="text-xl font-bold text-yellow-400">
             {premiumClients?.length || 0}
           </div>
-          <div className="text-sm text-zinc-500">Платных клиентов</div>
+          <div className="text-xs text-zinc-500">Платных</div>
         </div>
       </div>
 
       {/* Поиск */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Поиск по ID, username, имени..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
-          />
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+        <input
+          type="text"
+          placeholder="Поиск..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
+        />
+      </div>
+
+      {/* Список пользователей - карточки */}
+      {isLoading ? (
+        <div className="text-center py-8 text-zinc-500">Загрузка...</div>
+      ) : filteredUsers?.length === 0 ? (
+        <div className="text-center py-8 text-zinc-500">
+          {users?.length === 0 ? 'Нет пользователей' : 'Ничего не найдено'}
         </div>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          {filteredUsers?.map((user) => {
+            const isPremium = premiumMap.has(user.telegram_id)
+            const plan = premiumMap.get(user.telegram_id)
+            const online = isOnline(user.last_active_at)
+            const recentlyActive = isRecentlyActive(user.last_active_at)
 
-      {/* Таблица */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-zinc-800">
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Пользователь</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Telegram ID</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Статус</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">UTM</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Регистрация</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Активность</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-zinc-400"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
-                  Загрузка...
-                </td>
-              </tr>
-            ) : filteredUsers?.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
-                  {users?.length === 0 ? 'Нет пользователей' : 'Ничего не найдено'}
-                </td>
-              </tr>
-            ) : (
-              filteredUsers?.map((user) => {
-                const isPremium = premiumMap.has(user.telegram_id)
-                const plan = premiumMap.get(user.telegram_id)
-                const online = isOnline(user.last_active_at)
-                const recentlyActive = isRecentlyActive(user.last_active_at)
-
-                return (
-                  <tr
-                    key={user.id}
-                    className={`border-b border-zinc-800 hover:bg-zinc-800/50 ${
-                      online ? 'bg-green-500/5' : recentlyActive ? 'bg-blue-500/5' : ''
-                    }`}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          {user.photo_url ? (
-                            <img
-                              src={user.photo_url}
-                              alt=""
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-400 text-sm">
-                              {user.first_name?.[0] || user.username?.[0] || '?'}
-                            </div>
-                          )}
-                          {/* Индикатор онлайн */}
-                          {online && (
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900" />
-                          )}
+            return (
+              <div
+                key={user.id}
+                className={`bg-zinc-900 border border-zinc-800 rounded-xl p-3 ${
+                  online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  {/* Аватар и имя */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      {user.photo_url ? (
+                        <img src={user.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+                          {user.first_name?.[0] || user.username?.[0] || '?'}
                         </div>
-                        <div>
-                          <div className="font-medium text-white flex items-center gap-2">
-                            {[user.first_name, user.last_name].filter(Boolean).join(' ') || 'Без имени'}
-                            {isPremium && (
-                              <CreditCard size={14} className="text-yellow-500" />
-                            )}
-                          </div>
-                          <div className="text-sm text-zinc-500">
-                            {user.username ? `@${user.username}` : '—'}
-                          </div>
-                        </div>
+                      )}
+                      {online && (
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-white truncate flex items-center gap-1">
+                        {[user.first_name, user.last_name].filter(Boolean).join(' ') || 'Без имени'}
+                        {isPremium && <CreditCard size={12} className="text-yellow-500 flex-shrink-0" />}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <code className={`text-sm px-2 py-1 rounded ${
-                        online
-                          ? 'text-green-400 bg-green-500/20'
-                          : recentlyActive
-                            ? 'text-blue-400 bg-blue-500/20'
-                            : 'text-zinc-400 bg-zinc-800'
-                      }`}>
-                        {user.telegram_id}
-                      </code>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isPremium ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
-                          <CreditCard size={12} />
-                          Платный ({plan})
-                        </span>
-                      ) : (
-                        <span className="text-zinc-600 text-sm">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-400 text-sm">
-                      {user.utm_source ? (
-                        <div>
-                          <div className="text-blue-400">{user.utm_source}</div>
-                          {user.utm_campaign && (
-                            <div className="text-xs text-zinc-500">{user.utm_campaign}</div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-zinc-600">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-zinc-400">
-                      {formatDate(user.created_at)}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={
-                        online
-                          ? 'text-green-400'
-                          : recentlyActive
-                            ? 'text-blue-400'
-                            : 'text-zinc-400'
-                      }>
-                        {getRelativeTime(user.last_active_at)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDelete(user)}
-                        disabled={deleteUser.isPending}
-                        className="p-2 hover:bg-red-500/20 text-zinc-500 hover:text-red-400 rounded-lg transition-colors disabled:opacity-50"
-                        title="Удалить пользователя"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                      <div className="text-xs text-zinc-500 truncate">
+                        {user.username ? `@${user.username}` : user.telegram_id}
+                      </div>
+                    </div>
+                  </div>
 
-      {/* Счётчик результатов */}
+                  {/* Действия */}
+                  <button
+                    onClick={() => handleDelete(user)}
+                    disabled={deleteUser.isPending}
+                    className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+
+                {/* Детали */}
+                <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
+                  <span className={`px-2 py-1 rounded ${
+                    online ? 'bg-green-500/20 text-green-400' : recentlyActive ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-800 text-zinc-500'
+                  }`}>
+                    {getRelativeTime(user.last_active_at)}
+                  </span>
+                  {isPremium && (
+                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">{plan}</span>
+                  )}
+                  {user.utm_source && (
+                    <span className="px-2 py-1 bg-zinc-800 text-zinc-400 rounded">{user.utm_source}</span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Счётчик */}
       {filteredUsers && (
-        <div className="mt-4 text-sm text-zinc-500 text-center">
-          Показано {filteredUsers.length} из {users?.length || 0} пользователей
+        <div className="text-xs text-zinc-500 text-center">
+          {filteredUsers.length} из {users?.length || 0}
         </div>
       )}
     </div>

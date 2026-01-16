@@ -19,23 +19,25 @@ export function AdminCRM() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Users className="w-8 h-8 text-blue-500" />
-        <h1 className="text-2xl font-bold text-white">CRM</h1>
+      <div className="flex items-center gap-3 mb-4">
+        <Users className="w-6 h-6 text-blue-500" />
+        <h1 className="text-xl font-bold text-white">CRM</h1>
       </div>
 
-      <div className="flex gap-2 mb-6 border-b border-zinc-800 overflow-x-auto">
+      {/* Табы - горизонтальный скролл */}
+      <div className="flex gap-1 mb-4 pb-2 overflow-x-auto scrollbar-hide -mx-4 px-4">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-                ? 'border-blue-500 text-white'
-                : 'border-transparent text-zinc-400 hover:text-white'
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors whitespace-nowrap flex-shrink-0 ${activeTab === tab.id
+                ? 'bg-blue-600 text-white'
+                : 'bg-zinc-800 text-zinc-400'
               }`}
           >
             <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
           </button>
         ))}
       </div>

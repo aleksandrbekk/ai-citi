@@ -54,15 +54,15 @@ export default function AnalyticsTab() {
   }, {} as Record<string, number>) || {}
 
   const StatCard = ({ icon: Icon, label, value, subvalue, color }: any) => (
-    <div className="bg-zinc-800 rounded-xl p-4">
-      <div className="flex items-center gap-3 mb-2">
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon size={20} />
+    <div className="bg-zinc-800 rounded-xl p-3">
+      <div className="flex items-center gap-2 mb-1">
+        <div className={`p-1.5 rounded-lg ${color}`}>
+          <Icon size={16} />
         </div>
-        <span className="text-zinc-400 text-sm">{label}</span>
+        <span className="text-zinc-400 text-xs">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
-      {subvalue && <div className="text-zinc-500 text-sm mt-1">{subvalue}</div>}
+      <div className="text-xl font-bold text-white">{value}</div>
+      {subvalue && <div className="text-zinc-500 text-xs mt-0.5">{subvalue}</div>}
     </div>
   )
 
@@ -82,9 +82,9 @@ export default function AnalyticsTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Основные метрики */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard
           icon={Users}
           label="Всего клиентов"
@@ -113,11 +113,11 @@ export default function AnalyticsTab() {
         />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid gap-4">
         {/* По тарифам */}
-        <div className="bg-zinc-900 rounded-xl p-5">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 size={18} /> Распределение по тарифам
+        <div className="bg-zinc-900 rounded-xl p-4">
+          <h3 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+            <BarChart3 size={16} /> По тарифам
           </h3>
           <ProgressBar label="Платина" value={byPlan.platinum} total={stats.total} color="bg-amber-500" />
           <ProgressBar label="Стандарт" value={byPlan.standard} total={stats.total} color="bg-green-500" />
@@ -127,9 +127,9 @@ export default function AnalyticsTab() {
         </div>
 
         {/* По источникам */}
-        <div className="bg-zinc-900 rounded-xl p-5">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp size={18} /> Источники клиентов
+        <div className="bg-zinc-900 rounded-xl p-4">
+          <h3 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+            <TrendingUp size={16} /> Источники
           </h3>
           {Object.entries(bySources).length > 0 ? (
             Object.entries(bySources)
@@ -150,11 +150,11 @@ export default function AnalyticsTab() {
       </div>
 
       {/* По месяцам */}
-      <div className="bg-zinc-900 rounded-xl p-5">
-        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <Calendar size={18} /> Регистрации по месяцам
+      <div className="bg-zinc-900 rounded-xl p-4">
+        <h3 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+          <Calendar size={16} /> По месяцам
         </h3>
-        <div className="flex items-end gap-2 h-32">
+        <div className="flex items-end gap-1 h-24">
           {Object.entries(byMonth)
             .sort((a, b) => a[0].localeCompare(b[0]))
             .slice(-6)

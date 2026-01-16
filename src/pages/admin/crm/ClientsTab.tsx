@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import {
-  Plus, Search, X, ChevronRight, CreditCard, Users, TrendingUp
+  Plus, Search, X, ChevronRight, CreditCard
 } from 'lucide-react'
 
 interface PremiumClient {
@@ -269,19 +269,16 @@ export function ClientsTab() {
   }).length || 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Статистика */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
         {/* Заголовок с выбором месяца */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
-            Статистика платежей
-          </h3>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-white font-medium text-sm">Платежи</span>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm"
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-white text-xs"
           >
             {getMonthOptions().map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -289,82 +286,56 @@ export function ClientsTab() {
           </select>
         </div>
 
-        {/* Суммы по валютам */}
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          <div className="bg-zinc-800 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">{paymentStats.RUB.toLocaleString('ru-RU')} ₽</div>
-            <div className="text-xs text-zinc-500">RUB</div>
+        {/* Суммы по валютам - 2x2 */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="bg-zinc-800 rounded-lg p-2 text-center">
+            <div className="text-sm font-bold text-white">{paymentStats.RUB.toLocaleString('ru-RU')} ₽</div>
           </div>
-          <div className="bg-zinc-800 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">${paymentStats.USD.toLocaleString('en-US')}</div>
-            <div className="text-xs text-zinc-500">USD</div>
+          <div className="bg-zinc-800 rounded-lg p-2 text-center">
+            <div className="text-sm font-bold text-white">${paymentStats.USD}</div>
           </div>
-          <div className="bg-zinc-800 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">{paymentStats.USDT.toLocaleString('en-US')}</div>
-            <div className="text-xs text-zinc-500">USDT</div>
+          <div className="bg-zinc-800 rounded-lg p-2 text-center">
+            <div className="text-sm font-bold text-white">{paymentStats.USDT} USDT</div>
           </div>
-          <div className="bg-zinc-800 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-white">€{paymentStats.EUR.toLocaleString('en-US')}</div>
-            <div className="text-xs text-zinc-500">EUR</div>
+          <div className="bg-zinc-800 rounded-lg p-2 text-center">
+            <div className="text-sm font-bold text-white">€{paymentStats.EUR}</div>
           </div>
         </div>
 
-        {/* Статистика: Активных, Оплат, Ср. чек */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-800/50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-zinc-500">Активных</span>
-            </div>
-            <div className="text-xl font-bold text-white">{activeClientsCount}</div>
-          </div>
-          <div className="bg-zinc-800/50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <CreditCard className="w-4 h-4 text-green-400" />
-              <span className="text-xs text-zinc-500">Оплат</span>
-            </div>
-            <div className="text-xl font-bold text-white">{paymentStats.totalPayments}</div>
-          </div>
-          <div className="bg-zinc-800/50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-orange-400" />
-              <span className="text-xs text-zinc-500">Ср. чек</span>
-            </div>
-            <div className="text-xl font-bold text-white">{paymentStats.avgCheck.toLocaleString('ru-RU')}</div>
-          </div>
+        {/* Мини-статы */}
+        <div className="flex justify-between text-xs text-zinc-400">
+          <span>Активных: <span className="text-white">{activeClientsCount}</span></span>
+          <span>Оплат: <span className="text-white">{paymentStats.totalPayments}</span></span>
+          <span>Ср.чек: <span className="text-white">{paymentStats.avgCheck.toLocaleString('ru-RU')}</span></span>
         </div>
       </div>
 
-      {/* Поиск, фильтр и добавление */}
-      <div className="flex gap-3">
+      {/* Поиск и добавление */}
+      <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
-            placeholder="Поиск по ID, username, имени..."
+            placeholder="Поиск..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
+            className="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
           />
         </div>
         <select
           value={filterPlan}
           onChange={(e) => setFilterPlan(e.target.value)}
-          className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-700"
+          className="px-2 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-sm"
         >
-          <option value="all">Все тарифы</option>
+          <option value="all">Все</option>
           <option value="platinum">Платина</option>
           <option value="standard">Стандарт</option>
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="vip">VIP</option>
         </select>
         <button
           onClick={() => setShowAddClientModal(true)}
-          className="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors flex items-center gap-2"
+          className="px-3 py-2.5 bg-green-600 text-white rounded-xl"
         >
           <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">Добавить</span>
         </button>
       </div>
 
