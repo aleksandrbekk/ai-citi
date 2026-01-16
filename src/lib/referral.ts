@@ -50,20 +50,22 @@ export async function copyReferralLink(referralCode: string): Promise<boolean> {
 
 /**
  * Получить referral_code пользователя по telegram_id
+ * Использует RPC функцию с SECURITY DEFINER для обхода RLS
  */
 export async function getUserReferralCode(telegramId: number): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('users')
-    .select('referral_code')
-    .eq('telegram_id', telegramId)
-    .single()
+  console.log('getUserReferralCode called with:', telegramId)
+
+  const { data, error } = await supabase.rpc('get_user_referral_code', {
+    p_telegram_id: telegramId
+  })
 
   if (error) {
-    console.error('Error fetching referral code:', error)
+    console.error('Error fetching referral code via RPC:', error)
     return null
   }
 
-  return data?.referral_code || null
+  console.log('RPC get_user_referral_code returned:', data)
+  return data || null
 }
 
 /**
