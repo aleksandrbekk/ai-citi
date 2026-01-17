@@ -78,7 +78,18 @@ export default function Profile() {
         <div className="bg-white rounded-3xl shadow-xl p-5">
           {/* Баланс монет */}
           <div className="text-center mb-5">
-            <div className="text-5xl font-bold text-gray-900">
+            {/* Золотая монета */}
+            <div className="relative inline-block mb-4">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 shadow-2xl shadow-yellow-600/50 flex items-center justify-center relative overflow-hidden">
+                {/* Внутреннее кольцо */}
+                <div className="absolute inset-2 rounded-full border-4 border-yellow-300/30"></div>
+                {/* Центральный символ */}
+                <div className="text-4xl font-bold text-yellow-900/80">₽</div>
+                {/* Блик */}
+                <div className="absolute top-2 left-4 w-8 h-8 bg-white/40 rounded-full blur-md"></div>
+              </div>
+            </div>
+            <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-yellow-600 via-yellow-500 to-yellow-700">
               {isLoadingCoins ? '...' : coinBalance}
             </div>
             <p className="text-gray-500 text-sm mt-1">МОНЕТ</p>
