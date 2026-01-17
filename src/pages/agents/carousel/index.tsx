@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, supabase } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, supabase, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -93,9 +93,12 @@ export default function CarouselIndex() {
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
 
-  // Проверка доступа - есть ли пользователь в premium_clients
-  const { data: hasAccess, isLoading: isCheckingAccess } = useQuery({
-    queryKey: ['carousel-access', telegramUser?.id],
+  // Стоимость одной генерации
+  const GENERATION_COST = 10
+
+  // Проверка подписки premium_clients
+  const { data: hasSubscription, isLoading: isCheckingSubscription } = useQuery({
+    queryKey: ['carousel-subscription', telegramUser?.id],
     queryFn: async () => {
       if (!telegramUser?.id) return false
 
@@ -106,7 +109,7 @@ export default function CarouselIndex() {
         .maybeSingle()
 
       if (error) {
-        console.error('Error checking access:', error)
+        console.error('Error checking subscription:', error)
         return false
       }
 
@@ -114,6 +117,20 @@ export default function CarouselIndex() {
     },
     enabled: !!telegramUser?.id,
   })
+
+  // Получаем баланс монет
+  const { data: coinBalance = 0, isLoading: isLoadingCoins, refetch: refetchBalance } = useQuery({
+    queryKey: ['coin-balance', telegramUser?.id],
+    queryFn: async () => {
+      if (!telegramUser?.id) return 0
+      return await getCoinBalance(telegramUser.id)
+    },
+    enabled: !!telegramUser?.id,
+  })
+
+  // Доступ есть если подписка ИЛИ достаточно монет
+  const hasAccess = hasSubscription || coinBalance >= GENERATION_COST
+  const isCheckingAccess = isCheckingSubscription || isLoadingCoins
 
   // Telegram BackButton
   useEffect(() => {
@@ -226,6 +243,18 @@ export default function CarouselIndex() {
 
     setIsSubmitting(true)
     setError(null)
+
+    // Если нет подписки - списываем монеты
+    if (!hasSubscription) {
+      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели')
+      if (!spendResult.success) {
+        setError(spendResult.error || 'Не удалось списать монеты')
+        setIsSubmitting(false)
+        return
+      }
+      // Обновляем баланс
+      refetchBalance()
+    }
 
     let ctaValue = ''
     if (ctaType === 'PRODUCT') {
@@ -380,7 +409,7 @@ export default function CarouselIndex() {
           >
             {isSubmitting ? (
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
-            ) : 'Создать карусель'}
+            ) : hasSubscription ? 'Создать карусель' : `Создать за ${GENERATION_COST} монет`}
           </button>
         </div>
       </div>
@@ -411,15 +440,31 @@ export default function CarouselIndex() {
               <LockIcon className="text-orange-500" />
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">Нужны монеты</h1>
 
-            <p className="text-gray-500 mb-6">
-              Создание каруселей доступно только для платных клиентов. Оформите подписку, чтобы получить доступ к этой функции.
+            <p className="text-gray-500 mb-4">
+              Для создания карусели нужно <span className="text-orange-500 font-semibold">10 монет</span> или активная подписка.
             </p>
+
+            <div className="bg-orange-50 rounded-2xl p-4 mb-6">
+              <p className="text-sm text-gray-600">
+                Ваш баланс: <span className="font-bold text-gray-900">{coinBalance} монет</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Не хватает: {GENERATION_COST - coinBalance} монет
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate('/shop')}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 mb-3"
+            >
+              Купить монеты
+            </button>
 
             <button
               onClick={() => navigate('/')}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30"
+              className="w-full py-3 rounded-2xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50"
             >
               Назад
             </button>
@@ -510,6 +555,14 @@ export default function CarouselIndex() {
             </button>
           </div>
 
+          {/* Balance info for non-subscribers */}
+          {!hasSubscription && (
+            <div className="mb-4 p-3 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-between">
+              <span className="text-sm text-gray-600">Ваш баланс:</span>
+              <span className="font-bold text-orange-600">{coinBalance} монет</span>
+            </div>
+          )}
+
           {/* Error */}
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
@@ -522,7 +575,7 @@ export default function CarouselIndex() {
             onClick={handleCreate}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30"
           >
-            Создать
+            {hasSubscription ? 'Создать' : `Создать за ${GENERATION_COST} монет`}
           </button>
         </div>
 

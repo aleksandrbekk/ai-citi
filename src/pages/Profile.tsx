@@ -108,15 +108,16 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-50 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-gray-500 text-sm">Генерации</span>
+                <span className="text-gray-500 text-sm">Доступно</span>
                 <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {generationsCount > 0 ? generationsCount : '1'}
-                {generationsCount === 0 && <span className="text-xs font-normal text-gray-400 ml-1">бесплатная</span>}
+                {generationsCount}
+                <span className="text-xs font-normal text-gray-400 ml-1">генераций</span>
               </p>
+              <p className="text-xs text-gray-400 mt-1">10 монет = 1 карусель</p>
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-4">
