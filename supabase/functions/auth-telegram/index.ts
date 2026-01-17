@@ -100,7 +100,8 @@ serve(async (req) => {
           last_name: userData.last_name || null,
           avatar_url: userData.photo_url || null,
           language_code: userData.language_code || 'ru',
-          referral_code: newReferralCode
+          referral_code: newReferralCode,
+          referred_by_code: referrerCode || null
         })
         .select()
         .single()
