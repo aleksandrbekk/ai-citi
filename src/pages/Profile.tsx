@@ -105,33 +105,18 @@ export default function Profile() {
           </div>
 
           {/* Статистика */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-gray-500 text-sm">Доступно</span>
-                <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
-                </div>
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-gray-500 text-sm">Доступно</span>
+              <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {generationsCount}
-                <span className="text-xs font-normal text-gray-400 ml-1">генераций</span>
-              </p>
-              <p className="text-xs text-gray-400 mt-1">10 монет = 1 карусель</p>
             </div>
-
-            <div className="bg-gray-50 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-gray-500 text-sm">Реферальные</span>
-                <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
-                  <Gift className="w-3.5 h-3.5 text-orange-600" />
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {referralEarnings}
-                <span className="text-xs font-normal text-gray-400 ml-1">монет</span>
-              </p>
-            </div>
+            <p className="text-2xl font-bold text-gray-900">
+              {generationsCount}
+              <span className="text-xs font-normal text-gray-400 ml-1">генераций</span>
+            </p>
+            <p className="text-xs text-gray-400 mt-1">10 монет = 1 карусель</p>
           </div>
 
           {/* Кнопка Пополнить */}
@@ -192,27 +177,39 @@ export default function Profile() {
         {/* Статистика рефералов */}
         {stats && stats.total_referrals > 0 && (
           <div className="mt-4 bg-white rounded-3xl shadow-lg p-5">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Gift className="w-5 h-5 text-orange-500" />
-              Твои партнёры ({stats.total_referrals})
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Gift className="w-5 h-5 text-orange-500" />
+                Твои партнёры ({stats.total_referrals})
+              </h3>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-full">
+                <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+                <span className="text-sm font-semibold text-orange-600">{referralEarnings} монет</span>
+              </div>
+            </div>
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {stats.referrals?.map((ref) => (
-                <div key={ref.telegram_id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
+                <div key={ref.telegram_id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-semibold">
                     {ref.first_name?.[0] || '?'}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
                       {ref.first_name || ref.username || `ID: ${ref.telegram_id}`}
                     </p>
-                    {ref.username && (
-                      <p className="text-xs text-gray-500">@{ref.username}</p>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {ref.username && (
+                        <p className="text-xs text-gray-500">@{ref.username}</p>
+                      )}
+                      <p className="text-xs text-gray-400">
+                        {new Date(ref.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    {new Date(ref.created_at).toLocaleDateString('ru-RU')}
-                  </p>
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 rounded-lg">
+                    <span className="text-green-600 font-semibold text-sm">+2</span>
+                    <Sparkles className="w-3.5 h-3.5 text-green-600" />
+                  </div>
                 </div>
               ))}
             </div>
