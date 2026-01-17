@@ -17,6 +17,20 @@ export interface ReferralStats {
 }
 
 /**
+ * Интерфейс заработка с партнёра
+ */
+export interface PartnerEarnings {
+  referred_telegram_id: number
+  referred_username: string | null
+  referred_first_name: string | null
+  registration_bonus: number
+  purchase_bonus: number
+  spend_bonus: number
+  total_earned: number
+  created_at: string
+}
+
+/**
  * Получить реферальную ссылку пользователя по referral_code
  */
 export function getReferralLink(referralCode: string): string {
@@ -145,4 +159,20 @@ export async function getReferrerForUser(telegramId: number): Promise<number | n
   }
 
   return data
+}
+
+/**
+ * Получить детальный заработок с каждого партнёра
+ */
+export async function getPartnerEarnings(telegramId: number): Promise<PartnerEarnings[]> {
+  const { data, error } = await supabase.rpc('get_referral_earnings_by_partner', {
+    p_telegram_id: telegramId
+  })
+
+  if (error) {
+    console.error('Error fetching partner earnings:', error)
+    return []
+  }
+
+  return (data as PartnerEarnings[]) || []
 }

@@ -176,7 +176,7 @@ export default function Profile() {
 
         {/* Статистика рефералов */}
         {stats && stats.total_referrals > 0 && (
-          <div className="mt-4 bg-white rounded-3xl shadow-lg p-5">
+          <Link to="/referrals" className="mt-4 bg-white rounded-3xl shadow-lg p-5 block hover:shadow-xl transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Gift className="w-5 h-5 text-orange-500" />
@@ -213,7 +213,7 @@ export default function Profile() {
                 </div>
               ))}
             </div>
-          </div>
+          </Link>
         )}
       </div>
 
