@@ -62,6 +62,7 @@ function AppContent() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [isChecking, setIsChecking] = useState(true)
   const setTariffs = useAuthStore((state) => state.setTariffs)
+  const login = useAuthStore((state) => state.login)
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
   const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer'
@@ -96,7 +97,11 @@ function AppContent() {
       }
 
       if (telegramUser?.id) {
-        // Создаём или получаем пользователя из базы (без проверки whitelist)
+        // Вызываем login() который использует Edge Function для создания пользователя
+        // Edge Function правильно обрабатывает реферальные ссылки
+        await login()
+
+        // Проверяем существующего пользователя для тарифов
         const user = await getOrCreateUser(telegramUser)
 
         // Загружаем тарифы пользователя
@@ -115,7 +120,7 @@ function AppContent() {
     }
 
     checkAccess()
-  }, [isPublicPage, setTariffs])
+  }, [isPublicPage, setTariffs, login])
 
   if (isChecking) {
     return (

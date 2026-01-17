@@ -46,36 +46,16 @@ export async function getOrCreateUser(telegramUser: {
   username?: string
   photo_url?: string
 }) {
-  // Сначала проверим есть ли пользователь
+  // Только проверяем есть ли пользователь (НЕ создаём!)
+  // Создание пользователей происходит через Edge Function auth-telegram
+  // чтобы правильно обрабатывать реферальные ссылки
   const { data: existingUser } = await supabase
     .from('users')
     .select('*')
     .eq('telegram_id', telegramUser.id)
     .single()
-  
-  if (existingUser) {
-    return existingUser
-  }
-  
-  // Создаём нового пользователя
-  const { data: newUser, error } = await supabase
-    .from('users')
-    .insert({
-      telegram_id: telegramUser.id,
-      first_name: telegramUser.first_name || 'Пользователь',
-      last_name: telegramUser.last_name || null,
-      username: telegramUser.username || null,
-      avatar_url: telegramUser.photo_url || null
-    })
-    .select()
-    .single()
-  
-  if (error) {
-    console.error('Error creating user:', error)
-    return null
-  }
-  
-  return newUser
+
+  return existingUser || null
 }
 
 export async function getUserTariffs(userId: string): Promise<string[]> {
