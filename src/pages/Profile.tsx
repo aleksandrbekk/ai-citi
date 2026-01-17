@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
-import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X } from 'lucide-react'
+import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Profile() {
@@ -13,7 +13,7 @@ export default function Profile() {
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
 
-  const { stats, referralLink, referralCode, handleCopyLink, isCopied } = useReferrals()
+  const { stats, referralCode, handleCopyLink, isCopied } = useReferrals()
 
   useEffect(() => {
     const loadCoins = async () => {
@@ -76,119 +76,101 @@ export default function Profile() {
 
       {/* Белая карточка с балансом */}
       <div className="px-4 pt-4">
-        <div className="bg-white rounded-3xl shadow-xl p-5 space-y-5">
-
+        <div className="bg-white rounded-3xl shadow-xl p-5">
           {/* Баланс монет */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-shrink-0">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-200">
-                <Sparkles className="w-8 h-8 text-yellow-900" />
-              </div>
+          <div className="text-center mb-5">
+            <div className="text-5xl font-bold text-gray-900">
+              {isLoadingCoins ? '...' : coinBalance}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-4xl font-bold text-gray-900">
-                  {isLoadingCoins ? '...' : coinBalance}
-                </span>
-                <TrendingUp className="w-5 h-5 text-orange-500" />
-              </div>
-              <p className="text-gray-500 text-sm">Монет</p>
-            </div>
+            <p className="text-gray-500 text-sm mt-1">МОНЕТ</p>
           </div>
 
           {/* Прогресс бар */}
-          <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-5">
             <div
               className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500"
               style={{ width: `${Math.min((coinBalance % 100) + 10, 100)}%` }}
             />
           </div>
 
-          {/* Статистика */}
-          <div className="bg-gray-50 rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-gray-500 text-sm">Доступно</span>
-              <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
+          {/* Плитка 2x2 */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Баланс */}
+            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-orange-500 flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-yellow-900" />
               </div>
+              <p className="text-sm font-medium text-gray-700">Баланс</p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {generationsCount}
-              <span className="text-xs font-normal text-gray-400 ml-1">генераций</span>
-            </p>
-            <p className="text-xs text-gray-400 mt-1">10 монет = 1 карусель</p>
-          </div>
 
-          {/* Кнопка Пополнить */}
-          <Link
-            to="/shop"
-            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-semibold rounded-2xl shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all text-lg"
-          >
-            <Wallet className="w-5 h-5" />
-            Пополнить баланс
-          </Link>
+            {/* Генерации */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-sm font-medium text-gray-700">Генерации</p>
+              <p className="text-lg font-bold text-gray-900">{generationsCount}</p>
+            </div>
+
+            {/* Рефералы */}
+            <Link to="/referrals" className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center relative">
+                <Users className="w-6 h-6 text-white" />
+                {stats && stats.total_referrals > 0 && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">{stats.total_referrals}</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm font-medium text-gray-700">Рефералы</p>
+              {referralEarnings > 0 && (
+                <p className="text-xs text-orange-600 font-semibold">+{referralEarnings}</p>
+              )}
+            </Link>
+
+            {/* Пополнить */}
+            <Link to="/shop" className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-sm font-medium text-gray-700">Пополнить</p>
+            </Link>
+          </div>
         </div>
 
-        {/* Реферальная секция */}
+        {/* Реферальная ссылка */}
         <div className="mt-4 bg-white rounded-3xl shadow-lg p-5">
-          {/* Заголовок */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Gift className="w-5 h-5 text-orange-500" />
-              <h3 className="font-semibold text-gray-900">Ваша реферальная ссылка</h3>
+              <h3 className="font-semibold text-gray-900">Пригласить друга</h3>
             </div>
             <button
               onClick={() => setShowHowItWorks(true)}
               className="flex items-center gap-1 text-sm text-orange-500 hover:text-orange-600 transition-colors"
             >
               <HelpCircle className="w-4 h-4" />
-              <span>Как это работает?</span>
             </button>
           </div>
 
-          {/* Ссылка и кнопка копирования */}
           {referralCode ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl border border-orange-100">
-                <p className="flex-1 text-sm text-gray-700 truncate font-mono">
-                  {referralLink ? referralLink.replace('https://', '') : `t.me/Neirociti_bot/app?startapp=ref_${referralCode}`}
-                </p>
-              </div>
-
-              <button
-                onClick={handleCopyLink}
-                className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition-all ${
-                  isCopied
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-200 hover:shadow-purple-300'
-                }`}
-              >
-                {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                {isCopied ? 'Ссылка скопирована!' : 'Скопировать и пригласить друга'}
-              </button>
-            </div>
+            <button
+              onClick={handleCopyLink}
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition-all ${
+                isCopied
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-200 hover:shadow-purple-300'
+              }`}
+            >
+              {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+              {isCopied ? 'Ссылка скопирована!' : 'Скопировать и пригласить'}
+            </button>
           ) : (
             <div className="text-center py-4">
-              <p className="text-gray-400 text-sm">Загрузка ссылки...</p>
+              <p className="text-gray-400 text-sm">Загрузка...</p>
             </div>
           )}
         </div>
-
-        {/* Статистика рефералов */}
-        {stats && stats.total_referrals > 0 && (
-          <Link to="/referrals" className="mt-4 bg-white rounded-3xl shadow-lg p-5 block hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Gift className="w-5 h-5 text-orange-500" />
-                Твои партнёры ({stats.total_referrals})
-              </h3>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-full">
-                <Sparkles className="w-3.5 h-3.5 text-orange-500" />
-                <span className="text-sm font-semibold text-orange-600">{referralEarnings} монет</span>
-              </div>
-            </div>
-          </Link>
-        )}
       </div>
 
       {/* Модальное окно "Как это работает?" */}
