@@ -124,26 +124,10 @@ serve(async (req) => {
 
       user = newUser
 
-      // Обработка реферальной ссылки для нового пользователя
+      // Триггер process_referral_on_user_create автоматически обрабатывает реферальную систему
+      // при создании пользователя с referred_by_code, поэтому здесь ничего делать не нужно
       if (referrerCode) {
-        const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
-          p_referrer_code: referrerCode,
-          p_referred_telegram_id: userData.id
-        })
-
-        console.log('Referral registration result:', registerResult, refError)
-
-        if (!refError && registerResult?.success) {
-          console.log('Referral registered:', registerResult)
-
-          // Выплачиваем бонус за регистрацию (2 монеты)
-          const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
-            p_referred_telegram_id: userData.id
-          })
-          console.log('Referral bonus paid:', bonusResult)
-        } else {
-          console.log('Referral registration skipped:', refError || registerResult?.error)
-        }
+        console.log('User created with referrer code:', referrerCode, '- trigger will handle referral bonus')
       }
     } else {
       // Обновить данные существующего пользователя
@@ -185,35 +169,9 @@ serve(async (req) => {
 
       if (updatedUser) user = updatedUser
 
-      // Обработка реферальной ссылки для существующего пользователя (если ещё нет реферера)
+      // Для существующих пользователей реферальная система не применяется повторно
       if (referrerCode) {
-        // Проверяем, есть ли уже реферер
-        const { data: existingReferrer } = await supabase
-          .from('referrals')
-          .select('id')
-          .eq('referred_telegram_id', userData.id)
-          .single()
-
-        if (!existingReferrer) {
-          const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
-            p_referrer_code: referrerCode,
-            p_referred_telegram_id: userData.id
-          })
-
-          console.log('Referral registration result for existing user:', registerResult, refError)
-
-          if (!refError && registerResult?.success) {
-            console.log('Referral registered for existing user:', registerResult)
-
-            // Выплачиваем бонус за регистрацию (2 монеты)
-            const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
-              p_referred_telegram_id: userData.id
-            })
-            console.log('Referral bonus paid:', bonusResult)
-          } else {
-            console.log('Referral registration skipped:', refError || registerResult?.error)
-          }
-        }
+        console.log('Existing user - referral code ignored:', referrerCode)
       }
     }
 
