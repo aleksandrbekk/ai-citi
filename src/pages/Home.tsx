@@ -63,7 +63,7 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="relative flex flex-col items-center px-6 h-[calc(100vh-140px)] justify-between">
+      <div className="relative flex flex-col items-center px-6 h-[calc(100vh-140px)]">
         {/* Логотип */}
         <motion.h1
           className="text-3xl font-bold text-foreground tracking-tight mt-4"
@@ -74,16 +74,13 @@ export default function Home() {
           AI <span className="text-primary">CITI</span>
         </motion.h1>
 
-        {/* Контейнер для низа: Робот + Кнопки */}
-        <div className="flex flex-col items-center w-full pb-4">
-
-          {/* Статусная плашка над роботом (Vision Glass стиль) */}
-          <motion.div
-            className="mb-6 px-6 py-3 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-3"
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
+        {/* Статусная плашка (Vision Glass стиль) */}
+        <motion.div
+          className="mt-4 mb-2 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-2.5"
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
             {/* Зеленая точка статуса (пульсирующая) */}
             <motion.div
               className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
@@ -97,29 +94,33 @@ export default function Home() {
                 ease: "easeInOut",
               }}
             />
-            <span className="text-lg font-medium text-foreground/80 tracking-wide">Ассистент</span>
-          </motion.div>
+            <span className="text-base font-medium text-foreground/80 tracking-wide">Ассистент</span>
+        </motion.div>
 
-          {/* Персонаж (на земле, без подиума) */}
+        {/* Основная область со свайпом */}
+        <motion.div
+          className="flex-1 flex flex-col items-center justify-center w-full"
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.3}
+          onDragEnd={(_, info) => {
+            if (info.offset.x < -60) handleSwipe('left')
+            else if (info.offset.x > 60) handleSwipe('right')
+          }}
+        >
+          {/* Персонаж (уменьшенный) */}
           <motion.div
             className="relative cursor-pointer z-10"
             onClick={handleTap}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -50) handleSwipe('left')
-              else if (info.offset.x > 50) handleSwipe('right')
-            }}
           >
-            {/* Тень под персонажем (касание земли) */}
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/10 blur-xl rounded-[100%]" />
+            {/* Тень под персонажем */}
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-black/10 blur-xl rounded-[100%]" />
 
             {/* Мягкое свечение за персонажем */}
             <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyan-400/20 blur-[60px] rounded-full pointer-events-none"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-cyan-400/20 blur-[50px] rounded-full pointer-events-none"
               animate={{
                 opacity: [0.3, 0.5, 0.3],
               }}
@@ -130,13 +131,13 @@ export default function Home() {
               }}
             />
 
-            {/* Персонаж */}
+            {/* Персонаж (меньше) */}
             <motion.img
               src="/images/neurochik.png"
               alt="Нейрончик"
-              className="relative w-64 h-auto drop-shadow-2xl"
+              className="relative w-44 h-auto drop-shadow-2xl"
               animate={{
-                y: [0, -4, 0], // Меньшая амплитуда, "дыхание" а не полет
+                y: [0, -4, 0],
               }}
               transition={{
                 duration: 4,
@@ -200,14 +201,14 @@ export default function Home() {
 
           {/* Подсказка */}
           <motion.p
-            className="mt-6 text-sm text-muted-foreground"
+            className="mt-4 text-sm text-muted-foreground"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Тапни для {modes[currentMode].label.toLowerCase()}
+            Свайпни или тапни для {modes[currentMode].label.toLowerCase()}
           </motion.p>
-        </div>
+        </motion.div>
       </div>
     </div>
   )
