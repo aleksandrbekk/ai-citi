@@ -32,8 +32,8 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-[#FFF8F5] pb-24">
-      {/* Тёмный градиентный хедер - увеличенный */}
-      <div className="relative bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] pt-8 pb-32 px-4">
+      {/* Тёмный градиентный хедер */}
+      <div className="relative bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] pt-8 pb-8 px-4">
         {/* Декоративные элементы */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-10 left-10 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl" />
@@ -75,7 +75,7 @@ export default function Profile() {
       </div>
 
       {/* Белая карточка с балансом */}
-      <div className="px-4 -mt-16">
+      <div className="px-4 pt-4">
         <div className="bg-white rounded-3xl shadow-xl p-5 space-y-5">
 
           {/* Баланс монет */}
@@ -180,10 +180,6 @@ export default function Profile() {
                 {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                 {isCopied ? 'Ссылка скопирована!' : 'Скопировать и пригласить друга'}
               </button>
-
-              <p className="text-center text-xs text-gray-500">
-                Получай <span className="text-orange-500 font-semibold">+2 монеты</span> за каждого друга и <span className="text-orange-500 font-semibold">20%</span> от их покупок!
-              </p>
             </div>
           ) : (
             <div className="text-center py-4">
