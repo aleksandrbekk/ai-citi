@@ -25,8 +25,32 @@ export function getInitData(): string | null {
 }
 
 export function getStartParam(): string | null {
+  // 1. Пробуем из initDataUnsafe (работает на Android/Desktop)
   const webApp = getTelegramWebApp()
-  return (webApp as any)?.initDataUnsafe?.start_param || null
+  const fromWebApp = (webApp as any)?.initDataUnsafe?.start_param
+  if (fromWebApp) {
+    console.log('startParam from initDataUnsafe:', fromWebApp)
+    return fromWebApp
+  }
+
+  // 2. Fallback: из URL параметра tgWebAppStartParam (для iOS)
+  const urlParams = new URLSearchParams(window.location.search)
+  const fromUrl = urlParams.get('tgWebAppStartParam')
+  if (fromUrl) {
+    console.log('startParam from URL:', fromUrl)
+    return fromUrl
+  }
+
+  // 3. Fallback: из hash параметра (некоторые версии Telegram)
+  const hashParams = new URLSearchParams(window.location.hash.slice(1))
+  const fromHash = hashParams.get('tgWebAppStartParam')
+  if (fromHash) {
+    console.log('startParam from hash:', fromHash)
+    return fromHash
+  }
+
+  console.log('startParam not found anywhere')
+  return null
 }
 
 // Инициализация Telegram WebApp
