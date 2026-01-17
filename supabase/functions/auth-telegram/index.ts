@@ -38,6 +38,14 @@ serve(async (req) => {
     const params = new URLSearchParams(initData)
     const userDataString = params.get('user')
 
+    // ВАЖНО: start_param может быть внутри initData!
+    const startParamFromInitData = params.get('start_param')
+    const effectiveStartParam = startParam || startParamFromInitData
+
+    console.log('startParam from body:', startParam)
+    console.log('startParam from initData:', startParamFromInitData)
+    console.log('effectiveStartParam:', effectiveStartParam)
+
     if (!userDataString) {
       return new Response(
         JSON.stringify({ error: 'User data not found in initData' }),
@@ -62,10 +70,10 @@ serve(async (req) => {
 
     let user = existingUser
 
-    // Извлекаем реферальный код из startParam (ref_06 -> 06)
+    // Извлекаем реферальный код из effectiveStartParam (ref_06 -> 06)
     let referrerCode: string | null = null
-    if (startParam && typeof startParam === 'string' && startParam.startsWith('ref_')) {
-      referrerCode = startParam.replace('ref_', '')
+    if (effectiveStartParam && typeof effectiveStartParam === 'string' && effectiveStartParam.startsWith('ref_')) {
+      referrerCode = effectiveStartParam.replace('ref_', '')
       console.log('Extracted referrer code:', referrerCode)
     }
 
