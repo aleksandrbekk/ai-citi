@@ -6,7 +6,6 @@ const modes = [
   { id: 'chat', label: 'Чат с AI', icon: '💬', path: '/chat' },
   { id: 'carousel', label: 'Карусели', icon: '🎠', path: '/agents/carousel' },
   { id: 'school', label: 'Школа', icon: '📚', path: '/school' },
-  { id: 'shop', label: 'Магазин', icon: '🛒', path: '/shop' },
 ]
 
 export default function Home() {
