@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
-import { SchoolIcon, BotIcon, ShopIcon, UserIcon, HomeIcon } from '@/components/ui/icons'
+import { UserIcon, HomeIcon } from '@/components/ui/icons'
 import { Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
 
 // ID администраторов
 const ADMIN_IDS = [643763835, 190202791, 1762872372]
@@ -12,11 +11,7 @@ const ADMIN_IDS = [643763835, 190202791, 1762872372]
 export function BottomNav() {
   const location = useLocation()
   const isKeyboardOpen = useUIStore((s) => s.isKeyboardOpen)
-  const tariffs = useAuthStore((s) => s.tariffs)
   const [isAdmin, setIsAdmin] = useState(false)
-
-  // Проверяем есть ли доступ к школе (есть тариф platinum или standard)
-  const hasSchoolAccess = tariffs.includes('platinum') || tariffs.includes('standard')
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp
@@ -76,50 +71,6 @@ export function BottomNav() {
         >
           <UserIcon size={22} className={location.pathname === '/profile' ? 'text-orange-500' : ''} />
           <span className="text-[10px] font-medium">Профиль</span>
-        </Link>
-
-        {/* Школа - для всех клиентов с тарифом */}
-        {hasSchoolAccess && (
-          <Link
-            to="/school"
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
-              location.pathname.startsWith('/school')
-                ? "text-orange-500"
-                : "text-gray-400 hover:text-gray-600"
-            )}
-          >
-            <SchoolIcon size={22} className={location.pathname.startsWith('/school') ? 'text-orange-500' : ''} />
-            <span className="text-[10px] font-medium">Школа</span>
-          </Link>
-        )}
-
-        {/* Агенты */}
-        <Link
-          to="/agents"
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
-            location.pathname === '/agents'
-              ? "text-orange-500"
-              : "text-gray-400 hover:text-gray-600"
-          )}
-        >
-          <BotIcon size={22} className={location.pathname === '/agents' ? 'text-orange-500' : ''} />
-          <span className="text-[10px] font-medium">Агенты</span>
-        </Link>
-
-        {/* Магазин */}
-        <Link
-          to="/shop"
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
-            location.pathname === '/shop'
-              ? "text-orange-500"
-              : "text-gray-400 hover:text-gray-600"
-          )}
-        >
-          <ShopIcon size={22} className={location.pathname === '/shop' ? 'text-orange-500' : ''} />
-          <span className="text-[10px] font-medium">Магазин</span>
         </Link>
 
         {/* Админ - только для админов */}
