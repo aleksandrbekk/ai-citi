@@ -89,9 +89,26 @@ export const useAuthStore = create<AuthState>()(
         const cachedUser = get().user
         const isSameUser = cachedUser && telegramUser && cachedUser.telegram_id === telegramUser.id
 
-        // Если уже авторизован тот же пользователь И нет реферальной ссылки — пропускаем
+        // Если уже авторизован тот же пользователь И нет реферальной ссылки — обновляем только профиль
         if (get().isAuthenticated && isSameUser && !hasReferral) {
-          console.log('Already authenticated as same user, skipping login')
+          console.log('Already authenticated, refreshing profile from server...')
+          try {
+            const cachedUserId = cachedUser?.id
+            if (cachedUserId && cachedUserId !== 'dev-user' && !cachedUserId.startsWith('tg-')) {
+              const { data: freshProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', cachedUserId)
+                .single()
+
+              if (freshProfile) {
+                console.log('Profile refreshed, coins:', freshProfile.coins)
+                set({ profile: freshProfile })
+              }
+            }
+          } catch (e) {
+            console.log('Profile refresh failed, using cached data')
+          }
           return
         }
 
@@ -111,7 +128,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const webApp = getTelegramWebApp()
           const initData = getInitData()
-          
+
           const debugInfo = {
             hasWebApp: !!webApp,
             hasInitData: !!initData,
@@ -121,7 +138,7 @@ export const useAuthStore = create<AuthState>()(
             telegramUserId: telegramUser?.id || null,
             telegramUserName: telegramUser?.first_name || null,
           }
-          
+
           console.log('=== FRONTEND AUTH DEBUG ===')
           console.log('debugInfo:', debugInfo)
 
@@ -192,7 +209,7 @@ export const useAuthStore = create<AuthState>()(
 
         } catch (error: any) {
           console.error('Auth error:', error)
-          
+
           // При ошибке — пробуем использовать данные из Telegram напрямую
           const telegramUser = getTelegramUser()
           if (telegramUser) {
@@ -260,11 +277,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ 
-        user: state.user, 
+      partialize: (state) => ({
+        user: state.user,
         profile: state.profile,
         tariffs: state.tariffs,
-        isAuthenticated: state.isAuthenticated 
+        isAuthenticated: state.isAuthenticated
       }),
     }
   )
