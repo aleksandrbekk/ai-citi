@@ -83,11 +83,22 @@ export const useAuthStore = create<AuthState>()(
         // Проверяем startParam для реферальной системы
         const startParam = getStartParam()
         const hasReferral = startParam && startParam.startsWith('ref_')
+        const telegramUser = getTelegramUser()
 
-        // Если уже авторизован И нет реферальной ссылки — пропускаем
-        if (get().isAuthenticated && get().user && !hasReferral) {
-          console.log('Already authenticated, skipping login')
+        // Проверяем, совпадает ли закешированный пользователь с текущим Telegram пользователем
+        const cachedUser = get().user
+        const isSameUser = cachedUser && telegramUser && cachedUser.telegram_id === telegramUser.id
+
+        // Если уже авторизован тот же пользователь И нет реферальной ссылки — пропускаем
+        if (get().isAuthenticated && isSameUser && !hasReferral) {
+          console.log('Already authenticated as same user, skipping login')
           return
+        }
+
+        // Если пользователь другой - очищаем кеш
+        if (cachedUser && telegramUser && cachedUser.telegram_id !== telegramUser.id) {
+          console.log('Different user detected, clearing cache. Cached:', cachedUser.telegram_id, 'Current:', telegramUser.id)
+          localStorage.removeItem('auth-storage')
         }
 
         // Если есть реферальная ссылка — принудительно вызываем Edge Function
@@ -100,7 +111,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           const webApp = getTelegramWebApp()
           const initData = getInitData()
-          const telegramUser = getTelegramUser()
           
           const debugInfo = {
             hasWebApp: !!webApp,
