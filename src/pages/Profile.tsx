@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
-import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X, Users } from 'lucide-react'
+import { Wallet, TrendingUp, Sparkles, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Profile() {
@@ -11,9 +11,8 @@ export default function Profile() {
   const photoUrl = telegramUser?.photo_url
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
-  const [showHowItWorks, setShowHowItWorks] = useState(false)
 
-  const { stats, referralCode, handleCopyLink, isCopied } = useReferrals()
+  const { stats } = useReferrals()
 
   useEffect(() => {
     const loadCoins = async () => {
@@ -137,107 +136,7 @@ export default function Profile() {
             </Link>
           </div>
         </div>
-
-        {/* Реферальная ссылка */}
-        <div className="mt-4 bg-white rounded-3xl shadow-lg p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Gift className="w-5 h-5 text-orange-500" />
-              <h3 className="font-semibold text-gray-900">Пригласить друга</h3>
-            </div>
-            <button
-              onClick={() => setShowHowItWorks(true)}
-              className="flex items-center gap-1 text-sm text-orange-500 hover:text-orange-600 transition-colors"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
-
-          {referralCode ? (
-            <button
-              onClick={handleCopyLink}
-              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition-all ${
-                isCopied
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-200 hover:shadow-purple-300'
-              }`}
-            >
-              {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-              {isCopied ? 'Ссылка скопирована!' : 'Скопировать и пригласить'}
-            </button>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-gray-400 text-sm">Загрузка...</p>
-            </div>
-          )}
-        </div>
       </div>
-
-      {/* Модальное окно "Как это работает?" */}
-      {showHowItWorks && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Как это работает?</h3>
-              <button
-                onClick={() => setShowHowItWorks(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-orange-500 font-bold">1</span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Поделись ссылкой</p>
-                  <p className="text-sm text-gray-500">Отправь реферальную ссылку другу</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-orange-500 font-bold">2</span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Друг регистрируется</p>
-                  <p className="text-sm text-gray-500">Ты получаешь <span className="text-orange-500 font-semibold">+2 монеты</span> сразу</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-orange-500 font-bold">3</span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Друг покупает монеты</p>
-                  <p className="text-sm text-gray-500">Ты получаешь <span className="text-orange-500 font-semibold">20%</span> от его покупки</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-orange-500 font-bold">4</span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Друг тратит монеты</p>
-                  <p className="text-sm text-gray-500">Ты получаешь <span className="text-orange-500 font-semibold">20%</span> от его трат</p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowHowItWorks(false)}
-              className="mt-6 w-full py-3 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-semibold rounded-2xl"
-            >
-              Понятно!
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
