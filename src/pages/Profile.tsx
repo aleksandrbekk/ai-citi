@@ -91,36 +91,36 @@ export default function Profile() {
       {/* Плитка 2x2 */}
       <div className="px-4">
         <div className="grid grid-cols-2 gap-4">
-          {/* Buy coins */}
+          {/* Купить монеты */}
           <Link to="/shop" className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start gap-3 hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
               <Wallet className="w-6 h-6 text-white" />
             </div>
-            <p className="text-xl font-semibold text-gray-900">Buy coins</p>
+            <p className="text-xl font-semibold text-gray-900">Пополнить</p>
           </Link>
 
-          {/* Generations */}
+          {/* Генерации */}
           <div className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
-            <p className="text-xl font-semibold text-gray-900">Generations ({generationsCount})</p>
+            <p className="text-xl font-semibold text-gray-900">Генерации ({generationsCount})</p>
           </div>
 
-          {/* Referrals */}
+          {/* Рефералы */}
           <Link to="/referrals" className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start gap-3 hover:shadow-xl transition-shadow">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <p className="text-xl font-semibold text-gray-900">Referrals ({stats?.total_referrals || 0})</p>
+            <p className="text-xl font-semibold text-gray-900">Рефералы ({stats?.total_referrals || 0})</p>
           </Link>
 
-          {/* Settings */}
+          {/* Настройки */}
           <div className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
               <Settings className="w-6 h-6 text-white" />
             </div>
-            <p className="text-xl font-semibold text-gray-900">Settings</p>
+            <p className="text-xl font-semibold text-gray-900">Настройки</p>
           </div>
         </div>
       </div>
