@@ -177,7 +177,7 @@ export default function Profile() {
         {/* Статистика рефералов */}
         {stats && stats.total_referrals > 0 && (
           <Link to="/referrals" className="mt-4 bg-white rounded-3xl shadow-lg p-5 block hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Gift className="w-5 h-5 text-orange-500" />
                 Твои партнёры ({stats.total_referrals})
@@ -186,32 +186,6 @@ export default function Profile() {
                 <Sparkles className="w-3.5 h-3.5 text-orange-500" />
                 <span className="text-sm font-semibold text-orange-600">{referralEarnings} монет</span>
               </div>
-            </div>
-            <div className="space-y-3 max-h-48 overflow-y-auto">
-              {stats.referrals?.map((ref) => (
-                <div key={ref.telegram_id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-semibold">
-                    {ref.first_name?.[0] || '?'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {ref.first_name || ref.username || `ID: ${ref.telegram_id}`}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {ref.username && (
-                        <p className="text-xs text-gray-500">@{ref.username}</p>
-                      )}
-                      <p className="text-xs text-gray-400">
-                        {new Date(ref.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 rounded-lg">
-                    <span className="text-green-600 font-semibold text-sm">+2</span>
-                    <Sparkles className="w-3.5 h-3.5 text-green-600" />
-                  </div>
-                </div>
-              ))}
             </div>
           </Link>
         )}
