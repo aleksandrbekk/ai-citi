@@ -126,7 +126,7 @@ export default function CarouselIndex() {
         } else if (showCtaPage) {
           setShowCtaPage(false)
         } else {
-          navigate('/agents')
+          navigate('/')
         }
       }
 
@@ -418,7 +418,7 @@ export default function CarouselIndex() {
             </p>
 
             <button
-              onClick={() => navigate('/agents')}
+              onClick={() => navigate('/')}
               className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30"
             >
               Назад
