@@ -31,45 +31,32 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-[#FFF8F5] pb-24">
-      {/* Тёмный градиентный хедер */}
-      <div className="relative bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23] pt-8 pb-8 px-4">
-        {/* Декоративные элементы */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl" />
-          <div className="absolute top-20 right-10 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-1/2 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative flex flex-col items-center">
+      {/* Светлый хедер с аватаром */}
+      <div className="bg-[#FFF8F5] pt-8 pb-6 px-4">
+        <div className="flex flex-col items-center">
           {/* Аватар с оранжевым кольцом */}
           <div className="relative">
-            <div className="w-28 h-28 rounded-full p-1.5 bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-500/30">
+            <div className="w-32 h-32 rounded-full p-2 bg-gradient-to-br from-orange-500 to-orange-600 shadow-xl shadow-orange-500/30">
               {photoUrl ? (
                 <img
                   src={photoUrl}
                   alt={firstName}
-                  className="w-full h-full rounded-full object-cover"
+                  className="w-full h-full rounded-full object-cover border-4 border-white"
                 />
               ) : (
-                <div className="w-full h-full rounded-full bg-[#1a1a2e] flex items-center justify-center text-4xl font-bold text-orange-400">
+                <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-orange-500 border-4 border-white">
                   {firstName[0]?.toUpperCase()}
                 </div>
               )}
             </div>
             {/* Зелёный индикатор онлайн */}
-            <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 rounded-full border-[3px] border-[#16213e] shadow-lg" />
+            <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-[#FFF8F5] shadow-lg" />
           </div>
 
           {/* Имя пользователя */}
-          <h1 className="mt-4 text-2xl font-bold text-white">
+          <h1 className="mt-4 text-3xl font-bold text-gray-900">
             {firstName}
           </h1>
-
-          {/* Статус */}
-          <div className="mt-3 flex items-center gap-2 px-5 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/10">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-sm text-orange-400 font-semibold">Активен</span>
-          </div>
         </div>
       </div>
 
