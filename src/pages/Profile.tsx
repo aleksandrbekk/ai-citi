@@ -30,6 +30,18 @@ export default function Profile() {
     loadCoins()
   }, [telegramUser?.id])
 
+  // Блокируем скролл body когда открыта модалка
+  useEffect(() => {
+    if (showReferrals || showSettings || selectedReferral) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [showReferrals, showSettings, selectedReferral])
+
   // Количество генераций (10 монет = 1 генерация)
   const generationsCount = Math.floor(coinBalance / 10)
 
@@ -135,7 +147,7 @@ export default function Profile() {
       {showReferrals && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowReferrals(false)}>
           <div
-            className="bg-white rounded-t-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up"
+            className="bg-white rounded-t-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up overscroll-contain"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
