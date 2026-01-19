@@ -3,7 +3,7 @@ import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
 import { useAuthStore } from '@/store/authStore'
-import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X, LogOut } from 'lucide-react'
+import { Wallet, Copy, Check, Gift, Sparkles, HelpCircle, X, LogOut } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Profile() {
@@ -30,7 +30,6 @@ export default function Profile() {
 
   // Количество генераций (10 монет = 1 генерация)
   const generationsCount = Math.floor(coinBalance / 10)
-  const referralEarnings = stats?.total_coins_earned || 0
 
   return (
     <div className="min-h-screen bg-[#FFF8F5] pb-24">
@@ -76,73 +75,52 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Белая карточка с балансом */}
+      {/* Сетка с плитками */}
       <div className="px-4 pt-4">
-        <div className="bg-white rounded-3xl shadow-xl p-5 space-y-5">
-
-          {/* Баланс монет */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-shrink-0">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-200">
-                <Sparkles className="w-8 h-8 text-yellow-900" />
-              </div>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Баланс */}
+          <div className="bg-white rounded-3xl shadow-lg p-5 flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-200 mb-3">
+              <Wallet className="w-7 h-7 text-yellow-900" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-4xl font-bold text-gray-900">
-                  {isLoadingCoins ? '...' : coinBalance}
-                </span>
-                <TrendingUp className="w-5 h-5 text-orange-500" />
-              </div>
-              <p className="text-gray-500 text-sm">Монет</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900">
+              {isLoadingCoins ? '...' : coinBalance}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Баланс</p>
           </div>
 
-          {/* Прогресс бар */}
-          <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500"
-              style={{ width: `${Math.min((coinBalance % 100) + 10, 100)}%` }}
-            />
+          {/* Генерации */}
+          <div className="bg-white rounded-3xl shadow-lg p-5 flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-200 mb-3">
+              <Sparkles className="w-7 h-7 text-white" />
+            </div>
+            <p className="text-3xl font-bold text-gray-900">
+              {generationsCount}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Генерации</p>
           </div>
 
-          {/* Статистика */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-gray-500 text-sm">Доступно</span>
-                <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {generationsCount}
-                <span className="text-xs font-normal text-gray-400 ml-1">генераций</span>
-              </p>
-              <p className="text-xs text-gray-400 mt-1">10 монет = 1 карусель</p>
+          {/* Рефералы */}
+          <div className="bg-white rounded-3xl shadow-lg p-5 flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200 mb-3">
+              <Gift className="w-7 h-7 text-white" />
             </div>
-
-            <div className="bg-gray-50 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-gray-500 text-sm">Реферальные</span>
-                <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center">
-                  <Gift className="w-3.5 h-3.5 text-orange-600" />
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">
-                {referralEarnings}
-                <span className="text-xs font-normal text-gray-400 ml-1">монет</span>
-              </p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900">
+              {stats?.total_referrals || 0}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Рефералы</p>
           </div>
 
-          {/* Кнопка Пополнить */}
+          {/* Настройки (Пополнить) */}
           <Link
             to="/shop"
-            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-semibold rounded-2xl shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all text-lg"
+            className="bg-white rounded-3xl shadow-lg p-5 flex flex-col items-center justify-center hover:shadow-xl transition-all"
           >
-            <Wallet className="w-5 h-5" />
-            Пополнить баланс
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200 mb-3">
+              <Wallet className="w-7 h-7 text-white" />
+            </div>
+            <p className="text-lg font-bold text-gray-900">Пополнить</p>
+            <p className="text-sm text-gray-500 mt-1">Магазин</p>
           </Link>
         </div>
 
