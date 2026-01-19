@@ -29,27 +29,38 @@ export function getStartParam(): string | null {
   const webApp = getTelegramWebApp()
   const fromWebApp = (webApp as any)?.initDataUnsafe?.start_param
   if (fromWebApp) {
-    console.log('startParam from initDataUnsafe:', fromWebApp)
+    console.log('✅ startParam from initDataUnsafe:', fromWebApp)
     return fromWebApp
   }
 
-  // 2. Fallback: из URL параметра tgWebAppStartParam (для iOS)
+  // 2. ВАЖНО: Пробуем парсить из initData напрямую (iOS fallback)
+  const initData = getInitData()
+  if (initData) {
+    const initParams = new URLSearchParams(initData)
+    const fromInitData = initParams.get('start_param')
+    if (fromInitData) {
+      console.log('✅ startParam from initData:', fromInitData)
+      return fromInitData
+    }
+  }
+
+  // 3. Fallback: из URL параметра tgWebAppStartParam (для iOS)
   const urlParams = new URLSearchParams(window.location.search)
   const fromUrl = urlParams.get('tgWebAppStartParam')
   if (fromUrl) {
-    console.log('startParam from URL:', fromUrl)
+    console.log('✅ startParam from URL:', fromUrl)
     return fromUrl
   }
 
-  // 3. Fallback: из hash параметра (некоторые версии Telegram)
+  // 4. Fallback: из hash параметра (некоторые версии Telegram)
   const hashParams = new URLSearchParams(window.location.hash.slice(1))
   const fromHash = hashParams.get('tgWebAppStartParam')
   if (fromHash) {
-    console.log('startParam from hash:', fromHash)
+    console.log('✅ startParam from hash:', fromHash)
     return fromHash
   }
 
-  console.log('startParam not found anywhere')
+  console.log('❌ startParam not found anywhere')
   return null
 }
 
