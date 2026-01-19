@@ -267,6 +267,8 @@ export const useAuthStore = create<AuthState>()(
           debugInfo: null,
           isLoading: false,
         })
+        // Перезагружаем страницу для полной очистки
+        window.location.reload()
       },
 
       updateProfile: (updates) => {
