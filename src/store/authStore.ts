@@ -85,6 +85,15 @@ export const useAuthStore = create<AuthState>()(
         const hasReferral = startParam && startParam.startsWith('ref_')
         const telegramUser = getTelegramUser()
 
+        // DEBUG: показываем что нашли
+        console.log('🔍 LOGIN DEBUG:', { startParam, hasReferral })
+
+        // КРИТИЧНО: Если есть реферальная ссылка - ОЧИЩАЕМ КЕШ чтобы Edge Function вызвался
+        if (hasReferral) {
+          console.log('🔥 Referral link detected - clearing cache to force Edge Function call')
+          localStorage.removeItem('auth-storage')
+        }
+
         // Проверяем, совпадает ли закешированный пользователь с текущим Telegram пользователем
         const cachedUser = get().user
         const isSameUser = cachedUser && telegramUser && cachedUser.telegram_id === telegramUser.id
