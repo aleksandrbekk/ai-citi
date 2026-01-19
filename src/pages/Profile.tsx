@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
-import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X, LogOut } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Profile() {
@@ -12,6 +13,7 @@ export default function Profile() {
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
+  const logout = useAuthStore((state) => state.logout)
 
   const { stats, referralLink, referralCode, handleCopyLink, isCopied } = useReferrals()
 
@@ -218,6 +220,17 @@ export default function Profile() {
             </div>
           </div>
         )}
+
+        {/* Кнопка Выйти */}
+        <div className="mt-4">
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-red-500 text-white font-semibold rounded-2xl shadow-lg hover:bg-red-600 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            Выйти из аккаунта
+          </button>
+        </div>
       </div>
 
       {/* Модальное окно "Как это работает?" */}
