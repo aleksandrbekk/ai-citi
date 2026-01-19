@@ -35,6 +35,7 @@ import CarouselDesignsPage from './pages/carousel-designs/index'
 import MiniAdmin from './pages/mini-admin/index'
 import { Offer } from './pages/Offer'
 import Chat from './pages/Chat'
+import DebugReferral from './pages/DebugReferral'
 
 // Admin imports
 import { AdminLayout, AdminProtectedRoute } from './components/admin'
@@ -65,7 +66,7 @@ function AppContent() {
   const login = useAuthStore((state) => state.login)
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
-  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer'
+  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral'
 
   useEffect(() => {
     expandWebApp()
@@ -138,6 +139,7 @@ function AppContent() {
           <Route path="/offer" element={<Offer />} />
           <Route path="/quiz/:id" element={<TakeQuiz />} />
           <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
+          <Route path="/debug-referral" element={<DebugReferral />} />
         </Routes>
       </QueryClientProvider>
     )
