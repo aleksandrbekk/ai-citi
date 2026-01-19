@@ -194,7 +194,7 @@ export default function Home() {
                 <motion.img
                   src={skins[currentSkin]}
                   alt="Нейрончик"
-                  className="relative w-64 h-auto drop-shadow-2xl pointer-events-none select-none"
+                  className={`relative w-64 h-auto drop-shadow-2xl pointer-events-none select-none ${currentSkin === 2 ? 'scale-125' : ''}`}
                   draggable="false"
                   animate={{
                     y: [0, -4, 0], // Меньшая амплитуда, "дыхание" а не полет
@@ -212,7 +212,7 @@ export default function Home() {
 
         {/* Режим - Glass Pill с циановым свечением */}
         <motion.div
-          className="mt-6 flex items-center justify-between gap-4 w-full max-w-xs"
+          className="mt-2 flex items-center justify-between gap-4 w-full max-w-xs"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -264,7 +264,7 @@ export default function Home() {
 
         {/* Подсказка */}
         <motion.p
-          className="mt-4 text-sm text-muted-foreground"
+          className="mt-8 mb-20 text-sm text-muted-foreground/80 font-medium"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}

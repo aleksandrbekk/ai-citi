@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { useAuth } from '@/hooks/useAuth'
 import { LoaderIcon } from '@/components/ui/icons'
@@ -8,6 +8,8 @@ import { useAuthStore } from '@/store/authStore'
 export function Layout() {
   const { isLoading } = useAuth()
   const user = useAuthStore((state) => state.user)
+  const location = useLocation()
+  const isHomePage = location.pathname === '/'
 
   // UTM трекинг
   useUtmTracking(user?.telegram_id)
@@ -16,7 +18,7 @@ export function Layout() {
   const tg = window.Telegram?.WebApp
   const isTMA = !!(tg?.initData && tg.initData.length > 0)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-  const needsPadding = isTMA && isMobile
+  const needsPadding = isTMA && isMobile && !isHomePage
 
   if (isLoading) {
     return (
@@ -31,8 +33,8 @@ export function Layout() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
-      <main className="flex-1 overflow-auto">
-        <div className="pb-20">
+      <main className={`flex-1 overflow-auto ${isHomePage ? 'h-screen overflow-hidden' : ''}`}>
+        <div className={isHomePage ? '' : 'pb-20'}>
           <Outlet />
         </div>
       </main>
