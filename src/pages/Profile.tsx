@@ -152,19 +152,19 @@ export default function Profile() {
       {/* Модалка Referrals */}
       {showReferrals && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           onClick={() => setShowReferrals(false)}
-          style={{ touchAction: 'none' }}
         >
           <div
-            className="bg-white rounded-t-3xl w-full max-w-2xl shadow-2xl animate-slide-up flex flex-col"
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl animate-slide-up"
             onClick={(e) => e.stopPropagation()}
             style={{
               maxHeight: '90vh',
-              touchAction: 'auto'
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
-            <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
+            <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl sticky top-0 z-10">
               <h3 className="text-2xl font-bold text-gray-900">Реферальная программа</h3>
               <button
                 onClick={() => setShowReferrals(false)}
@@ -174,7 +174,7 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="p-4 space-y-4 overflow-y-auto flex-1">
+            <div className="p-4 space-y-4 overflow-y-auto" style={{ flex: 1 }}>
               {/* Статистика */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 text-center border border-green-100">
@@ -264,14 +264,17 @@ export default function Profile() {
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={() => setSelectedReferral(null)}
-          style={{ touchAction: 'none' }}
         >
           <div
-            className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-            style={{ touchAction: 'auto' }}
+            style={{
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex-shrink-0 p-4 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Детализация партнера</h3>
               <button
                 onClick={() => setSelectedReferral(null)}
@@ -281,7 +284,7 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto" style={{ flex: 1 }}>
               {/* Инфо о партнере */}
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-2xl">
@@ -357,16 +360,19 @@ export default function Profile() {
       {/* Модалка Settings */}
       {showSettings && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           onClick={() => setShowSettings(false)}
-          style={{ touchAction: 'none' }}
         >
           <div
-            className="bg-white rounded-t-3xl w-full max-w-2xl shadow-2xl animate-slide-up p-6"
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl animate-slide-up"
             onClick={(e) => e.stopPropagation()}
-            style={{ touchAction: 'auto' }}
+            style={{
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
               <h3 className="text-2xl font-bold text-gray-900">Настройки</h3>
               <button
                 onClick={() => setShowSettings(false)}
@@ -376,7 +382,7 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="p-6 space-y-3 overflow-y-auto" style={{ flex: 1 }}>
               <button
                 onClick={logout}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-red-500 text-white font-semibold rounded-2xl shadow-lg hover:bg-red-600 transition-colors"
