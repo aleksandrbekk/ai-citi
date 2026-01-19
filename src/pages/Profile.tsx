@@ -88,7 +88,7 @@ export default function Profile() {
 
         {/* Сетка с 4 плитками */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Buy coins */}
+          {/* Купить монеты */}
           <Link
             to="/shop"
             className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start hover:shadow-xl transition-all"
@@ -96,18 +96,18 @@ export default function Profile() {
             <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-3">
               <ShoppingCart className="w-6 h-6 text-orange-600" />
             </div>
-            <p className="text-xl font-bold text-gray-900">Buy coins</p>
+            <p className="text-xl font-bold text-gray-900">Купить монеты</p>
           </Link>
 
-          {/* Generations */}
+          {/* Генерации */}
           <div className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start">
             <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-3">
               <Network className="w-6 h-6 text-blue-600" />
             </div>
-            <p className="text-xl font-bold text-gray-900">Generations ({generationsCount})</p>
+            <p className="text-xl font-bold text-gray-900">Генерации ({generationsCount})</p>
           </div>
 
-          {/* Referrals */}
+          {/* Рефералы */}
           <button
             onClick={() => setShowReferrals(true)}
             className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start hover:shadow-xl transition-all text-left"
@@ -115,10 +115,10 @@ export default function Profile() {
             <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center mb-3">
               <Users className="w-6 h-6 text-green-600" />
             </div>
-            <p className="text-xl font-bold text-gray-900">Referrals ({stats?.total_referrals || 0})</p>
+            <p className="text-xl font-bold text-gray-900">Рефералы ({stats?.total_referrals || 0})</p>
           </button>
 
-          {/* Settings */}
+          {/* Настройки */}
           <button
             onClick={() => setShowSettings(true)}
             className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start hover:shadow-xl transition-all text-left"
@@ -126,7 +126,7 @@ export default function Profile() {
             <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
               <Settings className="w-6 h-6 text-gray-600" />
             </div>
-            <p className="text-xl font-bold text-gray-900">Settings</p>
+            <p className="text-xl font-bold text-gray-900">Настройки</p>
           </button>
         </div>
       </div>
