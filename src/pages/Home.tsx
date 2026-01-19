@@ -159,7 +159,7 @@ export default function Home() {
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
                 }}
-                className="absolute cursor-grab active:cursor-grabbing"
+                className="absolute cursor-grab active:cursor-grabbing touch-none"
                 onClick={handleTap}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
