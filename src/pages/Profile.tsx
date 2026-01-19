@@ -30,14 +30,12 @@ export default function Profile() {
     loadCoins()
   }, [telegramUser?.id])
 
-  // Блокируем скролл body когда открыта модалка
+  // Блокируем скролл body когда открыта модалка (только overflow, без height чтобы на десктопе работало)
   useEffect(() => {
     if (showReferrals || showSettings || selectedReferral) {
       document.body.style.overflow = 'hidden'
-      document.body.style.height = '100vh'
     } else {
       document.body.style.overflow = ''
-      document.body.style.height = ''
     }
   }, [showReferrals, showSettings, selectedReferral])
 
@@ -115,7 +113,8 @@ export default function Profile() {
             <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-3">
               <Network className="w-6 h-6 text-blue-600" />
             </div>
-            <p className="text-xl font-bold text-gray-900">Генерации ({generationsCount})</p>
+            <p className="text-xl font-bold text-gray-900">Генерации</p>
+            <p className="text-sm text-gray-500 mt-1">{generationsCount} доступно</p>
           </div>
 
           {/* Рефералы */}
@@ -126,7 +125,8 @@ export default function Profile() {
             <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center mb-3">
               <Users className="w-6 h-6 text-green-600" />
             </div>
-            <p className="text-xl font-bold text-gray-900">Рефералы ({stats?.total_referrals || 0})</p>
+            <p className="text-xl font-bold text-gray-900">Рефералы</p>
+            <p className="text-sm text-gray-500 mt-1">{stats?.total_referrals || 0} партнеров</p>
           </button>
 
           {/* Настройки */}
@@ -165,28 +165,12 @@ export default function Profile() {
 
             {/* Scrollable content */}
             <div
-              className="p-4 space-y-4 overflow-y-scroll"
+              className="p-4 space-y-4 overflow-y-auto"
               style={{
-                height: '80vh',
+                maxHeight: '80vh',
                 WebkitOverflowScrolling: 'touch'
               }}
             >
-              {/* Статистика */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 text-center border border-green-100">
-                  <p className="text-3xl font-bold text-green-600">{stats?.total_referrals || 0}</p>
-                  <p className="text-sm text-gray-600 mt-1">Партнеров</p>
-                </div>
-                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-4 text-center border border-orange-100">
-                  <p className="text-3xl font-bold text-orange-600">{stats?.total_coins_earned || 0}</p>
-                  <p className="text-sm text-gray-600 mt-1">Заработано</p>
-                </div>
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 text-center border border-blue-100">
-                  <p className="text-3xl font-bold text-blue-600">{stats?.total_partner_purchased || 0}</p>
-                  <p className="text-sm text-gray-600 mt-1">Покупок</p>
-                </div>
-              </div>
-
               {/* Реферальная ссылка */}
               <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
                 <p className="text-sm font-semibold text-gray-700">Ваша реферальная ссылка:</p>
@@ -278,7 +262,7 @@ export default function Profile() {
 
             {/* Scrollable content */}
             <div
-              className="p-6 space-y-4 overflow-y-scroll"
+              className="p-6 space-y-4 overflow-y-auto"
               style={{
                 maxHeight: '70vh',
                 WebkitOverflowScrolling: 'touch'
@@ -379,9 +363,9 @@ export default function Profile() {
 
             {/* Scrollable content */}
             <div
-              className="p-6 space-y-3 overflow-y-scroll"
+              className="p-6 space-y-3 overflow-y-auto"
               style={{
-                height: '40vh',
+                maxHeight: '40vh',
                 WebkitOverflowScrolling: 'touch'
               }}
             >
