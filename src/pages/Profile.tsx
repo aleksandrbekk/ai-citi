@@ -30,21 +30,14 @@ export default function Profile() {
     loadCoins()
   }, [telegramUser?.id])
 
-  // Блокируем скролл body когда открыта модалка (только на iOS Safari где это нужно)
+  // Блокируем скролл body когда открыта модалка
   useEffect(() => {
     if (showReferrals || showSettings || selectedReferral) {
-      // Сохраняем текущую позицию скролла
-      const scrollY = window.scrollY
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.width = '100%'
+      document.body.style.overflow = 'hidden'
+      document.body.style.height = '100vh'
     } else {
-      // Восстанавливаем позицию скролла
-      const scrollY = document.body.style.top
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      window.scrollTo(0, parseInt(scrollY || '0') * -1)
+      document.body.style.overflow = ''
+      document.body.style.height = ''
     }
   }, [showReferrals, showSettings, selectedReferral])
 
@@ -156,15 +149,11 @@ export default function Profile() {
           onClick={() => setShowReferrals(false)}
         >
           <div
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl animate-slide-up"
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
           >
-            <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl sticky top-0 z-10">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
               <h3 className="text-2xl font-bold text-gray-900">Реферальная программа</h3>
               <button
                 onClick={() => setShowReferrals(false)}
@@ -174,7 +163,14 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="p-4 space-y-4 overflow-y-auto" style={{ flex: 1 }}>
+            {/* Scrollable content */}
+            <div
+              className="p-4 space-y-4 overflow-y-scroll"
+              style={{
+                height: '80vh',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               {/* Статистика */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 text-center border border-green-100">
@@ -268,13 +264,9 @@ export default function Profile() {
           <div
             className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
           >
-            <div className="flex-shrink-0 p-4 border-b border-gray-100 flex items-center justify-between">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Детализация партнера</h3>
               <button
                 onClick={() => setSelectedReferral(null)}
@@ -284,7 +276,14 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto" style={{ flex: 1 }}>
+            {/* Scrollable content */}
+            <div
+              className="p-6 space-y-4 overflow-y-scroll"
+              style={{
+                maxHeight: '70vh',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               {/* Инфо о партнере */}
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold text-2xl">
@@ -364,15 +363,11 @@ export default function Profile() {
           onClick={() => setShowSettings(false)}
         >
           <div
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl animate-slide-up"
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
           >
-            <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
               <h3 className="text-2xl font-bold text-gray-900">Настройки</h3>
               <button
                 onClick={() => setShowSettings(false)}
@@ -382,7 +377,14 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="p-6 space-y-3 overflow-y-auto" style={{ flex: 1 }}>
+            {/* Scrollable content */}
+            <div
+              className="p-6 space-y-3 overflow-y-scroll"
+              style={{
+                height: '40vh',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               <button
                 onClick={logout}
                 className="w-full flex items-center justify-center gap-2 py-4 bg-red-500 text-white font-semibold rounded-2xl shadow-lg hover:bg-red-600 transition-colors"
