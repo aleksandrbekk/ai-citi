@@ -30,15 +30,21 @@ export default function Profile() {
     loadCoins()
   }, [telegramUser?.id])
 
-  // Блокируем скролл body когда открыта модалка
+  // Блокируем скролл body когда открыта модалка (только на iOS Safari где это нужно)
   useEffect(() => {
     if (showReferrals || showSettings || selectedReferral) {
-      document.body.style.overflow = 'hidden'
+      // Сохраняем текущую позицию скролла
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
     } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
+      // Восстанавливаем позицию скролла
+      const scrollY = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, parseInt(scrollY || '0') * -1)
     }
   }, [showReferrals, showSettings, selectedReferral])
 
@@ -145,12 +151,20 @@ export default function Profile() {
 
       {/* Модалка Referrals */}
       {showReferrals && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowReferrals(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowReferrals(false)}
+          style={{ touchAction: 'none' }}
+        >
           <div
-            className="bg-white rounded-t-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up overscroll-contain"
+            className="bg-white rounded-t-3xl w-full max-w-2xl shadow-2xl animate-slide-up flex flex-col"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              maxHeight: '90vh',
+              touchAction: 'auto'
+            }}
           >
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
+            <div className="flex-shrink-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between rounded-t-3xl">
               <h3 className="text-2xl font-bold text-gray-900">Реферальная программа</h3>
               <button
                 onClick={() => setShowReferrals(false)}
@@ -160,7 +174,7 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 overflow-y-auto flex-1">
               {/* Статистика */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 text-center border border-green-100">
@@ -247,8 +261,16 @@ export default function Profile() {
 
       {/* Модалка детализации реферала */}
       {selectedReferral && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedReferral(null)}>
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setSelectedReferral(null)}
+          style={{ touchAction: 'none' }}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            style={{ touchAction: 'auto' }}
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-900">Детализация партнера</h3>
               <button
@@ -334,10 +356,15 @@ export default function Profile() {
 
       {/* Модалка Settings */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowSettings(false)}
+          style={{ touchAction: 'none' }}
+        >
           <div
             className="bg-white rounded-t-3xl w-full max-w-2xl shadow-2xl animate-slide-up p-6"
             onClick={(e) => e.stopPropagation()}
+            style={{ touchAction: 'auto' }}
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Настройки</h3>
