@@ -213,8 +213,8 @@ export default function Profile() {
                 <p className="font-semibold text-gray-900 mb-3">Как работает реферальная программа:</p>
                 <div className="space-y-2 text-sm text-gray-700">
                   <p>🎁 <span className="font-semibold">+2 монеты</span> за регистрацию друга</p>
-                  <p>💰 <span className="font-semibold">20%</span> от покупок партнера</p>
-                  <p>✨ <span className="font-semibold">20%</span> от трат партнера</p>
+                  <p>💰 <span className="font-semibold">20% монет</span> от покупок партнера</p>
+                  <p>✨ <span className="font-semibold">20% монет</span> от трат партнера</p>
                 </div>
               </div>
 
@@ -323,7 +323,7 @@ export default function Profile() {
                       <span className="text-white text-xl">💰</span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">За покупки (20%)</p>
+                      <p className="text-sm text-gray-600">За покупки (20% монет)</p>
                       <p className="text-xs text-gray-500">Скоро будет доступно</p>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export default function Profile() {
                       <span className="text-white text-xl">✨</span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">За траты (20%)</p>
+                      <p className="text-sm text-gray-600">За траты (20% монет)</p>
                       <p className="text-xs text-gray-500">Скоро будет доступно</p>
                     </div>
                   </div>
