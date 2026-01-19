@@ -176,9 +176,6 @@ export const useAuthStore = create<AuthState>()(
           console.log('initData length:', initData.length)
           console.log('startParam:', startParam)
 
-          // DEBUG: показываем startParam
-          alert(`🔍 FRONTEND DEBUG:\n\nstartParam: ${startParam || 'НЕТ'}\ninitData length: ${initData.length}`)
-
           // Вызываем Edge Function с таймаутом 10 секунд
           const { data, error } = await fetchWithTimeout(
             supabase.functions.invoke('auth-telegram', {
