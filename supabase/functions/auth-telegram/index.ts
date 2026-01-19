@@ -72,9 +72,16 @@ serve(async (req) => {
 
     // Извлекаем реферальный код из effectiveStartParam (ref_06 -> 06)
     let referrerCode: string | null = null
+    console.log('🔍 Checking referrer code:')
+    console.log('  - effectiveStartParam:', effectiveStartParam)
+    console.log('  - type:', typeof effectiveStartParam)
+    console.log('  - starts with ref_:', effectiveStartParam?.startsWith('ref_'))
+
     if (effectiveStartParam && typeof effectiveStartParam === 'string' && effectiveStartParam.startsWith('ref_')) {
       referrerCode = effectiveStartParam.replace('ref_', '')
-      console.log('Extracted referrer code:', referrerCode)
+      console.log('✅ Extracted referrer code:', referrerCode)
+    } else {
+      console.log('❌ No referrer code found')
     }
 
     if (!user) {
@@ -97,6 +104,10 @@ serve(async (req) => {
       }
 
       console.log('Generated referral code for new user:', newReferralCode)
+      console.log('📝 Creating new user with:')
+      console.log('  - telegram_id:', userData.id)
+      console.log('  - referral_code:', newReferralCode)
+      console.log('  - referred_by_code:', referrerCode || null)
 
       // Создать нового пользователя
       const { data: newUser, error: createError } = await supabase
