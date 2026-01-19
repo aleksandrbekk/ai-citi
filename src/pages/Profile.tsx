@@ -3,10 +3,11 @@ import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
 import { useAuthStore } from '@/store/authStore'
-import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X, LogOut } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Wallet, Copy, Check, TrendingUp, Gift, Sparkles, HelpCircle, X, LogOut, Bug } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function Profile() {
+  const navigate = useNavigate()
   const telegramUser = getTelegramUser()
   const firstName = telegramUser?.first_name || 'Друг'
   const photoUrl = telegramUser?.photo_url
@@ -220,6 +221,17 @@ export default function Profile() {
             </div>
           </div>
         )}
+
+        {/* Кнопка Debug */}
+        <div className="mt-4">
+          <button
+            onClick={() => navigate('/debug-referral')}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-purple-600 text-white font-semibold rounded-2xl shadow-lg hover:bg-purple-700 transition-colors"
+          >
+            <Bug className="w-5 h-5" />
+            🔍 Debug Referral System
+          </button>
+        </div>
 
         {/* Кнопка Выйти */}
         <div className="mt-4">

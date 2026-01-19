@@ -192,6 +192,7 @@ function AppContent() {
 
         <Route path="/mini-admin" element={<MiniAdmin />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/debug-referral" element={<DebugReferral />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
