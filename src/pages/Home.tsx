@@ -10,7 +10,6 @@ const modes = [
 ]
 
 const skins = [
-  '/images/skins/skin_0.png',
   '/images/skins/skin_1.png',
   '/images/skins/skin_2.png',
   '/images/skins/skin_3.png',
@@ -110,20 +109,11 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="relative flex flex-col items-center px-6 h-[calc(100vh-140px)]">
-        {/* Логотип */}
-        <motion.h1
-          className="text-3xl font-bold text-foreground tracking-tight mt-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          AI <span className="text-primary">CITI</span>
-        </motion.h1>
+      <div className="relative flex flex-col items-center px-6 h-full pb-10 justify-end">
 
         {/* Статусная плашка (Vision Glass стиль) */}
         <motion.div
-          className="mt-4 mb-2 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-2.5"
+          className="mb-6 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-2.5"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -145,74 +135,72 @@ export default function Home() {
         </motion.div>
 
         {/* Основная область со свайпом - Смена скинов */}
-        <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[300px]">
-          <div className="relative z-10 w-full flex justify-center h-64">
-            <AnimatePresence mode='popLayout' initial={false} custom={direction}>
+        <div className="w-full flex justify-center h-64 relative z-10">
+          <AnimatePresence mode='popLayout' initial={false} custom={direction}>
+            <motion.div
+              key={currentSkin}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
+              }}
+              className="absolute cursor-grab active:cursor-grabbing touch-none bottom-0"
+              onClick={handleTap}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={1}
+              onDragEnd={(_, { offset, velocity }) => {
+                const swipe = swipePower(offset.x, velocity.x);
+
+                if (swipe < -swipeConfidenceThreshold) {
+                  paginate(1);
+                } else if (swipe > swipeConfidenceThreshold) {
+                  paginate(-1);
+                }
+              }}
+            >
+              {/* Тень под персонажем (касание земли) */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/10 blur-xl rounded-[100%]" />
+
+              {/* Мягкое свечение за персонажем */}
               <motion.div
-                key={currentSkin}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyan-400/20 blur-[60px] rounded-full pointer-events-none"
+                animate={{
+                  opacity: [0.3, 0.5, 0.3],
+                }}
                 transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
                 }}
-                className="absolute cursor-grab active:cursor-grabbing touch-none"
-                onClick={handleTap}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={1}
-                onDragEnd={(_, { offset, velocity }) => {
-                  const swipe = swipePower(offset.x, velocity.x);
+              />
 
-                  if (swipe < -swipeConfidenceThreshold) {
-                    paginate(1);
-                  } else if (swipe > swipeConfidenceThreshold) {
-                    paginate(-1);
-                  }
+              {/* Персонаж */}
+              <motion.img
+                src={skins[currentSkin]}
+                alt="Нейрончик"
+                className={`relative w-64 h-auto drop-shadow-2xl pointer-events-none select-none ${currentSkin === 1 ? 'scale-125' : ''}`}
+                draggable="false"
+                animate={{
+                  y: [0, -4, 0], // Меньшая амплитуда, "дыхание" а не полет
                 }}
-              >
-                {/* Тень под персонажем (касание земли) */}
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/10 blur-xl rounded-[100%]" />
-
-                {/* Мягкое свечение за персонажем */}
-                <motion.div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyan-400/20 blur-[60px] rounded-full pointer-events-none"
-                  animate={{
-                    opacity: [0.3, 0.5, 0.3],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-
-                {/* Персонаж */}
-                <motion.img
-                  src={skins[currentSkin]}
-                  alt="Нейрончик"
-                  className={`relative w-64 h-auto drop-shadow-2xl pointer-events-none select-none ${currentSkin === 2 ? 'scale-125' : ''}`}
-                  draggable="false"
-                  animate={{
-                    y: [0, -4, 0], // Меньшая амплитуда, "дыхание" а не полет
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Режим - Glass Pill с циановым свечением */}
         <motion.div
-          className="mt-2 flex items-center justify-between gap-4 w-full max-w-xs"
+          className="mt-6 flex items-center justify-between gap-4 w-full max-w-xs"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -264,7 +252,7 @@ export default function Home() {
 
         {/* Подсказка */}
         <motion.p
-          className="mt-8 mb-20 text-sm text-muted-foreground/80 font-medium"
+          className="mt-6 text-sm text-muted-foreground/80 font-medium"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
