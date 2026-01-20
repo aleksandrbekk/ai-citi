@@ -431,42 +431,23 @@ export default function CarouselIndex() {
   // ========== NO ACCESS ==========
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col">
         <div className="h-[100px] flex-shrink-0" />
 
-        <div className="px-4 pb-8 flex-1 flex flex-col items-center justify-center">
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl p-8 text-center max-w-sm">
-            <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-6">
-              <LockIcon className="text-orange-500" />
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center max-w-sm">
+            <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+              <LockIcon className="text-gray-500" />
             </div>
-
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">Нужны монеты</h1>
-
-            <p className="text-gray-500 mb-4">
-              Для создания карусели нужно <span className="text-orange-500 font-semibold">10 монет</span> или активная подписка.
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h2>
+            <p className="text-gray-500 mb-6">
+              Создание каруселей доступно для пользователей с активной подпиской или достаточным балансом монет.
             </p>
-
-            <div className="bg-orange-50 rounded-2xl p-4 mb-6">
-              <p className="text-sm text-gray-600">
-                Ваш баланс: <span className="font-bold text-gray-900">{coinBalance} монет</span>
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Не хватает: {GENERATION_COST - coinBalance} монет
-              </p>
-            </div>
-
             <button
               onClick={() => navigate('/shop')}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 mb-3"
+              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
             >
               Купить монеты
-            </button>
-
-            <button
-              onClick={() => navigate('/')}
-              className="w-full py-3 rounded-2xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50"
-            >
-              Назад
             </button>
           </div>
         </div>
