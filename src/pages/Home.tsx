@@ -1,93 +1,81 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap } from 'lucide-react'
 
-const modes = [
-  { id: 'chat', label: 'Чат с AI', icon: '💬', path: '/chat' },
-  { id: 'carousel', label: 'Карусели', icon: '🎠', path: '/agents/carousel' },
-  { id: 'school', label: 'Школа', icon: '📚', path: '/school' },
-  { id: 'shop', label: 'Магазин', icon: '🛒', path: '/shop' },
-]
-
-const skins = [
-  '/images/skins/skin_1.png',
-  '/images/skins/skin_2.png',
-  '/images/skins/skin_3.png',
+// Персонажи привязаны к разделам
+const characters = [
+  {
+    skin: '/images/skins/skin_1.png',
+    label: 'Ассистент',
+    path: '/chat',
+    task: 'Задай вопрос AI',
+    icon: MessageCircle
+  },
+  {
+    skin: '/images/skins/skin_2.png',
+    label: 'Карусели',
+    path: '/agents/carousel',
+    task: 'Собери карусель для клиента',
+    icon: Sparkles
+  },
+  {
+    skin: '/images/skins/skin_3.png',
+    label: 'Школа',
+    path: '/school',
+    task: 'Пройди урок и получи XP',
+    icon: GraduationCap
+  },
 ]
 
 const slideVariants = {
-  enter: (direction: number) => {
-    return {
-      x: direction > 0 ? 1000 : -1000,
-      opacity: 0
-    };
-  },
+  enter: (direction: number) => ({
+    x: direction > 0 ? 300 : -300,
+    opacity: 0
+  }),
   center: {
     zIndex: 1,
     x: 0,
     opacity: 1
   },
-  exit: (direction: number) => {
-    return {
-      zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
-      opacity: 0
-    };
-  }
+  exit: (direction: number) => ({
+    zIndex: 0,
+    x: direction < 0 ? 300 : -300,
+    opacity: 0
+  })
 };
 
 const swipeConfidenceThreshold = 10000;
-const swipePower = (offset: number, velocity: number) => {
-  return Math.abs(offset) * velocity;
-};
+const swipePower = (offset: number, velocity: number) => Math.abs(offset) * velocity;
 
 export default function Home() {
-  const [currentMode, setCurrentMode] = useState(0)
-  const [[currentSkin, direction], setSkinPage] = useState([0, 0]);
+  const [[currentIndex, direction], setPage] = useState([0, 0]);
 
   const paginate = (newDirection: number) => {
-    let nextSkin = currentSkin + newDirection;
-    if (nextSkin < 0) nextSkin = skins.length - 1;
-    if (nextSkin >= skins.length) nextSkin = 0;
-    setSkinPage([nextSkin, newDirection]);
+    let nextIndex = currentIndex + newDirection;
+    if (nextIndex < 0) nextIndex = characters.length - 1;
+    if (nextIndex >= characters.length) nextIndex = 0;
+    setPage([nextIndex, newDirection]);
   };
 
-  // Оставляем свайп для режимов только на кнопках, или удаляем его полностью, 
-  // если он конфликтовал. В прошлой версии он был на роботе.
-  // Здесь мы добавили paginate для робота.
-
-  const handleModeChange = (direction: 'left' | 'right') => {
-    if (direction === 'left' && currentMode < modes.length - 1) {
-      setCurrentMode(currentMode + 1)
-    } else if (direction === 'right' && currentMode > 0) {
-      setCurrentMode(currentMode - 1)
-    }
+  const handleCharacterTap = () => {
+    window.location.href = characters[currentIndex].path;
   }
 
-  const handleTap = () => {
-    // Optional: maybe tapping changes skin too? or goes to mode
-    // window.location.href = modes[currentMode].path
-    // Пока оставим навигацию по тапу на робота, но осторожно с драгом
-  }
+  const IconComponent = characters[currentIndex].icon;
 
   return (
     <div className="h-screen bg-[#FFF8F5] text-foreground overflow-hidden relative">
 
-      {/* Сложный премиум фон как на референсе */}
+      {/* Фон */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Верхний теплый свет (солнечное свечение) */}
         <div className="absolute -top-[20%] -left-[10%] w-[120%] h-[60%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-100/40 via-orange-50/20 to-transparent blur-3xl opacity-80" />
-
-        {/* Мягкий циановый свет за персонажем (Aurora effect) */}
         <div className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[150%] h-[50%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-cyan-100/30 via-white/50 to-transparent blur-[80px]" />
-
-        {/* Нижний белый градиент для чистоты */}
         <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-white via-white/80 to-transparent" />
       </div>
 
-      {/* Мерцающие частицы (немного усилим для магии) */}
+      {/* Мерцающие частицы */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(25)].map((_, i) => (
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-gradient-to-tr from-orange-200 to-cyan-200 rounded-full blur-[0.5px]"
@@ -109,156 +97,143 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="relative flex flex-col items-center px-6 h-full pb-10 justify-end">
+      <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-end">
 
-        {/* Статусная плашка (Vision Glass стиль) */}
+        {/* Плашка с названием раздела */}
         <motion.div
-          className="mb-6 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-2.5"
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          key={currentIndex}
+          className="relative z-30 mb-4 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-2.5"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          {/* Зеленая точка статуса (пульсирующая) */}
           <motion.div
             className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.8, 1, 0.8],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
-          <span className="text-base font-medium text-foreground/80 tracking-wide">Ассистент</span>
+          <span className="text-base font-medium text-foreground/80 tracking-wide">
+            {characters[currentIndex].label}
+          </span>
         </motion.div>
 
-        {/* Основная область со свайпом - Смена скинов */}
-        <div className="w-full flex justify-center h-64 relative z-10">
-          <AnimatePresence mode='popLayout' initial={false} custom={direction}>
+        {/* Область персонажа со стрелками */}
+        <div className="w-full flex items-center justify-center relative z-10">
+
+          {/* Стрелка влево */}
+          <button
+            onClick={() => paginate(-1)}
+            className="absolute left-2 z-20 p-2 rounded-full bg-white/30 backdrop-blur-sm border border-white/40 text-foreground/40 hover:text-foreground/70 hover:bg-white/50 transition-all"
+          >
+            <ChevronLeft size={24} />
+          </button>
+
+          {/* Персонаж + Пьедестал */}
+          <div className="flex flex-col items-center">
+
+            {/* Персонаж с парением */}
+            <div className="h-64 flex items-center justify-center mb-3">
+              <AnimatePresence mode='popLayout' initial={false} custom={direction}>
+                <motion.div
+                  key={currentIndex}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.2 }
+                  }}
+                  className="cursor-pointer touch-none"
+                  onClick={handleCharacterTap}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={1}
+                  onDragEnd={(_, { offset, velocity }) => {
+                    const swipe = swipePower(offset.x, velocity.x);
+                    if (swipe < -swipeConfidenceThreshold) {
+                      paginate(1);
+                    } else if (swipe > swipeConfidenceThreshold) {
+                      paginate(-1);
+                    }
+                  }}
+                >
+                  <motion.img
+                    src={characters[currentIndex].skin}
+                    alt={characters[currentIndex].label}
+                    className="h-64 w-64 object-contain pointer-events-none select-none"
+                    draggable={false}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Стеклянный пьедестал */}
             <motion.div
-              key={currentSkin}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
-              }}
-              className="absolute cursor-grab active:cursor-grabbing touch-none bottom-0"
-              onClick={handleTap}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={1}
-              onDragEnd={(_, { offset, velocity }) => {
-                const swipe = swipePower(offset.x, velocity.x);
-
-                if (swipe < -swipeConfidenceThreshold) {
-                  paginate(1);
-                } else if (swipe > swipeConfidenceThreshold) {
-                  paginate(-1);
-                }
-              }}
+              key={`pedestal-${currentIndex}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              onClick={handleCharacterTap}
+              className="relative cursor-pointer px-6 py-3 rounded-2xl
+                bg-gradient-to-b from-cyan-200/40 via-cyan-100/30 to-white/50
+                backdrop-blur-xl border border-cyan-200/50
+                shadow-[0_8px_32px_rgba(6,182,212,0.2),inset_0_1px_0_rgba(255,255,255,0.6)]
+                hover:shadow-[0_12px_40px_rgba(6,182,212,0.3)]
+                transition-all duration-300 group"
             >
-              {/* Тень под персонажем (касание земли) */}
-              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/10 blur-xl rounded-[100%]" />
+              {/* Блики */}
+              <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+                <motion.div
+                  className="absolute top-2 right-6 w-1 h-1 bg-white rounded-full"
+                  animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </div>
 
-              {/* Мягкое свечение за персонажем */}
-              <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyan-400/20 blur-[60px] rounded-full pointer-events-none"
-                animate={{
-                  opacity: [0.3, 0.5, 0.3],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Персонаж */}
-              <motion.img
-                src={skins[currentSkin]}
-                alt="Нейрончик"
-                className={`relative w-64 h-auto drop-shadow-2xl pointer-events-none select-none ${currentSkin === 1 ? 'scale-125' : ''}`}
-                draggable="false"
-                animate={{
-                  y: [0, -4, 0], // Меньшая амплитуда, "дыхание" а не полет
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
+              {/* Контент */}
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-400/30 to-cyan-500/20 border border-cyan-300/30">
+                  <IconComponent size={20} className="text-cyan-600" />
+                </div>
+                <span className="text-sm font-medium text-foreground/70 group-hover:text-foreground/90 transition-colors">
+                  {characters[currentIndex].task}
+                </span>
+              </div>
             </motion.div>
-          </AnimatePresence>
+          </div>
+
+          {/* Стрелка вправо */}
+          <button
+            onClick={() => paginate(1)}
+            className="absolute right-2 z-20 p-2 rounded-full bg-white/30 backdrop-blur-sm border border-white/40 text-foreground/40 hover:text-foreground/70 hover:bg-white/50 transition-all"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
 
-        {/* Режим - Glass Pill с циановым свечением */}
-        <motion.div
-          className="mt-6 flex items-center justify-between gap-4 w-full max-w-xs"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <button
-            onClick={() => handleModeChange('right')}
-            disabled={currentMode === 0}
-            className="p-3 text-muted-foreground/60 hover:text-primary disabled:opacity-20 transition-colors"
-          >
-            <ChevronLeft size={20} />
-          </button>
-
-          <motion.button
-            key={currentMode}
-            onClick={() => window.location.href = modes[currentMode].path}
-            className="relative group px-8 py-4 flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white/60 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_rgba(6,182,212,0.15)] transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {/* Внутреннее свечение */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-            <span className="text-2xl relative z-10 drop-shadow-sm">{modes[currentMode].icon}</span>
-            <span className="font-bold text-foreground relative z-10 text-lg tracking-tight">{modes[currentMode].label}</span>
-          </motion.button>
-
-          <button
-            onClick={() => handleModeChange('left')}
-            disabled={currentMode === modes.length - 1}
-            className="p-3 text-muted-foreground/60 hover:text-primary disabled:opacity-20 transition-colors"
-          >
-            <ChevronRight size={20} />
-          </button>
-        </motion.div>
-
-        {/* Индикаторы режимов */}
-        <div className="mt-4 flex gap-2">
-          {modes.map((_, index) => (
+        {/* Индикаторы-точки */}
+        <div className="mt-6 flex gap-3">
+          {characters.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentMode(index)}
-              className={`w-2 h-2 rounded-full transition-all ${index === currentMode
-                ? 'bg-primary w-6'
-                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                }`}
+              onClick={() => setPage([index, index > currentIndex ? 1 : -1])}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? 'bg-orange-500 w-6'
+                  : 'bg-foreground/20 w-2 hover:bg-foreground/40'
+              }`}
             />
           ))}
         </div>
-
-        {/* Подсказка */}
-        <motion.p
-          className="mt-6 text-sm text-muted-foreground/80 font-medium"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          Свайпни персонажа для смены скина
-        </motion.p>
       </div>
     </div>
   )
