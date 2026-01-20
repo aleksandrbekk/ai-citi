@@ -6,23 +6,29 @@ import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap } fro
 const characters = [
   {
     skin: '/images/skins/skin_1.png',
-    label: 'Ассистент',
+    name: 'Ассистент',
+    label: 'AI Помощник',
     path: '/chat',
     task: 'Задай вопрос AI',
+    speech: 'Привет! Чем могу помочь?',
     icon: MessageCircle
   },
   {
     skin: '/images/skins/skin_2.png',
-    label: 'Карусели',
+    name: 'Дизайнер',
+    label: 'Создатель карусели',
     path: '/agents/carousel',
     task: 'Собери карусель для клиента',
+    speech: 'Давай создадим крутую карусель!',
     icon: Sparkles
   },
   {
     skin: '/images/skins/skin_3.png',
-    label: 'Школа',
+    name: 'Учитель',
+    label: 'Школа AI',
     path: '/school',
     task: 'Пройди урок и получи XP',
+    speech: 'Готов узнать что-то новое?',
     icon: GraduationCap
   },
 ]
@@ -99,22 +105,34 @@ export default function Home() {
 
       <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-end">
 
-        {/* Плашка с названием раздела */}
+        {/* Диалоговое окно - речь персонажа */}
         <motion.div
           key={currentIndex}
-          className="relative z-30 mb-4 px-5 py-2.5 rounded-full backdrop-blur-xl bg-white/70 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.08)] flex items-center gap-2.5"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-30 mb-6 max-w-[280px]"
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <motion.div
-            className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <span className="text-base font-medium text-foreground/80 tracking-wide">
-            {characters[currentIndex].label}
-          </span>
+          {/* Основное окно */}
+          <div className="relative px-5 py-4 rounded-2xl backdrop-blur-xl bg-white/80 border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
+            {/* Имя персонажа */}
+            <div className="flex items-center gap-2 mb-2">
+              <motion.div
+                className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <span className="text-sm font-semibold text-cyan-600">
+                {characters[currentIndex].name}
+              </span>
+            </div>
+            {/* Речь */}
+            <p className="text-base text-foreground/80 font-medium">
+              {characters[currentIndex].speech}
+            </p>
+          </div>
+          {/* Хвостик диалогового окна */}
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/80 border-r border-b border-white/60 rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.05)]" />
         </motion.div>
 
         {/* Область персонажа со стрелками */}
@@ -131,14 +149,14 @@ export default function Home() {
           {/* Персонаж + Пьедестал */}
           <div className="flex flex-col items-center">
 
-            {/* Персонаж с парением */}
-            <div className="h-64 flex items-center justify-center mb-3">
+            {/* Персонаж с парением - увеличен на 10% (h-72 = 288px) */}
+            <div className="h-72 flex items-center justify-center mb-3">
               <AnimatePresence mode='popLayout' initial={false} custom={direction}>
                 <motion.div
                   key={currentIndex}
                   custom={direction}
                   variants={slideVariants}
-                  initial="enter"
+                  initial={direction === 0 ? false : "enter"}
                   animate="center"
                   exit="exit"
                   transition={{
@@ -161,8 +179,8 @@ export default function Home() {
                 >
                   <motion.img
                     src={characters[currentIndex].skin}
-                    alt={characters[currentIndex].label}
-                    className="h-64 w-64 object-contain pointer-events-none select-none"
+                    alt={characters[currentIndex].name}
+                    className="h-72 w-72 object-contain pointer-events-none select-none"
                     draggable={false}
                     animate={{ y: [0, -10, 0] }}
                     transition={{
