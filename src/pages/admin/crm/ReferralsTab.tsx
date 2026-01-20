@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Users, Coins, TrendingUp, CreditCard, Search } from 'lucide-react'
+import { Users, Coins, TrendingUp, CreditCard, Search, ArrowRight } from 'lucide-react'
 import { useState } from 'react'
 
 interface ReferralStatRow {
@@ -13,10 +13,22 @@ interface ReferralStatRow {
   total_partner_purchased: number
 }
 
+interface ReferralLink {
+  id: string
+  referrer_telegram_id: number
+  referrer_username: string | null
+  referrer_first_name: string | null
+  referred_telegram_id: number
+  referred_username: string | null
+  referred_first_name: string | null
+  bonus_paid: boolean
+  created_at: string
+}
+
 export function ReferralsTab() {
   const [search, setSearch] = useState('')
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['admin-referral-stats'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('admin_get_all_referral_stats')
@@ -25,16 +37,63 @@ export function ReferralsTab() {
     }
   })
 
-  // Фильтрация по поиску
-  const filteredStats = stats?.filter(row => {
+  // Получаем список всех реферальных связей
+  const { data: referralLinks, isLoading: isLinksLoading } = useQuery({
+    queryKey: ['admin-referral-links'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_get_all_referrals')
+      if (error) throw error
+      return data as ReferralLink[]
+    }
+  })
+
+  // Фильтрация связей по поиску
+  const filteredLinks = referralLinks?.filter(link => {
     if (!search) return true
     const searchLower = search.toLowerCase()
     return (
-      row.telegram_id.toString().includes(search) ||
-      row.username?.toLowerCase().includes(searchLower) ||
-      row.first_name?.toLowerCase().includes(searchLower)
+      link.referrer_telegram_id.toString().includes(search) ||
+      link.referred_telegram_id.toString().includes(search) ||
+      link.referrer_username?.toLowerCase().includes(searchLower) ||
+      link.referrer_first_name?.toLowerCase().includes(searchLower) ||
+      link.referred_username?.toLowerCase().includes(searchLower) ||
+      link.referred_first_name?.toLowerCase().includes(searchLower)
     )
   })
+
+  // Группировка связей по рефереру
+  const groupedByReferrer = filteredLinks?.reduce((acc, link) => {
+    const key = link.referrer_telegram_id
+    if (!acc[key]) {
+      acc[key] = {
+        referrer_telegram_id: link.referrer_telegram_id,
+        referrer_username: link.referrer_username,
+        referrer_first_name: link.referrer_first_name,
+        partners: []
+      }
+    }
+    acc[key].partners.push({
+      telegram_id: link.referred_telegram_id,
+      username: link.referred_username,
+      first_name: link.referred_first_name,
+      bonus_paid: link.bonus_paid,
+      created_at: link.created_at
+    })
+    return acc
+  }, {} as Record<number, {
+    referrer_telegram_id: number
+    referrer_username: string | null
+    referrer_first_name: string | null
+    partners: Array<{
+      telegram_id: number
+      username: string | null
+      first_name: string | null
+      bonus_paid: boolean
+      created_at: string
+    }>
+  }>)
+
+  const groupedReferrers = groupedByReferrer ? Object.values(groupedByReferrer).sort((a, b) => b.partners.length - a.partners.length) : []
 
   // Общая статистика
   const totals = stats?.reduce(
@@ -89,52 +148,75 @@ export function ReferralsTab() {
         />
       </div>
 
-      {/* Таблица по пользователям */}
-      {isLoading ? (
-        <div className="text-center py-8 text-zinc-500">Загрузка...</div>
-      ) : !filteredStats || filteredStats.length === 0 ? (
-        <div className="text-center py-8 text-zinc-500">
-          {stats?.length === 0 ? 'Нет данных о рефералах' : 'Ничего не найдено'}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filteredStats.map((row) => (
-            <div key={row.telegram_id} className="bg-zinc-800 rounded-xl p-3">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-white truncate">
-                    {row.first_name || 'Без имени'}
+      {/* Список рефереров с их партнёрами */}
+      <div className="mt-2">
+        <h3 className="text-sm font-medium text-zinc-400 mb-2">Рефереры и их партнёры</h3>
+        {isLinksLoading ? (
+          <div className="text-center py-8 text-zinc-500">Загрузка...</div>
+        ) : groupedReferrers.length === 0 ? (
+          <div className="text-center py-8 text-zinc-500 bg-zinc-800 rounded-xl">
+            {referralLinks?.length === 0 ? 'Пока нет реферальных связей' : 'Ничего не найдено'}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {groupedReferrers.map((referrer) => (
+              <div key={referrer.referrer_telegram_id} className="bg-zinc-800 rounded-xl p-4">
+                {/* Реферер (кто пригласил) */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-white truncate">
+                      {referrer.referrer_first_name || 'Без имени'}
+                    </div>
+                    <div className="text-xs text-zinc-500 truncate">
+                      {referrer.referrer_username ? `@${referrer.referrer_username}` : referrer.referrer_telegram_id}
+                    </div>
                   </div>
-                  <div className="text-xs text-zinc-500 truncate">
-                    {row.username ? `@${row.username}` : row.telegram_id}
-                  </div>
+                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm flex-shrink-0">
+                    {referrer.partners.length} партн.
+                  </span>
                 </div>
-                <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm flex-shrink-0">
-                  {row.total_referrals} партн.
-                </span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap text-xs">
-                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">
-                  +{row.total_coins_earned} монет
-                </span>
-                <span className="px-2 py-1 bg-zinc-700 text-zinc-400 rounded">
-                  Траты: {row.total_partner_spent}
-                </span>
-                <span className="px-2 py-1 bg-zinc-700 text-zinc-400 rounded">
-                  Покупки: {row.total_partner_purchased}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
-      {/* Счётчик */}
-      {filteredStats && (
-        <div className="text-xs text-zinc-500 text-center">
-          {filteredStats.length} из {stats?.length || 0}
-        </div>
-      )}
+                {/* Список партнёров */}
+                <div className="space-y-2 pl-3 border-l-2 border-green-500/30">
+                  {referrer.partners.map((partner) => (
+                    <div key={partner.telegram_id} className="flex items-center justify-between gap-2 py-1.5">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <ArrowRight className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-sm text-white truncate">
+                            {partner.first_name || 'Без имени'}
+                          </div>
+                          <div className="text-xs text-zinc-500 truncate">
+                            {partner.username ? `@${partner.username}` : partner.telegram_id}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs text-zinc-500">
+                          {new Date(partner.created_at).toLocaleDateString('ru-RU', {
+                            day: 'numeric',
+                            month: 'short'
+                          })}
+                        </span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${partner.bonus_paid ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                          {partner.bonus_paid ? '+2' : '0'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Счётчик */}
+        {groupedReferrers.length > 0 && (
+          <div className="text-xs text-zinc-500 text-center mt-2">
+            {groupedReferrers.length} рефереров, {filteredLinks?.length || 0} партнёров
+          </div>
+        )}
+      </div>
     </div>
   )
 }
