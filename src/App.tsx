@@ -9,6 +9,9 @@ import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
 import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
+import Referrals from '@/pages/Referrals'
+import ReferralDetail from '@/pages/ReferralDetail'
+import Settings from '@/pages/Settings'
 import { Agents } from '@/pages/Agents'
 import { Missions } from '@/pages/Missions'
 import { Shop } from '@/pages/Shop'
@@ -196,6 +199,9 @@ function AppContent() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="referrals" element={<Referrals />} />
+          <Route path="referral/:id" element={<ReferralDetail />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="agents" element={<Agents />} />
           <Route path="school" element={<SchoolIndex />} />
           <Route path="school/:tariffSlug" element={<TariffPage />} />
