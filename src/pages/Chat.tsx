@@ -295,7 +295,7 @@ export default function Chat() {
               Оформи подписку, чтобы получить доступ к умному помощнику.
             </p>
             <button
-              onClick={() => navigate('/school')}
+              onClick={() => navigate('/shop')}
               className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
             >
               Оформить подписку
