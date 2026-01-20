@@ -31,3 +31,5 @@ gen-lang-client-*.json
 .env.local
 ИНСТРУКЦИИ .md
 google-credentials.json
+docs/CREDENTIALS.md
+API_KEYS_AND_CONFIG.md
