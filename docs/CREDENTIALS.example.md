@@ -1,7 +1,7 @@
 # 🔐 ДОСТУПЫ К СЕРВИСАМ
 
 > ⚠️ ЭТОТ ФАЙЛ НЕ КОММИТИТЬ В GIT!
-> Заполни данные и храни локально.
+> Скопируй этот файл как `CREDENTIALS.md`, заполни данные и храни локально.
 
 ---
 
@@ -22,22 +22,22 @@ SERVICE ROLE KEY: xxx (секретный!)
 **Репозиторий:** https://github.com/aleksandrbekk/ai-citi
 
 ```
-Username: aleksandrbekk
-Email: aleksandrbekk@bk.ru
+Username: xxx
+Email: xxx
 ```
 
 ---
 
 ## INSTAGRAM / META
 
-**Meta App:** https://developers.facebook.com/apps/661809894766298
+**Meta App:** https://developers.facebook.com/apps/xxx
 
 ```
-App ID: 661809894766298
+App ID: xxx
 App Secret: xxx (секретный!)
-Instagram Business Account ID: 17841400254783592
+Instagram Business Account ID: xxx
 Access Token: xxx (секретный!)
-Token Expires: ~14 февраля 2026
+Token Expires: xxx
 ```
 
 ---
