@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
-import { Coins, Sparkles, Zap, Crown, Rocket, Star } from 'lucide-react'
+import { Coins, Sparkles, Zap, Crown, Rocket, Star, Palette } from 'lucide-react'
 
 // Пакеты монет (цены - заглушки)
 const coinPackages = [
@@ -78,11 +78,48 @@ const subscriptionPackages = [
   },
 ]
 
+// Наборы стилей (скины персонажей)
+const stylePackages = [
+  {
+    id: 'style_1',
+    name: 'Ассистент',
+    description: 'Классический помощник',
+    image: '/images/skins/skin_1.png',
+    price: 199,
+    color: 'from-cyan-400 to-cyan-500',
+  },
+  {
+    id: 'style_2',
+    name: 'Дизайнер',
+    description: 'Креативный создатель',
+    image: '/images/skins/skin_2.png',
+    price: 299,
+    color: 'from-purple-400 to-purple-500',
+  },
+  {
+    id: 'style_3',
+    name: 'Учитель',
+    description: 'Мудрый наставник',
+    image: '/images/skins/skin_3.png',
+    price: 299,
+    color: 'from-green-400 to-green-500',
+  },
+  {
+    id: 'style_premium',
+    name: 'VIP Набор',
+    description: 'Все стили + эксклюзивы',
+    image: '/images/skins/skin_0.png',
+    price: 599,
+    color: 'from-yellow-400 to-amber-500',
+    premium: true,
+  },
+]
+
 export function Shop() {
   const telegramUser = getTelegramUser()
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
-  const [activeTab, setActiveTab] = useState<'coins' | 'subscription'>('coins')
+  const [activeTab, setActiveTab] = useState<'coins' | 'subscription' | 'styles'>('coins')
 
   useEffect(() => {
     const loadCoins = async () => {
@@ -112,28 +149,39 @@ export function Shop() {
 
       {/* Tabs */}
       <div className="px-4 py-3">
-        <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('coins')}
-            className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-all ${
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
               activeTab === 'coins'
                 ? 'bg-white text-orange-500 shadow-sm'
                 : 'text-gray-500'
             }`}
           >
-            <Coins className="w-4 h-4 inline mr-2" />
+            <Coins className="w-4 h-4 inline mr-1" />
             МОНЕТЫ
           </button>
           <button
             onClick={() => setActiveTab('subscription')}
-            className={`flex-1 py-3 rounded-lg font-semibold text-sm transition-all ${
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
               activeTab === 'subscription'
                 ? 'bg-white text-orange-500 shadow-sm'
                 : 'text-gray-500'
             }`}
           >
-            <Star className="w-4 h-4 inline mr-2" />
+            <Star className="w-4 h-4 inline mr-1" />
             ПОДПИСКА
+          </button>
+          <button
+            onClick={() => setActiveTab('styles')}
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
+              activeTab === 'styles'
+                ? 'bg-white text-orange-500 shadow-sm'
+                : 'text-gray-500'
+            }`}
+          >
+            <Palette className="w-4 h-4 inline mr-1" />
+            СТИЛИ
           </button>
         </div>
       </div>
@@ -244,6 +292,41 @@ export function Shop() {
                 </div>
               </button>
             ))}
+          </>
+        )}
+
+        {activeTab === 'styles' && (
+          <>
+            <p className="text-xs text-gray-500 text-center">Персонализируй своих помощников</p>
+            <div className="grid grid-cols-2 gap-3">
+              {stylePackages.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => handleBuy(style.id)}
+                  className={`bg-white border-2 rounded-2xl p-3 text-center transition-all hover:shadow-lg active:scale-[0.98] ${
+                    style.premium ? 'border-amber-400 col-span-2' : 'border-gray-200'
+                  }`}
+                >
+                  {style.premium && (
+                    <div className="flex justify-center mb-2">
+                      <span className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full">
+                        VIP
+                      </span>
+                    </div>
+                  )}
+                  <div className={`mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br ${style.color} p-2 mb-3 ${style.premium ? 'w-24 h-24' : ''}`}>
+                    <img
+                      src={style.image}
+                      alt={style.name}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <p className="font-semibold text-gray-900 text-sm">{style.name}</p>
+                  <p className="text-xs text-gray-500 mb-2">{style.description}</p>
+                  <p className="text-lg font-bold text-orange-500">{style.price} ₽</p>
+                </button>
+              ))}
+            </div>
           </>
         )}
       </div>
