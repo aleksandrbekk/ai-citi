@@ -101,6 +101,37 @@ export function expandWebApp() {
     }
   }
 
+  // =============================================================================
+  // FULLSCREEN SAFE AREA FOR TELEGRAM UI (Close + Menu buttons)
+  // =============================================================================
+  // В fullscreen режиме Telegram рисует свои кнопки (Закрыть / …) поверх WebApp.
+  // Нам нужен "content safe area top" — отступ до начала безопасного контента.
+  try {
+    const tgAny = tg as any;
+
+    const applyInsets = () => {
+      // Предпочтительно: значение из SDK, если есть
+      const top =
+        typeof tgAny.contentSafeAreaInsetTop === 'number'
+          ? tgAny.contentSafeAreaInsetTop
+          : getContentSafeAreaTop();
+
+      document.documentElement.style.setProperty(
+        '--tg-content-safe-area-inset-top',
+        `${Math.max(0, Math.round(top))}px`
+      );
+    };
+
+    applyInsets();
+
+    // На некоторых платформах инсет меняется при развороте/resize
+    if (typeof tgAny.onEvent === 'function') {
+      tgAny.onEvent('viewportChanged', applyInsets);
+    }
+  } catch (e) {
+    // молча: это только улучшение UX
+  }
+
   // Отключаем вертикальные свайпы для навигации (везде)
   try {
     if (typeof tg.disableVerticalSwipes === 'function') {
