@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance, supabase } from '@/lib/supabase'
-import { Coins, Sparkles, Zap, Crown, Rocket, Star, Palette, Mail, CheckCircle } from 'lucide-react'
+import { Coins, Crown, Star, Palette, Mail, CheckCircle } from 'lucide-react'
 
 // Ссылка на продукт в Lava.top
 const LAVA_PRODUCT_URL = 'https://app.lava.top/products/bcc55515-b779-47cd-83aa-5306575e6d95'
@@ -9,47 +9,10 @@ const LAVA_PRODUCT_URL = 'https://app.lava.top/products/bcc55515-b779-47cd-83aa-
 // Пакеты монет
 const coinPackages = [
   {
-    id: 'starter',
-    name: 'Старт',
-    coins: 5,
-    price: 99,
-    priceLabel: '99 ₽',
-    icon: Zap,
-    color: 'from-blue-400 to-blue-500',
-    shadow: 'shadow-blue-500/30',
-    available: false,
-  },
-  {
-    id: 'basic',
-    name: 'Базовый',
-    coins: 15,
-    price: 249,
-    priceLabel: '249 ₽',
-    bonus: 2,
-    icon: Sparkles,
-    color: 'from-purple-400 to-purple-500',
-    shadow: 'shadow-purple-500/30',
-    available: false,
-  },
-  {
-    id: 'pro',
-    name: 'Про',
-    coins: 35,
-    price: 499,
-    priceLabel: '499 ₽',
-    bonus: 5,
-    icon: Rocket,
-    color: 'from-orange-400 to-orange-500',
-    shadow: 'shadow-orange-500/30',
-    available: false,
-  },
-  {
     id: 'premium',
-    name: 'Премиум',
+    name: '100 монет',
     coins: 100,
-    price: 10,
     priceLabel: '$10',
-    bonus: 0,
     icon: Crown,
     color: 'from-yellow-400 to-amber-500',
     shadow: 'shadow-amber-500/30',
@@ -61,32 +24,29 @@ const coinPackages = [
 // Пакеты подписок
 const subscriptionPackages = [
   {
-    id: 'lite',
-    name: 'Lite',
-    coins: 30,
-    price: 499,
-    period: 'месяц',
-    features: ['30 монет/месяц', 'Базовые шаблоны'],
+    id: 'basic',
+    name: 'BASIC',
+    features: ['Базовый доступ', 'Стандартные шаблоны'],
     color: 'from-blue-400 to-blue-500',
   },
   {
     id: 'pro',
-    name: 'Pro',
-    coins: 50,
-    price: 799,
-    period: 'месяц',
-    features: ['50 монет/месяц', 'Все шаблоны', 'Приоритет генерации'],
+    name: 'PRO',
+    features: ['Расширенный доступ', 'Все шаблоны', 'Приоритет генерации'],
     color: 'from-purple-400 to-purple-500',
     popular: true,
   },
   {
-    id: 'business',
-    name: 'Business',
-    coins: 150,
-    price: 1990,
-    period: 'месяц',
-    features: ['150 монет/месяц', 'Все шаблоны', 'VIP поддержка', 'Персональный менеджер'],
+    id: 'vip',
+    name: 'VIP',
+    features: ['VIP доступ', 'Все шаблоны', 'VIP поддержка', 'Эксклюзивный контент'],
     color: 'from-orange-400 to-orange-500',
+  },
+  {
+    id: 'elite',
+    name: 'ELITE',
+    features: ['Максимальный доступ', 'Все функции', 'Персональный менеджер', 'Безлимит'],
+    color: 'from-yellow-400 to-amber-500',
   },
 ]
 
@@ -97,7 +57,6 @@ const stylePackages = [
     name: 'Ассистент',
     description: 'Классический помощник',
     image: '/images/skins/skin_1.png',
-    price: 199,
     color: 'from-cyan-400 to-cyan-500',
   },
   {
@@ -105,7 +64,6 @@ const stylePackages = [
     name: 'Дизайнер',
     description: 'Креативный создатель',
     image: '/images/skins/skin_2.png',
-    price: 299,
     color: 'from-purple-400 to-purple-500',
   },
   {
@@ -113,7 +71,6 @@ const stylePackages = [
     name: 'Учитель',
     description: 'Мудрый наставник',
     image: '/images/skins/skin_3.png',
-    price: 299,
     color: 'from-green-400 to-green-500',
   },
   {
@@ -121,7 +78,6 @@ const stylePackages = [
     name: 'VIP Набор',
     description: 'Все стили + эксклюзивы',
     image: '/images/skins/skin_0.png',
-    price: 599,
     color: 'from-yellow-400 to-amber-500',
     premium: true,
   },
@@ -326,47 +282,26 @@ export function Shop() {
       <div className="px-4 space-y-3">
         {activeTab === 'coins' && (
           <>
-            <p className="text-xs text-gray-500 text-center">1 монета = 1 слайд</p>
             {coinPackages.map((pkg) => {
               const Icon = pkg.icon
               return (
                 <button
                   key={pkg.id}
                   onClick={() => handleBuy(pkg)}
-                  className={`w-full bg-white border-2 rounded-2xl p-4 text-left transition-all hover:shadow-lg active:scale-[0.98] ${
-                    pkg.available ? 'border-orange-400' : 'border-gray-200 opacity-60'
-                  }`}
+                  className="w-full bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-5 text-left transition-all hover:shadow-xl active:scale-[0.98]"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg ${pkg.shadow}`}>
-                        <Icon className="w-6 h-6 text-white" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                        <Icon className="w-8 h-8 text-white" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900">{pkg.name}</p>
-                          {pkg.available && (
-                            <span className="bg-green-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                              ДОСТУПНО
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Coins className="w-4 h-4 text-yellow-500" />
-                          <span className="text-sm text-gray-600">
-                            {pkg.coins} монет
-                            {pkg.bonus ? (
-                              <span className="text-green-500 font-medium"> +{pkg.bonus}</span>
-                            ) : null}
-                          </span>
-                        </div>
+                        <p className="text-xl font-bold text-white">{pkg.name}</p>
+                        <p className="text-white/80 text-sm">Пополнение баланса</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-gray-900">{pkg.priceLabel}</p>
-                      {!pkg.available && (
-                        <p className="text-xs text-gray-400">скоро</p>
-                      )}
+                      <p className="text-2xl font-bold text-white">{pkg.priceLabel}</p>
                     </div>
                   </div>
                 </button>
@@ -377,7 +312,7 @@ export function Shop() {
 
         {activeTab === 'subscription' && (
           <>
-            <p className="text-xs text-gray-500 text-center">Ежемесячное пополнение монет + бонусы</p>
+            <p className="text-xs text-gray-500 text-center">Ежемесячная подписка</p>
             {subscriptionPackages.map((pkg) => (
               <button
                 key={pkg.id}
@@ -386,29 +321,17 @@ export function Shop() {
                   pkg.popular ? 'border-orange-400' : 'border-gray-200'
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
-                      <Star className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-gray-900">{pkg.name}</p>
-                        {pkg.popular && (
-                          <span className="bg-orange-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                            ХИТ
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="text-sm text-gray-600">{pkg.coins} монет/мес</span>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
+                    <Star className="w-6 h-6 text-white" />
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-gray-900">{pkg.price} ₽</p>
-                    <p className="text-xs text-gray-400">/{pkg.period}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-gray-900 text-lg">{pkg.name}</p>
+                    {pkg.popular && (
+                      <span className="bg-orange-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                        ХИТ
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -451,8 +374,7 @@ export function Shop() {
                     />
                   </div>
                   <p className="font-semibold text-gray-900 text-sm">{style.name}</p>
-                  <p className="text-xs text-gray-500 mb-2">{style.description}</p>
-                  <p className="text-lg font-bold text-orange-500">{style.price} ₽</p>
+                  <p className="text-xs text-gray-500 mb-1">{style.description}</p>
                   <p className="text-xs text-gray-400">Скоро</p>
                 </button>
               ))}
