@@ -40,7 +40,7 @@ export function TelegramHeaderLogo() {
       >
         <Logo
           className={[
-            // Маленький и аккуратный размер (на 40% меньше: было 20px, стало 12px)
+            // Маленький и аккуратный размер (на 40% меньше от исходного 20px: 20px * 0.6 = 12px)
             'h-[12px] w-auto',
             // Убираем белый фон на светлом фоне
             'mix-blend-multiply opacity-[0.88]',
