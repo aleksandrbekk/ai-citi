@@ -257,27 +257,28 @@ export function Shop() {
         </div>
       </div>
 
-      {/* Баланс */}
-      <div className="px-4 py-3">
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
-              <Coins className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Ваш баланс</p>
-              <span className="text-2xl font-bold text-gray-900">
-                {isLoadingCoins ? '...' : coinBalance}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
       <div className="px-4 space-y-3">
         {activeTab === 'coins' && (
           <>
+            {/* Баланс - только в разделе Монеты */}
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                  <Coins className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Ваш баланс</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {isLoadingCoins ? '...' : coinBalance}
+                    </span>
+                    <span className="text-gray-500">монет</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {coinPackages.map((pkg) => {
               const Icon = pkg.icon
               return (
