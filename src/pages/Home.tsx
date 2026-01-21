@@ -107,7 +107,13 @@ export default function Home() {
       <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-end">
         
         {/* Карточка пользователя */}
-        <div className="absolute top-0 left-0 right-0 z-40">
+        <div 
+          className="absolute left-0 right-0 z-40"
+          style={{ 
+            top: 'env(safe-area-inset-top, 0px)',
+            paddingTop: '12px'
+          }}
+        >
           <UserProfileCard />
         </div>
 

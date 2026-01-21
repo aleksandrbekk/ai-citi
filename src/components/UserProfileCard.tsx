@@ -24,10 +24,7 @@ export function UserProfileCard() {
     : null
 
   return (
-    <div 
-      className="px-6 pt-4 pb-3" 
-      style={{ paddingTop: `max(16px, calc(env(safe-area-inset-top, 0px) + 16px))` }}
-    >
+    <div className="px-6 pb-3">
       <div className="relative px-4 py-3 rounded-2xl backdrop-blur-xl bg-white/80 border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.1)] flex items-center gap-3">
         {/* Аватар */}
         <div className="flex-shrink-0">
