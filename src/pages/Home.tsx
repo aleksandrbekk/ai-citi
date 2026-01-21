@@ -110,7 +110,7 @@ export default function Home() {
         <div 
           className="absolute left-0 right-0 z-40"
           style={{ 
-            top: 'env(safe-area-inset-top, 0px)',
+            top: 'var(--tg-content-safe-area-inset-top, calc(env(safe-area-inset-top, 0px) + 56px))',
             paddingTop: '12px'
           }}
         >
