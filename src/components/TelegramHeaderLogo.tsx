@@ -24,7 +24,7 @@ export function TelegramHeaderLogo() {
       className="fixed left-0 right-0 z-[70] pointer-events-none flex justify-center"
       style={{
         // Размещаем ниже челки телефона, на уровне кнопок Telegram
-        top: 'calc(env(safe-area-inset-top, 0px) + 50px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 65px)',
         // Резервируем место под кнопки по краям
         paddingLeft: '60px',
         paddingRight: '60px',
@@ -32,11 +32,11 @@ export function TelegramHeaderLogo() {
     >
       <div className="flex justify-center items-center">
         <Logo
-          height="72px"
+          height="58px"
           width="auto"
           className={[
-            // Увеличенный размер в 2 раза для отличной видимости
-            'max-w-[560px]',
+            // Уменьшен на 20% от 72px (72 * 0.8 = 58px)
+            'max-w-[448px]',
             // Убираем mix-blend-multiply, чтобы логотип был виден
             // Оставляем только базовый mix-blend-multiply из компонента Logo
           ].join(' ')}
