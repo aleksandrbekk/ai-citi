@@ -31,11 +31,10 @@ export default function AnalyticsTab() {
 
   // По тарифам
   const byPlan = {
-    platinum: clients?.filter(c => c.plan === 'platinum').length || 0,
-    standard: clients?.filter(c => c.plan === 'standard').length || 0,
-    basic: clients?.filter(c => c.plan === 'basic').length || 0,
-    pro: clients?.filter(c => c.plan === 'pro').length || 0,
-    vip: clients?.filter(c => c.plan === 'vip').length || 0
+    basic: clients?.filter(c => c.plan?.toUpperCase() === 'BASIC').length || 0,
+    pro: clients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
+    vip: clients?.filter(c => c.plan?.toUpperCase() === 'VIP').length || 0,
+    elite: clients?.filter(c => c.plan?.toUpperCase() === 'ELITE').length || 0
   }
 
   // По источникам
@@ -119,11 +118,10 @@ export default function AnalyticsTab() {
           <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
             <BarChart3 size={16} /> По тарифам
           </h3>
-          <ProgressBar label="Платина" value={byPlan.platinum} total={stats.total} color="bg-amber-500" />
-          <ProgressBar label="Стандарт" value={byPlan.standard} total={stats.total} color="bg-green-500" />
-          <ProgressBar label="Basic" value={byPlan.basic} total={stats.total} color="bg-blue-500" />
-          <ProgressBar label="Pro" value={byPlan.pro} total={stats.total} color="bg-purple-500" />
-          <ProgressBar label="VIP" value={byPlan.vip} total={stats.total} color="bg-yellow-500" />
+          <ProgressBar label="BASIC" value={byPlan.basic} total={stats.total} color="bg-blue-500" />
+          <ProgressBar label="PRO" value={byPlan.pro} total={stats.total} color="bg-purple-500" />
+          <ProgressBar label="VIP" value={byPlan.vip} total={stats.total} color="bg-orange-500" />
+          <ProgressBar label="ELITE" value={byPlan.elite} total={stats.total} color="bg-amber-500" />
         </div>
 
         {/* По источникам */}
