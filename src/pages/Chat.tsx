@@ -259,7 +259,7 @@ export default function Chat() {
   // Если нет подписки - показываем экран блокировки
   if (!hasPaidAccess) {
     return (
-      <div className={`min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
+      <div className={`min-h-screen bg-white flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
         {/* Header */}
         <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3`}>
           <button

@@ -76,14 +76,14 @@ export function expandWebApp() {
   const platform = (tg as any).platform;
   const isMobile = platform === 'android' || platform === 'ios';
 
-  // Задаём цвета для header и background (кремовый фон)
+  // Задаём цвета для header и background (белый фон)
   try {
     const tgAny = tg as any;
     if (typeof tgAny.setHeaderColor === 'function') {
-      tgAny.setHeaderColor('#FFF8F5');
+      tgAny.setHeaderColor('#FFFFFF');
     }
     if (typeof tgAny.setBackgroundColor === 'function') {
-      tgAny.setBackgroundColor('#FFF8F5');
+      tgAny.setBackgroundColor('#FFFFFF');
     }
   } catch (e) {
     console.log('setHeaderColor/setBackgroundColor not available');

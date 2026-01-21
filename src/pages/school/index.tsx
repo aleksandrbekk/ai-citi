@@ -63,7 +63,7 @@ export default function SchoolIndex() {
   // Если нет подписки и не куратор - показываем экран блокировки
   if (!tariffSlug && !isCurator) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
           <button

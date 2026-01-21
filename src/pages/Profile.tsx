@@ -30,7 +30,7 @@ export default function Profile() {
   const generationsCount = Math.floor(coinBalance / 10)
 
   return (
-    <div className="min-h-screen bg-[#FFF8F5] pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Профиль пользователя */}
       <div className="px-4 pt-8 pb-6">
         <div className="flex items-center gap-4">
@@ -50,7 +50,7 @@ export default function Profile() {
               )}
             </div>
             {/* Зелёный индикатор онлайн */}
-            <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-4 border-[#FFF8F5]" />
+            <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-4 border-white" />
           </div>
 
           {/* Имя и статус */}

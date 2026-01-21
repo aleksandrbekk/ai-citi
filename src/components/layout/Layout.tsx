@@ -25,7 +25,7 @@ export function Layout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <LoaderIcon size={48} className="text-orange-500" />
           <span className="text-gray-500">Загрузка...</span>
@@ -35,18 +35,18 @@ export function Layout() {
   }
 
   // Вычисляем отступ для контента от нижней части логотипа
+  // ТОЛЬКО на мобильных устройствах, где показывается логотип
   // Логотип: top = calc(env(safe-area-inset-top, 0px) + 65px), height = 58px
   // Нижняя граница логотипа: safe-area-top + 65px + 58px = safe-area-top + 123px
-  // Добавляем отступ после логотипа (например, 20px)
+  // Добавляем отступ после логотипа (20px)
   // Итого: safe-area-top + 143px
+  // На десктопе - без отступа (0px)
   const logoBottomOffset = showTelegramHeaderLogo 
     ? 'calc(env(safe-area-inset-top, 0px) + 143px)' 
-    : needsPadding 
-      ? '100px' 
-      : '0px'
+    : '0px'
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col ${needsPadding && !showTelegramHeaderLogo ? 'pt-[100px]' : ''}`}>
+    <div className={`min-h-screen bg-white text-gray-900 flex flex-col ${needsPadding && !showTelegramHeaderLogo ? 'pt-[100px]' : ''}`}>
       {/* Логотип между кнопками "Закрыть" и "..." в Telegram header (только fullscreen mobile) */}
       {showTelegramHeaderLogo && <TelegramHeaderLogo />}
       

@@ -71,7 +71,7 @@ export default function Home() {
   const IconComponent = characters[currentIndex].icon;
 
   return (
-    <div className="h-screen bg-[#FFF8F5] text-foreground overflow-hidden relative">
+    <div className="h-screen bg-white text-foreground overflow-hidden relative">
 
       {/* Фон */}
       <div className="absolute inset-0 pointer-events-none">
