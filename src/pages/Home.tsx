@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap } from 'lucide-react'
+import { UserProfileCard } from '@/components/UserProfileCard'
 
 // Персонажи привязаны к разделам
 const characters = [
@@ -104,6 +105,11 @@ export default function Home() {
       </div>
 
       <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-end">
+        
+        {/* Карточка пользователя */}
+        <div className="absolute top-0 left-0 right-0 z-40">
+          <UserProfileCard />
+        </div>
 
         {/* Диалоговое окно - речь персонажа */}
         <motion.div
