@@ -9,7 +9,7 @@ interface LogoProps {
 export const Logo: React.FC<LogoProps> = ({ className = '', width = 'auto', height = 'auto' }) => {
     return (
         <img
-            src="/images/logo_main.png"
+            src="/images/logo.png"
             alt="AI CITY"
             // mix-blend-multiply делает белый фон изображения прозрачным,
             // сохраняя при этом тени и детали. Работает идеально на светлом фоне.
