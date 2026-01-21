@@ -110,7 +110,9 @@ export default function Home() {
         <div
           className="absolute left-0 right-0 z-40 flex justify-center pointer-events-none px-6"
           style={{
-            top: 'calc(var(--tg-content-safe-area-inset-top, calc(env(safe-area-inset-top, 0px) + 56px)) + 8px)',
+            // В fullscreen Telegram кнопки "Закрыть" и "…" рисуются поверх WebApp.
+            // Поэтому сверху всегда резервируем минимум 100px (как в .safe-top), иначе контент залезает под кнопки.
+            top: 'calc(max(var(--tg-content-safe-area-inset-top, 0px), 100px) + 8px)',
           }}
         >
           <div className="pointer-events-auto w-full flex justify-center">

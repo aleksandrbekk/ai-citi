@@ -189,6 +189,9 @@ export function getContentSafeAreaTop(): number {
 
   // Фиксированный отступ для кнопок Telegram (примерно 56px на мобильных)
   const telegramHeaderHeight = isMobileTelegram() ? 56 : 0;
+  // ВАЖНО: на iOS/Android в fullscreen верхний TG-хедер визуально “съедает” больше места,
+  // поэтому держим безопасный минимум 100px (см. src/index.css .safe-top).
+  const minTop = isMobileTelegram() ? 100 : 0;
 
-  return systemSafeArea + telegramHeaderHeight;
+  return Math.max(systemSafeArea + telegramHeaderHeight, minTop);
 }
