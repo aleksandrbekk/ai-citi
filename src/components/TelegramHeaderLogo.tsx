@@ -32,11 +32,11 @@ export function TelegramHeaderLogo() {
     >
       <div className="flex justify-center items-center">
         <Logo
-          height="36px"
+          height="72px"
           width="auto"
           className={[
-            // Увеличенный размер для хорошей видимости
-            'max-w-[280px]',
+            // Увеличенный размер в 2 раза для отличной видимости
+            'max-w-[560px]',
             // Убираем mix-blend-multiply, чтобы логотип был виден
             // Оставляем только базовый mix-blend-multiply из компонента Logo
           ].join(' ')}
