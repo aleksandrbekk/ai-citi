@@ -168,9 +168,8 @@ export function Shop() {
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <h1 className="text-2xl font-bold text-center">
-          <span className="text-gray-900">МАГАЗИН </span>
-          <span className="text-orange-500">AI CITI</span>
+        <h1 className="text-2xl font-bold text-center text-gray-900">
+          МАГАЗИН
         </h1>
       </div>
 
@@ -267,12 +266,9 @@ export function Shop() {
             </div>
             <div>
               <p className="text-xs text-gray-500">Ваш баланс</p>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-gray-900">
-                  {isLoadingCoins ? '...' : coinBalance}
-                </span>
-                <span className="text-gray-500">монет</span>
-              </div>
+              <span className="text-2xl font-bold text-gray-900">
+                {isLoadingCoins ? '...' : coinBalance}
+              </span>
             </div>
           </div>
         </div>
