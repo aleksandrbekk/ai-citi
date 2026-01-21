@@ -38,11 +38,11 @@ export function Layout() {
   // ТОЛЬКО на мобильных устройствах, где показывается логотип
   // Логотип: top = calc(env(safe-area-inset-top, 0px) + 65px), height = 58px
   // Нижняя граница логотипа: safe-area-top + 65px + 58px = safe-area-top + 123px
-  // Добавляем отступ после логотипа (уменьшен на 20%: было 20px, стало 16px)
-  // Итого: safe-area-top + 114px (уменьшено на 20% от 143px)
+  // Добавляем минимальный отступ после логотипа
+  // Итого: safe-area-top + 91px (уменьшено еще на 20% от 114px)
   // На десктопе - без отступа (0px)
   const logoBottomOffset = showTelegramHeaderLogo 
-    ? 'calc(env(safe-area-inset-top, 0px) + 114px)' 
+    ? 'calc(env(safe-area-inset-top, 0px) + 91px)' 
     : '0px'
 
   return (
