@@ -38,11 +38,10 @@ export function Layout() {
   // ТОЛЬКО на мобильных устройствах, где показывается логотип
   // Логотип: top = calc(env(safe-area-inset-top, 0px) + 65px), height = 58px
   // Нижняя граница логотипа: safe-area-top + 65px + 58px = safe-area-top + 123px
-  // Минимальный отступ после логотипа (5px), чтобы все поместилось на экране без скролла
-  // Итого: safe-area-top + 128px
+  // Минимальный отступ (123px) - контент начинается сразу после логотипа
   // На десктопе - без отступа (0px)
   const logoBottomOffset = showTelegramHeaderLogo 
-    ? 'calc(env(safe-area-inset-top, 0px) + 128px)' 
+    ? 'calc(env(safe-area-inset-top, 0px) + 123px)' 
     : '0px'
 
   return (
