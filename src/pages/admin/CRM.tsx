@@ -22,8 +22,8 @@ export function AdminCRM() {
   return (
     <div className="overflow-x-hidden">
       <div className="flex items-center gap-3 mb-4">
-        <Users className="w-6 h-6 text-blue-500" />
-        <h1 className="text-xl font-bold text-white">CRM</h1>
+        <Users className="w-6 h-6 text-orange-500" />
+        <h1 className="text-xl font-bold text-gray-900">CRM</h1>
       </div>
 
       {/* Табы - вертикально на мобиле, горизонтально на десктопе */}
@@ -33,8 +33,8 @@ export function AdminCRM() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center justify-center lg:justify-start gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors ${activeTab === tab.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-zinc-800/50 text-zinc-400'
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
             <tab.icon className="w-4 h-4" />

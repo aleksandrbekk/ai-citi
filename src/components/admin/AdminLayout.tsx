@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, useLocation, Link } from 'react-router-dom'
 import {
   Users,
   HelpCircle,
@@ -12,7 +12,8 @@ import {
   BookOpen,
   UserCheck,
   ClipboardCheck,
-  ChevronDown
+  ChevronDown,
+  Home
 } from 'lucide-react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
 
@@ -28,10 +29,10 @@ export function AdminLayout() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const needsTopPadding = isTMA && isMobile
 
-  // Делаем body тёмным для админки
+  // Делаем body светлым для админки
   useEffect(() => {
-    document.body.style.backgroundColor = '#09090b'
-    document.documentElement.style.backgroundColor = '#09090b'
+    document.body.style.backgroundColor = '#ffffff'
+    document.documentElement.style.backgroundColor = '#ffffff'
     return () => {
       document.body.style.backgroundColor = ''
       document.documentElement.style.backgroundColor = ''
@@ -58,27 +59,35 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b', overscrollBehavior: 'none' }}>
+    <div className="min-h-screen bg-white overflow-x-hidden" style={{ overscrollBehavior: 'none' }}>
       {/* Safe area background for iOS TMA only - TOP */}
       {needsTopPadding && (
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40" style={{ backgroundColor: '#09090b' }} />
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40 bg-white" />
       )}
 
       {/* Safe area background for iOS TMA only - BOTTOM */}
       {needsTopPadding && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[50px] z-40" style={{ backgroundColor: '#09090b' }} />
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[50px] z-40 bg-white" />
       )}
 
       {/* Mobile Header */}
-      <header className={`lg:hidden sticky top-0 z-50 ${needsTopPadding ? 'pt-[100px]' : ''}`} style={{ backgroundColor: '#18181b' }}>
+      <header className={`lg:hidden sticky top-0 z-50 bg-white border-b border-gray-200 ${needsTopPadding ? 'pt-[100px]' : ''}`}>
         <div className="flex items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="text-lg font-bold text-white">AI CITI</h1>
-            <p className="text-xs text-zinc-500">Админ-панель</p>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="p-2 rounded-lg bg-orange-500 text-white"
+            >
+              <Home size={20} />
+            </Link>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">AI CITI</h1>
+              <p className="text-xs text-gray-500">Админ-панель</p>
+            </div>
           </div>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg bg-zinc-800 text-white"
+            className="p-2 rounded-lg bg-gray-100 text-gray-700"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -86,8 +95,20 @@ export function AdminLayout() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-zinc-900 border-b border-zinc-800 shadow-xl max-h-[70vh] overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl max-h-[70vh] overflow-y-auto">
             <nav className="p-4 space-y-2">
+              {/* Кнопка на главную */}
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-50 text-orange-600 border border-orange-200"
+              >
+                <Home className="w-5 h-5" />
+                На главную
+              </Link>
+
+              <div className="my-2 border-t border-gray-200" />
+
               {mainLinks.map(link => (
                 <NavLink
                   key={link.to}
@@ -96,8 +117,8 @@ export function AdminLayout() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
                     }`
                   }
                 >
@@ -110,7 +131,7 @@ export function AdminLayout() {
               <button
                 onClick={() => setSchoolOpen(!schoolOpen)}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                  isSchoolActive ? 'bg-zinc-800 text-white' : 'text-zinc-400'
+                  isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -130,8 +151,8 @@ export function AdminLayout() {
                       onClick={() => setMobileMenuOpen(false)}
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${isActive
-                          ? 'bg-blue-600 text-white'
-                          : 'text-zinc-400 hover:bg-zinc-800'
+                          ? 'bg-orange-500 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
                         }`
                       }
                     >
@@ -142,15 +163,15 @@ export function AdminLayout() {
                 </div>
               )}
 
-              <div className="my-2 border-t border-zinc-800" />
+              <div className="my-2 border-t border-gray-200" />
 
               <NavLink
                 to="/admin/settings"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-zinc-400 hover:bg-zinc-800'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
                   }`
                 }
               >
@@ -160,7 +181,7 @@ export function AdminLayout() {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all"
               >
                 <LogOut className="w-5 h-5" />
                 Выйти
@@ -170,12 +191,22 @@ export function AdminLayout() {
         )}
       </header>
 
-      <div className="flex" style={{ backgroundColor: '#09090b' }}>
+      <div className="flex bg-white">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex w-64 bg-zinc-900 border-r border-zinc-800 flex-col h-screen sticky top-0">
-          <div className="p-6 border-b border-zinc-800">
-            <h1 className="text-xl font-bold text-white">AI CITI</h1>
-            <p className="text-zinc-500 text-sm">Админ-панель</p>
+        <aside className="hidden lg:flex w-64 bg-gray-50 border-r border-gray-200 flex-col h-screen sticky top-0">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3 mb-3">
+              <Link
+                to="/"
+                className="p-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+              >
+                <Home size={18} />
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">AI CITI</h1>
+                <p className="text-gray-500 text-sm">Админ-панель</p>
+              </div>
+            </div>
           </div>
 
           <nav className="flex-1 p-4 space-y-1">
@@ -186,8 +217,8 @@ export function AdminLayout() {
                 end={link.to === '/admin'}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
                   }`
                 }
               >
@@ -200,7 +231,7 @@ export function AdminLayout() {
               <button
                 onClick={() => setSchoolOpen(!schoolOpen)}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                  isSchoolActive ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800'
+                  isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -219,8 +250,8 @@ export function AdminLayout() {
                       end={link.to === '/admin/mlm'}
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors ${isActive
-                          ? 'bg-blue-600 text-white'
-                          : 'text-zinc-400 hover:bg-zinc-800'
+                          ? 'bg-orange-500 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
                         }`
                       }
                     >
@@ -232,14 +263,14 @@ export function AdminLayout() {
               )}
             </div>
 
-            <div className="my-4 border-t border-zinc-800" />
+            <div className="my-4 border-t border-gray-200" />
 
             <NavLink
               to="/admin/settings"
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-zinc-400 hover:bg-zinc-800'
+                  ? 'bg-orange-500 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
                 }`
               }
             >
@@ -248,10 +279,10 @@ export function AdminLayout() {
             </NavLink>
           </nav>
 
-          <div className="p-4 border-t border-zinc-800">
+          <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-400 hover:bg-zinc-800 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
             >
               <LogOut className="w-5 h-5" />
               Выйти
@@ -260,8 +291,8 @@ export function AdminLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-h-screen bg-zinc-950 overflow-x-hidden" style={{ backgroundColor: '#09090b' }}>
-          <div className={`p-4 lg:p-6 text-white max-w-full overflow-x-hidden ${needsTopPadding ? 'pb-[70px]' : ''}`}>
+        <main className="flex-1 min-h-screen bg-white overflow-x-hidden">
+          <div className={`p-4 lg:p-6 max-w-full overflow-x-hidden ${needsTopPadding ? 'pb-[70px]' : ''}`}>
             <Outlet />
           </div>
         </main>

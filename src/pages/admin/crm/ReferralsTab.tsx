@@ -138,67 +138,67 @@ export function ReferralsTab() {
 
       {/* Поиск */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
         <input
           type="text"
           placeholder="Поиск..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none"
+          className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none"
         />
       </div>
 
       {/* Список рефереров с их партнёрами */}
       <div className="mt-2">
-        <h3 className="text-sm font-medium text-zinc-400 mb-2">Рефереры и их партнёры</h3>
+        <h3 className="text-sm font-medium text-gray-600 mb-2">Рефереры и их партнёры</h3>
         {isLinksLoading ? (
-          <div className="text-center py-8 text-zinc-500">Загрузка...</div>
+          <div className="text-center py-8 text-gray-500">Загрузка...</div>
         ) : groupedReferrers.length === 0 ? (
-          <div className="text-center py-8 text-zinc-500 bg-zinc-800 rounded-xl">
+          <div className="text-center py-8 text-gray-500 bg-white border border-gray-200 rounded-xl">
             {referralLinks?.length === 0 ? 'Пока нет реферальных связей' : 'Ничего не найдено'}
           </div>
         ) : (
           <div className="space-y-3">
             {groupedReferrers.map((referrer) => (
-              <div key={referrer.referrer_telegram_id} className="bg-zinc-800 rounded-xl p-4">
+              <div key={referrer.referrer_telegram_id} className="bg-white border border-gray-200 rounded-xl p-4">
                 {/* Реферер (кто пригласил) */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-white truncate">
+                    <div className="font-medium text-gray-900 truncate">
                       {referrer.referrer_first_name || 'Без имени'}
                     </div>
-                    <div className="text-xs text-zinc-500 truncate">
+                    <div className="text-xs text-gray-500 truncate">
                       {referrer.referrer_username ? `@${referrer.referrer_username}` : referrer.referrer_telegram_id}
                     </div>
                   </div>
-                  <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm flex-shrink-0">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-sm flex-shrink-0">
                     {referrer.partners.length} партн.
                   </span>
                 </div>
 
                 {/* Список партнёров */}
-                <div className="space-y-2 pl-3 border-l-2 border-green-500/30">
+                <div className="space-y-2 pl-3 border-l-2 border-green-300">
                   {referrer.partners.map((partner) => (
                     <div key={partner.telegram_id} className="flex items-center justify-between gap-2 py-1.5">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <ArrowRight className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        <ArrowRight className="w-3 h-3 text-green-600 flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-sm text-white truncate">
+                          <div className="text-sm text-gray-900 truncate">
                             {partner.first_name || 'Без имени'}
                           </div>
-                          <div className="text-xs text-zinc-500 truncate">
+                          <div className="text-xs text-gray-500 truncate">
                             {partner.username ? `@${partner.username}` : partner.telegram_id}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-gray-500">
                           {new Date(partner.created_at).toLocaleDateString('ru-RU', {
                             day: 'numeric',
                             month: 'short'
                           })}
                         </span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${partner.bonus_paid ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${partner.bonus_paid ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
                           {partner.bonus_paid ? '+6' : '0'}
                         </span>
                       </div>
@@ -212,7 +212,7 @@ export function ReferralsTab() {
 
         {/* Счётчик */}
         {groupedReferrers.length > 0 && (
-          <div className="text-xs text-zinc-500 text-center mt-2">
+          <div className="text-xs text-gray-500 text-center mt-2">
             {groupedReferrers.length} рефереров, {filteredLinks?.length || 0} партнёров
           </div>
         )}
@@ -233,19 +233,19 @@ function StatCard({
   color: 'blue' | 'yellow' | 'green' | 'purple'
 }) {
   const colors = {
-    blue: 'bg-blue-500/20 text-blue-400',
-    yellow: 'bg-yellow-500/20 text-yellow-400',
-    green: 'bg-green-500/20 text-green-400',
-    purple: 'bg-purple-500/20 text-purple-400'
+    blue: 'bg-blue-100 text-blue-600',
+    yellow: 'bg-yellow-100 text-yellow-600',
+    green: 'bg-green-100 text-green-600',
+    purple: 'bg-purple-100 text-purple-600'
   }
 
   return (
-    <div className="bg-zinc-800 rounded-xl p-3">
+    <div className="bg-white border border-gray-200 rounded-xl p-3">
       <div className={`w-8 h-8 rounded-lg ${colors[color]} flex items-center justify-center mb-2`}>
         <Icon className="w-4 h-4" />
       </div>
-      <div className="text-xl font-bold text-white">{value}</div>
-      <div className="text-xs text-zinc-500">{label}</div>
+      <div className="text-xl font-bold text-gray-900">{value}</div>
+      <div className="text-xs text-gray-500">{label}</div>
     </div>
   )
 }

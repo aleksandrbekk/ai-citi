@@ -54,15 +54,15 @@ export default function AnalyticsTab() {
   }, {} as Record<string, number>) || {}
 
   const StatCard = ({ icon: Icon, label, value, subvalue, color }: any) => (
-    <div className="bg-zinc-800 rounded-xl p-3">
+    <div className="bg-gray-100 rounded-xl p-3">
       <div className="flex items-center gap-2 mb-1">
         <div className={`p-1.5 rounded-lg ${color}`}>
           <Icon size={16} />
         </div>
-        <span className="text-zinc-400 text-xs">{label}</span>
+        <span className="text-gray-500 text-xs">{label}</span>
       </div>
-      <div className="text-xl font-bold text-white">{value}</div>
-      {subvalue && <div className="text-zinc-500 text-xs mt-0.5">{subvalue}</div>}
+      <div className="text-xl font-bold text-gray-900">{value}</div>
+      {subvalue && <div className="text-gray-500 text-xs mt-0.5">{subvalue}</div>}
     </div>
   )
 
@@ -71,10 +71,10 @@ export default function AnalyticsTab() {
     return (
       <div className="mb-3">
         <div className="flex justify-between text-sm mb-1">
-          <span className="text-zinc-400">{label}</span>
-          <span className="text-white">{value} ({percent}%)</span>
+          <span className="text-gray-500">{label}</span>
+          <span className="text-gray-900">{value} ({percent}%)</span>
         </div>
-        <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div className={`h-full ${color} rounded-full`} style={{ width: `${percent}%` }} />
         </div>
       </div>
@@ -89,34 +89,34 @@ export default function AnalyticsTab() {
           icon={Users}
           label="Всего клиентов"
           value={stats.total}
-          color="bg-blue-500/20 text-blue-400"
+          color="bg-blue-100 text-blue-600"
         />
         <StatCard
           icon={TrendingUp}
           label="Активных"
           value={stats.active}
           subvalue={`${stats.expiring} истекает скоро`}
-          color="bg-green-500/20 text-green-400"
+          color="bg-green-100 text-green-600"
         />
         <StatCard
           icon={DollarSign}
           label="Общий LTV"
           value={`$${stats.totalLTV}`}
           subvalue={`Средний: $${stats.avgLTV}`}
-          color="bg-yellow-500/20 text-yellow-400"
+          color="bg-yellow-100 text-yellow-600"
         />
         <StatCard
           icon={Calendar}
           label="Просрочено"
           value={stats.expired}
-          color="bg-red-500/20 text-red-400"
+          color="bg-red-100 text-red-600"
         />
       </div>
 
       <div className="grid gap-4">
         {/* По тарифам */}
-        <div className="bg-zinc-900 rounded-xl p-4">
-          <h3 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
             <BarChart3 size={16} /> По тарифам
           </h3>
           <ProgressBar label="Платина" value={byPlan.platinum} total={stats.total} color="bg-amber-500" />
@@ -127,8 +127,8 @@ export default function AnalyticsTab() {
         </div>
 
         {/* По источникам */}
-        <div className="bg-zinc-900 rounded-xl p-4">
-          <h3 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
             <TrendingUp size={16} /> Источники
           </h3>
           {Object.entries(bySources).length > 0 ? (
@@ -144,14 +144,14 @@ export default function AnalyticsTab() {
                 />
               ))
           ) : (
-            <p className="text-zinc-500">Нет данных</p>
+            <p className="text-gray-500">Нет данных</p>
           )}
         </div>
       </div>
 
       {/* По месяцам */}
-      <div className="bg-zinc-900 rounded-xl p-4">
-        <h3 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
           <Calendar size={16} /> По месяцам
         </h3>
         <div className="flex items-end gap-1 h-24">
@@ -168,14 +168,14 @@ export default function AnalyticsTab() {
                     className="w-full bg-blue-500 rounded-t"
                     style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
                   />
-                  <span className="text-xs text-zinc-500 mt-2">{month.slice(5)}</span>
-                  <span className="text-xs text-white">{countNum}</span>
+                  <span className="text-xs text-gray-500 mt-2">{month.slice(5)}</span>
+                  <span className="text-xs text-gray-900">{countNum}</span>
                 </div>
               )
             })}
         </div>
         {Object.keys(byMonth).length === 0 && (
-          <p className="text-zinc-500 text-center">Нет данных</p>
+          <p className="text-gray-500 text-center">Нет данных</p>
         )}
       </div>
     </div>

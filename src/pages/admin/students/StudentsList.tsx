@@ -136,10 +136,10 @@ export function StudentsList() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-white">Ученики</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Ученики</h1>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg flex items-center gap-2 text-white transition-colors"
+          className="px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg flex items-center gap-2 text-gray-900 transition-colors"
         >
           <UserPlus size={18} />
           Добавить
@@ -148,27 +148,27 @@ export function StudentsList() {
 
       {/* Форма добавления */}
       {showAddForm && (
-        <div className="bg-zinc-800 rounded-xl p-4 mb-6">
-          <h2 className="font-medium mb-3 text-white">Новый ученик</h2>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+          <h2 className="font-medium mb-3 text-gray-900">Новый ученик</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input
               type="number"
               value={newTelegramId}
               onChange={(e) => setNewTelegramId(e.target.value)}
               placeholder="Telegram ID *"
-              className="px-4 py-2 bg-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <input
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Имя / комментарий"
-              className="px-4 py-2 bg-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <button
               onClick={() => addUser.mutate()}
               disabled={!newTelegramId || addUser.isPending}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-lg text-white transition-colors"
+              className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-lg text-gray-900 transition-colors"
             >
               {addUser.isPending ? 'Добавление...' : 'Добавить'}
             </button>
@@ -178,27 +178,27 @@ export function StudentsList() {
 
       {/* Список учеников */}
       {isLoading ? (
-        <p className="text-zinc-400">Загрузка...</p>
+        <p className="text-gray-500">Загрузка...</p>
       ) : (
         <div className="space-y-3">
           {students?.map((student: any) => (
-            <div key={student.id} className="bg-zinc-800 rounded-xl p-4">
+            <div key={student.id} className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   {student.user?.avatar_url ? (
                     <img src={student.user.avatar_url} className="w-12 h-12 rounded-full" alt="Avatar" />
                   ) : (
-                    <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-lg text-white">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-lg text-gray-900">
                       {student.user?.first_name?.[0] || '?'}
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-white">
+                    <p className="font-medium text-gray-900">
                       {student.user ? `${student.user.first_name || ''} ${student.user.last_name || ''}`.trim() : student.comment || 'Не зарегистрирован'}
                     </p>
-                    <p className="text-sm text-zinc-400">
+                    <p className="text-sm text-gray-500">
                       {student.user?.username ? `@${student.user.username}` : ''} 
-                      <span className="text-zinc-600 ml-2">ID: {student.telegram_id}</span>
+                      <span className="text-gray-400 ml-2">ID: {student.telegram_id}</span>
                     </p>
                     {!student.user && (
                       <p className="text-xs text-yellow-500">Ещё не заходил в приложение</p>
@@ -219,15 +219,15 @@ export function StudentsList() {
 
               {/* Тарифы */}
               {student.user && (
-                <div className="mt-3 pt-3 border-t border-zinc-700">
-                  <p className="text-xs text-zinc-500 mb-2">Тарифы:</p>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-400 mb-2">Тарифы:</p>
                   <div className="flex flex-wrap gap-2">
                     {student.tariffs?.map((t: any) => (
                       <div key={t.id} className="flex items-center gap-1">
                         <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
                           t.is_active 
                             ? 'bg-orange-500/20 text-orange-400' 
-                            : 'bg-zinc-700/50 text-zinc-500 opacity-50'
+                            : 'bg-gray-100/50 text-gray-400 opacity-50'
                         }`}>
                           <span>{t.tariff_slug}</span>
                           
@@ -259,7 +259,7 @@ export function StudentsList() {
                           </button>
                         </div>
                         {!t.is_active && (
-                          <span className="text-xs text-zinc-500 ml-1">приостановлен</span>
+                          <span className="text-xs text-gray-400 ml-1">приостановлен</span>
                         )}
                       </div>
                     ))}
@@ -272,7 +272,7 @@ export function StudentsList() {
                           e.target.value = ''
                         }
                       }}
-                      className="px-3 py-1 bg-zinc-700 rounded-full text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       defaultValue=""
                     >
                       <option value="">+ Добавить тариф</option>
@@ -289,7 +289,7 @@ export function StudentsList() {
           ))}
 
           {students?.length === 0 && (
-            <p className="text-center py-8 text-zinc-500">Нет учеников</p>
+            <p className="text-center py-8 text-gray-400">Нет учеников</p>
           )}
         </div>
       )}

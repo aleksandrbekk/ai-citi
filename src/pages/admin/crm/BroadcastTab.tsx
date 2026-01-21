@@ -63,21 +63,27 @@ export function BroadcastTab() {
     },
     {
       id: 'basic',
-      label: 'Тариф Basic',
-      count: clients?.filter(c => c.plan === 'basic').length || 0,
-      filter: (c) => c.plan === 'basic'
+      label: 'Тариф BASIC',
+      count: clients?.filter(c => c.plan?.toUpperCase() === 'BASIC').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'BASIC'
     },
     {
       id: 'pro',
-      label: 'Тариф Pro',
-      count: clients?.filter(c => c.plan === 'pro').length || 0,
-      filter: (c) => c.plan === 'pro'
+      label: 'Тариф PRO',
+      count: clients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'PRO'
     },
     {
       id: 'vip',
       label: 'Тариф VIP',
-      count: clients?.filter(c => c.plan === 'vip').length || 0,
-      filter: (c) => c.plan === 'vip'
+      count: clients?.filter(c => c.plan?.toUpperCase() === 'VIP').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'VIP'
+    },
+    {
+      id: 'elite',
+      label: 'Тариф ELITE',
+      count: clients?.filter(c => c.plan?.toUpperCase() === 'ELITE').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'ELITE'
     },
   ]
 
@@ -177,8 +183,8 @@ export function BroadcastTab() {
   return (
     <div className="space-y-6">
       {/* Получатели */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase mb-4">Получатели</h3>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-sm font-medium text-gray-500 uppercase mb-4">Получатели</h3>
         
         <div className="flex flex-wrap gap-2 mb-4">
           {audiences.map(audience => (
@@ -187,8 +193,8 @@ export function BroadcastTab() {
               onClick={() => toggleAudience(audience.id)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 selectedAudiences.includes(audience.id)
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                  ? 'bg-blue-600 text-gray-900'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {audience.label} ({audience.count})
@@ -196,24 +202,24 @@ export function BroadcastTab() {
           ))}
         </div>
 
-        <div className="text-sm text-zinc-400">
-          Выбрано: <span className="text-white font-semibold">{getSelectedCount()}</span>
+        <div className="text-sm text-gray-500">
+          Выбрано: <span className="text-gray-900 font-semibold">{getSelectedCount()}</span>
         </div>
       </div>
 
       {/* Сообщение */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase mb-4">Сообщение</h3>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-sm font-medium text-gray-500 uppercase mb-4">Сообщение</h3>
         
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Введите текст..."
-          className="w-full h-40 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 resize-none"
+          className="w-full h-40 px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500 resize-none"
         />
         
         <div className="flex justify-end mt-2">
-          <span className="text-xs text-zinc-500">{message.length} символов</span>
+          <span className="text-xs text-gray-400">{message.length} символов</span>
         </div>
       </div>
 
@@ -222,7 +228,7 @@ export function BroadcastTab() {
         <div className={`p-4 rounded-lg ${sendResult.failed > 0 ? 'bg-red-500/10 border border-red-500/20' : 'bg-green-500/10 border border-green-500/20'}`}>
           <div className="flex items-center gap-2">
             <Check className={`w-5 h-5 ${sendResult.failed > 0 ? 'text-red-500' : 'text-green-500'}`} />
-            <span className="text-white">
+            <span className="text-gray-900">
               Отправлено: {sendResult.success}, Ошибок: {sendResult.failed}
             </span>
           </div>
@@ -233,7 +239,7 @@ export function BroadcastTab() {
       <button
         onClick={handleSend}
         disabled={isSending || !message.trim() || selectedAudiences.length === 0}
-        className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+        className="w-full py-4 bg-gray-100 hover:bg-gray-200 disabled:bg-white disabled:text-zinc-600 text-gray-900 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         {isSending ? (
           'Отправка...'

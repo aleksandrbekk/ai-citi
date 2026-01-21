@@ -140,12 +140,12 @@ export function AllUsersTab() {
     <div className="space-y-4">
       {/* Статистика */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-zinc-800 rounded-xl p-3">
-          <div className="text-xl font-bold text-white">{users?.length || 0}</div>
-          <div className="text-xs text-zinc-500">Всего</div>
+        <div className="bg-gray-100 rounded-xl p-3">
+          <div className="text-xl font-bold text-gray-900">{users?.length || 0}</div>
+          <div className="text-xs text-gray-500">Всего</div>
         </div>
-        <div className="bg-zinc-800 rounded-xl p-3">
-          <div className="text-xl font-bold text-blue-400">
+        <div className="bg-gray-100 rounded-xl p-3">
+          <div className="text-xl font-bold text-blue-600">
             {users?.filter(u => {
               const lastActive = u.last_active_at ? new Date(u.last_active_at) : null
               if (!lastActive) return false
@@ -153,43 +153,43 @@ export function AllUsersTab() {
               return now.getTime() - lastActive.getTime() < 86400000
             }).length || 0}
           </div>
-          <div className="text-xs text-zinc-500">За 24ч</div>
+          <div className="text-xs text-gray-500">За 24ч</div>
         </div>
-        <div className="bg-zinc-800 rounded-xl p-3">
-          <div className="text-xl font-bold text-green-400">
+        <div className="bg-gray-100 rounded-xl p-3">
+          <div className="text-xl font-bold text-green-600">
             {users?.filter(u => {
               const created = new Date(u.created_at)
               const now = new Date()
               return now.getTime() - created.getTime() < 86400000
             }).length || 0}
           </div>
-          <div className="text-xs text-zinc-500">Новых</div>
+          <div className="text-xs text-gray-500">Новых</div>
         </div>
-        <div className="bg-zinc-800 rounded-xl p-3">
-          <div className="text-xl font-bold text-yellow-400">
+        <div className="bg-gray-100 rounded-xl p-3">
+          <div className="text-xl font-bold text-orange-500">
             {premiumClients?.length || 0}
           </div>
-          <div className="text-xs text-zinc-500">Платных</div>
+          <div className="text-xs text-gray-500">Платных</div>
         </div>
       </div>
 
       {/* Поиск */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
           type="text"
           placeholder="Поиск..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none"
+          className="w-full pl-10 pr-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
         />
       </div>
 
       {/* Список пользователей - карточки */}
       {isLoading ? (
-        <div className="text-center py-8 text-zinc-500">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500">Загрузка...</div>
       ) : filteredUsers?.length === 0 ? (
-        <div className="text-center py-8 text-zinc-500">
+        <div className="text-center py-8 text-gray-500">
           {users?.length === 0 ? 'Нет пользователей' : 'Ничего не найдено'}
         </div>
       ) : (
@@ -203,7 +203,7 @@ export function AllUsersTab() {
             return (
               <div
                 key={user.id}
-                className={`bg-zinc-800 rounded-xl p-3 ${
+                className={`bg-white border border-gray-200 rounded-xl p-3 ${
                   online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
                 }`}
               >
@@ -214,20 +214,20 @@ export function AllUsersTab() {
                       {user.photo_url ? (
                         <img src={user.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
                           {user.first_name?.[0] || user.username?.[0] || '?'}
                         </div>
                       )}
                       {online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-medium text-white truncate flex items-center gap-1">
+                      <div className="font-medium text-gray-900 truncate flex items-center gap-1">
                         {[user.first_name, user.last_name].filter(Boolean).join(' ') || 'Без имени'}
-                        {isPremium && <CreditCard size={12} className="text-yellow-500 flex-shrink-0" />}
+                        {isPremium && <CreditCard size={12} className="text-orange-500 flex-shrink-0" />}
                       </div>
-                      <div className="text-xs text-zinc-500 truncate">
+                      <div className="text-xs text-gray-500 truncate">
                         {user.username ? `@${user.username}` : user.telegram_id}
                       </div>
                     </div>
@@ -237,7 +237,7 @@ export function AllUsersTab() {
                   <button
                     onClick={() => handleDelete(user)}
                     disabled={deleteUser.isPending}
-                    className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -246,15 +246,15 @@ export function AllUsersTab() {
                 {/* Детали */}
                 <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
                   <span className={`px-2 py-1 rounded ${
-                    online ? 'bg-green-500/20 text-green-400' : recentlyActive ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-800 text-zinc-500'
+                    online ? 'bg-green-100 text-green-600' : recentlyActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
                   }`}>
                     {getRelativeTime(user.last_active_at)}
                   </span>
                   {isPremium && (
-                    <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">{plan}</span>
+                    <span className="px-2 py-1 bg-orange-100 text-orange-600 rounded">{plan}</span>
                   )}
                   {user.utm_source && (
-                    <span className="px-2 py-1 bg-zinc-800 text-zinc-400 rounded">{user.utm_source}</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded">{user.utm_source}</span>
                   )}
                 </div>
               </div>
@@ -265,7 +265,7 @@ export function AllUsersTab() {
 
       {/* Счётчик */}
       {filteredUsers && (
-        <div className="text-xs text-zinc-500 text-center">
+        <div className="text-xs text-gray-500 text-center">
           {filteredUsers.length} из {users?.length || 0}
         </div>
       )}
