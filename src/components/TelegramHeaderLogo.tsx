@@ -25,18 +25,18 @@ export function TelegramHeaderLogo() {
       style={{
         // На уровне кнопок Telegram (чуть ниже системной строки)
         top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
-        // Резервируем место под кнопки по краям (примерно 80px с каждой стороны)
-        paddingLeft: '80px',
-        paddingRight: '80px',
+        // Резервируем место под кнопки по краям
+        paddingLeft: '60px',
+        paddingRight: '60px',
       }}
     >
       <div className="flex justify-center items-center">
         <Logo
-          height="16px"
+          height="48px"
           width="auto"
           className={[
-            // Маленький и аккуратный размер (на 20% меньше от исходного 20px: 20px * 0.8 = 16px)
-            'max-w-[160px]',
+            // Увеличенный размер для лучшей видимости (в 3 раза от 16px)
+            'max-w-[480px]',
             // Убираем белый фон на светлом фоне
             'mix-blend-multiply opacity-[0.88]',
             // Мягкое свечение (в стилистике проекта)
