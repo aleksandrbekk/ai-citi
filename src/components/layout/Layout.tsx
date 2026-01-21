@@ -34,12 +34,28 @@ export function Layout() {
     )
   }
 
+  // Вычисляем отступ для контента от нижней части логотипа
+  // Логотип: top = calc(env(safe-area-inset-top, 0px) + 65px), height = 58px
+  // Нижняя граница логотипа: safe-area-top + 65px + 58px = safe-area-top + 123px
+  // Добавляем отступ после логотипа (например, 20px)
+  // Итого: safe-area-top + 143px
+  const logoBottomOffset = showTelegramHeaderLogo 
+    ? 'calc(env(safe-area-inset-top, 0px) + 143px)' 
+    : needsPadding 
+      ? '100px' 
+      : '0px'
+
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col ${needsPadding && !showTelegramHeaderLogo ? 'pt-[100px]' : ''}`}>
       {/* Логотип между кнопками "Закрыть" и "..." в Telegram header (только fullscreen mobile) */}
       {showTelegramHeaderLogo && <TelegramHeaderLogo />}
       
-      <main className={`flex-1 overflow-auto ${isHomePage ? 'h-screen overflow-hidden' : ''}`}>
+      <main 
+        className={`flex-1 overflow-auto ${isHomePage ? 'h-screen overflow-hidden' : ''}`}
+        style={{
+          paddingTop: logoBottomOffset
+        }}
+      >
         <div className={isHomePage ? '' : 'pb-20'}>
           <Outlet />
         </div>
