@@ -1,4 +1,4 @@
-import { Logo } from '@/components/ui/Logo'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap } from 'lucide-react'
@@ -102,11 +102,6 @@ export default function Home() {
             }}
           />
         ))}
-      </div>
-
-      {/* Логотип сверху */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex justify-center pt-14 safe-top">
-        <Logo className="w-48 h-auto opacity-95" />
       </div>
 
       <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-end">
@@ -251,8 +246,8 @@ export default function Home() {
               key={index}
               onClick={() => setPage([index, index > currentIndex ? 1 : -1])}
               className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                  ? 'bg-orange-500 w-6'
-                  : 'bg-foreground/20 w-2 hover:bg-foreground/40'
+                ? 'bg-orange-500 w-6'
+                : 'bg-foreground/20 w-2 hover:bg-foreground/40'
                 }`}
             />
           ))}
