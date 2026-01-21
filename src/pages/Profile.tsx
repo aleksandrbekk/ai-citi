@@ -26,8 +26,8 @@ export default function Profile() {
     loadCoins()
   }, [telegramUser?.id])
 
-  // Количество генераций (10 монет = 1 генерация)
-  const generationsCount = Math.floor(coinBalance / 10)
+  // Количество генераций (30 монет = 1 генерация)
+  const generationsCount = Math.floor(coinBalance / 30)
 
   return (
     <div className="min-h-screen bg-white pb-24">

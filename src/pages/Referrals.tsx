@@ -43,7 +43,7 @@ export default function Referrals() {
         <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-4 border border-orange-100">
           <p className="font-semibold text-gray-900 mb-3">Как работает реферальная программа:</p>
           <div className="space-y-2 text-sm text-gray-700">
-            <p>🎁 <span className="font-semibold">+2 монеты</span> за регистрацию друга</p>
+            <p>🎁 <span className="font-semibold">+6 монет</span> за регистрацию друга</p>
             <p>💰 <span className="font-semibold">20% монет</span> от покупок партнера</p>
             <p>✨ <span className="font-semibold">20% монет</span> от трат партнера</p>
           </div>

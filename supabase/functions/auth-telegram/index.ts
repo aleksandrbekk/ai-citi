@@ -147,7 +147,7 @@ serve(async (req) => {
         if (!refError && registerResult?.success) {
           console.log('Referral registered:', registerResult)
 
-          // Выплачиваем бонус за регистрацию (2 монеты)
+          // Выплачиваем бонус за регистрацию (6 монет)
           const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
             p_referred_telegram_id: userData.id
           })
@@ -216,7 +216,7 @@ serve(async (req) => {
           if (!refError && registerResult?.success) {
             console.log('Referral registered for existing user:', registerResult)
 
-            // Выплачиваем бонус за регистрацию (2 монеты)
+            // Выплачиваем бонус за регистрацию (6 монет)
             const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
               p_referred_telegram_id: userData.id
             })

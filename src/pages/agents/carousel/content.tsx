@@ -54,15 +54,15 @@ export default function CarouselContent() {
       return
     }
 
-    // Проверка баланса монет (10 монет за генерацию)
-    if (coinBalance < 10) {
-      alert('Недостаточно монет для генерации! Нужно 10 монет. Пополните баланс в магазине.')
+    // Проверка баланса монет (30 монет за генерацию)
+    if (coinBalance < 30) {
+      alert('Недостаточно монет для генерации! Нужно 30 монет. Пополните баланс в магазине.')
       navigate('/shop')
       return
     }
 
-    // Списываем 10 монет
-    const spendResult = await spendCoinsForGeneration(chatId, 10, `Генерация карусели: ${variables.topic}`)
+    // Списываем 30 монет
+    const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`)
     if (!spendResult.success) {
       alert(spendResult.error === 'Not enough coins'
         ? 'Недостаточно монет для генерации!'
@@ -100,7 +100,7 @@ export default function CarouselContent() {
       topic: requestData.topic,
       cta_text: requestData.cta_text,
       hasUserPhoto: !!finalUserPhoto,
-      coinsSpent: 10,
+      coinsSpent: 30,
       newBalance: spendResult.new_balance,
     })
 
@@ -201,15 +201,15 @@ export default function CarouselContent() {
               {isLoadingCoins ? '...' : coinBalance} монет
             </span>
           </div>
-          <span className="text-xs text-gray-500">-10 за генерацию</span>
+          <span className="text-xs text-gray-500">-30 за генерацию</span>
         </div>
 
         <button
           onClick={handleGenerate}
-          disabled={coinBalance < 1 || isLoadingCoins}
+          disabled={coinBalance < 30 || isLoadingCoins}
           className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {coinBalance < 1 && !isLoadingCoins ? '⚠️ Недостаточно монет' : '🎨 Создать карусель'}
+          {coinBalance < 30 && !isLoadingCoins ? '⚠️ Недостаточно монет' : '🎨 Создать карусель'}
         </button>
       </div>
     </div>

@@ -60,7 +60,7 @@ export default function ReferralDetail() {
                 <p className="text-xs text-gray-500">Разовый бонус</p>
               </div>
             </div>
-            <p className="text-2xl font-bold text-green-600">+2</p>
+            <p className="text-2xl font-bold text-green-600">+6</p>
           </div>
 
           <div className="flex items-center justify-between p-4 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl border border-orange-100">
@@ -94,7 +94,7 @@ export default function ReferralDetail() {
         <div className="p-4 bg-gray-900 rounded-2xl">
           <div className="flex items-center justify-between">
             <p className="text-white font-semibold">Всего заработано:</p>
-            <p className="text-3xl font-bold text-yellow-400">2 монеты</p>
+            <p className="text-3xl font-bold text-yellow-400">6 монет</p>
           </div>
         </div>
       </div>
