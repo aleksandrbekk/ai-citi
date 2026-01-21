@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { LoaderIcon } from '@/components/ui/icons'
 import { useUtmTracking } from '@/hooks/useUtmTracking'
 import { useAuthStore } from '@/store/authStore'
+import { TelegramHeaderLogo } from '@/components/TelegramHeaderLogo'
+import { isMobileTelegram } from '@/lib/telegram'
 
 export function Layout() {
   const { isLoading } = useAuth()
@@ -19,6 +21,7 @@ export function Layout() {
   const isTMA = !!(tg?.initData && tg.initData.length > 0)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const needsPadding = isTMA && isMobile && !isHomePage
+  const showTelegramHeaderLogo = isTMA && isMobileTelegram()
 
   if (isLoading) {
     return (
@@ -33,6 +36,9 @@ export function Layout() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
+      {/* Логотип между кнопками "Закрыть" и "..." в Telegram header (только fullscreen mobile) */}
+      {showTelegramHeaderLogo && <TelegramHeaderLogo />}
+      
       <main className={`flex-1 overflow-auto ${isHomePage ? 'h-screen overflow-hidden' : ''}`}>
         <div className={isHomePage ? '' : 'pb-20'}>
           <Outlet />
