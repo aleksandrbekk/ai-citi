@@ -104,7 +104,7 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-end">
+      <div className="relative flex flex-col items-center px-6 h-full pb-28 justify-start pt-4">
 
         {/* Диалоговое окно - речь персонажа */}
         <motion.div
