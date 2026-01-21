@@ -199,7 +199,7 @@ export function ReferralsTab() {
                           })}
                         </span>
                         <span className={`text-xs px-1.5 py-0.5 rounded ${partner.bonus_paid ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                          {partner.bonus_paid ? '+2' : '0'}
+                          {partner.bonus_paid ? '+6' : '0'}
                         </span>
                       </div>
                     </div>
