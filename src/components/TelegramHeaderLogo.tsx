@@ -32,17 +32,13 @@ export function TelegramHeaderLogo() {
     >
       <div className="flex justify-center items-center">
         <Logo
-          height="48px"
+          height="24px"
           width="auto"
           className={[
-            // Увеличенный размер для лучшей видимости (в 3 раза от 16px)
-            'max-w-[480px]',
-            // Убираем белый фон на светлом фоне
-            'mix-blend-multiply opacity-[0.88]',
-            // Мягкое свечение (в стилистике проекта)
-            'drop-shadow-[0_2px_8px_rgba(0,0,0,0.08)]',
-            'drop-shadow-[0_0_12px_rgba(255,90,31,0.15)]',
-            'drop-shadow-[0_0_10px_rgba(6,182,212,0.12)]',
+            // Нормальный размер для видимости
+            'max-w-[200px]',
+            // Убираем mix-blend-multiply, чтобы логотип был виден
+            // Оставляем только базовый mix-blend-multiply из компонента Logo
           ].join(' ')}
         />
       </div>
