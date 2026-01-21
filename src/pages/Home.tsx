@@ -152,12 +152,12 @@ export default function Home() {
 
             {/* Персонаж с парением - увеличен на 10% (h-72 = 288px) */}
             <div className="h-72 flex items-center justify-center mb-3">
-              <AnimatePresence mode='popLayout' initial={false} custom={direction}>
+              <AnimatePresence mode='popLayout' custom={direction}>
                 <motion.div
                   key={currentIndex}
                   custom={direction}
                   variants={slideVariants}
-                  initial={direction === 0 ? false : "enter"}
+                  initial="center"
                   animate="center"
                   exit="exit"
                   transition={{
