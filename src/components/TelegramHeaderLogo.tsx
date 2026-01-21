@@ -30,18 +30,13 @@ export function TelegramHeaderLogo() {
         paddingRight: '80px',
       }}
     >
-      <div
-        className="flex justify-center items-center"
-        style={{
-          // Ограничиваем ширину, чтобы логотип не расползался
-          maxWidth: '200px',
-          width: '100%',
-        }}
-      >
+      <div className="flex justify-center items-center">
         <Logo
+          height="12px"
+          width="auto"
           className={[
             // Маленький и аккуратный размер (на 40% меньше от исходного 20px: 20px * 0.6 = 12px)
-            'h-[12px] w-auto',
+            'max-w-[120px]',
             // Убираем белый фон на светлом фоне
             'mix-blend-multiply opacity-[0.88]',
             // Мягкое свечение (в стилистике проекта)
