@@ -18,37 +18,79 @@ serve(async (req) => {
     console.log('=== Lava.top Webhook Received ===')
     console.log('Full payload:', JSON.stringify(body, null, 2))
 
-    // Lava.top отправляет данные в разных форматах
-    // Проверяем статус платежа
-    const status = body.status || body.eventType
-    if (status !== 'success' && status !== 'payment.success') {
-      console.log('Payment not successful, status:', status)
-      return new Response(
-        JSON.stringify({ ok: true, message: 'Ignored non-success status' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Принимаем разные статусы успешной оплаты
+    const status = body.status || body.eventType || body.event || body.type || ''
+    const successStatuses = ['success', 'payment.success', 'completed', 'paid', 'succeeded', 'approved']
+
+    const isSuccess = successStatuses.some(s =>
+      status.toLowerCase().includes(s) ||
+      body.paid === true ||
+      body.success === true
+    )
+
+    if (!isSuccess) {
+      console.log('Payment status:', status, '- checking if success...')
+      // Если статус не распознан, но есть данные - попробуем обработать
+      if (!body.clientUtm && !body.utm_content && !body.buyer?.utm_content) {
+        console.log('No UTM data and unknown status, ignoring')
+        return new Response(
+          JSON.stringify({ ok: true, message: 'Ignored', received: body }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
-    // Извлекаем telegram_id из clientUtm.utm_content
-    const clientUtm = body.clientUtm || {}
-    const telegramIdStr = clientUtm.utm_content || clientUtm.utmContent
+    // Ищем telegram_id в разных местах
+    let telegramIdStr = null
 
-    console.log('clientUtm:', clientUtm)
-    console.log('telegram_id from utm_content:', telegramIdStr)
+    // Вариант 1: clientUtm.utm_content
+    if (body.clientUtm?.utm_content) {
+      telegramIdStr = body.clientUtm.utm_content
+    }
+    // Вариант 2: clientUtm.utmContent
+    else if (body.clientUtm?.utmContent) {
+      telegramIdStr = body.clientUtm.utmContent
+    }
+    // Вариант 3: utm_content напрямую в body
+    else if (body.utm_content) {
+      telegramIdStr = body.utm_content
+    }
+    // Вариант 4: в buyer объекте
+    else if (body.buyer?.utm_content) {
+      telegramIdStr = body.buyer.utm_content
+    }
+    // Вариант 5: в metadata
+    else if (body.metadata?.utm_content) {
+      telegramIdStr = body.metadata.utm_content
+    }
+    // Вариант 6: в custom_fields
+    else if (body.custom_fields?.utm_content) {
+      telegramIdStr = body.custom_fields.utm_content
+    }
+    // Вариант 7: telegram_id напрямую
+    else if (body.telegram_id) {
+      telegramIdStr = body.telegram_id
+    }
+
+    console.log('Found telegram_id:', telegramIdStr)
 
     if (!telegramIdStr) {
-      console.error('No telegram_id in utm_content')
+      console.error('No telegram_id found in payload')
       return new Response(
-        JSON.stringify({ ok: false, error: 'No telegram_id in utm_content' }),
+        JSON.stringify({
+          ok: false,
+          error: 'No telegram_id found',
+          received_payload: body
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    const telegramId = parseInt(telegramIdStr, 10)
+    const telegramId = parseInt(String(telegramIdStr), 10)
     if (isNaN(telegramId)) {
       console.error('Invalid telegram_id:', telegramIdStr)
       return new Response(
-        JSON.stringify({ ok: false, error: 'Invalid telegram_id' }),
+        JSON.stringify({ ok: false, error: 'Invalid telegram_id', value: telegramIdStr }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -68,7 +110,7 @@ serve(async (req) => {
       p_amount: coinsAmount,
       p_type: 'purchase',
       p_description: `Покупка ${coinsAmount} монет через Lava.top`,
-      p_metadata: { source: 'lava.top', contractId: body.contractId }
+      p_metadata: { source: 'lava.top', contractId: body.contractId || body.id || 'unknown' }
     })
 
     if (addError) {
