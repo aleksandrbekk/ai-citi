@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Coins } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
+import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
   const { selectedTemplate, variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
   const [coinBalance, setCoinBalance] = useState<number>(0)
-  const [isLoadingCoins, setIsLoadingCoins] = useState(true)
+  const [hasSubscription, setHasSubscription] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Загружаем фото и баланс монет при загрузке страницы
+  // Загружаем фото, баланс монет и подписку при загрузке страницы
   useEffect(() => {
     const loadData = async () => {
       const telegramUser = getTelegramUser()
@@ -24,8 +25,11 @@ export default function CarouselContent() {
         // Загружаем баланс монет
         const balance = await getCoinBalance(telegramUser.id)
         setCoinBalance(balance)
+        // Проверяем подписку
+        const tariffs = await getUserTariffsById(telegramUser.id)
+        setHasSubscription(tariffs.length > 0)
       }
-      setIsLoadingCoins(false)
+      setIsLoading(false)
     }
     loadData()
   }, [setUserPhoto])
@@ -54,24 +58,33 @@ export default function CarouselContent() {
       return
     }
 
-    // Проверка баланса монет (30 монет за генерацию)
-    if (coinBalance < 30) {
-      alert('Недостаточно монет для генерации! Нужно 30 монет. Пополните баланс в магазине.')
-      navigate('/shop')
-      return
-    }
+    // Проверяем доступ: подписка ИЛИ 30 монет
+    let coinsSpent = 0
 
-    // Списываем 30 монет
-    const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`)
-    if (!spendResult.success) {
-      alert(spendResult.error === 'Not enough coins'
-        ? 'Недостаточно монет для генерации!'
-        : 'Ошибка при списании монет. Попробуйте позже.')
-      return
-    }
+    if (hasSubscription) {
+      // Есть подписка — генерация бесплатная
+      console.log('User has subscription, free generation')
+    } else {
+      // Нет подписки — проверяем монеты
+      if (coinBalance < 30) {
+        alert('Для генерации нужна подписка или 30 монет. Пополните баланс в магазине.')
+        navigate('/shop')
+        return
+      }
 
-    // Обновляем локальный баланс
-    setCoinBalance(spendResult.new_balance || 0)
+      // Списываем 30 монет
+      const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`)
+      if (!spendResult.success) {
+        alert(spendResult.error === 'Not enough coins'
+          ? 'Недостаточно монет для генерации!'
+          : 'Ошибка при списании монет. Попробуйте позже.')
+        return
+      }
+
+      // Обновляем локальный баланс
+      setCoinBalance(spendResult.new_balance || 0)
+      coinsSpent = 30
+    }
 
     // Фото уже загружено в useEffect
     const finalUserPhoto = userPhoto
@@ -100,8 +113,8 @@ export default function CarouselContent() {
       topic: requestData.topic,
       cta_text: requestData.cta_text,
       hasUserPhoto: !!finalUserPhoto,
-      coinsSpent: 30,
-      newBalance: spendResult.new_balance,
+      hasSubscription,
+      coinsSpent,
     })
 
     setStatus('generating')
@@ -192,24 +205,32 @@ export default function CarouselContent() {
           />
         </div>
 
-        {/* Баланс монет */}
+        {/* Баланс / Подписка */}
         <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-xl">
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-orange-500" />
-            <span className="text-sm text-gray-600">Ваш баланс:</span>
-            <span className="font-bold text-gray-900">
-              {isLoadingCoins ? '...' : coinBalance} монет
-            </span>
+            {hasSubscription ? (
+              <span className="font-bold text-green-600">Подписка активна ✓</span>
+            ) : (
+              <>
+                <span className="text-sm text-gray-600">Баланс:</span>
+                <span className="font-bold text-gray-900">
+                  {isLoading ? '...' : coinBalance} монет
+                </span>
+              </>
+            )}
           </div>
-          <span className="text-xs text-gray-500">-30 за генерацию</span>
+          {!hasSubscription && <span className="text-xs text-gray-500">-30 за генерацию</span>}
         </div>
 
         <button
           onClick={handleGenerate}
-          disabled={coinBalance < 30 || isLoadingCoins}
+          disabled={(!hasSubscription && coinBalance < 30) || isLoading}
           className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {coinBalance < 30 && !isLoadingCoins ? '⚠️ Недостаточно монет' : '🎨 Создать карусель'}
+          {!hasSubscription && coinBalance < 30 && !isLoading
+            ? '⚠️ Нужна подписка или 30 монет'
+            : '🎨 Создать карусель'}
         </button>
       </div>
     </div>
