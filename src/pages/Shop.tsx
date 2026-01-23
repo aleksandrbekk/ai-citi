@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
-import { getCoinBalance, supabase } from '@/lib/supabase'
-import { Coins, Crown, Star, Palette, Mail, CheckCircle } from 'lucide-react'
+import { getCoinBalance } from '@/lib/supabase'
+import { Coins, Crown, Star, Palette } from 'lucide-react'
 
 // Ссылка на продукт в Lava.top
 const LAVA_PRODUCT_URL = 'https://app.lava.top/products/bcc55515-b779-47cd-83aa-5306575e6d95'
@@ -88,69 +88,28 @@ export function Shop() {
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [activeTab, setActiveTab] = useState<'coins' | 'subscription' | 'styles'>('coins')
-  const [email, setEmail] = useState('')
-  const [savedEmail, setSavedEmail] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     const loadData = async () => {
       if (telegramUser?.id) {
-        // Загружаем баланс
         const balance = await getCoinBalance(telegramUser.id)
         setCoinBalance(balance)
-
-        // Загружаем сохранённый email
-        const { data } = await supabase
-          .from('payment_emails')
-          .select('email')
-          .eq('telegram_id', telegramUser.id)
-          .single()
-
-        if (data?.email) {
-          setSavedEmail(data.email)
-          setEmail(data.email)
-        }
       }
       setIsLoadingCoins(false)
     }
     loadData()
   }, [telegramUser?.id])
 
-  const handleSaveEmail = async () => {
-    if (!email || !telegramUser?.id) return
-
-    // Простая валидация email
-    if (!email.includes('@')) {
-      alert('Введите корректный email')
+  const handleBuy = (pkg: typeof coinPackages[0]) => {
+    if (!telegramUser?.id) {
+      alert('Ошибка: не удалось определить пользователя')
       return
     }
 
-    setIsSaving(true)
-
-    const { error } = await supabase
-      .from('payment_emails')
-      .upsert({
-        telegram_id: telegramUser.id,
-        email: email.toLowerCase().trim()
-      }, { onConflict: 'telegram_id' })
-
-    if (error) {
-      console.error('Error saving email:', error)
-      alert('Ошибка сохранения email')
-    } else {
-      setSavedEmail(email.toLowerCase().trim())
-    }
-
-    setIsSaving(false)
-  }
-
-  const handleBuy = (pkg: typeof coinPackages[0]) => {
     if (pkg.available && pkg.lavaUrl) {
-      if (!savedEmail) {
-        alert('Сначала сохраните email для оплаты')
-        return
-      }
-      window.open(pkg.lavaUrl, '_blank')
+      // Добавляем telegram_id в URL через utm_content
+      const paymentUrl = `${pkg.lavaUrl}?utm_content=${telegramUser.id}`
+      window.open(paymentUrl, '_blank')
     } else {
       alert('Скоро будет доступно!')
     }
@@ -171,51 +130,6 @@ export function Shop() {
         <h1 className="text-2xl font-bold text-center text-gray-900">
           МАГАЗИН
         </h1>
-      </div>
-
-      {/* Email для оплаты - ОБЯЗАТЕЛЬНАЯ ПЛАШКА */}
-      <div className="px-4 pb-3">
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Mail className="w-4 h-4 text-orange-500" />
-            <p className="text-xs font-medium text-orange-700">Email для оплаты (обязательно)</p>
-          </div>
-
-          {savedEmail ? (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-xl">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-green-700">{savedEmail}</span>
-              </div>
-              <button
-                onClick={() => setSavedEmail(null)}
-                className="text-xs text-gray-500 underline px-2"
-              >
-                Изменить
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="flex-1 p-2 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400"
-              />
-              <button
-                onClick={handleSaveEmail}
-                disabled={isSaving || !email}
-                className="px-4 py-2 bg-orange-500 text-white rounded-xl font-medium text-sm disabled:opacity-50"
-              >
-                {isSaving ? '...' : 'Сохранить'}
-              </button>
-            </div>
-          )}
-          <p className="text-[10px] text-orange-600 mt-1.5">
-            Используйте этот же email при оплате на Lava.top
-          </p>
-        </div>
       </div>
 
       {/* Tabs */}
