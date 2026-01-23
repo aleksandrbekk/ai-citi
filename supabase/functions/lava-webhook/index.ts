@@ -109,12 +109,6 @@ serve(async (req) => {
         console.error('Error adding referrer bonus:', bonusError)
       } else {
         console.log('Referrer bonus added:', bonusResult)
-
-        // Обновляем статистику реферера
-        await supabase.rpc('update_referral_stats_on_purchase', {
-          p_referred_telegram_id: telegramId,
-          p_spent_amount: coinsAmount
-        })
       }
     }
 
