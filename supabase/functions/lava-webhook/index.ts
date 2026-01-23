@@ -18,26 +18,26 @@ serve(async (req) => {
     console.log('=== Lava.top Webhook Received ===')
     console.log('Full payload:', JSON.stringify(body, null, 2))
 
-    // Принимаем разные статусы успешной оплаты
-    const status = body.status || body.eventType || body.event || body.type || ''
-    const successStatuses = ['success', 'payment.success', 'completed', 'paid', 'succeeded', 'approved']
+    // Lava.top отправляет:
+    // eventType: "payment.success" | "payment.failed" | "subscription.recurring.payment.success" | etc
+    // status: "completed" | "failed" | "new" | "in-progress" | etc
+    const eventType = body.eventType || ''
+    const status = body.status || ''
 
-    const isSuccess = successStatuses.some(s =>
-      status.toLowerCase().includes(s) ||
-      body.paid === true ||
-      body.success === true
-    )
+    console.log('eventType:', eventType, 'status:', status)
+
+    // Успешная оплата: eventType содержит "success" ИЛИ status = "completed"
+    const isSuccess =
+      eventType.includes('success') ||
+      status === 'completed' ||
+      body.paid === true
 
     if (!isSuccess) {
-      console.log('Payment status:', status, '- checking if success...')
-      // Если статус не распознан, но есть данные - попробуем обработать
-      if (!body.clientUtm && !body.utm_content && !body.buyer?.utm_content) {
-        console.log('No UTM data and unknown status, ignoring')
-        return new Response(
-          JSON.stringify({ ok: true, message: 'Ignored', received: body }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
+      console.log('Payment not successful, eventType:', eventType, 'status:', status)
+      return new Response(
+        JSON.stringify({ ok: true, message: 'Ignored non-success', eventType, status }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Ищем telegram_id в разных местах
