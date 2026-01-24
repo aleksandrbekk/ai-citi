@@ -110,8 +110,11 @@ export function Shop() {
   }
 
   const handleBuy = async (pkg: typeof coinPackages[0]) => {
+    console.log('handleBuy called', { telegramUser, pkg })
+
     if (!telegramUser?.id) {
-      alert('Ошибка: не удалось определить пользователя')
+      console.error('No telegramUser.id')
+      alert('Ошибка: не удалось определить пользователя. Откройте магазин через Telegram бота.')
       return
     }
 
