@@ -97,6 +97,7 @@ serve(async (req) => {
 
     // Сумма монет (по умолчанию 100)
     const coinsAmount = 100
+    const contractId = body.contractId || body.id || null
 
     // Создание Supabase клиента
     const supabase = createClient(
@@ -104,13 +105,31 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    // Проверка на дубликат — ищем транзакцию с таким contractId
+    if (contractId) {
+      const { data: existing } = await supabase
+        .from('coin_transactions')
+        .select('id')
+        .contains('metadata', { contractId })
+        .limit(1)
+        .single()
+
+      if (existing) {
+        console.log('Duplicate webhook, contractId already processed:', contractId)
+        return new Response(
+          JSON.stringify({ ok: true, message: 'Already processed', contractId }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
     // Начисляем монеты покупателю
     const { data: addResult, error: addError } = await supabase.rpc('add_coins', {
       p_telegram_id: telegramId,
       p_amount: coinsAmount,
       p_type: 'purchase',
       p_description: `Покупка ${coinsAmount} монет через Lava.top`,
-      p_metadata: { source: 'lava.top', contractId: body.contractId || body.id || 'unknown' }
+      p_metadata: { source: 'lava.top', contractId: contractId || 'unknown' }
     })
 
     if (addError) {
