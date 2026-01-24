@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 import UtmTab from './crm/UtmTab'
+import StatsTab from './crm/StatsTab'
 
 type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'settings'
 
@@ -213,11 +214,7 @@ function CRMSection() {
         </div>
       )}
 
-      {activeTab === 'analytics' && (
-        <div className="bg-[#1E293B] rounded-lg border border-[#334155] p-6">
-          <p className="text-[#94A3B8]">Раздел аналитики в разработке</p>
-        </div>
-      )}
+      {activeTab === 'analytics' && <StatsTab />}
 
       {activeTab === 'utm' && <UtmTab />}
     </div>
