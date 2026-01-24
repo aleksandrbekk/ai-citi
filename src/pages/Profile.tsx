@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
-import { Wallet, ShoppingCart, Network, Settings, Users } from 'lucide-react'
+import { Wallet, ShoppingCart, Users } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function Profile() {
@@ -25,9 +25,6 @@ export default function Profile() {
     }
     loadCoins()
   }, [telegramUser?.id])
-
-  // Количество генераций (30 монет = 1 генерация)
-  const generationsCount = Math.floor(coinBalance / 30)
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -82,7 +79,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Сетка с 4 плитками */}
+        {/* Сетка с 2 плитками */}
         <div className="grid grid-cols-2 gap-3">
           {/* Купить монеты */}
           <Link
@@ -95,15 +92,6 @@ export default function Profile() {
             <p className="text-xl font-bold text-gray-900">Купить монеты</p>
           </Link>
 
-          {/* Генерации */}
-          <div className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start">
-            <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center mb-3">
-              <Network className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-xl font-bold text-gray-900">Генерации</p>
-            <p className="text-sm text-gray-500 mt-1">{generationsCount} доступно</p>
-          </div>
-
           {/* Рефералы */}
           <button
             onClick={() => navigate('/referrals')}
@@ -114,17 +102,6 @@ export default function Profile() {
             </div>
             <p className="text-xl font-bold text-gray-900">Рефералы</p>
             <p className="text-sm text-gray-500 mt-1">{stats?.total_referrals || 0} партнеров</p>
-          </button>
-
-          {/* Настройки */}
-          <button
-            onClick={() => navigate('/settings')}
-            className="bg-white rounded-3xl shadow-lg p-6 flex flex-col items-start hover:shadow-xl transition-all text-left"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
-              <Settings className="w-6 h-6 text-gray-600" />
-            </div>
-            <p className="text-xl font-bold text-gray-900">Настройки</p>
           </button>
         </div>
       </div>

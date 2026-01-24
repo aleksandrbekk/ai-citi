@@ -561,9 +561,15 @@ export default function CarouselIndex() {
 
           {/* Balance info for non-subscribers */}
           {!hasSubscription && (
-            <div className="mb-4 p-3 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-between">
-              <span className="text-sm text-gray-600">Ваш баланс:</span>
-              <span className="font-bold text-orange-600">{coinBalance} монет</span>
+            <div className="mb-4 p-3 rounded-xl bg-orange-50 border border-orange-100">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-gray-600">Ваш баланс:</span>
+                <span className="font-bold text-orange-600">{coinBalance} монет</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Доступно генераций:</span>
+                <span className="font-bold text-green-600">{Math.floor(coinBalance / GENERATION_COST)}</span>
+              </div>
             </div>
           )}
 
