@@ -143,35 +143,16 @@ serve(async (req) => {
 
     console.log('Coins added successfully:', addResult)
 
-    // Проверяем реферера и начисляем 20% бонус
-    const { data: referrer } = await supabase
-      .from('referrals')
-      .select('referrer_telegram_id')
-      .eq('referred_telegram_id', telegramId)
-      .single()
+    // Начисляем реферальный бонус через функцию (она обновляет и статистику)
+    const { data: referralResult, error: referralError } = await supabase.rpc('pay_referral_purchase_bonus', {
+      p_buyer_telegram_id: telegramId,
+      p_coins_purchased: coinsAmount
+    })
 
-    if (referrer?.referrer_telegram_id) {
-      const referrerBonus = Math.floor(coinsAmount * 0.2) // 20%
-
-      console.log('Found referrer:', referrer.referrer_telegram_id, 'bonus:', referrerBonus)
-
-      const { data: bonusResult, error: bonusError } = await supabase.rpc('add_coins', {
-        p_telegram_id: referrer.referrer_telegram_id,
-        p_amount: referrerBonus,
-        p_type: 'referral_bonus',
-        p_description: `Бонус 20% от покупки партнёра (${coinsAmount} монет)`,
-        p_metadata: {
-          source: 'referral_purchase_bonus',
-          partner_telegram_id: telegramId,
-          purchase_amount: coinsAmount
-        }
-      })
-
-      if (bonusError) {
-        console.error('Error adding referrer bonus:', bonusError)
-      } else {
-        console.log('Referrer bonus added:', bonusResult)
-      }
+    if (referralError) {
+      console.error('Error paying referral bonus:', referralError)
+    } else {
+      console.log('Referral bonus result:', referralResult)
     }
 
     return new Response(
