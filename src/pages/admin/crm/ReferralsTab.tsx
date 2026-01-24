@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Users, Coins, TrendingUp, CreditCard, Search, ArrowRight } from 'lucide-react'
+import { Users, Coins, TrendingUp, CreditCard, Search, ArrowRight, ChevronDown, ChevronUp, Gift, ShoppingCart } from 'lucide-react'
 import { useState } from 'react'
 
 interface ReferralStatRow {
@@ -26,8 +26,17 @@ interface ReferralLink {
   partner_earnings: number
 }
 
+interface PartnerTransaction {
+  id: string
+  amount: number
+  type: string
+  description: string
+  created_at: string
+}
+
 export function ReferralsTab() {
   const [search, setSearch] = useState('')
+  const [expandedPartner, setExpandedPartner] = useState<string | null>(null)
 
   const { data: stats } = useQuery({
     queryKey: ['admin-referral-stats'],
@@ -109,6 +118,11 @@ export function ReferralsTab() {
     { referrals: 0, earned: 0, spent: 0, purchased: 0 }
   ) || { referrals: 0, earned: 0, spent: 0, purchased: 0 }
 
+  const togglePartner = (referrerId: number, partnerId: number) => {
+    const key = `${referrerId}-${partnerId}`
+    setExpandedPartner(expandedPartner === key ? null : key)
+  }
+
   return (
     <div className="space-y-4">
       {/* Общая статистика */}
@@ -181,32 +195,56 @@ export function ReferralsTab() {
 
                 {/* Список партнёров */}
                 <div className="space-y-2 pl-3 border-l-2 border-green-300">
-                  {referrer.partners.map((partner) => (
-                    <div key={partner.telegram_id} className="flex items-center justify-between gap-2 py-1.5">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <ArrowRight className="w-3 h-3 text-green-600 flex-shrink-0" />
-                        <div className="min-w-0">
-                          <div className="text-sm text-gray-900 truncate">
-                            {partner.first_name || 'Без имени'}
+                  {referrer.partners.map((partner) => {
+                    const partnerKey = `${referrer.referrer_telegram_id}-${partner.telegram_id}`
+                    const isExpanded = expandedPartner === partnerKey
+
+                    return (
+                      <div key={partner.telegram_id}>
+                        <div
+                          className="flex items-center justify-between gap-2 py-1.5 cursor-pointer hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors"
+                          onClick={() => togglePartner(referrer.referrer_telegram_id, partner.telegram_id)}
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <ArrowRight className="w-3 h-3 text-green-600 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-sm text-gray-900 truncate">
+                                {partner.first_name || 'Без имени'}
+                              </div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {partner.username ? `@${partner.username}` : partner.telegram_id}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 truncate">
-                            {partner.username ? `@${partner.username}` : partner.telegram_id}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-xs text-gray-500">
+                              {new Date(partner.created_at).toLocaleDateString('ru-RU', {
+                                day: 'numeric',
+                                month: 'short'
+                              })}
+                            </span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${partner.partner_earnings > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                              {partner.partner_earnings > 0 ? `+${partner.partner_earnings}` : '0'}
+                            </span>
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            )}
                           </div>
                         </div>
+
+                        {/* Детализация бонусов */}
+                        {isExpanded && (
+                          <PartnerDetails
+                            referrerTelegramId={referrer.referrer_telegram_id}
+                            partnerTelegramId={partner.telegram_id}
+                            partnerName={partner.first_name || 'Партнёр'}
+                          />
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs text-gray-500">
-                          {new Date(partner.created_at).toLocaleDateString('ru-RU', {
-                            day: 'numeric',
-                            month: 'short'
-                          })}
-                        </span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${partner.partner_earnings > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                          {partner.partner_earnings > 0 ? `+${partner.partner_earnings}` : '0'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -219,6 +257,81 @@ export function ReferralsTab() {
             {groupedReferrers.length} рефереров, {filteredLinks?.length || 0} партнёров
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function PartnerDetails({
+  referrerTelegramId,
+  partnerTelegramId,
+  partnerName
+}: {
+  referrerTelegramId: number
+  partnerTelegramId: number
+  partnerName: string
+}) {
+  const { data: transactions, isLoading } = useQuery({
+    queryKey: ['partner-transactions', referrerTelegramId, partnerTelegramId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_get_partner_transactions', {
+        p_referrer_telegram_id: referrerTelegramId,
+        p_partner_telegram_id: partnerTelegramId
+      })
+      if (error) throw error
+      return data as PartnerTransaction[]
+    }
+  })
+
+  if (isLoading) {
+    return (
+      <div className="ml-5 mt-2 p-3 bg-gray-50 rounded-lg">
+        <div className="text-xs text-gray-500 text-center">Загрузка...</div>
+      </div>
+    )
+  }
+
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="ml-5 mt-2 p-3 bg-gray-50 rounded-lg">
+        <div className="text-xs text-gray-500 text-center">Нет транзакций</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="ml-5 mt-2 p-3 bg-gray-50 rounded-lg space-y-2">
+      <div className="text-xs font-medium text-gray-600 mb-2">
+        Доход от {partnerName}:
+      </div>
+      {transactions.map((tx) => (
+        <div key={tx.id} className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            {tx.type === 'referral' ? (
+              <Gift className="w-3 h-3 text-blue-500" />
+            ) : (
+              <ShoppingCart className="w-3 h-3 text-green-500" />
+            )}
+            <span className="text-gray-600">
+              {tx.type === 'referral' ? 'Регистрация' : 'Бонус от покупки'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400">
+              {new Date(tx.created_at).toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'short'
+              })}
+            </span>
+            <span className="font-medium text-green-600">+{tx.amount}</span>
+          </div>
+        </div>
+      ))}
+      <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between text-xs">
+        <span className="font-medium text-gray-700">Итого:</span>
+        <span className="font-bold text-green-600">
+          +{transactions.reduce((sum, tx) => sum + tx.amount, 0)}
+        </span>
       </div>
     </div>
   )
