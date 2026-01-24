@@ -101,6 +101,13 @@ export function Shop() {
   }, [telegramUser?.id])
 
   const [isProcessing, setIsProcessing] = useState(false)
+  const [currency, setCurrency] = useState<'RUB' | 'USD' | 'EUR'>('RUB')
+
+  const currencyPrices = {
+    RUB: '377 ₽',
+    USD: '$5',
+    EUR: '€4'
+  }
 
   const handleBuy = async (pkg: typeof coinPackages[0]) => {
     if (!telegramUser?.id) {
@@ -122,7 +129,7 @@ export function Shop() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ telegramId: telegramUser.id })
+          body: JSON.stringify({ telegramId: telegramUser.id, currency })
         }
       )
 
@@ -221,6 +228,23 @@ export function Shop() {
               </div>
             </div>
 
+            {/* Выбор валюты */}
+            <div className="flex gap-2">
+              {(['RUB', 'USD', 'EUR'] as const).map((cur) => (
+                <button
+                  key={cur}
+                  onClick={() => setCurrency(cur)}
+                  className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${
+                    currency === cur
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {cur === 'RUB' ? '₽ Рубли' : cur === 'USD' ? '$ Доллары' : '€ Евро'}
+                </button>
+              ))}
+            </div>
+
             {coinPackages.map((pkg) => {
               const Icon = pkg.icon
               return (
@@ -243,7 +267,7 @@ export function Shop() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-white">{pkg.priceLabel}</p>
+                      <p className="text-2xl font-bold text-white">{currencyPrices[currency]}</p>
                     </div>
                   </div>
                 </button>

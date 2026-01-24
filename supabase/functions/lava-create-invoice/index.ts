@@ -19,11 +19,15 @@ serve(async (req) => {
   }
 
   try {
-    const { telegramId, email } = await req.json()
+    const { telegramId, email, currency = 'RUB' } = await req.json()
+
+    // Валидация валюты
+    const validCurrencies = ['RUB', 'USD', 'EUR']
+    const finalCurrency = validCurrencies.includes(currency) ? currency : 'RUB'
 
     console.log('=== Creating Lava.top Invoice ===')
     console.log('telegramId:', telegramId)
-    console.log('email:', email)
+    console.log('currency:', finalCurrency)
 
     if (!telegramId) {
       return new Response(
@@ -52,7 +56,7 @@ serve(async (req) => {
     const invoiceData = {
       email: email || 'noreply@ai-citi.app', // Email обязателен, но можно использовать заглушку
       offerId: OFFER_ID,
-      currency: 'RUB',
+      currency: finalCurrency,
       periodicity: 'ONE_TIME',
       buyerLanguage: 'RU',
       clientUtm: {
