@@ -9,6 +9,17 @@ import {
   Calendar
 } from 'lucide-react'
 
+interface CoinTransaction {
+  id: string
+  user_id: string
+  amount: number
+  balance_after: number
+  type: string
+  description: string
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
 // Типы пакетов монет
 const COIN_PACKAGES = [
   { id: '100_coins', name: '100 монет', coins: 100 },
@@ -26,30 +37,21 @@ const CAROUSEL_STYLES = [
 ]
 
 export default function StatsTab() {
-  // Статистика покупок монет
-  const { data: coinPurchases } = useQuery({
+  // Статистика покупок монет (через admin функцию для обхода RLS)
+  const { data: coinPurchases } = useQuery<CoinTransaction[]>({
     queryKey: ['coin_purchases_stats'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('coin_transactions')
-        .select('*')
-        .eq('type', 'purchase')
-        .order('created_at', { ascending: false })
-      return data || []
+      const { data } = await supabase.rpc('admin_get_coin_purchases')
+      return (data as CoinTransaction[]) || []
     }
   })
 
-  // Статистика генераций каруселей
-  const { data: carouselGenerations } = useQuery({
+  // Статистика генераций каруселей (через admin функцию для обхода RLS)
+  const { data: carouselGenerations } = useQuery<CoinTransaction[]>({
     queryKey: ['carousel_generations_stats'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('coin_transactions')
-        .select('*')
-        .eq('type', 'spend')
-        .ilike('description', '%карусел%')
-        .order('created_at', { ascending: false })
-      return data || []
+      const { data } = await supabase.rpc('admin_get_carousel_generations')
+      return (data as CoinTransaction[]) || []
     }
   })
 
@@ -85,7 +87,8 @@ export default function StatsTab() {
 
   // По стилям
   const byStyle = carouselGenerations?.reduce((acc, g) => {
-    const style = g.metadata?.style || 'ai-citi'
+    const meta = g.metadata as Record<string, string> | null
+    const style = meta?.style || 'ai-citi'
     acc[style] = (acc[style] || 0) + 1
     return acc
   }, {} as Record<string, number>) || {}
