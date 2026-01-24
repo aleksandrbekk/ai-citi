@@ -113,7 +113,6 @@ export function ClientsTab() {
     return {
       RUB: filteredPayments.filter(p => p.currency === 'RUB').reduce((sum, p) => sum + p.amount, 0),
       USD: filteredPayments.filter(p => p.currency === 'USD').reduce((sum, p) => sum + p.amount, 0),
-      USDT: filteredPayments.filter(p => p.currency === 'USDT').reduce((sum, p) => sum + p.amount, 0),
       EUR: filteredPayments.filter(p => p.currency === 'EUR').reduce((sum, p) => sum + p.amount, 0),
       totalPayments: filteredPayments.length,
       avgCheck: filteredPayments.length > 0
@@ -246,7 +245,6 @@ export function ClientsTab() {
   const formatAmount = (amount: number, currency: string) => {
     if (currency === 'RUB') return `${amount.toLocaleString('ru-RU')} ₽`
     if (currency === 'USD') return `$${amount.toLocaleString('en-US')}`
-    if (currency === 'USDT') return `${amount.toLocaleString('en-US')} USDT`
     if (currency === 'EUR') return `€${amount.toLocaleString('en-US')}`
     return `${amount} ${currency}`
   }
@@ -286,16 +284,13 @@ export function ClientsTab() {
           </select>
         </div>
 
-        {/* Суммы по валютам - 2x2 */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
+        {/* Суммы по валютам */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="bg-gray-100 rounded-lg p-2 text-center">
             <div className="text-sm font-bold text-gray-900">{paymentStats.RUB.toLocaleString('ru-RU')} ₽</div>
           </div>
           <div className="bg-gray-100 rounded-lg p-2 text-center">
             <div className="text-sm font-bold text-gray-900">${paymentStats.USD}</div>
-          </div>
-          <div className="bg-gray-100 rounded-lg p-2 text-center">
-            <div className="text-sm font-bold text-gray-900">{paymentStats.USDT} USDT</div>
           </div>
           <div className="bg-gray-100 rounded-lg p-2 text-center">
             <div className="text-sm font-bold text-gray-900">€{paymentStats.EUR}</div>
@@ -655,7 +650,6 @@ export function ClientsTab() {
                 >
                   <option value="RUB">RUB (₽)</option>
                   <option value="USD">USD ($)</option>
-                  <option value="USDT">USDT</option>
                   <option value="EUR">EUR (€)</option>
                 </select>
               </div>
