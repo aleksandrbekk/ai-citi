@@ -140,7 +140,12 @@ export function Shop() {
       }
 
       // Открываем страницу оплаты
-      window.open(result.paymentUrl, '_blank')
+      const tg = window.Telegram?.WebApp
+      if (tg?.openLink) {
+        tg.openLink(result.paymentUrl)
+      } else {
+        window.open(result.paymentUrl, '_blank')
+      }
 
     } catch (error: any) {
       console.error('Payment error:', error)
