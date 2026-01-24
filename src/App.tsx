@@ -39,6 +39,7 @@ import MiniAdmin from './pages/mini-admin/index'
 import { Offer } from './pages/Offer'
 import Chat from './pages/Chat'
 import DebugReferral from './pages/DebugReferral'
+import PaymentSuccess from './pages/PaymentSuccess'
 
 // Admin imports
 import { AdminLayout, AdminProtectedRoute } from './components/admin'
@@ -69,7 +70,7 @@ function AppContent() {
   const login = useAuthStore((state) => state.login)
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
-  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral'
+  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral' || location.pathname === '/payment-success'
 
   useEffect(() => {
     expandWebApp()
@@ -196,6 +197,7 @@ function AppContent() {
         <Route path="/mini-admin" element={<MiniAdmin />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/debug-referral" element={<DebugReferral />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="profile" element={<Profile />} />
