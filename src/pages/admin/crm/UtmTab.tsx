@@ -4,7 +4,6 @@ import {
   Copy,
   Trash2,
   MousePointer,
-  Users,
   ShoppingCart,
   Eye,
   Edit,
@@ -294,7 +293,7 @@ export default function UtmTab() {
       )}
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-white border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 text-gray-500 mb-1">
             <Link2 className="w-4 h-4" />
@@ -308,13 +307,6 @@ export default function UtmTab() {
             <span className="text-xs sm:text-sm">Кликов</span>
           </div>
           <div className="text-xl sm:text-2xl font-bold">{campaigns.reduce((sum, c) => sum + c.clicks, 0)}</div>
-        </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <div className="flex items-center gap-2 text-gray-500 mb-1">
-            <Users className="w-4 h-4" />
-            <span className="text-xs sm:text-sm">Регистр.</span>
-          </div>
-          <div className="text-xl sm:text-2xl font-bold text-green-400">{campaigns.reduce((sum, c) => sum + c.registrations, 0)}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-2 text-gray-500 mb-1">
