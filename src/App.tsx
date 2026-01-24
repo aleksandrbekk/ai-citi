@@ -144,6 +144,7 @@ function AppContent() {
           <Route path="/quiz/:id" element={<TakeQuiz />} />
           <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
           <Route path="/debug-referral" element={<DebugReferral />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
         </Routes>
       </QueryClientProvider>
     )
