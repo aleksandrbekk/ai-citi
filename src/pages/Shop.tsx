@@ -100,18 +100,46 @@ export function Shop() {
     loadData()
   }, [telegramUser?.id])
 
-  const handleBuy = (pkg: typeof coinPackages[0]) => {
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleBuy = async (pkg: typeof coinPackages[0]) => {
     if (!telegramUser?.id) {
       alert('Ошибка: не удалось определить пользователя')
       return
     }
 
-    if (pkg.available && pkg.lavaUrl) {
-      // Добавляем telegram_id в URL через utm_content
-      const paymentUrl = `${pkg.lavaUrl}?utm_content=${telegramUser.id}`
-      window.open(paymentUrl, '_blank')
-    } else {
+    if (!pkg.available) {
       alert('Скоро будет доступно!')
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      // Вызываем наш бэкенд для создания инвойса с UTM
+      const response = await fetch(
+        'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-invoice',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ telegramId: telegramUser.id })
+        }
+      )
+
+      const result = await response.json()
+
+      if (!result.ok || !result.paymentUrl) {
+        throw new Error(result.error || 'Не удалось создать платёж')
+      }
+
+      // Открываем страницу оплаты
+      window.open(result.paymentUrl, '_blank')
+
+    } catch (error: any) {
+      console.error('Payment error:', error)
+      alert('Ошибка при создании платежа: ' + (error.message || 'Попробуйте позже'))
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -199,7 +227,8 @@ export function Shop() {
                 <button
                   key={pkg.id}
                   onClick={() => handleBuy(pkg)}
-                  className="w-full bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-5 text-left transition-all hover:shadow-xl active:scale-[0.98]"
+                  disabled={isProcessing}
+                  className="w-full bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-5 text-left transition-all hover:shadow-xl active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -208,7 +237,9 @@ export function Shop() {
                       </div>
                       <div>
                         <p className="text-xl font-bold text-white">{pkg.name}</p>
-                        <p className="text-white/80 text-sm">Пополнение баланса</p>
+                        <p className="text-white/80 text-sm">
+                          {isProcessing ? 'Создаём платёж...' : 'Пополнение баланса'}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
