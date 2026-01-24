@@ -105,21 +105,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Проверка на дубликат — ищем транзакцию с таким contractId
+    // Защита от дубликатов через INSERT с уникальным ключом
     if (contractId) {
-      const { data: existing } = await supabase
-        .from('coin_transactions')
-        .select('id')
-        .contains('metadata', { contractId })
-        .limit(1)
-        .single()
+      const { error: insertError } = await supabase
+        .from('processed_lava_payments')
+        .insert({ contract_id: contractId, telegram_id: telegramId })
 
-      if (existing) {
-        console.log('Duplicate webhook, contractId already processed:', contractId)
-        return new Response(
-          JSON.stringify({ ok: true, message: 'Already processed', contractId }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+      if (insertError) {
+        // Если ошибка дубликата — платёж уже обработан
+        if (insertError.code === '23505') {
+          console.log('Duplicate webhook blocked by unique constraint:', contractId)
+          return new Response(
+            JSON.stringify({ ok: true, message: 'Already processed', contractId }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        console.error('Error inserting processed payment:', insertError)
       }
     }
 
