@@ -23,6 +23,7 @@ interface ReferralLink {
   referred_first_name: string | null
   bonus_paid: boolean
   created_at: string
+  partner_earnings: number
 }
 
 export function ReferralsTab() {
@@ -77,7 +78,8 @@ export function ReferralsTab() {
       username: link.referred_username,
       first_name: link.referred_first_name,
       bonus_paid: link.bonus_paid,
-      created_at: link.created_at
+      created_at: link.created_at,
+      partner_earnings: link.partner_earnings
     })
     return acc
   }, {} as Record<number, {
@@ -90,6 +92,7 @@ export function ReferralsTab() {
       first_name: string | null
       bonus_paid: boolean
       created_at: string
+      partner_earnings: number
     }>
   }>)
 
@@ -198,8 +201,8 @@ export function ReferralsTab() {
                             month: 'short'
                           })}
                         </span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${partner.bonus_paid ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                          {partner.bonus_paid ? '+6' : '0'}
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${partner.partner_earnings > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                          {partner.partner_earnings > 0 ? `+${partner.partner_earnings}` : '0'}
                         </span>
                       </div>
                     </div>
