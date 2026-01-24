@@ -6,22 +6,20 @@ import {
   TrendingUp,
   ShoppingCart,
   Sparkles,
-  Users,
-  DollarSign,
   Calendar
 } from 'lucide-react'
 
 // Типы пакетов монет
 const COIN_PACKAGES = [
-  { id: '100_coins', name: '100 монет', coins: 100, price: 377 },
-  { id: '500_coins', name: '500 монет', coins: 500, price: 1500 },
-  { id: '1000_coins', name: '1000 монет', coins: 1000, price: 2500 },
+  { id: '100_coins', name: '100 монет', coins: 100 },
+  { id: '500_coins', name: '500 монет', coins: 500 },
+  { id: '1000_coins', name: '1000 монет', coins: 1000 },
 ]
 
 // Стили каруселей
 const CAROUSEL_STYLES = [
   { id: 'ai-citi', name: 'AI CITI', color: 'bg-cyan-500' },
-  { id: 'minimal', name: 'Минимализм', color: 'bg-gray-500' },
+  { id: 'minimal', name: 'Минимализм', color: 'bg-gray-400' },
   { id: 'bright', name: 'Яркий', color: 'bg-orange-500' },
   { id: 'business', name: 'Бизнес', color: 'bg-blue-500' },
   { id: 'creative', name: 'Креатив', color: 'bg-purple-500' },
@@ -41,7 +39,7 @@ export default function StatsTab() {
     }
   })
 
-  // Статистика генераций каруселей (из coin_transactions с type='spend')
+  // Статистика генераций каруселей
   const { data: carouselGenerations } = useQuery({
     queryKey: ['carousel_generations_stats'],
     queryFn: async () => {
@@ -59,12 +57,6 @@ export default function StatsTab() {
   const purchaseStats = {
     total: coinPurchases?.length || 0,
     totalCoins: coinPurchases?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0,
-    totalRevenue: (coinPurchases?.length || 0) * 377, // Примерная выручка
-    todayPurchases: coinPurchases?.filter(p => {
-      const today = new Date()
-      const purchaseDate = new Date(p.created_at)
-      return purchaseDate.toDateString() === today.toDateString()
-    }).length || 0,
     weekPurchases: coinPurchases?.filter(p => {
       const weekAgo = new Date()
       weekAgo.setDate(weekAgo.getDate() - 7)
@@ -72,7 +64,7 @@ export default function StatsTab() {
     }).length || 0,
   }
 
-  // По пакетам монет (группировка по amount)
+  // По пакетам монет
   const byPackage = coinPurchases?.reduce((acc, p) => {
     const amount = p.amount || 0
     const key = `${amount}_coins`
@@ -84,11 +76,6 @@ export default function StatsTab() {
   const generationStats = {
     total: carouselGenerations?.length || 0,
     totalSpent: carouselGenerations?.reduce((sum, g) => sum + Math.abs(g.amount || 0), 0) || 0,
-    todayGenerations: carouselGenerations?.filter(g => {
-      const today = new Date()
-      const genDate = new Date(g.created_at)
-      return genDate.toDateString() === today.toDateString()
-    }).length || 0,
     weekGenerations: carouselGenerations?.filter(g => {
       const weekAgo = new Date()
       weekAgo.setDate(weekAgo.getDate() - 7)
@@ -96,7 +83,7 @@ export default function StatsTab() {
     }).length || 0,
   }
 
-  // По стилям (извлекаем из metadata или description)
+  // По стилям
   const byStyle = carouselGenerations?.reduce((acc, g) => {
     const style = g.metadata?.style || 'ai-citi'
     acc[style] = (acc[style] || 0) + 1
@@ -119,194 +106,150 @@ export default function StatsTab() {
     return acc
   }, {} as Record<string, number>) || {}
 
-  return (
-    <div className="space-y-6">
-      {/* Заголовок */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" />
-          Статистика платформы
-        </h2>
+  const StatCard = ({ icon: Icon, label, value, subvalue, color }: any) => (
+    <div className="bg-gray-100 rounded-xl p-3">
+      <div className="flex items-center gap-2 mb-1">
+        <div className={`p-1.5 rounded-lg ${color}`}>
+          <Icon size={16} />
+        </div>
+        <span className="text-gray-500 text-xs">{label}</span>
       </div>
+      <div className="text-xl font-bold text-gray-900">{value}</div>
+      {subvalue && <div className="text-gray-500 text-xs mt-0.5">{subvalue}</div>}
+    </div>
+  )
 
+  const ProgressBar = ({ label, value, total, color }: any) => {
+    const percent = total > 0 ? Math.round((value / total) * 100) : 0
+    return (
+      <div className="mb-3">
+        <div className="flex justify-between text-sm mb-1">
+          <span className="text-gray-500">{label}</span>
+          <span className="text-gray-900">{value} ({percent}%)</span>
+        </div>
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className={`h-full ${color} rounded-full`} style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
       {/* Основные метрики */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard
           icon={ShoppingCart}
           label="Покупок монет"
           value={purchaseStats.total}
           subvalue={`+${purchaseStats.weekPurchases} за неделю`}
-          color="bg-green-500/20 text-green-400"
+          color="bg-green-100 text-green-600"
         />
         <StatCard
           icon={Coins}
           label="Продано монет"
           value={purchaseStats.totalCoins}
-          subvalue={`~${Math.round(purchaseStats.totalRevenue / 100)}$ выручка`}
-          color="bg-yellow-500/20 text-yellow-400"
+          color="bg-yellow-100 text-yellow-600"
         />
         <StatCard
           icon={Sparkles}
           label="Генераций"
           value={generationStats.total}
           subvalue={`+${generationStats.weekGenerations} за неделю`}
-          color="bg-purple-500/20 text-purple-400"
+          color="bg-purple-100 text-purple-600"
         />
         <StatCard
-          icon={DollarSign}
+          icon={TrendingUp}
           label="Потрачено монет"
           value={generationStats.totalSpent}
           subvalue="на генерации"
-          color="bg-cyan-500/20 text-cyan-400"
+          color="bg-cyan-100 text-cyan-600"
         />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-4">
         {/* Покупки по пакетам */}
-        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-6">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Coins className="w-5 h-5 text-yellow-400" />
-            Покупки по пакетам
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+            <Coins size={16} className="text-yellow-500" /> Покупки по пакетам
           </h3>
-          {COIN_PACKAGES.map(pkg => {
-            const count = byPackage[pkg.id] || 0
-            const total = purchaseStats.total || 1
-            const percent = Math.round((count / total) * 100) || 0
-            return (
-              <div key={pkg.id} className="mb-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-[#94A3B8]">{pkg.name}</span>
-                  <span className="text-white">{count} ({percent}%)</span>
-                </div>
-                <div className="h-3 bg-[#0F172A] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
+          {COIN_PACKAGES.map(pkg => (
+            <ProgressBar
+              key={pkg.id}
+              label={pkg.name}
+              value={byPackage[pkg.id] || 0}
+              total={purchaseStats.total}
+              color="bg-yellow-500"
+            />
+          ))}
           {purchaseStats.total === 0 && (
-            <p className="text-[#64748B] text-center py-4">Пока нет покупок</p>
+            <p className="text-gray-500 text-center py-2">Пока нет покупок</p>
           )}
         </div>
 
         {/* Генерации по стилям */}
-        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-6">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Palette className="w-5 h-5 text-purple-400" />
-            Генерации по стилям
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+            <Palette size={16} className="text-purple-500" /> Генерации по стилям
           </h3>
-          {CAROUSEL_STYLES.map(style => {
-            const count = byStyle[style.id] || 0
-            const total = generationStats.total || 1
-            const percent = Math.round((count / total) * 100) || 0
-            return (
-              <div key={style.id} className="mb-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-[#94A3B8]">{style.name}</span>
-                  <span className="text-white">{count} ({percent}%)</span>
-                </div>
-                <div className="h-3 bg-[#0F172A] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${style.color} rounded-full transition-all`}
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-              </div>
-            )
-          })}
+          {CAROUSEL_STYLES.map(style => (
+            <ProgressBar
+              key={style.id}
+              label={style.name}
+              value={byStyle[style.id] || 0}
+              total={generationStats.total}
+              color={style.color}
+            />
+          ))}
           {generationStats.total === 0 && (
-            <p className="text-[#64748B] text-center py-4">Пока нет генераций</p>
+            <p className="text-gray-500 text-center py-2">Пока нет генераций</p>
           )}
         </div>
       </div>
 
       {/* Графики по месяцам */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-4">
         {/* Покупки по месяцам */}
-        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-6">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-green-400" />
-            Покупки по месяцам
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+            <Calendar size={16} className="text-green-500" /> Покупки по месяцам
           </h3>
           <MonthChart data={purchasesByMonth} color="bg-green-500" />
         </div>
 
         {/* Генерации по месяцам */}
-        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-6">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-purple-400" />
-            Генерации по месяцам
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+            <Calendar size={16} className="text-purple-500" /> Генерации по месяцам
           </h3>
           <MonthChart data={generationsByMonth} color="bg-purple-500" />
         </div>
       </div>
 
-      {/* Последние транзакции */}
-      <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-6">
-        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <Users className="w-5 h-5 text-blue-400" />
-          Последние покупки монет
+      {/* Последние покупки */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+          <ShoppingCart size={16} className="text-green-500" /> Последние покупки
         </h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-[#64748B] text-sm border-b border-[#334155]">
-                <th className="text-left py-3">Дата</th>
-                <th className="text-left py-3">Пользователь</th>
-                <th className="text-right py-3">Монет</th>
-              </tr>
-            </thead>
-            <tbody>
-              {coinPurchases?.slice(0, 10).map((purchase, i) => (
-                <tr key={purchase.id || i} className="border-b border-[#334155]/50 hover:bg-[#0F172A]">
-                  <td className="py-3 text-[#94A3B8] text-sm">
-                    {new Date(purchase.created_at).toLocaleDateString('ru-RU')}
-                  </td>
-                  <td className="py-3 text-white text-sm">
-                    {purchase.user_id?.slice(0, 8)}...
-                  </td>
-                  <td className="py-3 text-right text-green-400 font-medium">
-                    +{purchase.amount}
-                  </td>
-                </tr>
-              ))}
-              {(!coinPurchases || coinPurchases.length === 0) && (
-                <tr>
-                  <td colSpan={3} className="py-8 text-center text-[#64748B]">
-                    Пока нет покупок
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {coinPurchases?.slice(0, 5).map((purchase, i) => (
+            <div key={purchase.id || i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+              <div>
+                <span className="text-gray-900 text-sm">
+                  {new Date(purchase.created_at).toLocaleDateString('ru-RU')}
+                </span>
+                <span className="text-gray-500 text-xs ml-2">
+                  {purchase.user_id?.slice(0, 8)}...
+                </span>
+              </div>
+              <span className="text-green-600 font-medium">+{purchase.amount} монет</span>
+            </div>
+          ))}
+          {(!coinPurchases || coinPurchases.length === 0) && (
+            <p className="text-gray-500 text-center py-4">Пока нет покупок</p>
+          )}
         </div>
       </div>
-    </div>
-  )
-}
-
-function StatCard({ icon: Icon, label, value, subvalue, color }: {
-  icon: any
-  label: string
-  value: number | string
-  subvalue?: string
-  color: string
-}) {
-  return (
-    <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-4">
-      <div className="flex items-center gap-3 mb-2">
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <span className="text-[#94A3B8] text-sm">{label}</span>
-      </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
-      {subvalue && (
-        <div className="text-[#64748B] text-xs mt-1">{subvalue}</div>
-      )}
     </div>
   )
 }
@@ -317,27 +260,24 @@ function MonthChart({ data, color }: { data: Record<string, number>, color: stri
     .slice(-6)
 
   if (entries.length === 0) {
-    return <p className="text-[#64748B] text-center py-8">Нет данных</p>
+    return <p className="text-gray-500 text-center py-4">Нет данных</p>
   }
 
   const maxValue = Math.max(...entries.map(([, v]) => v as number), 1)
 
   return (
-    <div className="flex items-end gap-2 h-32">
+    <div className="flex items-end gap-1 h-24">
       {entries.map(([month, count]) => {
-        const height = (count as number / maxValue) * 100
+        const countNum = count as number
+        const height = maxValue > 0 ? (countNum / maxValue) * 100 : 0
         return (
           <div key={month} className="flex-1 flex flex-col items-center">
-            <div className="w-full flex flex-col items-center justify-end h-24">
-              <span className="text-white text-xs mb-1">{count}</span>
-              <div
-                className={`w-full ${color} rounded-t transition-all`}
-                style={{ height: `${height}%`, minHeight: count > 0 ? '8px' : '0' }}
-              />
-            </div>
-            <span className="text-[#64748B] text-xs mt-2">
-              {month.slice(5)}
-            </span>
+            <div
+              className={`w-full ${color} rounded-t`}
+              style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
+            />
+            <span className="text-xs text-gray-500 mt-2">{month.slice(5)}</span>
+            <span className="text-xs text-gray-900">{countNum}</span>
           </div>
         )
       })}
