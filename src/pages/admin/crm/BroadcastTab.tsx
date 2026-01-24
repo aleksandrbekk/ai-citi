@@ -16,9 +16,21 @@ export function BroadcastTab() {
   const [isSending, setIsSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ success: number; failed: number } | null>(null)
 
-  // Загрузка клиентов для подсчёта
-  const { data: clients } = useQuery({
-    queryKey: ['clients-for-broadcast'],
+  // Загрузка ВСЕХ пользователей
+  const { data: allUsers } = useQuery({
+    queryKey: ['all-users-for-broadcast'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, telegram_id, username, first_name')
+      if (error) throw error
+      return data
+    }
+  })
+
+  // Загрузка платных клиентов для фильтров по тарифам
+  const { data: premiumClients } = useQuery({
+    queryKey: ['premium-clients-for-broadcast'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('premium_clients')
@@ -33,20 +45,20 @@ export function BroadcastTab() {
   const audiences: AudienceOption[] = [
     {
       id: 'all',
-      label: 'Все клиенты',
-      count: clients?.length || 0,
+      label: 'Все пользователи',
+      count: allUsers?.length || 0,
       filter: () => true
     },
     {
       id: 'active',
       label: 'Активные',
-      count: clients?.filter(c => new Date(c.expires_at) > now).length || 0,
+      count: premiumClients?.filter(c => new Date(c.expires_at) > now).length || 0,
       filter: (c) => new Date(c.expires_at) > now
     },
     {
       id: 'expiring',
       label: 'Истекает скоро',
-      count: clients?.filter(c => {
+      count: premiumClients?.filter(c => {
         const days = Math.ceil((new Date(c.expires_at).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
         return days > 0 && days <= 7
       }).length || 0,
@@ -58,31 +70,31 @@ export function BroadcastTab() {
     {
       id: 'expired',
       label: 'Просроченные',
-      count: clients?.filter(c => new Date(c.expires_at) <= now).length || 0,
+      count: premiumClients?.filter(c => new Date(c.expires_at) <= now).length || 0,
       filter: (c) => new Date(c.expires_at) <= now
     },
     {
       id: 'basic',
       label: 'Тариф BASIC',
-      count: clients?.filter(c => c.plan?.toUpperCase() === 'BASIC').length || 0,
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'BASIC').length || 0,
       filter: (c) => c.plan?.toUpperCase() === 'BASIC'
     },
     {
       id: 'pro',
       label: 'Тариф PRO',
-      count: clients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
       filter: (c) => c.plan?.toUpperCase() === 'PRO'
     },
     {
       id: 'vip',
       label: 'Тариф VIP',
-      count: clients?.filter(c => c.plan?.toUpperCase() === 'VIP').length || 0,
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'VIP').length || 0,
       filter: (c) => c.plan?.toUpperCase() === 'VIP'
     },
     {
       id: 'elite',
       label: 'Тариф ELITE',
-      count: clients?.filter(c => c.plan?.toUpperCase() === 'ELITE').length || 0,
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'ELITE').length || 0,
       filter: (c) => c.plan?.toUpperCase() === 'ELITE'
     },
   ]
@@ -90,13 +102,13 @@ export function BroadcastTab() {
   // Подсчёт выбранных получателей
   const getSelectedCount = () => {
     if (selectedAudiences.length === 0) return 0
-    if (selectedAudiences.includes('all')) return clients?.length || 0
-    
+    if (selectedAudiences.includes('all')) return allUsers?.length || 0
+
     const selectedClients = new Set<string>()
     selectedAudiences.forEach(audId => {
       const audience = audiences.find(a => a.id === audId)
       if (audience) {
-        clients?.filter(audience.filter).forEach(c => selectedClients.add(c.id))
+        premiumClients?.filter(audience.filter).forEach(c => selectedClients.add(c.id))
       }
     })
     return selectedClients.size
@@ -122,18 +134,26 @@ export function BroadcastTab() {
   const handleSend = async () => {
     const recipientCount = getSelectedCount()
     if (!message.trim() || recipientCount === 0) return
-    
+
     setIsSending(true)
     setSendResult(null)
 
     const recipients = new Set<number>()
 
     selectedAudiences.forEach(audId => {
-      const audience = audiences.find(a => a.id === audId)
-      if (audience && clients) {
-        clients.filter(audience.filter).forEach(c => {
-          if (c.telegram_id) recipients.add(c.telegram_id)
+      if (audId === 'all' && allUsers) {
+        // Для "Все пользователи" берём из users
+        allUsers.forEach(u => {
+          if (u.telegram_id) recipients.add(u.telegram_id)
         })
+      } else {
+        // Для остальных фильтров берём из premium_clients
+        const audience = audiences.find(a => a.id === audId)
+        if (audience && premiumClients) {
+          premiumClients.filter(audience.filter).forEach(c => {
+            if (c.telegram_id) recipients.add(c.telegram_id)
+          })
+        }
       }
     })
 
