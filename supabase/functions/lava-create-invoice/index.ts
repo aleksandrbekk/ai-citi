@@ -59,6 +59,7 @@ serve(async (req) => {
       currency: finalCurrency,
       periodicity: 'ONE_TIME',
       buyerLanguage: 'RU',
+      successUrl: 'https://aiciti.pro/payment-success', // Редирект после успешной оплаты
       clientUtm: {
         utm_content: String(telegramId) // Передаём telegram_id
       }
