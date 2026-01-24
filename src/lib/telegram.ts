@@ -14,9 +14,26 @@ export function getTelegramWebApp() {
 }
 
 export function getTelegramUser(): TelegramUser | null {
+  // 1. Проверяем Telegram WebApp (Mini App)
   const webApp = getTelegramWebApp()
-  if (!webApp?.initDataUnsafe?.user) return null
-  return webApp.initDataUnsafe.user
+  if (webApp?.initDataUnsafe?.user) {
+    return webApp.initDataUnsafe.user
+  }
+
+  // 2. Fallback: проверяем localStorage (веб-авторизация)
+  const savedUser = localStorage.getItem('tg_user')
+  if (savedUser) {
+    try {
+      const parsed = JSON.parse(savedUser)
+      if (parsed?.id) {
+        return parsed as TelegramUser
+      }
+    } catch {
+      // игнорируем ошибки парсинга
+    }
+  }
+
+  return null
 }
 
 export function getInitData(): string | null {
