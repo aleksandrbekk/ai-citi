@@ -324,6 +324,63 @@ interface ImageAttachment {
   data: string
 }
 
+// RAG поиск через GenAI App Builder (Discovery Engine API)
+async function searchRAG(
+  token: string,
+  query: string,
+  dataStoreId: string
+): Promise<{ answer: string; sources: any[]; ragUsed: boolean }> {
+  // Endpoint для поиска в Data Store
+  // Формат: projects/{PROJECT_ID}/locations/global/collections/default_collection/dataStores/{DATA_STORE_ID}/servingConfigs/default_search
+  const endpoint = `https://discoveryengine.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/collections/default_collection/dataStores/${dataStoreId}/servingConfigs/default_search:search`
+
+  console.log(`RAG search: query="${query}", dataStoreId="${dataStoreId}"`)
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      pageSize: 5,
+      contentSearchSpec: {
+        snippetSpec: {
+          maxSnippetCount: 3,
+          referenceOnly: false,
+        },
+        summarySpec: {
+          summaryPromptSpec: {
+            promptTemplate: "Ты полезный AI-ассистент. Отвечай строго на основе найденных документов. Если ответа нет в документах, скажи 'Не нашел ответа в документах'."
+          }
+        }
+      }
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error(`RAG search error: ${response.status} - ${errorText}`)
+    throw new Error(`RAG search error: ${response.status} - ${errorText}`)
+  }
+
+  const data = await response.json()
+  console.log('RAG search response:', JSON.stringify(data).substring(0, 500))
+
+  // Извлекаем ответ из summary
+  const answer = data.summary?.summaryText || data.results?.[0]?.document?.structData?.content || 'Не нашел ответа в документах.'
+
+  // Извлекаем источники
+  const sources = (data.results || []).map((r: any) => ({
+    title: r.document?.title || r.document?.structData?.title || 'Без названия',
+    uri: r.document?.uri || r.document?.structData?.uri || '',
+    snippet: r.document?.snippets?.[0]?.snippet || r.document?.structData?.snippet || ''
+  }))
+
+  return { answer, sources, ragUsed: true }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -335,7 +392,7 @@ serve(async (req) => {
   let imagesCount = 0
 
   try {
-    const { message, history = [], images = [], userId } = await req.json()
+    const { message, history = [], images = [], userId, useRAG = false, ragDataStoreId } = await req.json()
 
     if (!message && images.length === 0) {
       return new Response(
@@ -414,39 +471,93 @@ serve(async (req) => {
       { role: "user", parts: currentMessageParts }
     ]
 
-    // Пробуем модели
+    // Проверяем, нужен ли RAG
+    let ragResult: { answer: string; sources: any[]; ragUsed: boolean } | null = null
     let result: { reply: string; inputTokens: number; outputTokens: number }
-    let attempts = 0
-    let lastError: Error | null = null
 
-    while (attempts < settings.max_retries) {
+    if (useRAG && ragDataStoreId) {
       try {
-        const modelToUse = attempts === 0 ? usedModel : settings.fallback_model
-        console.log(`Attempt ${attempts + 1}: using model ${modelToUse}`)
+        console.log('Using RAG mode with dataStoreId:', ragDataStoreId)
+        ragResult = await searchRAG(token, message, ragDataStoreId)
+        console.log('RAG result:', { answer: ragResult.answer.substring(0, 100), sourcesCount: ragResult.sources.length })
+        
+        // Если RAG нашел ответ, используем его
+        if (ragResult.answer && ragResult.answer !== 'Не нашел ответа в документах.') {
+          // Комбинируем RAG ответ с Gemini для финального форматирования
+          const enhancedPrompt = `
+Контекст из документов:
+${ragResult.answer}
 
-        result = await callGemini(
-          token, 
-          modelToUse, 
-          contents, 
-          settings.temperature, 
-          settings.max_tokens
-        )
-        usedModel = modelToUse
-        break
-      } catch (e) {
-        lastError = e as Error
-        console.error(`Model ${usedModel} failed:`, e)
-        attempts++
+${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((s, i) => `${i + 1}. ${s.title}: ${s.snippet}`).join('\n')}` : ''}
 
-        if (attempts < settings.max_retries) {
-          console.log(`Switching to fallback model: ${settings.fallback_model}`)
-          usedModel = settings.fallback_model
+Вопрос пользователя: ${message}
+
+Ответь на основе контекста выше. Если контекста недостаточно, дополни своими знаниями.
+          `.trim()
+
+          const enhancedContents = [
+            { role: "user", parts: [{ text: enhancedPrompt }] }
+          ]
+
+          result = await callGemini(
+            token,
+            usedModel,
+            enhancedContents,
+            settings.temperature,
+            settings.max_tokens
+          )
+          
+          // Добавляем источники к ответу
+          if (ragResult.sources.length > 0) {
+            result.reply += `\n\n📎 Источники:\n${ragResult.sources.map((s, i) => `${i + 1}. ${s.title}`).join('\n')}`
+          }
+        } else {
+          // RAG не нашел ответ, используем обычный Gemini
+          console.log('RAG не нашел ответ, используем обычный Gemini')
+          ragResult = null
+          throw new Error('RAG не нашел ответ')
         }
+      } catch (ragError) {
+        console.error('RAG error, falling back to regular Gemini:', ragError)
+        ragResult = null
+        // Продолжаем с обычным Gemini
       }
     }
 
-    if (!result!) {
-      throw lastError || new Error('All models failed')
+    // Если RAG не использовался или не нашел ответ, используем обычный Gemini
+    if (!ragResult || !ragResult.ragUsed) {
+      let attempts = 0
+      let lastError: Error | null = null
+
+      while (attempts < settings.max_retries) {
+        try {
+          const modelToUse = attempts === 0 ? usedModel : settings.fallback_model
+          console.log(`Attempt ${attempts + 1}: using model ${modelToUse}`)
+
+          result = await callGemini(
+            token, 
+            modelToUse, 
+            contents, 
+            settings.temperature, 
+            settings.max_tokens
+          )
+          usedModel = modelToUse
+          break
+        } catch (e) {
+          lastError = e as Error
+          console.error(`Model ${usedModel} failed:`, e)
+          attempts++
+
+          if (attempts < settings.max_retries) {
+            console.log(`Switching to fallback model: ${settings.fallback_model}`)
+            usedModel = settings.fallback_model
+          }
+        }
+      }
+
+      if (!result!) {
+        throw lastError || new Error('All models failed')
+      }
     }
 
     inputTokens = result.inputTokens
@@ -467,6 +578,11 @@ serve(async (req) => {
         reply: result.reply,
         model: usedModel,
         usage: { inputTokens, outputTokens, imagesCount },
+        rag: ragResult ? {
+          used: true,
+          sources: ragResult.sources,
+          answer: ragResult.answer
+        } : { used: false },
         limit: {
           tariff: limitInfo.tariff,
           daily: limitInfo.limit,
