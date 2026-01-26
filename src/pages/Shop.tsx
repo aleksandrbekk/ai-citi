@@ -306,48 +306,51 @@ export function Shop() {
 
         {activeTab === 'subscription' && (
           <>
-            <p className="text-xs text-gray-500 text-center mb-4">Ежемесячная подписка</p>
-            <div className="grid grid-cols-1 gap-4">
+            <p className="text-sm text-gray-600 text-center mb-6">Ежемесячная подписка</p>
+            <div className="grid grid-cols-1 gap-6">
               {subscriptionPackages.map((pkg) => (
                 <button
                   key={pkg.id}
                   onClick={() => handleBuySubscription(pkg.id)}
-                  className={`relative w-full ${pkg.bgColor} border-2 ${pkg.borderColor} rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
-                    pkg.popular ? 'ring-2 ring-orange-400 ring-offset-2' : ''
+                  className={`relative w-full bg-white border-2 ${pkg.borderColor} rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-xl hover:border-opacity-100 active:scale-[0.99] cursor-pointer ${
+                    pkg.popular 
+                      ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30' 
+                      : 'hover:border-opacity-60'
                   }`}
                 >
                   {pkg.popular && (
-                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
                         ХИТ
                       </span>
                     </div>
                   )}
                   
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-md`}>
-                        <Star className="w-7 h-7 text-white" />
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
+                        <Star className="w-8 h-8 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-xl">{pkg.name}</p>
-                        <p className="text-sm text-gray-500 mt-0.5">{pkg.price}</p>
+                        <p className="font-bold text-gray-900 text-2xl mb-1">{pkg.name}</p>
+                        <p className="text-base font-semibold text-gray-700">{pkg.price}</p>
                       </div>
                     </div>
-                    {pkg.popular && (
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500">Рекомендуем</p>
-                      </div>
-                    )}
                   </div>
                   
                   {/* Features */}
-                  <div className="space-y-2.5 mb-5">
+                  <div className="space-y-3 mb-6">
                     {pkg.features.map((feature, i) => (
-                      <div key={i} className="flex items-start gap-2.5">
-                        <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
-                          pkg.popular ? 'bg-orange-500' : pkg.id === 'elite' ? 'bg-amber-500' : pkg.id === 'starter' ? 'bg-cyan-500' : 'bg-gray-400'
+                      <div key={i} className="flex items-start gap-3">
+                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                          pkg.popular 
+                            ? 'bg-orange-500' 
+                            : pkg.id === 'elite' 
+                              ? 'bg-amber-500' 
+                              : pkg.id === 'starter' 
+                                ? 'bg-cyan-500' 
+                                : 'bg-gray-400'
                         }`} />
                         <span className="text-sm text-gray-700 leading-relaxed flex-1">{feature}</span>
                       </div>
@@ -355,17 +358,23 @@ export function Shop() {
                   </div>
                   
                   {/* CTA Button */}
-                  <div className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                    pkg.popular
-                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-md hover:shadow-orange-500/30'
-                      : pkg.id === 'elite'
-                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-md hover:shadow-amber-500/30'
-                        : pkg.id === 'starter'
-                          ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-md hover:shadow-cyan-500/30'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleBuySubscription(pkg.id)
+                    }}
+                    className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+                      pkg.popular
+                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/40 hover:scale-[1.02]'
+                        : pkg.id === 'elite'
+                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-lg hover:shadow-amber-500/40 hover:scale-[1.02]'
+                          : pkg.id === 'starter'
+                            ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02]'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
                     {pkg.id === 'basic' ? 'Начать бесплатно' : 'Выбрать план'}
-                  </div>
+                  </button>
                 </button>
               ))}
             </div>
