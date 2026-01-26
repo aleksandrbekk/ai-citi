@@ -46,12 +46,17 @@ export function PostCard({ post }: { post: Post }) {
 
 ## Цвета
 
-```
-background: #0a0a0a
-foreground: #ffffff
-primary: #FF5A1F (оранжевый)
-card: rgba(255,255,255,0.1)
-```
+**ВАЖНО:** Всегда используй цвета из `.claude/rules/ai-citi-design-system.md`!
+
+Основные цвета:
+- **Primary**: `#FF5A1F` (оранжевый) — CTA кнопки, акценты
+- **Secondary**: `#06B6D4` (бирюзовый) — вторичные элементы, иконки AI
+- **Background**: `#FFFFFF` или `#FFF8F5` (белый/кремовый)
+- **Text**: `#1A1A1A` (темно-серый)
+
+**НЕ используй:** фиолетовый, розовый для основных элементов!
+
+Подробности: `.claude/rules/ai-citi-design-system.md`
 
 ## Telegram Safe Area
 

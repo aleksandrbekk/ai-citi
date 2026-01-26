@@ -210,22 +210,22 @@ export function Shop() {
   // }
 
   return (
-    <div className="min-h-screen bg-[#FAF5FF] pb-24">
+    <div className="min-h-screen bg-[#FFF8F5] pb-24">
       {/* Header */}
       <div className="px-4 pt-4 pb-3">
-        <h1 className="text-2xl font-bold text-center text-[#4C1D95]">
+        <h1 className="text-2xl font-bold text-center text-gray-900">
           МАГАЗИН
         </h1>
       </div>
 
       {/* Tabs */}
       <div className="px-4 py-3">
-        <div className="flex gap-1.5 bg-white/60 backdrop-blur-sm p-1.5 rounded-xl border border-[#A78BFA]/20">
+        <div className="flex gap-1.5 bg-white/80 backdrop-blur-sm p-1.5 rounded-xl border border-gray-200/50">
           <button
             onClick={() => setActiveTab('coins')}
             className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${
               activeTab === 'coins'
-                ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white shadow-md'
+                ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -236,7 +236,7 @@ export function Shop() {
             onClick={() => setActiveTab('subscription')}
             className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${
               activeTab === 'subscription'
-                ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white shadow-md'
+                ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -264,18 +264,18 @@ export function Shop() {
         {activeTab === 'coins' && (
           <>
             {/* Баланс - только в разделе Монеты */}
-            <div className="bg-gradient-to-r from-[#FAF5FF] to-white border border-[#A78BFA]/30 rounded-2xl p-4 shadow-sm">
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
                   <Coins className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-[#4C1D95]/70">Ваш баланс</p>
+                  <p className="text-xs text-gray-500">Ваш баланс</p>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-[#4C1D95]">
+                    <span className="text-2xl font-bold text-gray-900">
                       {isLoadingCoins ? '...' : coinBalance}
                     </span>
-                    <span className="text-[#4C1D95]/60">монет</span>
+                    <span className="text-gray-600">монет</span>
                   </div>
                 </div>
               </div>
@@ -289,7 +289,7 @@ export function Shop() {
                   onClick={() => setCurrency(cur)}
                   className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${
                     currency === cur
-                      ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white shadow-md'
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
                       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
@@ -305,7 +305,7 @@ export function Shop() {
                   key={pkg.id}
                   onClick={() => handleBuy(pkg)}
                   disabled={isProcessing}
-                  className="w-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait cursor-pointer"
+                  className="w-full bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -339,15 +339,15 @@ export function Shop() {
                   onClick={() => handleBuySubscription(pkg.id)}
                   className={`relative w-full bg-white border-2 rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
                     pkg.popular 
-                      ? 'border-[#7C3AED] shadow-lg shadow-[#7C3AED]/20' 
+                      ? 'border-orange-400 shadow-lg shadow-orange-500/20' 
                       : pkg.enterprise
                         ? 'border-slate-400'
-                        : 'border-gray-200 hover:border-[#A78BFA]/50'
+                        : 'border-gray-200 hover:border-cyan-300'
                   }`}
                 >
                   {pkg.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
+                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
                         ХИТ
                       </span>
                     </div>
@@ -363,8 +363,8 @@ export function Shop() {
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-[#4C1D95] text-lg">{pkg.name}</p>
-                        <p className="text-sm font-semibold text-[#7C3AED] mt-1">{pkg.price}</p>
+                        <p className="font-bold text-gray-900 text-lg">{pkg.name}</p>
+                        <p className="text-sm font-semibold text-orange-500 mt-1">{pkg.price}</p>
                       </div>
                     </div>
                   </div>
@@ -372,18 +372,18 @@ export function Shop() {
                   <div className="space-y-2 mb-4">
                     {pkg.features.map((feature, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E] flex-shrink-0" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 flex-shrink-0" />
                         <span className="text-xs text-gray-700 leading-relaxed">{feature}</span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                  <div className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 cursor-pointer ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white hover:shadow-md'
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-md'
                       : pkg.enterprise
                         ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                        : 'bg-[#22C55E] text-white hover:bg-[#16A34A]'
+                        : 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-md'
                   }`}>
                     {pkg.enterprise ? 'Связаться с нами' : 'Выбрать план'}
                   </div>
@@ -433,7 +433,7 @@ export function Shop() {
 
       {/* Footer info */}
       <div className="px-4 pt-6 pb-4">
-        <p className="text-center text-xs text-[#4C1D95]/60">
+        <p className="text-center text-xs text-gray-500">
           Монеты не сгорают • Безопасная оплата • Отмена в любой момент
         </p>
       </div>
