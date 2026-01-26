@@ -47,14 +47,113 @@ async function fixCredential() {
     // Шаг 1: Вход
     console.log('📝 Вход в n8n...');
     await page.goto(`${N8N_URL}/login`);
-    await page.waitForSelector('input[name="email"]', { timeout: 10000 });
     
-    await page.fill('input[name="email"]', EMAIL);
-    await page.fill('input[name="password"]', PASSWORD);
-    await page.click('button[type="submit"]');
+    // Ждём загрузки страницы
+    await page.waitForTimeout(2000);
     
-    console.log('⏳ Ожидание загрузки...');
-    await page.waitForURL('**/workflow**', { timeout: 15000 });
+    // Пробуем разные селекторы для email
+    const emailSelectors = [
+      'input[name="email"]',
+      'input[type="email"]',
+      'input[placeholder*="email" i]',
+      'input[id*="email" i]'
+    ];
+    
+    let emailField = null;
+    for (const selector of emailSelectors) {
+      try {
+        emailField = await page.$(selector);
+        if (emailField) {
+          console.log(`✅ Найдено поле email: ${selector}`);
+          break;
+        }
+      } catch (e) {}
+    }
+    
+    if (!emailField) {
+      // Пробуем найти все input и выбрать нужный
+      const inputs = await page.$$('input');
+      for (const input of inputs) {
+        const type = await input.getAttribute('type');
+        const name = await input.getAttribute('name');
+        if (type === 'email' || name === 'email') {
+          emailField = input;
+          break;
+        }
+      }
+    }
+    
+    if (emailField) {
+      await emailField.fill(EMAIL);
+    } else {
+      throw new Error('Поле email не найдено');
+    }
+    
+    // Пробуем разные селекторы для password
+    const passwordSelectors = [
+      'input[name="password"]',
+      'input[type="password"]',
+      'input[placeholder*="password" i]',
+      'input[id*="password" i]'
+    ];
+    
+    let passwordField = null;
+    for (const selector of passwordSelectors) {
+      try {
+        passwordField = await page.$(selector);
+        if (passwordField) {
+          console.log(`✅ Найдено поле password: ${selector}`);
+          break;
+        }
+      } catch (e) {}
+    }
+    
+    if (!passwordField) {
+      const inputs = await page.$$('input[type="password"]');
+      if (inputs.length > 0) {
+        passwordField = inputs[0];
+      }
+    }
+    
+    if (passwordField) {
+      await passwordField.fill(PASSWORD);
+    } else {
+      throw new Error('Поле password не найдено');
+    }
+    
+    // Ищем кнопку входа
+    const loginButtonSelectors = [
+      'button[type="submit"]',
+      'button:has-text("Sign in")',
+      'button:has-text("Login")',
+      'button:has-text("Войти")',
+      'form button'
+    ];
+    
+    let loginButton = null;
+    for (const selector of loginButtonSelectors) {
+      try {
+        loginButton = await page.$(selector);
+        if (loginButton) {
+          console.log(`✅ Найдена кнопка входа: ${selector}`);
+          break;
+        }
+      } catch (e) {}
+    }
+    
+    if (loginButton) {
+      await loginButton.click();
+    } else {
+      // Пробуем Enter
+      await passwordField.press('Enter');
+    }
+    
+    console.log('⏳ Ожидание загрузки после входа...');
+    await page.waitForTimeout(5000);
+    
+    // Проверяем, что мы залогинились (URL изменился или появился контент)
+    const currentUrl = page.url();
+    console.log(`Текущий URL: ${currentUrl}`);
     
     // Шаг 2: Переход к Credentials
     console.log('🔑 Переход к Credentials...');
@@ -65,35 +164,43 @@ async function fixCredential() {
     console.log(`🔍 Поиск credential '${CREDENTIAL_NAME}'...`);
     
     // Ждём загрузки списка credentials
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
     // Пробуем найти через поиск
-    const searchInput = await page.$('input[type="search"], input[placeholder*="Search"], input[placeholder*="search"]');
-    if (searchInput) {
-      await searchInput.fill(CREDENTIAL_NAME);
-      await page.waitForTimeout(1000);
-      console.log('✅ Поиск выполнен');
-    }
-    
-    // Ищем credential по имени в ссылках и кнопках
-    let found = false;
-    
-    // Пробуем разные селекторы
-    const selectors = [
-      `a:has-text("${CREDENTIAL_NAME}")`,
-      `button:has-text("${CREDENTIAL_NAME}")`,
-      `[data-test-id*="credential"]:has-text("${CREDENTIAL_NAME}")`,
-      `tr:has-text("${CREDENTIAL_NAME}")`,
+    const searchSelectors = [
+      'input[type="search"]',
+      'input[placeholder*="Search" i]',
+      'input[placeholder*="search" i]',
+      'input[class*="search" i]'
     ];
     
-    for (const selector of selectors) {
+    for (const selector of searchSelectors) {
       try {
-        const element = await page.$(selector);
-        if (element) {
-          console.log(`✅ Найден credential через селектор: ${selector}`);
+        const searchInput = await page.$(selector);
+        if (searchInput) {
+          console.log(`✅ Найдено поле поиска: ${selector}`);
+          await searchInput.fill(CREDENTIAL_NAME);
+          await page.waitForTimeout(2000);
+          break;
+        }
+      } catch (e) {}
+    }
+    
+    // Ищем credential по имени
+    let found = false;
+    await page.waitForTimeout(2000);
+    
+    // Пробуем найти все кликабельные элементы с текстом
+    const allClickable = await page.$$('a, button, [role="button"], tr, [class*="credential" i], [data-test-id*="credential" i]');
+    
+    for (const element of allClickable) {
+      try {
+        const text = await element.textContent();
+        if (text && text.includes(CREDENTIAL_NAME)) {
+          console.log(`✅ Найден credential: "${text.trim()}"`);
           await element.click();
           found = true;
-          await page.waitForTimeout(2000);
+          await page.waitForTimeout(3000);
           break;
         }
       } catch (e) {
@@ -101,44 +208,65 @@ async function fixCredential() {
       }
     }
     
-    // Если не нашли через селекторы, ищем вручную
-    if (!found) {
-      const allLinks = await page.$$('a, button, [role="button"]');
-      for (const link of allLinks) {
-        try {
-          const text = await link.textContent();
-          if (text && text.trim().includes(CREDENTIAL_NAME)) {
-            console.log('✅ Найден credential по тексту!');
-            await link.click();
-            found = true;
-            await page.waitForTimeout(2000);
-            break;
-          }
-        } catch (e) {
-          // Игнорируем ошибки
-        }
-      }
-    }
-    
     if (!found) {
       console.log('⚠️  Credential не найден автоматически');
       console.log('Попробуй найти его вручную в открытом браузере');
       console.log('URL:', page.url());
-      await page.waitForTimeout(30000);
+      console.log('Ожидание 60 секунд для ручного поиска...');
+      await page.waitForTimeout(60000);
     }
     
     // Шаг 4: Редактирование приватного ключа
     console.log('✏️ Редактирование credential...');
     
     // Ждём загрузки формы редактирования
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
     
     // Ищем поле privateKey (может быть textarea или input)
-    let privateKeyField = await page.$('textarea[name="privateKey"], textarea[data-test-id*="privateKey"], textarea[placeholder*="private"], textarea');
+    const privateKeySelectors = [
+      'textarea[name="privateKey"]',
+      'textarea[data-test-id*="privateKey" i]',
+      'textarea[placeholder*="private" i]',
+      'textarea[id*="private" i]',
+      'textarea[class*="private" i]',
+      'input[name="privateKey"]',
+      'input[data-test-id*="privateKey" i]',
+      'textarea' // Последний вариант - любой textarea
+    ];
     
+    let privateKeyField = null;
+    for (const selector of privateKeySelectors) {
+      try {
+        privateKeyField = await page.$(selector);
+        if (privateKeyField) {
+          const placeholder = await privateKeyField.getAttribute('placeholder') || '';
+          const name = await privateKeyField.getAttribute('name') || '';
+          if (placeholder.toLowerCase().includes('private') || name.toLowerCase().includes('private') || selector === 'textarea') {
+            console.log(`✅ Найдено поле privateKey: ${selector}`);
+            break;
+          }
+        }
+      } catch (e) {}
+    }
+    
+    // Если не нашли, ищем все textarea и выбираем самый большой
     if (!privateKeyField) {
-      // Пробуем найти через input
-      privateKeyField = await page.$('input[name="privateKey"], input[data-test-id*="privateKey"]');
+      const textareas = await page.$$('textarea');
+      if (textareas.length > 0) {
+        // Выбираем самый большой textarea (обычно это поле для ключа)
+        let maxRows = 0;
+        for (const textarea of textareas) {
+          const rows = await textarea.getAttribute('rows');
+          const rowsNum = rows ? parseInt(rows) : 0;
+          if (rowsNum > maxRows) {
+            maxRows = rowsNum;
+            privateKeyField = textarea;
+          }
+        }
+        if (privateKeyField) {
+          console.log('✅ Найдено поле privateKey (самый большой textarea)');
+        }
+      }
     }
     
     if (privateKeyField) {
