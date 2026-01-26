@@ -17,6 +17,16 @@ const FALLBACK_MODEL = "gemini-2.5-flash"
 // Максимум сообщений в памяти
 const MAX_HISTORY_MESSAGES = 20
 
+// Лимиты по тарифам (fallback если БД недоступна)
+const TARIFF_LIMITS: Record<string, number> = {
+  'basic': 10,
+  'pro': 50,
+  'vip': 100,
+  'elite': 300,
+  'platinum': 300, // platinum = elite
+  'standard': 50   // standard = pro
+}
+
 const SYSTEM_PROMPT = `Ты — AI-ассистент платформы AI CITI (НЕЙРОГОРОД) на базе Gemini 2.5 Pro.
 
 ## Твои сильные стороны:
@@ -62,6 +72,71 @@ async function getChatSettings() {
       fallback_model: FALLBACK_MODEL,
       max_retries: 2
     }
+  }
+}
+
+// Проверка лимита запросов
+async function checkUserLimit(userId: string | undefined): Promise<{
+  allowed: boolean
+  tariff: string
+  limit: number
+  used: number
+  remaining: number
+}> {
+  if (!userId) {
+    // Без userId считаем как basic
+    return { allowed: true, tariff: 'basic', limit: 10, used: 0, remaining: 10 }
+  }
+
+  try {
+    const supabase = getSupabaseClient()
+    
+    // Получаем тариф пользователя
+    const { data: userTariffs } = await supabase
+      .from('user_tariffs')
+      .select('tariff_slug')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+    
+    // Определяем лучший тариф по лимиту
+    let bestTariff = 'basic'
+    let limit = TARIFF_LIMITS['basic']
+    
+    if (userTariffs && userTariffs.length > 0) {
+      for (const t of userTariffs) {
+        const tariffLimit = TARIFF_LIMITS[t.tariff_slug] || 10
+        if (tariffLimit > limit) {
+          limit = tariffLimit
+          bestTariff = t.tariff_slug
+        }
+      }
+    }
+    
+    // Считаем сообщения за сегодня
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const { count } = await supabase
+      .from('chat_usage')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('success', true)
+      .gte('created_at', today.toISOString())
+    
+    const used = count || 0
+    const remaining = Math.max(0, limit - used)
+    
+    return {
+      allowed: used < limit,
+      tariff: bestTariff,
+      limit,
+      used,
+      remaining
+    }
+  } catch (e) {
+    console.error('Error checking limit:', e)
+    // В случае ошибки разрешаем (лучше работать, чем блокировать)
+    return { allowed: true, tariff: 'basic', limit: 10, used: 0, remaining: 10 }
   }
 }
 
@@ -233,6 +308,23 @@ serve(async (req) => {
       )
     }
 
+    // Проверяем лимит запросов
+    const limitInfo = await checkUserLimit(userId)
+    
+    if (!limitInfo.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'limit_exceeded',
+          message: `Достигнут лимит запросов (${limitInfo.limit}/день). Обновите тариф для увеличения лимита.`,
+          limit: limitInfo.limit,
+          used: limitInfo.used,
+          remaining: 0,
+          tariff: limitInfo.tariff
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Получаем настройки модели
     const settings = await getChatSettings()
     usedModel = settings.active_model || DEFAULT_MODEL
@@ -326,7 +418,14 @@ serve(async (req) => {
       JSON.stringify({
         reply: result.reply,
         model: usedModel,
-        usage: { inputTokens, outputTokens, imagesCount }
+        usage: { inputTokens, outputTokens, imagesCount },
+        // Информация о лимите (после использования)
+        limit: {
+          tariff: limitInfo.tariff,
+          daily: limitInfo.limit,
+          used: limitInfo.used + 1,
+          remaining: limitInfo.remaining - 1
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

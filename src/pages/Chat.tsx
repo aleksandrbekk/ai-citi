@@ -1,9 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, Bot, User, Lock, Paperclip, Mic, MicOff, X, Image, FileText, Trash2 } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Trash2, Zap, Crown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+
+// Типы лимитов
+interface LimitInfo {
+  tariff: string
+  daily: number
+  used: number
+  remaining: number
+}
 
 // Проверка TMA на мобильном для отступа
 const getTMAPadding = () => {
@@ -45,10 +53,12 @@ interface Message {
 
 export default function Chat() {
   const navigate = useNavigate()
-  const tariffs = useAuthStore((state) => state.tariffs)
   const user = useAuthStore((state) => state.user)
-  const hasPaidAccess = tariffs.length > 0
   const needsPadding = getTMAPadding()
+  
+  // Состояние лимита
+  const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
+  const [limitError, setLimitError] = useState<string | null>(null)
 
   // Загрузка истории из localStorage
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -229,6 +239,26 @@ export default function Chat() {
 
       if (error) throw error
 
+      // Проверяем ошибку лимита
+      if (data.error === 'limit_exceeded') {
+        setLimitError(data.message)
+        setLimitInfo({
+          tariff: data.tariff,
+          daily: data.limit,
+          used: data.used,
+          remaining: 0
+        })
+        // Удаляем последнее сообщение пользователя
+        setMessages(prev => prev.slice(0, -1))
+        return
+      }
+
+      // Обновляем информацию о лимите
+      if (data.limit) {
+        setLimitInfo(data.limit)
+        setLimitError(null)
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -236,8 +266,16 @@ export default function Chat() {
       }
 
       setMessages(prev => [...prev, assistantMessage])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error)
+      
+      // Проверяем ошибку лимита в catch
+      if (error?.message?.includes('limit_exceeded')) {
+        setLimitError('Достигнут лимит запросов на сегодня')
+        setMessages(prev => prev.slice(0, -1))
+        return
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -256,54 +294,35 @@ export default function Chat() {
     }
   }
 
-  // Если нет подписки - показываем экран блокировки
-  if (!hasPaidAccess) {
-    return (
-      <div className={`min-h-screen bg-white flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
-        {/* Header */}
-        <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3`}>
-          <button
-            onClick={() => navigate('/')}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            <ArrowLeft size={24} className="text-gray-700" />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-              <Lock size={20} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">AI Ассистент</h1>
-              <p className="text-xs text-gray-400">Требуется подписка</p>
-            </div>
-          </div>
-        </div>
+  // Функция получения цвета тарифа
+  const getTariffColor = (tariff: string) => {
+    switch (tariff) {
+      case 'elite':
+      case 'platinum':
+        return 'from-amber-400 to-amber-500'
+      case 'vip':
+        return 'from-purple-400 to-purple-500'
+      case 'pro':
+      case 'standard':
+        return 'from-blue-400 to-blue-500'
+      default:
+        return 'from-gray-400 to-gray-500'
+    }
+  }
 
-        {/* Locked content */}
-        <div className="flex-1 flex items-center justify-center px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-sm"
-          >
-            <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <Lock size={40} className="text-gray-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h2>
-            <p className="text-gray-500 mb-6">
-              AI-ассистент доступен только для пользователей с активной подпиской.
-              Оформи подписку, чтобы получить доступ к умному помощнику.
-            </p>
-            <button
-              onClick={() => navigate('/shop')}
-              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
-            >
-              Оформить подписку
-            </button>
-          </motion.div>
-        </div>
-      </div>
-    )
+  const getTariffLabel = (tariff: string) => {
+    switch (tariff) {
+      case 'elite':
+      case 'platinum':
+        return 'ELITE'
+      case 'vip':
+        return 'VIP'
+      case 'pro':
+      case 'standard':
+        return 'PRO'
+      default:
+        return 'BASIC'
+    }
   }
 
   return (
@@ -328,6 +347,22 @@ export default function Chat() {
             </p>
           </div>
         </div>
+        
+        {/* Счётчик лимита */}
+        {limitInfo && (
+          <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r ${getTariffColor(limitInfo.tariff)} text-white text-xs font-medium`}>
+              {limitInfo.tariff !== 'basic' && <Crown size={12} />}
+              <span>{getTariffLabel(limitInfo.tariff)}</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Zap size={14} className={limitInfo.remaining > 3 ? 'text-green-500' : limitInfo.remaining > 0 ? 'text-amber-500' : 'text-red-500'} />
+              <span className={limitInfo.remaining === 0 ? 'text-red-500 font-medium' : ''}>
+                {limitInfo.remaining}/{limitInfo.daily}
+              </span>
+            </div>
+          </div>
+        )}
         {/* Кнопка очистки чата */}
         {messages.length > 0 && (
           <button
@@ -344,6 +379,45 @@ export default function Chat() {
           </button>
         )}
       </div>
+
+      {/* Баннер ошибки лимита */}
+      <AnimatePresence>
+        {limitError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mx-4 mt-3 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Zap size={20} className="text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-800 mb-1">Лимит исчерпан</h3>
+                <p className="text-sm text-amber-700 mb-3">
+                  Вы использовали все {limitInfo?.daily || 10} запросов на сегодня. 
+                  Обновите тариф для увеличения лимита.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate('/shop')}
+                    className="px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-sm font-medium rounded-xl shadow-lg shadow-amber-500/20"
+                  >
+                    Улучшить тариф
+                  </button>
+                  <button
+                    onClick={() => setLimitError(null)}
+                    className="px-4 py-2 bg-white text-amber-700 text-sm font-medium rounded-xl border border-amber-200"
+                  >
+                    Понятно
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
