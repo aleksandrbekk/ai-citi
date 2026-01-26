@@ -326,9 +326,9 @@ export default function Chat() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-[#FFF8F5] to-white flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-[#FFF8F5] flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
       {/* Header */}
-      <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3`}>
+      <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/90 backdrop-blur-xl border-b border-gray-100/50 px-4 py-3.5 flex items-center gap-3 shadow-sm`}>
         <button
           onClick={() => navigate('/')}
           className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
@@ -341,9 +341,9 @@ export default function Chat() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-gray-900">AI Ассистент</h1>
-            <p className="text-xs text-green-500 flex items-center gap-1">
+            <p className="text-xs text-gray-500 flex items-center gap-1.5">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              Gemini 2.5 Pro
+              Онлайн
             </p>
           </div>
         </div>
@@ -420,35 +420,60 @@ export default function Chat() {
       </AnimatePresence>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5">
         {messages.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-12"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="text-center py-16 px-4"
           >
-            <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl shadow-cyan-500/30">
-              <Bot size={40} className="text-white" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Привет!</h2>
-            <p className="text-gray-500 max-w-sm mx-auto">
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="w-24 h-24 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-cyan-500/40"
+            >
+              <Bot size={48} className="text-white" />
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold text-gray-900 mb-3"
+            >
+              Привет! 👋
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-gray-600 max-w-sm mx-auto leading-relaxed"
+            >
               Я твой AI-ассистент. Задай мне любой вопрос, прикрепи фото или запиши голосовое сообщение.
-            </p>
+            </motion.p>
           </motion.div>
         )}
 
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {messages.map((message) => (
             <motion.div
               key={message.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 12, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.2 } }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
               className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {message.role === 'assistant' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Bot size={16} className="text-white" />
-                </div>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+                  className="w-9 h-9 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md shadow-cyan-500/20"
+                >
+                  <Bot size={18} className="text-white" />
+                </motion.div>
               )}
 
               <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : ''}`}>
@@ -471,21 +496,29 @@ export default function Chat() {
                 )}
 
                 {message.content && (
-                  <div
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.15 }}
                     className={`px-4 py-3 rounded-2xl ${message.role === 'user'
-                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md'
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md shadow-lg shadow-orange-500/20'
                       : 'bg-white border border-gray-100 text-gray-800 rounded-bl-md shadow-sm'
                       }`}
                   >
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-                  </div>
+                  </motion.div>
                 )}
               </div>
 
               {message.role === 'user' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User size={16} className="text-white" />
-                </div>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+                  className="w-9 h-9 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md shadow-orange-500/20"
+                >
+                  <User size={18} className="text-white" />
+                </motion.div>
               )}
             </motion.div>
           ))}
@@ -493,18 +526,31 @@ export default function Chat() {
 
         {isLoading && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
             className="flex gap-3"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-              <Bot size={16} className="text-white" />
+            <div className="w-9 h-9 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-md shadow-cyan-500/20">
+              <Bot size={18} className="text-white" />
             </div>
-            <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-white border border-gray-100 px-5 py-3.5 rounded-2xl rounded-bl-md shadow-sm">
+              <div className="flex gap-1.5">
+                <motion.span
+                  className="w-2 h-2 bg-cyan-400 rounded-full"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                />
+                <motion.span
+                  className="w-2 h-2 bg-blue-500 rounded-full"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                />
+                <motion.span
+                  className="w-2 h-2 bg-purple-500 rounded-full"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                />
               </div>
             </div>
           </motion.div>
@@ -586,8 +632,8 @@ export default function Chat() {
       />
 
       {/* Input */}
-      <div className={`sticky bottom-0 bg-white/80 backdrop-blur-xl px-3 py-3 ${needsPadding ? 'pb-8' : 'pb-safe'}`}>
-        <div className={`border rounded-2xl bg-white shadow-sm transition-all ${isRecording ? 'border-red-400 bg-red-50' : 'border-gray-200 focus-within:border-orange-300 focus-within:shadow-md'}`}>
+      <div className={`sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent backdrop-blur-xl px-4 py-4 ${needsPadding ? 'pb-8' : 'pb-safe'}`}>
+        <div className={`border rounded-2xl bg-white/90 backdrop-blur-sm shadow-lg transition-all ${isRecording ? 'border-red-400 bg-red-50 shadow-red-200/50' : 'border-gray-200 focus-within:border-orange-400 focus-within:shadow-xl focus-within:shadow-orange-500/10'}`}>
           {/* Text input or Recording indicator */}
           {isRecording ? (
             <div className="px-4 py-4 flex items-center gap-3">
@@ -608,7 +654,7 @@ export default function Chat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Напиши сообщение..."
-              className="w-full px-4 pt-4 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
+              className="w-full px-4 pt-4 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-orange-500"
               rows={1}
               disabled={isLoading}
             />
@@ -636,7 +682,7 @@ export default function Chat() {
               <button
                 onClick={sendMessage}
                 disabled={(!input.trim() && attachments.length === 0) || isLoading}
-                className="p-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-orange-500/30 active:scale-95"
+                className="p-2.5 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-orange-500/40 active:scale-95 disabled:active:scale-100"
               >
                 {isLoading ? (
                   <Loader2 size={20} className="animate-spin" />
