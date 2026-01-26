@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
-import { Coins, Crown, Star } from 'lucide-react'
+import { Coins, Crown, Star, User } from 'lucide-react'
 // import { Palette } from 'lucide-react' // Временно скрыто
 
 // Ссылка на продукт в Lava.top
@@ -238,26 +238,46 @@ export function Shop() {
       <div className="px-4 space-y-4">
         {activeTab === 'coins' && (
           <>
-            {/* Баланс - только в разделе Монеты */}
-            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-4 shadow-sm">
+            {/* Профиль в стиле Telegram - компактный */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
-                  <Coins className="w-6 h-6 text-white" />
+                {/* Аватарка */}
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {telegramUser?.photo_url ? (
+                    <img 
+                      src={telegramUser.photo_url} 
+                      alt={telegramUser.first_name || 'User'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-6 h-6 text-white" />
+                  )}
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500">Ваш баланс</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900">
+                
+                {/* Имя и монеты */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {telegramUser?.first_name || 'Пользователь'}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Coins className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                    <span className="text-base font-bold text-gray-900">
                       {isLoadingCoins ? '...' : coinBalance}
                     </span>
-                    <span className="text-gray-600">монет</span>
+                    <span className="text-xs text-gray-500">монет</span>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Заголовок пакетов */}
+            <div className="pt-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Пополнить баланс</h2>
+              <p className="text-xs text-gray-500 mb-4">Выберите валюту и пакет</p>
+            </div>
+
             {/* Выбор валюты */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-4">
               {(['RUB', 'USD', 'EUR'] as const).map((cur) => (
                 <button
                   key={cur}
@@ -273,34 +293,38 @@ export function Shop() {
               ))}
             </div>
 
-            {coinPackages.map((pkg) => {
-              const Icon = pkg.icon
-              return (
-                <button
-                  key={pkg.id}
-                  onClick={() => handleBuy(pkg)}
-                  disabled={isProcessing}
-                  className="w-full bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-white/30 backdrop-blur-sm flex items-center justify-center">
-                        <Icon className="w-8 h-8 text-white" />
+            {/* Пакеты монет */}
+            <div className="space-y-3">
+              {coinPackages.map((pkg) => {
+                const Icon = pkg.icon
+                return (
+                  <button
+                    key={pkg.id}
+                    onClick={() => handleBuy(pkg)}
+                    disabled={isProcessing}
+                    className="w-full bg-white border-2 border-gray-200 rounded-2xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:border-orange-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+                          <Icon className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-base font-bold text-gray-900">{pkg.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {isProcessing ? 'Создаём платёж...' : 'Пополнение баланса'}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xl font-bold text-white">{pkg.name}</p>
-                        <p className="text-white/80 text-sm">
-                          {isProcessing ? 'Создаём платёж...' : 'Пополнение баланса'}
-                        </p>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-gray-900">{currencyPrices[currency]}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{pkg.coins} монет</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-white">{currencyPrices[currency]}</p>
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
+                  </button>
+                )
+              })}
+            </div>
           </>
         )}
 
