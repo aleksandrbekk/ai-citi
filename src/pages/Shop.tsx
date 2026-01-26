@@ -22,73 +22,48 @@ const coinPackages = [
   },
 ]
 
-// Пакеты подписок
+// Пакеты подписок (4 тарифа)
 const subscriptionPackages = [
   {
     id: 'basic',
     name: 'BASIC',
     price: 'Бесплатно',
+    priceLabel: '0 ₽',
     features: ['Базовый доступ', 'Стандартные шаблоны', '10 запросов/день'],
     color: 'from-gray-400 to-gray-500',
-    icon: '⭐',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
   },
   {
     id: 'starter',
     name: 'STARTER',
     price: '299 ₽/мес',
+    priceLabel: '299 ₽',
     features: ['Расширенный доступ', 'Все шаблоны', '50 запросов/день', 'Приоритет поддержка'],
-    color: 'from-blue-400 to-blue-500',
-    icon: '🚀',
+    color: 'from-cyan-400 to-cyan-500',
+    bgColor: 'bg-cyan-50',
+    borderColor: 'border-cyan-300',
   },
   {
     id: 'pro',
     name: 'PRO',
     price: '799 ₽/мес',
+    priceLabel: '799 ₽',
     features: ['Расширенный доступ', 'Все шаблоны', '200 запросов/день', 'Приоритет генерации', 'Экспорт данных'],
-    color: 'from-purple-400 to-purple-500',
-    popular: true,
-    icon: '💎',
-  },
-  {
-    id: 'business',
-    name: 'BUSINESS',
-    price: '1,999 ₽/мес',
-    features: ['Бизнес доступ', 'Все шаблоны', '500 запросов/день', 'API доступ', 'Приоритет поддержка', 'Аналитика'],
-    color: 'from-indigo-400 to-indigo-500',
-    icon: '🏢',
-  },
-  {
-    id: 'vip',
-    name: 'VIP',
-    price: '3,999 ₽/мес',
-    features: ['VIP доступ', 'Все шаблоны', '1,000 запросов/день', 'VIP поддержка', 'Эксклюзивный контент', 'Персональный менеджер'],
     color: 'from-orange-400 to-orange-500',
-    icon: '👑',
-  },
-  {
-    id: 'premium',
-    name: 'PREMIUM',
-    price: '5,999 ₽/мес',
-    features: ['Премиум доступ', 'Все функции', '2,500 запросов/день', 'Приоритет API', 'White-label', 'Кастомные интеграции'],
-    color: 'from-pink-400 to-pink-500',
-    icon: '✨',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-400',
+    popular: true,
   },
   {
     id: 'elite',
     name: 'ELITE',
     price: '9,999 ₽/мес',
+    priceLabel: '9,999 ₽',
     features: ['Максимальный доступ', 'Все функции', 'Безлимит запросов', 'Персональный менеджер', 'Безлимит API', 'Приоритет разработка'],
-    color: 'from-yellow-400 to-amber-500',
-    icon: '🌟',
-  },
-  {
-    id: 'enterprise',
-    name: 'ENTERPRISE',
-    price: 'По запросу',
-    features: ['Корпоративный доступ', 'Все функции', 'Безлимит', 'Dedicated сервер', 'SLA 99.9%', 'Кастомные решения', 'Обучение команды'],
-    color: 'from-slate-600 to-slate-700',
-    icon: '🏛️',
-    enterprise: true,
+    color: 'from-amber-400 to-amber-500',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-400',
   },
 ]
 
@@ -331,61 +306,65 @@ export function Shop() {
 
         {activeTab === 'subscription' && (
           <>
-            <p className="text-xs text-[#4C1D95]/70 text-center mb-1">Ежемесячная подписка</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p className="text-xs text-gray-500 text-center mb-4">Ежемесячная подписка</p>
+            <div className="grid grid-cols-1 gap-4">
               {subscriptionPackages.map((pkg) => (
                 <button
                   key={pkg.id}
                   onClick={() => handleBuySubscription(pkg.id)}
-                  className={`relative w-full bg-white border-2 rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
-                    pkg.popular 
-                      ? 'border-orange-400 shadow-lg shadow-orange-500/20' 
-                      : pkg.enterprise
-                        ? 'border-slate-400'
-                        : 'border-gray-200 hover:border-cyan-300'
+                  className={`relative w-full ${pkg.bgColor} border-2 ${pkg.borderColor} rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
+                    pkg.popular ? 'ring-2 ring-orange-400 ring-offset-2' : ''
                   }`}
                 >
                   {pkg.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
                         ХИТ
                       </span>
                     </div>
                   )}
                   
-                  <div className="flex items-start justify-between mb-3">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-md`}>
-                        {pkg.icon ? (
-                          <span className="text-2xl">{pkg.icon}</span>
-                        ) : (
-                          <Star className="w-6 h-6 text-white" />
-                        )}
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-md`}>
+                        <Star className="w-7 h-7 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-lg">{pkg.name}</p>
-                        <p className="text-sm font-semibold text-orange-500 mt-1">{pkg.price}</p>
+                        <p className="font-bold text-gray-900 text-xl">{pkg.name}</p>
+                        <p className="text-sm text-gray-500 mt-0.5">{pkg.price}</p>
                       </div>
                     </div>
+                    {pkg.popular && (
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Рекомендуем</p>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="space-y-2 mb-4">
+                  {/* Features */}
+                  <div className="space-y-2.5 mb-5">
                     {pkg.features.map((feature, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 flex-shrink-0" />
-                        <span className="text-xs text-gray-700 leading-relaxed">{feature}</span>
+                      <div key={i} className="flex items-start gap-2.5">
+                        <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
+                          pkg.popular ? 'bg-orange-500' : pkg.id === 'elite' ? 'bg-amber-500' : pkg.id === 'starter' ? 'bg-cyan-500' : 'bg-gray-400'
+                        }`} />
+                        <span className="text-sm text-gray-700 leading-relaxed flex-1">{feature}</span>
                       </div>
                     ))}
                   </div>
                   
-                  <div className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 cursor-pointer ${
+                  {/* CTA Button */}
+                  <div className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
                     pkg.popular
-                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-md'
-                      : pkg.enterprise
-                        ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                        : 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-md'
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-md hover:shadow-orange-500/30'
+                      : pkg.id === 'elite'
+                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-md hover:shadow-amber-500/30'
+                        : pkg.id === 'starter'
+                          ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-md hover:shadow-cyan-500/30'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}>
-                    {pkg.enterprise ? 'Связаться с нами' : 'Выбрать план'}
+                    {pkg.id === 'basic' ? 'Начать бесплатно' : 'Выбрать план'}
                   </div>
                 </button>
               ))}
