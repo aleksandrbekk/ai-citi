@@ -27,27 +27,68 @@ const subscriptionPackages = [
   {
     id: 'basic',
     name: 'BASIC',
-    features: ['Базовый доступ', 'Стандартные шаблоны'],
+    price: 'Бесплатно',
+    features: ['Базовый доступ', 'Стандартные шаблоны', '10 запросов/день'],
+    color: 'from-gray-400 to-gray-500',
+    icon: '⭐',
+  },
+  {
+    id: 'starter',
+    name: 'STARTER',
+    price: '299 ₽/мес',
+    features: ['Расширенный доступ', 'Все шаблоны', '50 запросов/день', 'Приоритет поддержка'],
     color: 'from-blue-400 to-blue-500',
+    icon: '🚀',
   },
   {
     id: 'pro',
     name: 'PRO',
-    features: ['Расширенный доступ', 'Все шаблоны', 'Приоритет генерации'],
+    price: '799 ₽/мес',
+    features: ['Расширенный доступ', 'Все шаблоны', '200 запросов/день', 'Приоритет генерации', 'Экспорт данных'],
     color: 'from-purple-400 to-purple-500',
     popular: true,
+    icon: '💎',
+  },
+  {
+    id: 'business',
+    name: 'BUSINESS',
+    price: '1,999 ₽/мес',
+    features: ['Бизнес доступ', 'Все шаблоны', '500 запросов/день', 'API доступ', 'Приоритет поддержка', 'Аналитика'],
+    color: 'from-indigo-400 to-indigo-500',
+    icon: '🏢',
   },
   {
     id: 'vip',
     name: 'VIP',
-    features: ['VIP доступ', 'Все шаблоны', 'VIP поддержка', 'Эксклюзивный контент'],
+    price: '3,999 ₽/мес',
+    features: ['VIP доступ', 'Все шаблоны', '1,000 запросов/день', 'VIP поддержка', 'Эксклюзивный контент', 'Персональный менеджер'],
     color: 'from-orange-400 to-orange-500',
+    icon: '👑',
+  },
+  {
+    id: 'premium',
+    name: 'PREMIUM',
+    price: '5,999 ₽/мес',
+    features: ['Премиум доступ', 'Все функции', '2,500 запросов/день', 'Приоритет API', 'White-label', 'Кастомные интеграции'],
+    color: 'from-pink-400 to-pink-500',
+    icon: '✨',
   },
   {
     id: 'elite',
     name: 'ELITE',
-    features: ['Максимальный доступ', 'Все функции', 'Персональный менеджер', 'Безлимит'],
+    price: '9,999 ₽/мес',
+    features: ['Максимальный доступ', 'Все функции', 'Безлимит запросов', 'Персональный менеджер', 'Безлимит API', 'Приоритет разработка'],
     color: 'from-yellow-400 to-amber-500',
+    icon: '🌟',
+  },
+  {
+    id: 'enterprise',
+    name: 'ENTERPRISE',
+    price: 'По запросу',
+    features: ['Корпоративный доступ', 'Все функции', 'Безлимит', 'Dedicated сервер', 'SLA 99.9%', 'Кастомные решения', 'Обучение команды'],
+    color: 'from-slate-600 to-slate-700',
+    icon: '🏛️',
+    enterprise: true,
   },
 ]
 
@@ -169,23 +210,23 @@ export function Shop() {
   // }
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-[#FAF5FF] pb-24">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <h1 className="text-2xl font-bold text-center text-gray-900">
+      <div className="px-4 pt-4 pb-3">
+        <h1 className="text-2xl font-bold text-center text-[#4C1D95]">
           МАГАЗИН
         </h1>
       </div>
 
       {/* Tabs */}
-      <div className="px-4 py-2">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+      <div className="px-4 py-3">
+        <div className="flex gap-1.5 bg-white/60 backdrop-blur-sm p-1.5 rounded-xl border border-[#A78BFA]/20">
           <button
             onClick={() => setActiveTab('coins')}
-            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${
               activeTab === 'coins'
-                ? 'bg-white text-orange-500 shadow-sm'
-                : 'text-gray-500'
+                ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <Coins className="w-4 h-4 inline mr-1" />
@@ -193,10 +234,10 @@ export function Shop() {
           </button>
           <button
             onClick={() => setActiveTab('subscription')}
-            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${
               activeTab === 'subscription'
-                ? 'bg-white text-orange-500 shadow-sm'
-                : 'text-gray-500'
+                ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white shadow-md'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <Star className="w-4 h-4 inline mr-1" />
@@ -219,22 +260,22 @@ export function Shop() {
       </div>
 
       {/* Content */}
-      <div className="px-4 space-y-3">
+      <div className="px-4 space-y-4">
         {activeTab === 'coins' && (
           <>
             {/* Баланс - только в разделе Монеты */}
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-2xl p-4">
+            <div className="bg-gradient-to-r from-[#FAF5FF] to-white border border-[#A78BFA]/30 rounded-2xl p-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] flex items-center justify-center shadow-md">
                   <Coins className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Ваш баланс</p>
+                  <p className="text-xs text-[#4C1D95]/70">Ваш баланс</p>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-2xl font-bold text-[#4C1D95]">
                       {isLoadingCoins ? '...' : coinBalance}
                     </span>
-                    <span className="text-gray-500">монет</span>
+                    <span className="text-[#4C1D95]/60">монет</span>
                   </div>
                 </div>
               </div>
@@ -246,10 +287,10 @@ export function Shop() {
                 <button
                   key={cur}
                   onClick={() => setCurrency(cur)}
-                  className={`flex-1 py-2 rounded-xl font-semibold text-sm transition-all ${
+                  className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${
                     currency === cur
-                      ? 'bg-orange-500 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white shadow-md'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
                   {cur === 'RUB' ? '₽ Рубли' : cur === 'USD' ? '$ Доллары' : '€ Евро'}
@@ -264,7 +305,7 @@ export function Shop() {
                   key={pkg.id}
                   onClick={() => handleBuy(pkg)}
                   disabled={isProcessing}
-                  className="w-full bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-5 text-left transition-all hover:shadow-xl active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait"
+                  className="w-full bg-gradient-to-br from-[#7C3AED] to-[#A78BFA] rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -290,38 +331,65 @@ export function Shop() {
 
         {activeTab === 'subscription' && (
           <>
-            <p className="text-xs text-gray-500 text-center">Ежемесячная подписка</p>
-            {subscriptionPackages.map((pkg) => (
-              <button
-                key={pkg.id}
-                onClick={() => handleBuySubscription(pkg.id)}
-                className={`w-full bg-white border-2 rounded-2xl p-4 text-left transition-all hover:shadow-lg active:scale-[0.98] opacity-60 ${
-                  pkg.popular ? 'border-orange-400' : 'border-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
-                    <Star className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-gray-900 text-lg">{pkg.name}</p>
-                    {pkg.popular && (
-                      <span className="bg-orange-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+            <p className="text-xs text-[#4C1D95]/70 text-center mb-1">Ежемесячная подписка</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {subscriptionPackages.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  onClick={() => handleBuySubscription(pkg.id)}
+                  className={`relative w-full bg-white border-2 rounded-2xl p-5 text-left transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                    pkg.popular 
+                      ? 'border-[#7C3AED] shadow-lg shadow-[#7C3AED]/20' 
+                      : pkg.enterprise
+                        ? 'border-slate-400'
+                        : 'border-gray-200 hover:border-[#A78BFA]/50'
+                  }`}
+                >
+                  {pkg.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
                         ХИТ
                       </span>
-                    )}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-md`}>
+                        {pkg.icon ? (
+                          <span className="text-2xl">{pkg.icon}</span>
+                        ) : (
+                          <Star className="w-6 h-6 text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-[#4C1D95] text-lg">{pkg.name}</p>
+                        <p className="text-sm font-semibold text-[#7C3AED] mt-1">{pkg.price}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {pkg.features.map((feature, i) => (
-                    <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-lg">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">Скоро</p>
-              </button>
-            ))}
+                  
+                  <div className="space-y-2 mb-4">
+                    {pkg.features.map((feature, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E] flex-shrink-0" />
+                        <span className="text-xs text-gray-700 leading-relaxed">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                    pkg.popular
+                      ? 'bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] text-white hover:shadow-md'
+                      : pkg.enterprise
+                        ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        : 'bg-[#22C55E] text-white hover:bg-[#16A34A]'
+                  }`}>
+                    {pkg.enterprise ? 'Связаться с нами' : 'Выбрать план'}
+                  </div>
+                </button>
+              ))}
+            </div>
           </>
         )}
 
@@ -364,9 +432,9 @@ export function Shop() {
       </div>
 
       {/* Footer info */}
-      <div className="px-4 pt-6">
-        <p className="text-center text-xs text-gray-400">
-          Монеты не сгорают • Безопасная оплата
+      <div className="px-4 pt-6 pb-4">
+        <p className="text-center text-xs text-[#4C1D95]/60">
+          Монеты не сгорают • Безопасная оплата • Отмена в любой момент
         </p>
       </div>
     </div>
