@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Save, RefreshCw, Bot, Zap, MessageSquare, Users, Sliders } from 'lucide-react'
+import { Settings, Save, RefreshCw, Bot, Zap, MessageSquare, Users, Sliders, Info, Crown, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface ChatSettings {
@@ -23,10 +23,54 @@ interface ChatSettings {
 }
 
 const MODELS = [
-  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro (умнее, дороже)', tier: 'premium' },
-  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (быстрее, дешевле)', tier: 'fast' },
-  { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (самая быстрая)', tier: 'fast' },
+  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', desc: 'Умнее, дороже', tier: 'premium' },
+  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', desc: 'Быстрее, дешевле', tier: 'fast' },
+  { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', desc: 'Самая быстрая', tier: 'fast' },
 ]
+
+// Компонент для числового поля без бага с 0
+function NumberInput({ 
+  value, 
+  onChange, 
+  min = 0, 
+  max = 99999,
+  className = ''
+}: { 
+  value: number
+  onChange: (v: number) => void
+  min?: number
+  max?: number
+  className?: string
+}) {
+  const [localValue, setLocalValue] = useState(value.toString())
+  
+  useEffect(() => {
+    setLocalValue(value.toString())
+  }, [value])
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9]/g, '')
+    setLocalValue(raw)
+  }
+  
+  const handleBlur = () => {
+    let num = parseInt(localValue) || min
+    num = Math.max(min, Math.min(max, num))
+    setLocalValue(num.toString())
+    onChange(num)
+  }
+  
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all ${className}`}
+    />
+  )
+}
 
 export function AdminSettings() {
   const [settings, setSettings] = useState<ChatSettings | null>(null)
@@ -36,7 +80,6 @@ export function AdminSettings() {
   const [success, setSuccess] = useState(false)
   const [activeTab, setActiveTab] = useState<'prompt' | 'models' | 'limits' | 'advanced'>('prompt')
 
-  // Форма
   const [form, setForm] = useState({
     system_prompt: '',
     premium_model: 'gemini-2.5-pro',
@@ -107,7 +150,7 @@ export function AdminSettings() {
         .from('chat_settings')
         .update({
           ...form,
-          active_model: form.premium_model, // для совместимости
+          active_model: form.premium_model,
           updated_at: new Date().toISOString()
         })
         .eq('id', settings.id)
@@ -126,347 +169,414 @@ export function AdminSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+        <RefreshCw className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     )
   }
 
   const tabs = [
     { id: 'prompt', label: 'Промпт', icon: Bot },
-    { id: 'models', label: 'Модели', icon: Zap },
+    { id: 'models', label: 'Модели', icon: Sparkles },
     { id: 'limits', label: 'Лимиты', icon: Users },
-    { id: 'advanced', label: 'Расширенные', icon: Sliders },
+    { id: 'advanced', label: 'Тюнинг', icon: Sliders },
   ]
 
   return (
-    <div className="max-w-4xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Settings className="w-8 h-8 text-orange-500" />
-        <h1 className="text-2xl font-bold text-gray-900">Настройки AI-чата</h1>
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+          <Settings className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Настройки AI-чата</h1>
+          <p className="text-sm text-gray-500">Управление моделями, промптами и лимитами</p>
+        </div>
       </div>
 
+      {/* Alerts */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-red-600 text-lg">!</span>
+          </div>
+          <div>
+            <p className="font-medium text-red-800">Ошибка</p>
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
-          ✅ Настройки сохранены! Изменения применятся сразу.
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3">
+          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-green-600 text-lg">✓</span>
+          </div>
+          <div>
+            <p className="font-medium text-green-800">Сохранено!</p>
+            <p className="text-sm text-green-600">Изменения применятся к следующим запросам</p>
+          </div>
         </div>
       )}
 
-      {/* Табы */}
-      <div className="flex gap-2 mb-6 border-b">
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-2xl">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all cursor-pointer ${
               activeTab === tab.id
-                ? 'border-orange-500 text-orange-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      {/* Content */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         
-        {/* Таб: Промпт */}
+        {/* Tab: Prompt */}
         {activeTab === 'prompt' && (
-          <div className="space-y-6">
+          <div className="p-6 space-y-6">
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Bot className="w-4 h-4" />
-                System Prompt (инструкции для AI)
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
+                <Bot className="w-5 h-5 text-orange-500" />
+                System Prompt
               </label>
               <textarea
                 value={form.system_prompt}
                 onChange={(e) => setForm(f => ({ ...f, system_prompt: e.target.value }))}
-                rows={15}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-y font-mono text-sm"
-                placeholder="Введите промпт для AI..."
+                rows={12}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-y font-mono text-sm bg-gray-50 transition-all"
+                placeholder="Введите системный промпт для AI..."
               />
-              <p className="mt-2 text-sm text-gray-500">
-                Скопируй <code className="bg-gray-100 px-1 rounded">instruction='...'</code> из Google Agent Designer
-              </p>
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-700">
+                    Скопируй <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono">instruction='...'</code> из Google Agent Designer
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <MessageSquare className="w-4 h-4" />
+            <div className="border-t pt-6">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
+                <MessageSquare className="w-5 h-5 text-orange-500" />
                 Приветственное сообщение
               </label>
               <textarea
                 value={form.welcome_message}
                 onChange={(e) => setForm(f => ({ ...f, welcome_message: e.target.value }))}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-y"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-y transition-all"
                 placeholder="Первое сообщение бота при открытии чата..."
               />
             </div>
           </div>
         )}
 
-        {/* Таб: Модели */}
+        {/* Tab: Models */}
         {activeTab === 'models' && (
-          <div className="space-y-6">
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="font-medium text-blue-800 mb-1">Как работает:</h3>
-              <p className="text-sm text-blue-700">
-                Premium пользователи (Pro, VIP, Elite) получают умную модель. 
-                Бесплатные пользователи (Basic) — быструю модель.
-              </p>
+          <div className="p-6 space-y-6">
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Info className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-blue-900">Как работает</h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Premium пользователи (Pro, VIP, Elite) получают умную модель.<br/>
+                    Бесплатные пользователи (Basic) — быструю модель.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                <label className="block text-sm font-medium text-orange-800 mb-2">
-                  🌟 Модель для Premium
-                </label>
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Premium Model */}
+              <div className="p-5 border-2 border-amber-200 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50">
+                <div className="flex items-center gap-2 mb-4">
+                  <Crown className="w-5 h-5 text-amber-600" />
+                  <span className="font-semibold text-amber-800">Premium модель</span>
+                </div>
                 <select
                   value={form.premium_model}
                   onChange={(e) => setForm(f => ({ ...f, premium_model: e.target.value }))}
-                  className="w-full px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                  className="w-full px-4 py-3 border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 bg-white cursor-pointer"
                 >
                   {MODELS.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
+                    <option key={m.value} value={m.value}>{m.label} — {m.desc}</option>
                   ))}
                 </select>
-                <p className="mt-2 text-xs text-orange-600">Pro, VIP, Elite тарифы</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {['Pro', 'VIP', 'Elite'].map(t => (
+                    <span key={t} className="px-2 py-1 bg-amber-200/50 text-amber-700 text-xs font-medium rounded-lg">{t}</span>
+                  ))}
+                </div>
               </div>
 
-              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ⚡ Модель для Free
-                </label>
+              {/* Free Model */}
+              <div className="p-5 border border-gray-200 rounded-2xl bg-gray-50">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5 text-gray-500" />
+                  <span className="font-semibold text-gray-700">Free модель</span>
+                </div>
                 <select
                   value={form.free_model}
                   onChange={(e) => setForm(f => ({ ...f, free_model: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 bg-white cursor-pointer"
                 >
                   {MODELS.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
+                    <option key={m.value} value={m.value}>{m.label} — {m.desc}</option>
                   ))}
                 </select>
-                <p className="mt-2 text-xs text-gray-500">Basic тариф (бесплатный)</p>
+                <div className="mt-3">
+                  <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-lg">Basic</span>
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Запасная модель (если основная не работает)
+            {/* Fallback */}
+            <div className="p-5 border border-gray-200 rounded-2xl">
+              <label className="block text-sm font-semibold text-gray-900 mb-3">
+                Запасная модель (fallback)
               </label>
               <select
                 value={form.fallback_model}
                 onChange={(e) => setForm(f => ({ ...f, fallback_model: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 cursor-pointer"
               >
                 {MODELS.map(m => (
                   <option key={m.value} value={m.value}>{m.label}</option>
                 ))}
               </select>
+              <p className="mt-2 text-xs text-gray-500">Используется если основная модель недоступна</p>
             </div>
           </div>
         )}
 
-        {/* Таб: Лимиты */}
+        {/* Tab: Limits */}
         {activeTab === 'limits' && (
-          <div className="space-y-6">
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h3 className="font-medium text-yellow-800 mb-1">Лимиты сообщений в день:</h3>
-              <p className="text-sm text-yellow-700">
-                Сколько сообщений может отправить пользователь каждого тарифа за сутки
-              </p>
+          <div className="p-6 space-y-6">
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 rounded-xl">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <MessageSquare className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-900">Лимиты сообщений</h3>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Сколько сообщений может отправить пользователь каждого тарифа за сутки
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Basic (бесплатный)
-                </label>
-                <input
-                  type="number"
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Basic */}
+              <div className="p-4 border border-gray-200 rounded-2xl">
+                <div className="text-center mb-3">
+                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">BASIC</span>
+                </div>
+                <NumberInput
                   value={form.limit_basic}
-                  onChange={(e) => setForm(f => ({ ...f, limit_basic: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  onChange={(v) => setForm(f => ({ ...f, limit_basic: v }))}
                   min={0}
+                  max={1000}
+                  className="text-center text-lg font-semibold border-gray-200"
                 />
-                <p className="mt-1 text-xs text-gray-500">сообщений/день</p>
+                <p className="text-center text-xs text-gray-500 mt-2">сообщений/день</p>
               </div>
 
-              <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                <label className="block text-sm font-medium text-blue-700 mb-2">
-                  Pro
-                </label>
-                <input
-                  type="number"
+              {/* Pro */}
+              <div className="p-4 border-2 border-blue-200 rounded-2xl bg-blue-50/50">
+                <div className="text-center mb-3">
+                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">PRO</span>
+                </div>
+                <NumberInput
                   value={form.limit_pro}
-                  onChange={(e) => setForm(f => ({ ...f, limit_pro: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                  onChange={(v) => setForm(f => ({ ...f, limit_pro: v }))}
                   min={0}
+                  max={1000}
+                  className="text-center text-lg font-semibold border-blue-200 bg-white"
                 />
-                <p className="mt-1 text-xs text-blue-600">сообщений/день</p>
+                <p className="text-center text-xs text-blue-600 mt-2">сообщений/день</p>
               </div>
 
-              <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
-                <label className="block text-sm font-medium text-purple-700 mb-2">
-                  VIP
-                </label>
-                <input
-                  type="number"
+              {/* VIP */}
+              <div className="p-4 border-2 border-purple-200 rounded-2xl bg-purple-50/50">
+                <div className="text-center mb-3">
+                  <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">VIP</span>
+                </div>
+                <NumberInput
                   value={form.limit_vip}
-                  onChange={(e) => setForm(f => ({ ...f, limit_vip: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                  onChange={(v) => setForm(f => ({ ...f, limit_vip: v }))}
                   min={0}
+                  max={1000}
+                  className="text-center text-lg font-semibold border-purple-200 bg-white"
                 />
-                <p className="mt-1 text-xs text-purple-600">сообщений/день</p>
+                <p className="text-center text-xs text-purple-600 mt-2">сообщений/день</p>
               </div>
 
-              <div className="p-4 border border-yellow-300 rounded-lg bg-yellow-50">
-                <label className="block text-sm font-medium text-yellow-700 mb-2">
-                  👑 Elite
-                </label>
-                <input
-                  type="number"
+              {/* Elite */}
+              <div className="p-4 border-2 border-amber-300 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50">
+                <div className="text-center mb-3">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-amber-400 to-yellow-400 text-white text-xs font-semibold rounded-full">
+                    <Crown className="w-3 h-3" />
+                    ELITE
+                  </span>
+                </div>
+                <NumberInput
                   value={form.limit_elite}
-                  onChange={(e) => setForm(f => ({ ...f, limit_elite: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-4 py-2 border border-yellow-400 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                  onChange={(v) => setForm(f => ({ ...f, limit_elite: v }))}
                   min={0}
+                  max={10000}
+                  className="text-center text-lg font-semibold border-amber-300 bg-white"
                 />
-                <p className="mt-1 text-xs text-yellow-600">сообщений/день</p>
+                <p className="text-center text-xs text-amber-600 mt-2">сообщений/день</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Таб: Расширенные */}
+        {/* Tab: Advanced */}
         {activeTab === 'advanced' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Temperature (креативность)
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    value={form.temperature}
-                    onChange={(e) => setForm(f => ({ ...f, temperature: parseFloat(e.target.value) }))}
-                    className="flex-1"
-                  />
-                  <span className="w-12 text-center font-mono">{form.temperature}</span>
+          <div className="p-6 space-y-6">
+            {/* Temperature */}
+            <div className="p-5 border border-gray-200 rounded-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-900">Temperature</label>
+                  <p className="text-xs text-gray-500 mt-0.5">Креативность ответов AI</p>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  0 = точные ответы, 1 = креативные ответы
-                </p>
+                <div className="w-16 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                  <span className="text-lg font-bold text-orange-600">{form.temperature}</span>
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Max Tokens (длина ответа)
-                </label>
-                <input
-                  type="number"
-                  value={form.max_tokens}
-                  onChange={(e) => setForm(f => ({ ...f, max_tokens: parseInt(e.target.value) || 1024 }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                  min={256}
-                  max={32768}
-                  step={256}
-                />
-                <p className="mt-1 text-xs text-gray-500">Рекомендуется 4096-8192</p>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.1}
+                value={form.temperature}
+                onChange={(e) => setForm(f => ({ ...f, temperature: parseFloat(e.target.value) }))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>0 — Точные ответы</span>
+                <span>1 — Креативные</span>
+              </div>
+              <div className="mt-3 p-3 bg-green-50 border border-green-100 rounded-xl">
+                <div className="flex items-start gap-2">
+                  <span className="text-green-500">✓</span>
+                  <p className="text-xs text-green-700">
+                    <strong>Работает!</strong> Передаётся напрямую в Gemini API
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="border-t pt-6">
-              <h3 className="font-medium text-gray-900 mb-4">История сообщений</h3>
-              
-              <div className="flex items-center gap-4 mb-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.history_enabled}
-                    onChange={(e) => setForm(f => ({ ...f, history_enabled: e.target.checked }))}
-                    className="w-4 h-4 text-orange-500 rounded focus:ring-orange-500"
-                  />
-                  <span className="text-sm text-gray-700">Включить память (бот помнит контекст)</span>
-                </label>
-              </div>
+            {/* Max Tokens */}
+            <div className="p-5 border border-gray-200 rounded-2xl">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Max Tokens</label>
+              <p className="text-xs text-gray-500 mb-3">Максимальная длина ответа AI</p>
+              <NumberInput
+                value={form.max_tokens}
+                onChange={(v) => setForm(f => ({ ...f, max_tokens: v }))}
+                min={256}
+                max={32768}
+                className="border-gray-200"
+              />
+              <p className="mt-2 text-xs text-gray-500">Рекомендуется: 4096-8192</p>
+            </div>
 
+            {/* History */}
+            <div className="p-5 border border-gray-200 rounded-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-900">История сообщений</label>
+                  <p className="text-xs text-gray-500 mt-0.5">Бот помнит контекст разговора</p>
+                </div>
+                <button
+                  onClick={() => setForm(f => ({ ...f, history_enabled: !f.history_enabled }))}
+                  className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
+                    form.history_enabled ? 'bg-orange-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    form.history_enabled ? 'left-6' : 'left-1'
+                  }`} />
+                </button>
+              </div>
+              
               {form.history_enabled && (
-                <div className="w-64">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Максимум сообщений в памяти
-                  </label>
-                  <input
-                    type="number"
+                <div className="pt-4 border-t">
+                  <label className="block text-sm text-gray-700 mb-2">Максимум сообщений в памяти</label>
+                  <NumberInput
                     value={form.max_history}
-                    onChange={(e) => setForm(f => ({ ...f, max_history: parseInt(e.target.value) || 10 }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                    onChange={(v) => setForm(f => ({ ...f, max_history: v }))}
                     min={5}
                     max={50}
+                    className="w-32 border-gray-200"
                   />
                 </div>
               )}
             </div>
 
-            <div className="border-t pt-6">
-              <div className="w-64">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Количество попыток при ошибке
-                </label>
-                <input
-                  type="number"
-                  value={form.max_retries}
-                  onChange={(e) => setForm(f => ({ ...f, max_retries: parseInt(e.target.value) || 2 }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                  min={1}
-                  max={5}
-                />
-              </div>
+            {/* Retries */}
+            <div className="p-5 border border-gray-200 rounded-2xl">
+              <label className="block text-sm font-semibold text-gray-900 mb-1">Попытки при ошибке</label>
+              <p className="text-xs text-gray-500 mb-3">Сколько раз пытаться, если модель не отвечает</p>
+              <NumberInput
+                value={form.max_retries}
+                onChange={(v) => setForm(f => ({ ...f, max_retries: v }))}
+                min={1}
+                max={5}
+                className="w-32 border-gray-200"
+              />
             </div>
           </div>
         )}
 
-        {/* Информация и кнопки */}
-        <div className="mt-6 pt-6 border-t">
-          {settings?.updated_at && (
-            <div className="text-sm text-gray-500 mb-4">
-              Последнее обновление: {new Date(settings.updated_at).toLocaleString('ru-RU')}
+        {/* Footer */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+            {settings?.updated_at && (
+              <p className="text-xs text-gray-500">
+                Обновлено: {new Date(settings.updated_at).toLocaleString('ru-RU')}
+              </p>
+            )}
+            
+            <div className="flex gap-3 ml-auto">
+              <button
+                onClick={loadSettings}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all cursor-pointer"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Обновить</span>
+              </button>
+              
+              <button
+                onClick={saveSettings}
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 transition-all shadow-lg shadow-orange-500/20 cursor-pointer"
+              >
+                {saving ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                Сохранить
+              </button>
             </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={saveSettings}
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
-            >
-              {saving ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Сохранить все настройки
-            </button>
-
-            <button
-              onClick={loadSettings}
-              disabled={loading}
-              className="flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Обновить
-            </button>
           </div>
         </div>
       </div>

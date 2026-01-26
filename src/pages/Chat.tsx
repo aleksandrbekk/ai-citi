@@ -11,6 +11,7 @@ interface LimitInfo {
   daily: number
   used: number
   remaining: number
+  model?: string
 }
 
 // Проверка TMA на мобильном для отступа
@@ -255,7 +256,10 @@ export default function Chat() {
 
       // Обновляем информацию о лимите
       if (data.limit) {
-        setLimitInfo(data.limit)
+        setLimitInfo({
+          ...data.limit,
+          model: data.model // Добавляем использованную модель
+        })
         setLimitError(null)
       }
 
@@ -348,18 +352,30 @@ export default function Chat() {
           </div>
         </div>
         
-        {/* Счётчик лимита */}
+        {/* Счётчик лимита и модель */}
         {limitInfo && (
-          <div className="flex items-center gap-2">
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r ${getTariffColor(limitInfo.tariff)} text-white text-xs font-medium`}>
-              {limitInfo.tariff !== 'basic' && <Crown size={12} />}
+          <div className="flex items-center gap-1.5">
+            {/* Тариф */}
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${getTariffColor(limitInfo.tariff)} text-white text-[10px] font-semibold`}>
+              {limitInfo.tariff !== 'basic' && <Crown size={10} />}
               <span>{getTariffLabel(limitInfo.tariff)}</span>
             </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Zap size={14} className={limitInfo.remaining > 3 ? 'text-green-500' : limitInfo.remaining > 0 ? 'text-amber-500' : 'text-red-500'} />
-              <span className={limitInfo.remaining === 0 ? 'text-red-500 font-medium' : ''}>
-                {limitInfo.remaining}/{limitInfo.daily}
-              </span>
+            {/* Модель */}
+            {limitInfo.model && (
+              <div className="hidden sm:flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg text-[10px] font-medium text-gray-600">
+                <Zap size={10} />
+                <span>{limitInfo.model.replace('gemini-', '').replace('-', ' ')}</span>
+              </div>
+            )}
+            {/* Счётчик */}
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold ${
+              limitInfo.remaining === 0 
+                ? 'bg-red-100 text-red-600' 
+                : limitInfo.remaining <= 3 
+                  ? 'bg-amber-100 text-amber-600' 
+                  : 'bg-green-100 text-green-600'
+            }`}>
+              <span>{limitInfo.remaining}/{limitInfo.daily}</span>
             </div>
           </div>
         )}
