@@ -11,7 +11,7 @@ const PROJECT_ID = "gen-lang-client-0102901194"
 const LOCATION = "us-central1"
 
 // Дефолтные модели (если не удалось получить из БД)
-const DEFAULT_MODEL = "gemini-2.5-pro-preview-06-05"
+const DEFAULT_MODEL = "gemini-2.5-pro"
 const FALLBACK_MODEL = "gemini-2.5-flash"
 
 // Максимум сообщений в памяти
