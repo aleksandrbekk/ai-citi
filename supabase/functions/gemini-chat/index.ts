@@ -8,14 +8,17 @@ const corsHeaders = {
 }
 
 const PROJECT_ID = "gen-lang-client-0102901194"
-const PROJECT_NUMBER = "448437714382"
 const LOCATION = "us-central1"
-const AGENT_ENGINE_ID = "7339491903567560704"
+
+// Дефолтные значения
+const DEFAULT_MODEL = "gemini-2.5-pro"
+const FALLBACK_MODEL = "gemini-2.5-flash"
+const DEFAULT_PROMPT = "Ты полезный AI-ассистент."
 
 // Максимум сообщений в памяти
 const MAX_HISTORY_MESSAGES = 20
 
-// Лимиты по тарифам (fallback если БД недоступна)
+// Лимиты по тарифам
 const TARIFF_LIMITS: Record<string, number> = {
   'basic': 10,
   'pro': 50,
@@ -25,11 +28,45 @@ const TARIFF_LIMITS: Record<string, number> = {
   'standard': 50
 }
 
-// Supabase клиент для логирования
+// Supabase клиент
 function getSupabaseClient() {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   return createClient(supabaseUrl, supabaseKey)
+}
+
+// Получение настроек чата из БД (включая промпт)
+async function getChatSettings(): Promise<{
+  systemPrompt: string
+  activeModel: string
+  fallbackModel: string
+  maxRetries: number
+}> {
+  try {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from('chat_settings')
+      .select('system_prompt, active_model, fallback_model, max_retries')
+      .limit(1)
+      .single()
+
+    if (error) throw error
+
+    return {
+      systemPrompt: data.system_prompt || DEFAULT_PROMPT,
+      activeModel: data.active_model || DEFAULT_MODEL,
+      fallbackModel: data.fallback_model || FALLBACK_MODEL,
+      maxRetries: data.max_retries || 2
+    }
+  } catch (e) {
+    console.warn('Failed to get chat settings:', e)
+    return {
+      systemPrompt: DEFAULT_PROMPT,
+      activeModel: DEFAULT_MODEL,
+      fallbackModel: FALLBACK_MODEL,
+      maxRetries: 2
+    }
+  }
 }
 
 // Проверка лимита запросов
@@ -125,7 +162,7 @@ async function logUsage(params: {
   }
 }
 
-// Создание JWT токена для Service Account
+// Создание JWT токена
 async function createJWT(credentials: any): Promise<string> {
   const header = { alg: "RS256", typ: "JWT" }
   const now = Math.floor(Date.now() / 1000)
@@ -187,20 +224,14 @@ async function getAccessToken(credentials: any): Promise<string> {
   return data.access_token
 }
 
-// Кэш сессий Agent Engine (в памяти Edge Function)
-const sessionCache = new Map<string, string>()
+// Вызов Gemini API
+async function callGemini(
+  token: string,
+  model: string,
+  contents: any[]
+): Promise<{ reply: string; inputTokens: number; outputTokens: number }> {
+  const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`
 
-// Создание сессии в Agent Engine
-async function getOrCreateSession(token: string, odooUserId: string): Promise<string> {
-  // Проверяем кэш
-  const cached = sessionCache.get(odooUserId)
-  if (cached) {
-    return cached
-  }
-
-  const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_NUMBER}/locations/${LOCATION}/reasoningEngines/${AGENT_ENGINE_ID}:query`
-
-  // Создаём сессию через create_session
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -208,96 +239,33 @@ async function getOrCreateSession(token: string, odooUserId: string): Promise<st
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      class_method: 'create_session',
-      input: {
-        user_id: odooUserId
-      }
+      contents,
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 8192,
+        topP: 0.9,
+        topK: 40,
+      },
+      safetySettings: [
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
+      ]
     }),
   })
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('Create session error:', errorText)
-    // Если не удалось создать сессию, используем user_id как session_id
-    return odooUserId
+    throw new Error(`Vertex AI error: ${response.status} - ${errorText}`)
   }
 
   const data = await response.json()
-  const sessionId = data.output?.id || odooUserId
+  const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Извини, не смог сгенерировать ответ.'
 
-  // Кэшируем
-  sessionCache.set(odooUserId, sessionId)
-
-  return sessionId
-}
-
-// Вызов Agent Engine
-async function callAgentEngine(
-  token: string,
-  userId: string,
-  sessionId: string,
-  message: string
-): Promise<{ reply: string; inputTokens: number; outputTokens: number }> {
-  const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_NUMBER}/locations/${LOCATION}/reasoningEngines/${AGENT_ENGINE_ID}:streamQuery`
-
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      class_method: 'stream_query',
-      input: {
-        user_id: userId,
-        session_id: sessionId,
-        message: message
-      }
-    }),
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Agent Engine error: ${response.status} - ${errorText}`)
-  }
-
-  // Парсим streaming response
-  const text = await response.text()
-  
-  // Agent Engine возвращает JSON объекты разделённые переводами строк
-  let reply = ''
-  let inputTokens = 0
-  let outputTokens = 0
-
-  const lines = text.split('\n').filter(line => line.trim())
-  
-  for (const line of lines) {
-    try {
-      const chunk = JSON.parse(line)
-      
-      // Извлекаем текст из разных форматов ответа
-      if (chunk.content?.parts?.[0]?.text) {
-        reply = chunk.content.parts[0].text
-      } else if (chunk.output?.content?.parts?.[0]?.text) {
-        reply = chunk.output.content.parts[0].text
-      } else if (typeof chunk.output === 'string') {
-        reply = chunk.output
-      }
-
-      // Извлекаем usage
-      const usage = chunk.usage_metadata || chunk.output?.usage_metadata
-      if (usage) {
-        inputTokens = usage.prompt_token_count || usage.promptTokenCount || 0
-        outputTokens = usage.candidates_token_count || usage.candidatesTokenCount || 0
-      }
-    } catch {
-      // Игнорируем не-JSON строки
-    }
-  }
-
-  if (!reply) {
-    throw new Error('No response from Agent Engine')
-  }
+  const usageMetadata = data.usageMetadata || {}
+  const inputTokens = usageMetadata.promptTokenCount || 0
+  const outputTokens = usageMetadata.candidatesTokenCount || 0
 
   return { reply, inputTokens, outputTokens }
 }
@@ -312,10 +280,10 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  let usedModel = DEFAULT_MODEL
   let inputTokens = 0
   let outputTokens = 0
   let imagesCount = 0
-  const usedModel = 'gemini-2.5-pro (Agent Engine)'
 
   try {
     const { message, history = [], images = [], userId } = await req.json()
@@ -327,7 +295,7 @@ serve(async (req) => {
       )
     }
 
-    // Проверяем лимит запросов
+    // Проверяем лимит
     const limitInfo = await checkUserLimit(userId)
     
     if (!limitInfo.allowed) {
@@ -344,6 +312,13 @@ serve(async (req) => {
       )
     }
 
+    // Получаем настройки (включая промпт из БД)
+    const settings = await getChatSettings()
+    usedModel = settings.activeModel
+    const fallbackModel = settings.fallbackModel
+    const maxRetries = settings.maxRetries
+    const systemPrompt = settings.systemPrompt
+
     const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
     if (!credentialsJson) {
       throw new Error('GOOGLE_SERVICE_ACCOUNT not configured')
@@ -352,28 +327,73 @@ serve(async (req) => {
     const credentials = JSON.parse(credentialsJson)
     const token = await getAccessToken(credentials)
 
-    // Генерируем user_id для Agent Engine
-    const agentUserId = userId || `anonymous_${Date.now()}`
-    
-    // Получаем или создаём сессию
-    const sessionId = await getOrCreateSession(token, agentUserId)
-
-    // Формируем сообщение
-    let fullMessage = message || ''
+    // Собираем parts для текущего сообщения
+    const currentMessageParts: any[] = []
     imagesCount = images?.length || 0
 
-    // Если есть картинки, пока добавляем текст (Agent Engine не поддерживает inline images напрямую)
-    if (images && images.length > 0 && !message) {
-      fullMessage = "Пользователь отправил изображение. Пожалуйста, спроси что он хочет узнать."
+    if (images && images.length > 0) {
+      for (const img of images as ImageAttachment[]) {
+        currentMessageParts.push({
+          inlineData: {
+            mimeType: img.mimeType,
+            data: img.data
+          }
+        })
+      }
     }
 
-    // Вызываем Agent Engine
-    const result = await callAgentEngine(token, agentUserId, sessionId, fullMessage)
+    if (message) {
+      currentMessageParts.push({ text: message })
+    } else if (images.length > 0) {
+      currentMessageParts.push({ text: "Что на этом изображении?" })
+    }
+
+    const limitedHistory = history.slice(-MAX_HISTORY_MESSAGES)
+
+    // Используем промпт из БД
+    const contents = [
+      { role: "user", parts: [{ text: systemPrompt }] },
+      { role: "model", parts: [{ text: "Понял, готов помочь!" }] },
+      ...limitedHistory.map((msg: { role: string; content: string }) => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      })),
+      { role: "user", parts: currentMessageParts }
+    ]
+
+    // Пробуем модели
+    let result: { reply: string; inputTokens: number; outputTokens: number }
+    let attempts = 0
+    let lastError: Error | null = null
+
+    while (attempts < maxRetries) {
+      try {
+        const modelToUse = attempts === 0 ? usedModel : fallbackModel
+        console.log(`Attempt ${attempts + 1}: using model ${modelToUse}`)
+
+        result = await callGemini(token, modelToUse, contents)
+        usedModel = modelToUse
+        break
+      } catch (e) {
+        lastError = e as Error
+        console.error(`Model ${usedModel} failed:`, e)
+        attempts++
+
+        if (attempts < maxRetries) {
+          console.log(`Switching to fallback model: ${fallbackModel}`)
+          usedModel = fallbackModel
+        }
+      }
+    }
+
+    if (!result!) {
+      throw lastError || new Error('All models failed')
+    }
 
     inputTokens = result.inputTokens
     outputTokens = result.outputTokens
 
-    // Логируем успешный запрос
+    // Логируем
     await logUsage({
       userId,
       inputTokens,
@@ -401,7 +421,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
 
-    // Логируем ошибку
     await logUsage({
       inputTokens,
       outputTokens,
