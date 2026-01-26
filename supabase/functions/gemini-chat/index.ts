@@ -10,22 +10,36 @@ const corsHeaders = {
 const PROJECT_ID = "gen-lang-client-0102901194"
 const LOCATION = "us-central1"
 
-// Дефолтные значения
-const DEFAULT_MODEL = "gemini-2.5-pro"
-const FALLBACK_MODEL = "gemini-2.5-flash"
-const DEFAULT_PROMPT = "Ты полезный AI-ассистент."
+// Дефолты
+const DEFAULTS = {
+  premiumModel: "gemini-2.5-pro",
+  freeModel: "gemini-2.5-flash",
+  fallbackModel: "gemini-2.5-flash",
+  temperature: 0.8,
+  maxTokens: 8192,
+  maxRetries: 2,
+  maxHistory: 20,
+  systemPrompt: "Ты полезный AI-ассистент.",
+  limitBasic: 10,
+  limitPro: 50,
+  limitVip: 100,
+  limitElite: 300
+}
 
-// Максимум сообщений в памяти
-const MAX_HISTORY_MESSAGES = 20
-
-// Лимиты по тарифам
-const TARIFF_LIMITS: Record<string, number> = {
-  'basic': 10,
-  'pro': 50,
-  'vip': 100,
-  'elite': 300,
-  'platinum': 300,
-  'standard': 50
+interface ChatSettings {
+  system_prompt: string
+  premium_model: string
+  free_model: string
+  fallback_model: string
+  temperature: number
+  max_tokens: number
+  max_retries: number
+  max_history: number
+  history_enabled: boolean
+  limit_basic: number
+  limit_pro: number
+  limit_vip: number
+  limit_elite: number
 }
 
 // Supabase клиент
@@ -35,50 +49,64 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-// Получение настроек чата из БД (включая промпт)
-async function getChatSettings(): Promise<{
-  systemPrompt: string
-  activeModel: string
-  fallbackModel: string
-  maxRetries: number
-}> {
+// Получение настроек чата из БД
+async function getChatSettings(): Promise<ChatSettings> {
   try {
     const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from('chat_settings')
-      .select('system_prompt, active_model, fallback_model, max_retries')
+      .select('*')
       .limit(1)
       .single()
 
     if (error) throw error
 
     return {
-      systemPrompt: data.system_prompt || DEFAULT_PROMPT,
-      activeModel: data.active_model || DEFAULT_MODEL,
-      fallbackModel: data.fallback_model || FALLBACK_MODEL,
-      maxRetries: data.max_retries || 2
+      system_prompt: data.system_prompt || DEFAULTS.systemPrompt,
+      premium_model: data.premium_model || DEFAULTS.premiumModel,
+      free_model: data.free_model || DEFAULTS.freeModel,
+      fallback_model: data.fallback_model || DEFAULTS.fallbackModel,
+      temperature: data.temperature ?? DEFAULTS.temperature,
+      max_tokens: data.max_tokens || DEFAULTS.maxTokens,
+      max_retries: data.max_retries || DEFAULTS.maxRetries,
+      max_history: data.max_history || DEFAULTS.maxHistory,
+      history_enabled: data.history_enabled ?? true,
+      limit_basic: data.limit_basic || DEFAULTS.limitBasic,
+      limit_pro: data.limit_pro || DEFAULTS.limitPro,
+      limit_vip: data.limit_vip || DEFAULTS.limitVip,
+      limit_elite: data.limit_elite || DEFAULTS.limitElite
     }
   } catch (e) {
     console.warn('Failed to get chat settings:', e)
     return {
-      systemPrompt: DEFAULT_PROMPT,
-      activeModel: DEFAULT_MODEL,
-      fallbackModel: FALLBACK_MODEL,
-      maxRetries: 2
+      system_prompt: DEFAULTS.systemPrompt,
+      premium_model: DEFAULTS.premiumModel,
+      free_model: DEFAULTS.freeModel,
+      fallback_model: DEFAULTS.fallbackModel,
+      temperature: DEFAULTS.temperature,
+      max_tokens: DEFAULTS.maxTokens,
+      max_retries: DEFAULTS.maxRetries,
+      max_history: DEFAULTS.maxHistory,
+      history_enabled: true,
+      limit_basic: DEFAULTS.limitBasic,
+      limit_pro: DEFAULTS.limitPro,
+      limit_vip: DEFAULTS.limitVip,
+      limit_elite: DEFAULTS.limitElite
     }
   }
 }
 
-// Проверка лимита запросов
-async function checkUserLimit(userId: string | undefined): Promise<{
+// Проверка лимита и получение тарифа
+async function checkUserLimit(userId: string | undefined, settings: ChatSettings): Promise<{
   allowed: boolean
   tariff: string
   limit: number
   used: number
   remaining: number
+  isPremium: boolean
 }> {
   if (!userId) {
-    return { allowed: true, tariff: 'basic', limit: 10, used: 0, remaining: 10 }
+    return { allowed: true, tariff: 'basic', limit: settings.limit_basic, used: 0, remaining: settings.limit_basic, isPremium: false }
   }
 
   try {
@@ -90,19 +118,37 @@ async function checkUserLimit(userId: string | undefined): Promise<{
       .eq('user_id', userId)
       .eq('is_active', true)
     
+    // Определяем лучший тариф
     let bestTariff = 'basic'
-    let limit = TARIFF_LIMITS['basic']
+    let isPremium = false
+    
+    const tariffLimits: Record<string, number> = {
+      'basic': settings.limit_basic,
+      'pro': settings.limit_pro,
+      'standard': settings.limit_pro,
+      'vip': settings.limit_vip,
+      'elite': settings.limit_elite,
+      'platinum': settings.limit_elite
+    }
+    
+    const premiumTariffs = ['pro', 'standard', 'vip', 'elite', 'platinum']
+    
+    let limit = tariffLimits['basic']
     
     if (userTariffs && userTariffs.length > 0) {
       for (const t of userTariffs) {
-        const tariffLimit = TARIFF_LIMITS[t.tariff_slug] || 10
+        const tariffLimit = tariffLimits[t.tariff_slug] || settings.limit_basic
         if (tariffLimit > limit) {
           limit = tariffLimit
           bestTariff = t.tariff_slug
         }
+        if (premiumTariffs.includes(t.tariff_slug)) {
+          isPremium = true
+        }
       }
     }
     
+    // Считаем использование за сегодня
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
@@ -121,11 +167,12 @@ async function checkUserLimit(userId: string | undefined): Promise<{
       tariff: bestTariff,
       limit,
       used,
-      remaining
+      remaining,
+      isPremium
     }
   } catch (e) {
     console.error('Error checking limit:', e)
-    return { allowed: true, tariff: 'basic', limit: 10, used: 0, remaining: 10 }
+    return { allowed: true, tariff: 'basic', limit: settings.limit_basic, used: 0, remaining: settings.limit_basic, isPremium: false }
   }
 }
 
@@ -228,7 +275,9 @@ async function getAccessToken(credentials: any): Promise<string> {
 async function callGemini(
   token: string,
   model: string,
-  contents: any[]
+  contents: any[],
+  temperature: number,
+  maxTokens: number
 ): Promise<{ reply: string; inputTokens: number; outputTokens: number }> {
   const endpoint = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:generateContent`
 
@@ -241,8 +290,8 @@ async function callGemini(
     body: JSON.stringify({
       contents,
       generationConfig: {
-        temperature: 0.8,
-        maxOutputTokens: 8192,
+        temperature,
+        maxOutputTokens: maxTokens,
         topP: 0.9,
         topK: 40,
       },
@@ -280,7 +329,7 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  let usedModel = DEFAULT_MODEL
+  let usedModel = DEFAULTS.premiumModel
   let inputTokens = 0
   let outputTokens = 0
   let imagesCount = 0
@@ -295,8 +344,11 @@ serve(async (req) => {
       )
     }
 
-    // Проверяем лимит
-    const limitInfo = await checkUserLimit(userId)
+    // Получаем настройки
+    const settings = await getChatSettings()
+
+    // Проверяем лимит и определяем тариф
+    const limitInfo = await checkUserLimit(userId, settings)
     
     if (!limitInfo.allowed) {
       return new Response(
@@ -312,12 +364,11 @@ serve(async (req) => {
       )
     }
 
-    // Получаем настройки (включая промпт из БД)
-    const settings = await getChatSettings()
-    usedModel = settings.activeModel
-    const fallbackModel = settings.fallbackModel
-    const maxRetries = settings.maxRetries
-    const systemPrompt = settings.systemPrompt
+    // Выбираем модель в зависимости от тарифа
+    const primaryModel = limitInfo.isPremium ? settings.premium_model : settings.free_model
+    usedModel = primaryModel
+
+    console.log(`User tariff: ${limitInfo.tariff}, isPremium: ${limitInfo.isPremium}, model: ${usedModel}`)
 
     const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
     if (!credentialsJson) {
@@ -348,11 +399,13 @@ serve(async (req) => {
       currentMessageParts.push({ text: "Что на этом изображении?" })
     }
 
-    const limitedHistory = history.slice(-MAX_HISTORY_MESSAGES)
+    // История (если включена)
+    const maxHistoryMessages = settings.history_enabled ? settings.max_history : 0
+    const limitedHistory = history.slice(-maxHistoryMessages)
 
-    // Используем промпт из БД
+    // Собираем контент
     const contents = [
-      { role: "user", parts: [{ text: systemPrompt }] },
+      { role: "user", parts: [{ text: settings.system_prompt }] },
       { role: "model", parts: [{ text: "Понял, готов помочь!" }] },
       ...limitedHistory.map((msg: { role: string; content: string }) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
@@ -366,12 +419,18 @@ serve(async (req) => {
     let attempts = 0
     let lastError: Error | null = null
 
-    while (attempts < maxRetries) {
+    while (attempts < settings.max_retries) {
       try {
-        const modelToUse = attempts === 0 ? usedModel : fallbackModel
+        const modelToUse = attempts === 0 ? usedModel : settings.fallback_model
         console.log(`Attempt ${attempts + 1}: using model ${modelToUse}`)
 
-        result = await callGemini(token, modelToUse, contents)
+        result = await callGemini(
+          token, 
+          modelToUse, 
+          contents, 
+          settings.temperature, 
+          settings.max_tokens
+        )
         usedModel = modelToUse
         break
       } catch (e) {
@@ -379,9 +438,9 @@ serve(async (req) => {
         console.error(`Model ${usedModel} failed:`, e)
         attempts++
 
-        if (attempts < maxRetries) {
-          console.log(`Switching to fallback model: ${fallbackModel}`)
-          usedModel = fallbackModel
+        if (attempts < settings.max_retries) {
+          console.log(`Switching to fallback model: ${settings.fallback_model}`)
+          usedModel = settings.fallback_model
         }
       }
     }
