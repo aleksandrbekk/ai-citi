@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
-import { Coins, Crown, Star, Palette } from 'lucide-react'
+import { Coins, Crown, Star } from 'lucide-react'
+// import { Palette } from 'lucide-react' // Временно скрыто
 
 // Ссылка на продукт в Lava.top
 const LAVA_PRODUCT_URL = 'https://app.lava.top/products/bcc55515-b779-47cd-83aa-5306575e6d95'
@@ -50,38 +51,38 @@ const subscriptionPackages = [
   },
 ]
 
-// Наборы стилей (скины персонажей)
-const stylePackages = [
-  {
-    id: 'style_1',
-    name: 'Ассистент',
-    description: 'Классический помощник',
-    image: '/images/skins/skin_1.png',
-    color: 'from-cyan-400 to-cyan-500',
-  },
-  {
-    id: 'style_2',
-    name: 'Дизайнер',
-    description: 'Креативный создатель',
-    image: '/images/skins/skin_2.png',
-    color: 'from-purple-400 to-purple-500',
-  },
-  {
-    id: 'style_3',
-    name: 'Учитель',
-    description: 'Мудрый наставник',
-    image: '/images/skins/skin_3.png',
-    color: 'from-green-400 to-green-500',
-  },
-  {
-    id: 'style_premium',
-    name: 'VIP Набор',
-    description: 'Все стили + эксклюзивы',
-    image: '/images/skins/skin_0.png',
-    color: 'from-yellow-400 to-amber-500',
-    premium: true,
-  },
-]
+// Временно скрыто
+// const stylePackages = [
+//   {
+//     id: 'style_1',
+//     name: 'Ассистент',
+//     description: 'Классический помощник',
+//     image: '/images/skins/skin_1.png',
+//     color: 'from-cyan-400 to-cyan-500',
+//   },
+//   {
+//     id: 'style_2',
+//     name: 'Дизайнер',
+//     description: 'Креативный создатель',
+//     image: '/images/skins/skin_2.png',
+//     color: 'from-purple-400 to-purple-500',
+//   },
+//   {
+//     id: 'style_3',
+//     name: 'Учитель',
+//     description: 'Мудрый наставник',
+//     image: '/images/skins/skin_3.png',
+//     color: 'from-green-400 to-green-500',
+//   },
+//   {
+//     id: 'style_premium',
+//     name: 'VIP Набор',
+//     description: 'Все стили + эксклюзивы',
+//     image: '/images/skins/skin_0.png',
+//     color: 'from-yellow-400 to-amber-500',
+//     premium: true,
+//   },
+// ]
 
 export function Shop() {
   const telegramUser = getTelegramUser()
@@ -162,9 +163,10 @@ export function Shop() {
     alert('Подписки скоро будут доступны!')
   }
 
-  const handleBuyStyle = (_id: string) => {
-    alert('Стили скоро будут доступны!')
-  }
+  // Временно скрыто
+  // const handleBuyStyle = (_id: string) => {
+  //   alert('Стили скоро будут доступны!')
+  // }
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -200,6 +202,7 @@ export function Shop() {
             <Star className="w-4 h-4 inline mr-1" />
             ПОДПИСКА
           </button>
+          {/* Временно скрыто
           <button
             onClick={() => setActiveTab('styles')}
             className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
@@ -211,6 +214,7 @@ export function Shop() {
             <Palette className="w-4 h-4 inline mr-1" />
             СТИЛИ
           </button>
+          */}
         </div>
       </div>
 
@@ -321,6 +325,7 @@ export function Shop() {
           </>
         )}
 
+        {/* Временно скрыто
         {activeTab === 'styles' && (
           <>
             <p className="text-xs text-gray-500 text-center">Персонализируй своих помощников</p>
@@ -355,6 +360,7 @@ export function Shop() {
             </div>
           </>
         )}
+        */}
       </div>
 
       {/* Footer info */}
