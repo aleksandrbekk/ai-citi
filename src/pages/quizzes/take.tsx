@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuiz, useQuizResponse } from '@/hooks/useQuizzes'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 interface QuizImage {
   id: string
@@ -99,7 +100,7 @@ export default function TakeQuiz() {
 
         if (batchError) {
           console.error('❌ Error loading images batch:', batchError)
-          alert('Ошибка загрузки картинок: ' + batchError.message)
+          toast.error('Ошибка загрузки картинок: ' + batchError.message)
           setIsLoadingImages(false)
           return
         }
@@ -152,7 +153,7 @@ export default function TakeQuiz() {
       setIsLoadingImages(false)
     } catch (error: any) {
       console.error('❌ Fatal error loading images:', error)
-      alert('Критическая ошибка загрузки картинок: ' + (error.message || 'Неизвестная ошибка'))
+      toast.error('Ошибка загрузки картинок: ' + (error.message || 'Неизвестная ошибка'))
       setIsLoadingImages(false)
     }
   }
@@ -193,7 +194,7 @@ export default function TakeQuiz() {
     const hasAllRatings = rowsWithImages.every(row => row.rating !== null)
 
     if (!hasAllRatings) {
-      alert('Пожалуйста, поставьте оценку для всех каруселей (1–10)')
+      toast.error('Пожалуйста, поставьте оценку для всех каруселей (1–10)')
       return
     }
 

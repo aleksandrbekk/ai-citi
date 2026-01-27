@@ -6,6 +6,7 @@ import { useLessonVideos, useAddVideo, useUpdateVideo, useDeleteVideo } from '..
 import { useLessonQuizzes, useAddQuiz, useDeleteQuiz, useUpdateQuiz, useAddOption, useUpdateOption, useDeleteOption } from '../../../hooks/admin/useLessonQuizzes'
 import { supabase } from '../../../lib/supabase'
 import { ArrowLeft, Trash2, Loader2, Link } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function LessonEdit() {
   const { lessonId, moduleId } = useParams<{ lessonId: string; moduleId: string }>()
@@ -103,7 +104,7 @@ export function LessonEdit() {
     if (materialType === 'file' && !materialFile) return
 
     if (!lessonId || isNew) {
-      alert('Сначала сохраните урок')
+      toast.error('Сначала сохраните урок')
       return
     }
 
@@ -143,7 +144,7 @@ export function LessonEdit() {
         hint: error?.hint,
         fullError: error,
       })
-      alert('Ошибка добавления материала: ' + (error?.message || error?.code || JSON.stringify(error)))
+      toast.error('Ошибка добавления материала: ' + (error?.message || error?.code || JSON.stringify(error)))
     } finally {
       setIsAddingMaterial(false)
     }
@@ -409,7 +410,7 @@ export function LessonEdit() {
                                         
                                         if (uploadError) {
                                           console.error('Upload error:', uploadError)
-                                          alert('Ошибка загрузки: ' + uploadError.message)
+                                          toast.error('Ошибка загрузки: ' + uploadError.message)
                                         } else {
                                           const { data: urlData } = supabase.storage
                                             .from('quiz-images')

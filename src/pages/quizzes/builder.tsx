@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Plus, Trash2, Save, Eye, Image as ImageIcon, ArrowLeft, Settings, Upload } from 'lucide-react'
 import { useQuizzes, useQuiz, useQuizOptions, type Quiz, type QuizQuestion } from '@/hooks/useQuizzes'
+import { toast } from 'sonner'
 
 export default function QuizBuilder() {
   const navigate = useNavigate()
@@ -66,7 +67,7 @@ export default function QuizBuilder() {
       reader.readAsDataURL(file)
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('Ошибка загрузки изображения')
+      toast.error('Ошибка загрузки изображения')
     }
   }
 

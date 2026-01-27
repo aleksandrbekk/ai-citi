@@ -4,9 +4,8 @@ import { useUIStore } from '@/store/uiStore'
 import { UserIcon, HomeIcon } from '@/components/ui/icons'
 import { Shield, ShoppingBag } from 'lucide-react'
 import { useState, useEffect } from 'react'
-
-// ID администраторов
-const ADMIN_IDS = [643763835, 190202791, 1762872372]
+import { isAdmin as checkIsAdmin } from '@/config/admins'
+import { haptic } from '@/lib/haptic'
 
 export function BottomNav() {
   const location = useLocation()
@@ -26,7 +25,7 @@ export function BottomNav() {
       }
     }
 
-    if (telegramId && ADMIN_IDS.includes(telegramId)) {
+    if (checkIsAdmin(telegramId)) {
       setIsAdmin(true)
     }
   }, [])
@@ -48,6 +47,7 @@ export function BottomNav() {
         {/* Главная */}
         <Link
           to="/"
+          onClick={() => haptic.tap()}
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
             location.pathname === '/'
@@ -62,6 +62,7 @@ export function BottomNav() {
         {/* Профиль */}
         <Link
           to="/profile"
+          onClick={() => haptic.tap()}
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
             location.pathname === '/profile'
@@ -76,6 +77,7 @@ export function BottomNav() {
         {/* Магазин */}
         <Link
           to="/shop"
+          onClick={() => haptic.tap()}
           className={cn(
             "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
             location.pathname === '/shop'
@@ -91,6 +93,7 @@ export function BottomNav() {
         {isAdmin && (
           <Link
             to="/admin"
+            onClick={() => haptic.tap()}
             className={cn(
               "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
               location.pathname.startsWith('/admin')

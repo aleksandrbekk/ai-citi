@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Calendar, Image, Trash2, Edit, Send, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { usePosts, usePublishToInstagram } from '@/hooks/usePosts'
+import { toast } from 'sonner'
 
 // ID Александра - только он имеет доступ к постеру
 const ALLOWED_USER_ID = 643763835
@@ -88,10 +89,10 @@ export default function PosterDashboard() {
     if (confirm('Опубликовать пост в Instagram прямо сейчас?')) {
       try {
         await publishMutation.mutateAsync(postId)
-        alert('✅ Пост опубликован в Instagram!')
+        toast.success('Пост опубликован в Instagram!')
         loadPosts() // Перезагружаем список
       } catch (error: any) {
-        alert('❌ Ошибка: ' + error.message)
+        toast.error('Ошибка: ' + error.message)
       }
     }
   }

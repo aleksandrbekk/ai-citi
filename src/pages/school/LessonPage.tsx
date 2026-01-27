@@ -5,6 +5,7 @@ import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
 import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/uiStore'
+import { toast } from 'sonner'
 
 export default function LessonPage() {
   const { tariffSlug, moduleId, lessonId } = useParams<{ tariffSlug: string; moduleId: string; lessonId: string }>()
@@ -184,7 +185,7 @@ export default function LessonPage() {
     const telegramId = getTelegramId()
     
     if (!telegramId) {
-      alert('Ошибка: не удалось определить пользователя')
+      toast.error('Не удалось определить пользователя')
       return
     }
 
@@ -196,7 +197,7 @@ export default function LessonPage() {
       .single()
 
     if (userError || !userData) {
-      alert('Ошибка: пользователь не найден')
+      toast.error('Пользователь не найден')
       return
     }
 
@@ -252,19 +253,19 @@ export default function LessonPage() {
       error = insertError
     } else {
       // ДЗ уже отправлено и не rejected
-      alert('Домашнее задание уже отправлено')
+      toast.info('Домашнее задание уже отправлено')
       return
     }
     
     if (error) {
       console.error('Error submitting homework:', error)
-      alert('Ошибка при отправке')
+      toast.error('Ошибка при отправке')
       return
     }
-    
+
     setAnswer('')
     setUserAnswers({})
-    alert('Ответ отправлен на проверку!')
+    toast.success('Ответ отправлен на проверку!')
     refetchSubmission()
   }
 

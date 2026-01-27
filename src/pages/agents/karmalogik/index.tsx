@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Send, Loader2, User, Trash2, Sparkles, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { toast } from 'sonner'
 
 // Системный промпт для AI-Коуча
 const COACH_SYSTEM_PROMPT = `# Персональный AI-Коуч
@@ -149,7 +150,7 @@ export default function KarmalogikChat() {
 
       if (data.error === 'limit_exceeded') {
         setMessages(prev => prev.slice(0, -1))
-        alert('Достигнут лимит запросов на сегодня')
+        toast.error('Достигнут лимит запросов на сегодня')
         return
       }
 

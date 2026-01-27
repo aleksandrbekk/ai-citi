@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale/ru'
+import { toast } from 'sonner'
 
 export function StudentEdit() {
   const { id } = useParams<{ id: string }>()
@@ -39,7 +40,7 @@ export function StudentEdit() {
     if (!id || !data) return
 
     if (!tariffSlug) {
-      alert('Выберите тариф')
+      toast.error('Выберите тариф')
       return
     }
 
@@ -77,19 +78,19 @@ export function StudentEdit() {
       }
 
       if (error) {
-        alert('Ошибка: ' + error.message)
+        toast.error('Ошибка: ' + error.message)
         return
       }
 
       // Обновить кэш
       queryClient.invalidateQueries({ queryKey: ['student', id] })
       queryClient.invalidateQueries({ queryKey: ['students'] })
-      
-      alert('Тариф сохранён')
+
+      toast.success('Тариф сохранён')
       refetch()
     } catch (error: any) {
       console.error('Ошибка сохранения:', error)
-      alert('Ошибка сохранения данных: ' + (error?.message || error))
+      toast.error('Ошибка сохранения данных: ' + (error?.message || error))
     }
   }
 

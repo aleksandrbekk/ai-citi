@@ -4,6 +4,8 @@ import { Coins, FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
+import { toast } from 'sonner'
+import { haptic } from '@/lib/haptic'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
@@ -35,9 +37,12 @@ export default function CarouselContent() {
   }, [setUserPhoto])
 
   const handleGenerate = async () => {
+    haptic.action() // Вибрация при генерации
+
     // Проверка заполненности обязательных полей
     if (!variables.topic?.trim()) {
-      alert('Заполните тему карусели')
+      haptic.error()
+      toast.error('Заполните тему карусели')
       return
     }
 
@@ -47,7 +52,7 @@ export default function CarouselContent() {
 
     // Проверка chatId
     if (!chatId || typeof chatId !== 'number') {
-      alert('Ошибка: Не удалось определить Telegram ID. Убедитесь, что вы открыли приложение через Telegram.')
+      toast.error('Не удалось определить Telegram ID. Откройте приложение через Telegram.')
       setStatus('error')
       navigate('/agents/carousel')
       return
@@ -62,7 +67,7 @@ export default function CarouselContent() {
     } else {
       // Нет подписки — проверяем монеты
       if (coinBalance < 30) {
-        alert('Для генерации нужна подписка или 30 монет. Пополните баланс в магазине.')
+        toast.error('Для генерации нужна подписка или 30 монет')
         navigate('/shop')
         return
       }
@@ -70,7 +75,7 @@ export default function CarouselContent() {
       // Списываем 30 монет
       const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`)
       if (!spendResult.success) {
-        alert(spendResult.error === 'Not enough coins'
+        toast.error(spendResult.error === 'Not enough coins'
           ? 'Недостаточно монет для генерации!'
           : 'Ошибка при списании монет. Попробуйте позже.')
         return
@@ -133,7 +138,7 @@ export default function CarouselContent() {
       // Там будет ожидание и проверка статуса
     } catch (error) {
       console.error('Error sending to n8n:', error)
-      alert('Ошибка при отправке запроса')
+      toast.error('Ошибка при отправке запроса')
       setStatus('error')
     }
   }

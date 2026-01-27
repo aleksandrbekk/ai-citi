@@ -1,9 +1,9 @@
-
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, BookOpen, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { ReferralCard } from '@/components/ReferralCard'
 
 // Персонажи привязаны к разделам
 const characters = [
@@ -320,6 +320,11 @@ export default function Home() {
                 }`}
             />
           ))}
+        </div>
+
+        {/* Реферальная карточка */}
+        <div className="mt-6 w-full max-w-xs">
+          <ReferralCard />
         </div>
       </div>
     </div>

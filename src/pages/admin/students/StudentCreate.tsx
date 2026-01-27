@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCreateStudent } from '../../../hooks/admin/useStudents'
 import { ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function StudentCreate() {
   const navigate = useNavigate()
@@ -17,13 +18,13 @@ export function StudentCreate() {
     e.preventDefault()
 
     if (!telegramId.trim()) {
-      alert('Telegram ID обязателен')
+      toast.error('Telegram ID обязателен')
       return
     }
 
     const telegramIdNum = parseInt(telegramId)
     if (isNaN(telegramIdNum)) {
-      alert('Telegram ID должен быть числом')
+      toast.error('Telegram ID должен быть числом')
       return
     }
 
@@ -39,7 +40,7 @@ export function StudentCreate() {
       navigate(`/admin/mlm/students/${result.user.id}`)
     } catch (error: any) {
       console.error('Ошибка создания ученика:', error)
-      alert(error.message || 'Ошибка создания ученика')
+      toast.error(error.message || 'Ошибка создания ученика')
     }
   }
 

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Plus, Trash2, Save, Eye, ArrowLeft, Settings, Upload } from 'lucide-react'
 import { useQuizzes, useQuiz, type Quiz } from '../../../hooks/admin/useQuizzes'
 import { ImageRowsEditor } from './ImageRowsEditor'
+import { toast } from 'sonner'
 
 export default function QuizBuilder() {
   const navigate = useNavigate()
@@ -39,7 +40,7 @@ export default function QuizBuilder() {
     try {
       if (id) {
         await updateQuiz(id, currentQuiz)
-        alert('Квиз сохранён!')
+        toast.success('Квиз сохранён!')
       } else {
         const newQuiz = await createQuiz(currentQuiz)
         if (newQuiz) {
@@ -51,7 +52,7 @@ export default function QuizBuilder() {
       }
     } catch (error: any) {
       console.error('Error saving quiz:', error)
-      alert('Ошибка сохранения квиза: ' + (error.message || 'Неизвестная ошибка'))
+      toast.error('Ошибка сохранения квиза: ' + (error.message || 'Неизвестная ошибка'))
     } finally {
       setIsSaving(false)
     }
@@ -70,7 +71,7 @@ export default function QuizBuilder() {
       reader.readAsDataURL(file)
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('Ошибка загрузки изображения')
+      toast.error('Ошибка загрузки изображения')
     }
   }
 
@@ -213,7 +214,7 @@ export default function QuizBuilder() {
                 <button
                   onClick={() => {
                     if (!id) {
-                      alert('Сначала сохраните квиз!')
+                      toast.error('Сначала сохраните квиз!')
                       return
                     }
                     // Добавим новый ряд картинок
