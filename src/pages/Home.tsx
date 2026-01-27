@@ -1,35 +1,39 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 // Персонажи привязаны к разделам
 const characters = [
   {
+    id: 'assistant',
     skin: '/images/skins/skin_1.png',
     name: 'Ассистент',
     label: 'AI Помощник',
     path: '/chat',
     task: 'Задай вопрос AI',
-    speech: 'Привет! Чем могу помочь?',
+    defaultSpeech: 'Привет! Чем могу помочь?',
     icon: MessageCircle
   },
   {
+    id: 'designer',
     skin: '/images/skins/skin_2.png',
     name: 'Дизайнер',
     label: 'Создатель карусели',
     path: '/agents/carousel',
     task: 'Собери карусель для клиента',
-    speech: 'Давай создадим крутую карусель!',
+    defaultSpeech: 'Давай создадим крутую карусель!',
     icon: Sparkles
   },
   {
+    id: 'teacher',
     skin: '/images/skins/skin_3.png',
     name: 'Учитель',
     label: 'Школа AI',
     path: '/school',
     task: 'Пройди урок и получи XP',
-    speech: 'Готов узнать что-то новое?',
+    defaultSpeech: 'Готов узнать что-то новое?',
     icon: GraduationCap
   },
 ]
@@ -56,6 +60,59 @@ const swipePower = (offset: number, velocity: number) => Math.abs(offset) * velo
 
 export default function Home() {
   const [[currentIndex, direction], setPage] = useState([0, 0]);
+  const [greetings, setGreetings] = useState<Record<string, string>>({})
+  const [isLoadingGreeting, setIsLoadingGreeting] = useState(false)
+
+  // Генерация приветствия для персонажа
+  const generateGreeting = async (characterId: string) => {
+    // Если уже есть приветствие - не генерируем заново
+    if (greetings[characterId]) {
+      return
+    }
+
+    setIsLoadingGreeting(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('character-greeting', {
+        body: { characterId }
+      })
+
+      if (error) throw error
+
+      setGreetings(prev => ({
+        ...prev,
+        [characterId]: data.greeting || characters.find(c => c.id === characterId)?.defaultSpeech || 'Привет!'
+      }))
+    } catch (error) {
+      console.error('Failed to generate greeting:', error)
+      // Используем дефолтное приветствие
+      const character = characters.find(c => c.id === characterId)
+      if (character) {
+        setGreetings(prev => ({
+          ...prev,
+          [characterId]: character.defaultSpeech
+        }))
+      }
+    } finally {
+      setIsLoadingGreeting(false)
+    }
+  }
+
+  // Генерируем приветствие при загрузке и смене персонажа
+  useEffect(() => {
+    const currentCharacter = characters[currentIndex]
+    if (currentCharacter && !greetings[currentCharacter.id]) {
+      generateGreeting(currentCharacter.id)
+    }
+  }, [currentIndex])
+
+  // Генерируем приветствия для всех персонажей при первой загрузке
+  useEffect(() => {
+    characters.forEach(char => {
+      if (!greetings[char.id]) {
+        generateGreeting(char.id)
+      }
+    })
+  }, [])
 
   const paginate = (newDirection: number) => {
     let nextIndex = currentIndex + newDirection;
@@ -69,6 +126,8 @@ export default function Home() {
   }
 
   const IconComponent = characters[currentIndex].icon;
+  const currentCharacter = characters[currentIndex]
+  const currentGreeting = greetings[currentCharacter.id] || currentCharacter.defaultSpeech
 
   return (
     <div className="h-screen bg-white text-foreground overflow-hidden relative">
@@ -128,9 +187,18 @@ export default function Home() {
               </span>
             </div>
             {/* Речь */}
-            <p className="text-base text-foreground/80 font-medium">
-              {characters[currentIndex].speech}
-            </p>
+            <div className="flex items-center gap-2">
+              {isLoadingGreeting && !greetings[currentCharacter.id] ? (
+                <>
+                  <Loader2 className="w-4 h-4 text-cyan-600 animate-spin" />
+                  <p className="text-base text-foreground/80 font-medium">Думаю...</p>
+                </>
+              ) : (
+                <p className="text-base text-foreground/80 font-medium">
+                  {currentGreeting}
+                </p>
+              )}
+            </div>
           </div>
           {/* Хвостик диалогового окна */}
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/80 border-r border-b border-white/60 rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.05)]" />
