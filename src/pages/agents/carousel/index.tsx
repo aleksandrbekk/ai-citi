@@ -15,9 +15,6 @@ const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/imag
 // Ключ для localStorage
 const SAVED_STYLE_KEY = 'carousel_default_style'
 
-// Telegram WebApp
-const tg = window.Telegram?.WebApp
-
 // Превью стилей (JPEG)
 const STYLE_PREVIEWS: Record<StyleId, string> = {
   APPLE_GLASSMORPHISM: '/styles/apple.jpg',
@@ -133,10 +130,11 @@ export default function CarouselIndex() {
 
   // Telegram BackButton
   useEffect(() => {
-    if (!tg) return
+    const webApp = window.Telegram?.WebApp
+    if (!webApp?.BackButton) return
 
     // Показываем кнопку назад
-    tg.BackButton.show()
+    webApp.BackButton.show()
 
     const handleBack = () => {
       if (showStyleModal) {
@@ -150,18 +148,18 @@ export default function CarouselIndex() {
       }
     }
 
-    // Используем onEvent для надёжности
-    ;(tg as any).onEvent('backButtonClicked', handleBack)
+    // Подписываемся на событие
+    webApp.BackButton.onClick(handleBack)
 
     return () => {
-      ;(tg as any).offEvent('backButtonClicked', handleBack)
+      webApp.BackButton.offClick(handleBack)
     }
   }, [showStyleModal, showPhotoModal, showCtaPage, navigate])
 
   // Скрываем кнопку при размонтировании
   useEffect(() => {
     return () => {
-      tg?.BackButton?.hide()
+      window.Telegram?.WebApp?.BackButton?.hide()
     }
   }, [])
 
