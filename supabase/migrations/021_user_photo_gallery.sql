@@ -13,6 +13,11 @@ ON user_photo_gallery(telegram_id);
 
 ALTER TABLE user_photo_gallery ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can read photos" ON user_photo_gallery;
+DROP POLICY IF EXISTS "Anyone can insert photos" ON user_photo_gallery;
+DROP POLICY IF EXISTS "Anyone can delete own photos" ON user_photo_gallery;
+DROP POLICY IF EXISTS "Anyone can update own photos" ON user_photo_gallery;
+
 CREATE POLICY "Anyone can read photos" ON user_photo_gallery FOR SELECT USING (true);
 CREATE POLICY "Anyone can insert photos" ON user_photo_gallery FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can delete own photos" ON user_photo_gallery FOR DELETE USING (true);
