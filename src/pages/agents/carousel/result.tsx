@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useCarouselStore } from '@/store/carouselStore'
 import { STYLES_INDEX } from '@/lib/carouselStyles'
-import { Sparkles, Send, Clock, Lightbulb, ArrowRight } from 'lucide-react'
+import { Sparkles, Send, Clock, Lightbulb } from 'lucide-react'
 
 export default function CarouselResult() {
   const navigate = useNavigate()
@@ -102,15 +102,22 @@ export default function CarouselResult() {
         </div>
       </div>
 
-      {/* Bottom CTA */}
-      <button
-        onClick={handleNewCarousel}
-        className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 hover:shadow-xl transition-all active:scale-[0.98]"
-      >
-        <Sparkles className="w-5 h-5" />
-        Создать ещё карусель
-        <ArrowRight className="w-5 h-5" />
-      </button>
+      {/* Bottom CTAs */}
+      <div className="space-y-3">
+        <button
+          onClick={handleNewCarousel}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 hover:shadow-xl transition-all active:scale-[0.98]"
+        >
+          <Sparkles className="w-5 h-5" />
+          Создать ещё карусель
+        </button>
+        <button
+          onClick={() => navigate('/')}
+          className="w-full py-4 rounded-2xl bg-white border border-gray-200 text-gray-700 font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 transition-all active:scale-[0.98]"
+        >
+          На главную
+        </button>
+      </div>
     </div>
   )
 }
