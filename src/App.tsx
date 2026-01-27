@@ -59,6 +59,7 @@ import { QuizzesList } from './pages/admin/quizzes/QuizzesList'
 import AdminQuizBuilder from './pages/admin/quizzes/QuizBuilder'
 import AdminQuizAnalytics from './pages/admin/quizzes/QuizAnalytics'
 import { AdminQuizImageEditor } from './pages/admin/quizzes/QuizImageEditor'
+import AiAnalytics from './pages/admin/AiAnalytics'
 
 const queryClient = new QueryClient()
 
@@ -175,6 +176,7 @@ function AppContent() {
             {/* CRM */}
             <Route index element={<AdminCRM />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="ai-analytics" element={<AiAnalytics />} />
             <Route path="whitelist" element={<AdminWhitelist />} />
             <Route path="quizzes" element={<QuizzesList />} />
             <Route path="quizzes/new" element={<AdminQuizBuilder />} />
