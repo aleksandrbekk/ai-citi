@@ -88,7 +88,6 @@ export default function CarouselIndex() {
   // Photo upload state
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
@@ -658,7 +657,6 @@ export default function CarouselIndex() {
         <PhotoModal
           photo={userPhoto}
           isUploading={isUploadingPhoto}
-          fileInputRef={fileInputRef}
           onUpload={handlePhotoUpload}
           onRemove={handleRemovePhoto}
           onClose={() => setShowPhotoModal(false)}
@@ -851,16 +849,21 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
 interface PhotoModalProps {
   photo: string | null
   isUploading: boolean
-  fileInputRef: React.RefObject<HTMLInputElement | null>
   onUpload: (file: File) => void
   onRemove: () => void
   onClose: () => void
 }
 
-function PhotoModal({ photo, isUploading, fileInputRef, onUpload, onRemove, onClose }: PhotoModalProps) {
+function PhotoModal({ photo, isUploading, onUpload, onRemove, onClose }: PhotoModalProps) {
+  const localFileInputRef = useRef<HTMLInputElement>(null)
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) onUpload(file)
+  }
+
+  const triggerFileInput = () => {
+    localFileInputRef.current?.click()
   }
 
   return (
@@ -874,6 +877,15 @@ function PhotoModal({ photo, isUploading, fileInputRef, onUpload, onRemove, onCl
         </div>
 
         <div className="p-6">
+          {/* Скрытый input для загрузки файла */}
+          <input
+            ref={localFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+
           {photo ? (
             <div className="relative">
               <img src={photo} alt="Фото" className="w-full aspect-square rounded-2xl object-cover" />
@@ -885,8 +897,10 @@ function PhotoModal({ photo, isUploading, fileInputRef, onUpload, onRemove, onCl
               </button>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl border-2 border-dashed border-gray-300 hover:border-orange-400 cursor-pointer bg-gray-50">
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            <div
+              onClick={triggerFileInput}
+              className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl border-2 border-dashed border-gray-300 hover:border-orange-400 cursor-pointer bg-gray-50"
+            >
               {isUploading ? (
                 <div className="text-center">
                   <LoaderIcon size={32} className="text-orange-500 animate-spin mx-auto mb-2" />
@@ -899,20 +913,19 @@ function PhotoModal({ photo, isUploading, fileInputRef, onUpload, onRemove, onCl
                   <span className="text-sm text-gray-400 mt-1">JPG, PNG до 10MB</span>
                 </>
               )}
-            </label>
+            </div>
           )}
         </div>
 
         <div className="p-4 pt-0 flex gap-3">
           {photo ? (
             <>
-              <button onClick={() => fileInputRef.current?.click()} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50">
+              <button onClick={triggerFileInput} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50">
                 Заменить
               </button>
               <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg">
                 Готово
               </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             </>
           ) : (
             <button onClick={onClose} className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50">
