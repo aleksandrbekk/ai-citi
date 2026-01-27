@@ -249,17 +249,15 @@ export default function CarouselIndex() {
     setIsSubmitting(true)
     setError(null)
 
-    // Если нет подписки - списываем монеты
-    if (!hasSubscription) {
-      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели')
-      if (!spendResult.success) {
-        setError(spendResult.error || 'Не удалось списать монеты')
-        setIsSubmitting(false)
-        return
-      }
-      // Обновляем баланс
-      refetchBalance()
+    // Списываем монеты за генерацию (всегда)
+    const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели')
+    if (!spendResult.success) {
+      setError(spendResult.error || 'Не удалось списать монеты')
+      setIsSubmitting(false)
+      return
     }
+    // Обновляем баланс
+    refetchBalance()
 
     let ctaValue = ''
     if (ctaType === 'PRODUCT') {
@@ -308,19 +306,13 @@ export default function CarouselIndex() {
   if (showCtaPage) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="px-4 pt-4 pb-8">
-          {/* Header с кнопкой назад */}
-          <div className="flex items-center gap-3 mb-4">
-            <button
-              onClick={() => setShowCtaPage(false)}
-              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-            </button>
+        <div className="h-4" />
+
+        <div className="px-4 pb-8">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-2">
             <MegaphoneIcon className="text-orange-500" />
-            <h1 className="text-xl font-bold text-gray-900">Призыв к действию</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Призыв к действию</h1>
           </div>
           <p className="text-gray-500 mb-6">Что должен сделать читатель?</p>
 
@@ -503,14 +495,6 @@ export default function CarouselIndex() {
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/')}
-            className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </button>
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
             <CarouselIcon className="text-white" />
           </div>
