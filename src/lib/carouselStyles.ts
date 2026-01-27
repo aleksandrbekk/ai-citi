@@ -343,9 +343,9 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
         },
         typography: {
             style: "modern geometric sans-serif, bold",
-            headline: "bold sans-serif, white #FFFFFF",
+            headline: "bold sans-serif, white #FFFFFF or gradient",
             body: "medium weight, white with opacity",
-            accent_text: "gradient text (purple to pink) or white on gradient"
+            accent_text: "gradient text (purple to pink) or white with glow"
         },
         cards: {
             style: "dark glassmorphism with colorful glow",
@@ -355,32 +355,33 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             border_radius: "24px"
         },
         person: {
-            outfit_hook: "modern minimalist dark clothing, tech/futuristic vibe",
-            outfit_cta: "sleek dark jacket OR modern minimalist top",
-            lighting: "dramatic colored lighting, rim lights in purple/blue/pink",
-            aesthetic: "futuristic editorial, cyberpunk-lite"
+            scale: "85% of frame width — LARGE, fills most of the frame",
+            position: "RIGHT or LEFT 40% of frame, chest up to waist visible",
+            lighting: "dramatic colored rim lighting in purple/blue/pink, cinematic, futuristic",
+            aesthetic: "futuristic editorial, cyberpunk-lite, tech visionary, modern 2026"
         },
         decorations: {
-            elements: "flowing gradient mesh blobs, 3D geometric shapes, floating orbs",
-            "3d_objects": "glossy 3D spheres, cubes, abstract shapes with gradient materials",
-            particles: "glowing orbs, light trails, colorful bokeh"
+            elements: "flowing gradient mesh blobs, 3D geometric shapes, floating orbs with glow",
+            "3d_objects": "glossy 3D spheres, cubes, abstract shapes with gradient materials, holographic",
+            particles: "glowing orbs, light trails, colorful bokeh, energy particles"
         },
         prompt_blocks: {
-            background: "Background: dark base #1A1A2E with flowing gradient mesh. Colors: purple #667EEA, coral #F093FB, blue #4FACFE, magenta #F5576C. Futuristic, vibrant.",
-            cards_content: "Dark glassmorphism cards: rgba(255,255,255,0.1) with 25px blur. White border. Colorful glow behind cards. White text.",
-            cards_headline: "Bold white text on gradient mesh. OR gradient text (purple to pink). Glowing effect.",
-            person_hook: "Generate person EXACTLY as shown in reference photo. Outfit: modern dark clothing, futuristic. Pose: [POSE]. Expression: [EMOTION], confident. Lighting: dramatic colored rim lighting (purple, blue, pink). CRITICAL: Do NOT invent facial features.",
-            person_cta: "Generate person EXACTLY as shown in reference photo. Outfit: sleek dark jacket. Pose: confident gesture toward CTA. Expression: confident smile. Lighting: colorful rim lights. CRITICAL: Do NOT invent facial features.",
-            decorations_hook: "3D elements: glossy spheres with gradient materials, floating geometric shapes, glowing orbs. [PROPS] with futuristic/holographic treatment. Gradient mesh blobs.",
-            cta_card: "Dark glass card with colorful gradient glow. White border. Top: 'ПИШИ:'. Main: '[PRODUCT_CODE]' (gradient or white with glow). Holographic feel.",
-            viral_elements: "3D paper airplane with gradient material. Share icons as 3D glowing objects. Floating orbs. Button with gradient border: '💾 СОХРАНИ'.",
-            style_footer: "STYLE: Photorealistic person, futuristic design. Vibrant gradient mesh. Colored lighting. 8K resolution."
+            format_prefix: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).",
+            background: "Background: dark base #1A1A2E with flowing gradient mesh blobs. Colors: purple #667EEA, coral #F093FB, blue #4FACFE, magenta #F5576C. Futuristic, vibrant, dynamic. Modern 2026 design.",
+            cards_content: "Dark glassmorphism cards: rgba(255,255,255,0.1) with 25px backdrop blur. White border rgba(255,255,255,0.2). Colorful glow behind cards. White text. Rounded corners 24px.",
+            cards_headline: "Bold white text on gradient mesh background. OR gradient text (purple #667EEA to pink #F093FB). Subtle glowing effect. Futuristic typography.",
+            person_hook: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up to waist, LARGE SCALE — fills 85% of frame width. Pose: [POSE], confident futuristic. Expression: [EMOTION], confident, visionary. Outfit: [OUTFIT_BY_TOPIC] in dark modern/futuristic style, tech-wear, sleek. Props: [PROPS] with holographic/gradient treatment, floating 3D elements. Lighting: dramatic colored rim lights (purple #667EEA, blue #4FACFE, pink #F093FB). CRITICAL: Do NOT invent facial features.",
+            person_cta: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up, LARGE SCALE — fills 85% of frame width. Pose: confident gesture pointing toward CTA card. Expression: confident inviting smile, tech visionary vibe. Outfit: [OUTFIT_CTA] sleek dark modern — DIFFERENT from slide 1. Lighting: colorful rim lights. CRITICAL: Do NOT invent facial features.",
+            decorations_hook: "3D elements: glossy spheres with gradient materials (#667EEA, #F093FB, #4FACFE), floating geometric shapes, glowing orbs. [PROPS] with futuristic/holographic treatment. Gradient mesh blobs flowing. Energy particles.",
+            cta_card: "Dark glass card with colorful gradient glow border (#F093FB, #4FACFE). White border. Top (white): 'ПИШИ:'. Main (HUGE, gradient purple-to-pink or white with glow): '[PRODUCT_CODE]'. Holographic feel, floating sparkles.",
+            viral_elements: "3D paper airplane with gradient material and glow trail. Share icons as 3D glowing objects (purple, pink, blue). Floating orbs. Energy particles. Button with gradient border: '💾 СОХРАНИ'.",
+            style_footer: "STYLE: Photorealistic person, futuristic design. Vibrant gradient mesh. Dramatic colored rim lighting. 8K resolution. Modern 2026 tech aesthetic."
         },
         slide_templates: {
-            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\" (bold white or gradient)\n\"{HEADLINE_2}\" (glowing)\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\nRim lighting in purple/blue/pink\n\n{decorations_hook}\n\nBOTTOM:\nDark glass card: \"{BOTTOM_TEXT}\"\n\"Листай →\" (glowing)\n\n{style_footer}",
-            CONTENT: "[TECHNICAL: Instagram slide]\n\n{background}\n\nHEADLINE:\nGradient or glowing: \"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n3D floating elements\n\nBOTTOM:\n\"{TRANSITION}\" (glowing)\n\nNo person.\n\n{style_footer}",
-            CTA: "[TECHNICAL: Instagram slide]\n\n{background}\n\nTOP:\nGradient banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\nColorful rim lighting\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "[TECHNICAL: Instagram slide]\n\n{background}\n\nCENTER:\nLarge dark glass card with gradient glow\n\"ОТПРАВЬ ЭТО\" (bold white)\n\"{VIRAL_TARGET}\" (gradient)\n\n{viral_elements}\n\n3D orbs floating.\n\n{style_footer}"
+            HOOK: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: dark #1A1A2E with flowing gradient mesh blobs (purple #667EEA, coral #F093FB, blue #4FACFE, pink #F5576C).\n\nHEADLINE (TOP LEFT):\nBold white or gradient text, glowing effect\nMain: \"{HEADLINE_1}\"\nSub (gradient/glowing): \"{HEADLINE_2}\"\n\nPERSON:\nPosition: RIGHT 40% of frame\nFraming: chest up to waist, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo. Match ALL facial features.\nOutfit: [OUTFIT_BY_TOPIC] dark modern futuristic, tech-wear\nPose: [POSE], confident\nExpression: [EMOTION], visionary\nProps: [PROPS] with holographic treatment, 3D elements\nLighting: dramatic colored rim lights (purple, blue, pink)\n\nBOTTOM:\nDark glass card with glow: \"{BOTTOM_TEXT}\"\n\"Листай →\" (glowing)\n\nPhotorealistic. Futuristic. 8K. Modern 2026.",
+            CONTENT: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: dark #1A1A2E with gradient mesh blobs (purple, coral, blue, pink).\n\nHEADLINE:\nGradient or glowing white: \"{HEADLINE}\"\n\nCONTENT:\nLayout: [CONTENT_LAYOUT]\nDark glassmorphism cards with 25px blur, white borders, colorful glow\nText: white #FFFFFF, gradient accents\n3D floating elements, orbs\n[CONTENT_DETAILS]\n\nBOTTOM:\n\"{TRANSITION}\" (glowing)\n\nNo person. Futuristic infographic. 8K. Modern 2026.",
+            CTA: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: dark #1A1A2E with gradient mesh, vibrant colors.\n\nTOP:\nGradient banner: \"{CTA_HEADLINE}\"\n\nPERSON:\nPosition: LEFT 40% of frame\nFraming: chest up, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo.\nOutfit: [OUTFIT_CTA] sleek dark modern — DIFFERENT from slide 1\nPose: confident gesture toward CTA\nExpression: confident inviting smile\nLighting: colorful rim lights\n\nCTA CARD:\nDark glass card with gradient glow border\n\"ПИШИ:\" (white)\n\"[PRODUCT_CODE]\" (HUGE, gradient/white glow)\nHolographic sparkles\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\nPhotorealistic. Futuristic. 8K. Modern 2026.",
+            VIRAL: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: dark #1A1A2E with vibrant gradient mesh, energetic.\n\nCENTER:\nLarge dark glass card with gradient glow border\nTop (HUGE, bold white): \"ОТПРАВЬ ЭТО\"\nBottom (gradient purple-to-pink): \"{VIRAL_TARGET}\"\n\nVISUAL ELEMENTS:\n3D paper airplane with gradient material and glow trail\nShare icons as 3D glowing objects\nFloating orbs, energy particles\n\nBOTTOM:\nButton with gradient border: \"💾 СОХРАНИ\"\n\nNo person. Futuristic viral aesthetic. 8K. Modern 2026."
         }
     }
 }

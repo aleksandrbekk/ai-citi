@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BotIcon, CarouselIcon, CalendarIcon, SparkleIcon, BackIcon, LockIcon } from '@/components/ui/icons'
+import { CarouselIcon, CalendarIcon, SparkleIcon, BackIcon, LockIcon } from '@/components/ui/icons'
 import { BookOpen } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
@@ -86,15 +86,6 @@ export function Agents() {
             <h3 className="text-gray-900 font-semibold mb-1">ИИ КОУЧ</h3>
             <p className="text-gray-500 text-sm">Персональный коучинг</p>
           </Link>
-
-          {/* AI FERMA - заглушка */}
-          <div className="glass-card p-5 opacity-50">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
-              <BotIcon className="w-7 h-7 text-white" />
-            </div>
-            <h3 className="text-gray-900 font-semibold mb-1">AI FERMA</h3>
-            <p className="text-gray-400 text-sm">Скоро</p>
-          </div>
 
           {/* Нейропостер - только для владельца */}
           {isOwner && (
