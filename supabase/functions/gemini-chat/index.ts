@@ -404,7 +404,7 @@ serve(async (req) => {
   let imagesCount = 0
 
   try {
-    const { message, history = [], images = [], userId, useRAG = false, ragEngineId } = await req.json()
+    const { message, history = [], images = [], userId, useRAG = false, ragEngineId, systemPrompt } = await req.json()
 
     if (!message && images.length === 0) {
       return new Response(
@@ -472,9 +472,12 @@ serve(async (req) => {
     const maxHistoryMessages = settings.history_enabled ? settings.max_history : 0
     const limitedHistory = history.slice(-maxHistoryMessages)
 
+    // Используем кастомный промпт если передан, иначе из настроек
+    const activeSystemPrompt = systemPrompt || settings.system_prompt
+
     // Собираем контент
     const contents = [
-      { role: "user", parts: [{ text: settings.system_prompt }] },
+      { role: "user", parts: [{ text: activeSystemPrompt }] },
       { role: "model", parts: [{ text: "Понял, готов помочь!" }] },
       ...limitedHistory.map((msg: { role: string; content: string }) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
