@@ -140,6 +140,8 @@ export default function CarouselIndex() {
       const handleBack = () => {
         if (showStyleModal) {
           setShowStyleModal(false)
+        } else if (showPhotoModal) {
+          setShowPhotoModal(false)
         } else if (showCtaPage) {
           setShowCtaPage(false)
         } else {
