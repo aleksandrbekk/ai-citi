@@ -85,6 +85,9 @@ export default function CarouselIndex() {
   // Photo upload state
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+  
+  // Gender state
+  const [gender, setGender] = useState<'male' | 'female'>('male')
 
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
@@ -292,6 +295,7 @@ export default function CarouselIndex() {
           userPhoto: userPhoto || null,
           cta: ctaValue,
           ctaType,
+          gender,
           styleId: style,
           styleConfig,
           vasiaCore: VASIA_CORE,
@@ -505,6 +509,14 @@ export default function CarouselIndex() {
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/')}
+            className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors active:scale-95"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
             <CarouselIcon className="text-white" />
           </div>
@@ -576,6 +588,44 @@ export default function CarouselIndex() {
               <ChevronIcon className="text-orange-400" />
             </div>
           </button>
+
+          {/* Gender Selector */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9333EA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="5"/>
+                  <path d="M20 21a8 8 0 0 0-16 0"/>
+                </svg>
+              </div>
+              <div>
+                <span className="font-semibold text-gray-900 block">Кто автор?</span>
+                <span className="text-sm text-gray-500">Для правильного рода слов</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setGender('male')}
+                className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+                  gender === 'male'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                👨 Мужчина
+              </button>
+              <button
+                onClick={() => setGender('female')}
+                className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
+                  gender === 'female'
+                    ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                👩 Женщина
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Balance info for non-subscribers */}
