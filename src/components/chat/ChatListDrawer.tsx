@@ -1,16 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, MessageSquare, Pencil, Trash2, Check, ArrowLeft } from 'lucide-react'
+import { Plus, MessageSquare, Pencil, Trash2, Check, X, ArrowLeft } from 'lucide-react'
 import { useChatStore } from '@/store/chatStore'
 import type { Chat } from '@/types/chat'
-
-// Проверка TMA на мобильном для отступа
-const isTMAMobile = () => {
-  const tg = window.Telegram?.WebApp
-  const isTMA = !!(tg?.initData && tg.initData.length > 0)
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-  return isTMA && isMobile
-}
 
 interface ChatListDrawerProps {
   isOpen: boolean
@@ -113,7 +105,7 @@ function ChatItem({ chat, isActive }: { chat: Chat; isActive: boolean }) {
             </p>
           </div>
 
-          {/* Кнопки действий (видны при hover или активном чате) */}
+          {/* Кнопки действий */}
           <div className={`flex items-center gap-1 ${
             isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
           } transition-opacity`}>
@@ -165,11 +157,9 @@ function getMessageWord(count: number): string {
 
 export default function ChatListDrawer({ isOpen, onClose }: ChatListDrawerProps) {
   const { chats, activeChatId, createChat } = useChatStore()
-  const needsTopPadding = isTMAMobile()
 
   const handleNewChat = () => {
     createChat()
-    // Drawer автоматически закроется в store
   }
 
   return (
@@ -191,13 +181,13 @@ export default function ChatListDrawer({ isOpen, onClose }: ChatListDrawerProps)
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col ${needsTopPadding ? 'pt-[100px]' : ''}`}
+            className="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col"
           >
-            {/* Header с кнопкой назад */}
+            {/* Header */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
               <button
                 onClick={onClose}
-                className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
               >
                 <ArrowLeft size={20} className="text-gray-600" />
               </button>
@@ -211,7 +201,7 @@ export default function ChatListDrawer({ isOpen, onClose }: ChatListDrawerProps)
             <div className="px-3 py-3">
               <button
                 onClick={handleNewChat}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-500/20 transition-all duration-200 active:scale-[0.98]"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-500/20 transition-all active:scale-[0.98]"
               >
                 <Plus size={18} />
                 <span>Новый чат</span>
