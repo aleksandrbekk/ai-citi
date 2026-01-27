@@ -94,7 +94,7 @@ export default function CarouselIndex() {
   const telegramUser = getTelegramUser()
 
   // Стоимость одной генерации
-  const GENERATION_COST = 10
+  const GENERATION_COST = 30
 
   // Проверка подписки premium_clients
   const { data: hasSubscription, isLoading: isCheckingSubscription } = useQuery({
@@ -415,7 +415,15 @@ export default function CarouselIndex() {
           >
             {isSubmitting ? (
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
-            ) : hasSubscription ? 'Создать карусель' : `Создать за ${GENERATION_COST} монет`}
+            ) : hasSubscription ? 'Создать карусель' : (
+              <>
+                <span>Сгенерировать за {GENERATION_COST}</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
+                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                  <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
+                </svg>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -587,9 +595,17 @@ export default function CarouselIndex() {
         {/* Create Button */}
         <button
           onClick={handleCreate}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2"
         >
-          {hasSubscription ? 'Создать' : `Создать за ${GENERATION_COST} монет`}
+          {hasSubscription ? 'Создать' : (
+            <>
+              <span>Создать за {GENERATION_COST}</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
+                <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
+              </svg>
+            </>
+          )}
         </button>
 
         {/* Carousel Sets Section */}
