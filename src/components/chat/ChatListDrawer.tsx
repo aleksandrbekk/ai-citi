@@ -1,8 +1,16 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, MessageSquare, Pencil, Trash2, Check } from 'lucide-react'
+import { X, Plus, MessageSquare, Pencil, Trash2, Check, ArrowLeft } from 'lucide-react'
 import { useChatStore } from '@/store/chatStore'
 import type { Chat } from '@/types/chat'
+
+// Проверка TMA на мобильном для отступа
+const isTMAMobile = () => {
+  const tg = window.Telegram?.WebApp
+  const isTMA = !!(tg?.initData && tg.initData.length > 0)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  return isTMA && isMobile
+}
 
 interface ChatListDrawerProps {
   isOpen: boolean
@@ -157,6 +165,7 @@ function getMessageWord(count: number): string {
 
 export default function ChatListDrawer({ isOpen, onClose }: ChatListDrawerProps) {
   const { chats, activeChatId, createChat } = useChatStore()
+  const needsTopPadding = isTMAMobile()
 
   const handleNewChat = () => {
     createChat()
@@ -182,20 +191,20 @@ export default function ChatListDrawer({ isOpen, onClose }: ChatListDrawerProps)
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col"
+            className={`fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col ${needsTopPadding ? 'pt-[100px]' : ''}`}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <MessageSquare size={20} className="text-orange-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Чаты</h2>
-              </div>
+            {/* Header с кнопкой назад */}
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={20} />
+                <ArrowLeft size={20} className="text-gray-600" />
               </button>
+              <div className="flex items-center gap-2">
+                <MessageSquare size={18} className="text-orange-500" />
+                <h2 className="text-base font-semibold text-gray-900">Мои чаты</h2>
+              </div>
             </div>
 
             {/* New chat button */}

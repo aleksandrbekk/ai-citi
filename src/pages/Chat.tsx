@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Trash2, Zap, Crown, Menu } from 'lucide-react'
+import { Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Zap, Crown, Menu } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useChatStore } from '@/store/chatStore'
@@ -22,16 +22,6 @@ const getTMAPadding = () => {
   const isTMA = !!(tg?.initData && tg.initData.length > 0)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   return isTMA && isMobile
-}
-
-// Проверка, нужно ли показывать кнопку "назад"
-// В TMA на мобильном есть своя кнопка X от Telegram
-const shouldShowBackButton = () => {
-  const tg = window.Telegram?.WebApp
-  const isTMA = !!(tg?.initData && tg.initData.length > 0)
-  const platform = (tg as any)?.platform
-  const isTMAMobile = isTMA && (platform === 'android' || platform === 'ios')
-  return !isTMAMobile
 }
 
 interface Attachment {
@@ -68,7 +58,6 @@ export default function Chat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const needsPadding = getTMAPadding()
-  const showBackButton = shouldShowBackButton()
 
   // Chat store
   const {
@@ -326,17 +315,6 @@ export default function Chat() {
     }
   }
 
-  // Очистка текущего чата
-  const handleClearChat = () => {
-    if (confirm('Очистить историю текущего чата?')) {
-      // Очищаем в store
-      const { clearActiveChat } = useChatStore.getState()
-      clearActiveChat()
-      // Очищаем локально
-      setLocalMessages([])
-    }
-  }
-
   // Функция получения цвета тарифа
   const getTariffColor = (tariff: string) => {
     switch (tariff) {
@@ -368,84 +346,58 @@ export default function Chat() {
     }
   }
 
-  // Получаем название активного чата
+  // Получаем название активного чата (по умолчанию "Ассистент")
   const activeChat = chats.find(c => c.id === activeChatId)
-  const chatTitle = activeChat?.title || 'AI Ассистент'
+  const chatTitle = activeChat?.title || 'Ассистент'
 
   return (
     <div className={`min-h-screen bg-[#F8FAFC] flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
       {/* Chat List Drawer */}
       <ChatListDrawer isOpen={isDrawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      {/* Header - Minimal Chrome (AI-Native UI) */}
-      <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/95 backdrop-blur-xl border-b border-gray-100/30 px-4 py-3 flex items-center gap-3`}>
-        {/* Кнопка назад - только на desktop и в браузере */}
-        {showBackButton && (
-          <button
-            onClick={() => navigate('/')}
-            className="p-2 -ml-2 hover:bg-gray-50 rounded-lg transition-colors duration-200 cursor-pointer"
-          >
-            <ArrowLeft size={24} className="text-gray-700" />
-          </button>
-        )}
-
-        {/* Кнопка меню чатов */}
+      {/* Header - компактный */}
+      <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/95 backdrop-blur-xl border-b border-gray-100/30 px-3 py-2.5 flex items-center gap-2`}>
+        {/* Кнопка меню чатов (бутерброд) */}
         <button
           onClick={toggleDrawer}
           className="p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200 cursor-pointer"
         >
-          <Menu size={22} className="text-gray-600" />
+          <Menu size={20} className="text-gray-600" />
         </button>
 
-        <div className="flex items-center gap-3 flex-1">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-sm">
-            <Bot size={18} className="text-white" />
+        {/* Аватар и название */}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
+            <Bot size={16} className="text-white" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-base font-semibold text-[#1E293B] truncate">{chatTitle}</h1>
-            <p className="text-xs text-gray-500 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse" />
+            <h1 className="text-sm font-semibold text-[#1E293B] truncate">{chatTitle}</h1>
+            <p className="text-[10px] text-gray-500 flex items-center gap-1">
+              <span className="w-1 h-1 bg-[#10B981] rounded-full" />
               Онлайн
             </p>
           </div>
         </div>
 
-        {/* Счётчик лимита и модель */}
+        {/* Счётчик лимита (компактный) */}
         {limitInfo && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {/* Тариф */}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${getTariffColor(limitInfo.tariff)} text-white text-[10px] font-semibold`}>
-              {limitInfo.tariff !== 'basic' && <Crown size={10} />}
+            <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-gradient-to-r ${getTariffColor(limitInfo.tariff)} text-white text-[9px] font-semibold`}>
+              {limitInfo.tariff !== 'basic' && <Crown size={8} />}
               <span>{getTariffLabel(limitInfo.tariff)}</span>
             </div>
-            {/* Модель */}
-            {limitInfo.model && (
-              <div className="hidden sm:flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-lg text-[10px] font-medium text-gray-600">
-                <Zap size={10} />
-                <span>{limitInfo.model.replace('gemini-', '').replace('-', ' ')}</span>
-              </div>
-            )}
             {/* Счётчик */}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold ${
+            <div className={`px-1.5 py-0.5 rounded-md text-[9px] font-semibold ${
               limitInfo.remaining === 0
                 ? 'bg-red-100 text-red-600'
                 : limitInfo.remaining <= 3
                   ? 'bg-amber-100 text-amber-600'
                   : 'bg-green-100 text-green-600'
             }`}>
-              <span>{limitInfo.remaining}/{limitInfo.daily}</span>
+              {limitInfo.remaining}/{limitInfo.daily}
             </div>
           </div>
-        )}
-        {/* Кнопка очистки чата */}
-        {localMessages.length > 0 && (
-          <button
-            onClick={handleClearChat}
-            className="p-2 hover:bg-red-50 rounded-xl transition-colors text-gray-400 hover:text-red-500"
-            title="Очистить чат"
-          >
-            <Trash2 size={20} />
-          </button>
         )}
       </div>
 
