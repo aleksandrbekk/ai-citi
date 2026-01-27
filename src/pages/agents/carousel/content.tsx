@@ -5,6 +5,7 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
+import { haptic } from '@/lib/haptic'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
@@ -36,8 +37,11 @@ export default function CarouselContent() {
   }, [setUserPhoto])
 
   const handleGenerate = async () => {
+    haptic.action() // Вибрация при генерации
+
     // Проверка заполненности обязательных полей
     if (!variables.topic?.trim()) {
+      haptic.error()
       toast.error('Заполните тему карусели')
       return
     }

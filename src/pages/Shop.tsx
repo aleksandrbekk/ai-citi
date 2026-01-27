@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
+import { haptic } from '@/lib/haptic'
 import { Coins, Crown, Star, User } from 'lucide-react'
 // import { Palette } from 'lucide-react' // Временно скрыто
 
@@ -128,15 +129,18 @@ export function Shop() {
   }
 
   const handleBuy = async (pkg: typeof coinPackages[0]) => {
+    haptic.action() // Вибрация при покупке
     console.log('handleBuy called', { telegramUser, pkg })
 
     if (!telegramUser?.id) {
       console.error('No telegramUser.id')
+      haptic.error()
       toast.error('Не удалось определить пользователя. Откройте магазин через Telegram бота.')
       return
     }
 
     if (!pkg.available) {
+      haptic.warning()
       toast.info('Скоро будет доступно!')
       return
     }
