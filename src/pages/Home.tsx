@@ -8,16 +8,6 @@ import { supabase } from '@/lib/supabase'
 // Персонажи привязаны к разделам
 const characters = [
   {
-    id: 'assistant',
-    skin: '/images/skins/skin_1.png',
-    name: 'Ассистент',
-    label: 'AI Помощник',
-    path: '/chat',
-    task: 'Задай вопрос AI',
-    defaultSpeech: 'Есть вопрос? 🤔 Нажми — найдём ответ вместе!',
-    icon: MessageCircle
-  },
-  {
     id: 'designer',
     skin: '/images/skins/skin_2.png',
     name: 'Дизайнер',
@@ -26,6 +16,16 @@ const characters = [
     task: 'Собери карусель за 2 минуты',
     defaultSpeech: 'Карусель за 2 минуты? 🎨 Легко! Нажми на меня',
     icon: Sparkles
+  },
+  {
+    id: 'assistant',
+    skin: '/images/skins/skin_1.png',
+    name: 'Ассистент',
+    label: 'AI Помощник',
+    path: '/chat',
+    task: 'Задай вопрос AI',
+    defaultSpeech: 'Есть вопрос? 🤔 Нажми — найдём ответ вместе!',
+    icon: MessageCircle
   },
   {
     id: 'coach',
