@@ -106,16 +106,17 @@ export function expandWebApp() {
     console.log('setHeaderColor/setBackgroundColor not available');
   }
 
-  // Fullscreen только на мобильных
+  // Раскрываем на весь экран (без fullscreen — оставляем стандартный хедер Telegram)
   if (isMobile) {
     tg.expand();
-    try {
-      if (typeof tg.requestFullscreen === 'function') {
-        tg.requestFullscreen();
-      }
-    } catch (e) {
-      console.log('requestFullscreen not available');
-    }
+    // Fullscreen отключён для упрощения UI (без кнопок "Закрыть" и "...")
+    // try {
+    //   if (typeof tg.requestFullscreen === 'function') {
+    //     tg.requestFullscreen();
+    //   }
+    // } catch (e) {
+    //   console.log('requestFullscreen not available');
+    // }
   }
 
   // =============================================================================
