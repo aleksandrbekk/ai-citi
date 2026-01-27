@@ -1,9 +1,25 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, Bot, User, Lock, Paperclip, Mic, MicOff, X, Image, FileText, Trash2 } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, Bot, User, Lock, Paperclip, Mic, MicOff, X, Image, FileText, Trash2, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+
+// Лимиты сообщений в день по тарифам
+const TARIFF_LIMITS: Record<string, number> = {
+  basic: 10,
+  pro: 50,
+  vip: 100,
+  elite: 999999, // Безлимит
+}
+
+// Названия тарифов для отображения
+const TARIFF_NAMES: Record<string, string> = {
+  basic: 'BASIC',
+  pro: 'PRO',
+  vip: 'VIP',
+  elite: 'ELITE',
+}
 
 // Проверка TMA на мобильном для отступа
 const getTMAPadding = () => {
@@ -50,6 +66,16 @@ export default function Chat() {
   const hasPaidAccess = tariffs.length > 0
   const needsPadding = getTMAPadding()
 
+  // Текущий тариф и лимиты
+  const currentTariff = tariffs[0] || 'basic'
+  const dailyLimit = TARIFF_LIMITS[currentTariff] || 10
+  const tariffName = TARIFF_NAMES[currentTariff] || 'BASIC'
+  const isUnlimited = dailyLimit > 99999
+
+  // Использование за сегодня
+  const [messagesToday, setMessagesToday] = useState(0)
+  const remainingMessages = Math.max(0, dailyLimit - messagesToday)
+
   // Загрузка истории из localStorage
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
@@ -79,6 +105,29 @@ export default function Chat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  // Загрузка статистики использования за сегодня
+  useEffect(() => {
+    const loadUsageStats = async () => {
+      if (!user?.id) return
+
+      try {
+        const { data, error } = await supabase
+          .from('chat_usage')
+          .select('id')
+          .eq('user_id', user.id)
+          .gte('created_at', new Date().toISOString().split('T')[0]) // Сегодня
+
+        if (!error && data) {
+          setMessagesToday(data.length)
+        }
+      } catch (e) {
+        console.error('Failed to load usage stats:', e)
+      }
+    }
+
+    loadUsageStats()
+  }, [user?.id, messages.length]) // Обновляем при новых сообщениях
 
   // Сохранение истории в localStorage
   useEffect(() => {
@@ -320,12 +369,26 @@ export default function Chat() {
           <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/20">
             <Bot size={20} className="text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-semibold text-gray-900">AI Ассистент</h1>
             <p className="text-xs text-green-500 flex items-center gap-1">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               Gemini 2.5 Pro
             </p>
+          </div>
+          {/* Тариф и лимиты */}
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+              {tariffName}
+            </span>
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+              <Zap size={12} className="text-yellow-500" />
+              {isUnlimited ? (
+                <span>Безлимит</span>
+              ) : (
+                <span>{remainingMessages}/{dailyLimit} сегодня</span>
+              )}
+            </div>
           </div>
         </div>
         {/* Кнопка очистки чата */}
@@ -534,7 +597,7 @@ export default function Chat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Напиши сообщение..."
-              className="w-full px-4 pt-4 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-gray-800"
+              className="w-full px-4 pt-4 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-orange-500"
               rows={1}
               disabled={isLoading}
             />
