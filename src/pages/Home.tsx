@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, BookOpen, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // Персонажи привязаны к разделам
@@ -28,14 +28,14 @@ const characters = [
     icon: Sparkles
   },
   {
-    id: 'teacher',
+    id: 'coach',
     skin: '/images/skins/skin_3.png',
-    name: 'Учитель',
-    label: 'Школа AI',
-    path: '/school',
-    task: 'Пройди урок и получи XP',
-    defaultSpeech: 'Новый урок по ИИ ждёт! 📚 Заходи, получишь XP',
-    icon: GraduationCap
+    name: 'Коуч',
+    label: 'Кармалогик',
+    path: '/agents/karmalogik',
+    task: 'Получи совет по 6 Сутрам',
+    defaultSpeech: 'Есть вопрос о жизни? 🧘 Найдём ответ в Сутрах!',
+    icon: BookOpen
   },
 ]
 
