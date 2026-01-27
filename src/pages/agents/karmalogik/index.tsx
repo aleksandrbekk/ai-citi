@@ -195,7 +195,7 @@ export default function KarmalogikChat() {
             <BookOpen size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-gray-900">AI Коуч</h1>
+            <h1 className="text-base font-semibold text-gray-900">ИИ КОУЧ</h1>
             <p className="text-xs text-amber-600 flex items-center gap-1">
               <Sparkles size={10} />
               Персональный коучинг
@@ -230,7 +230,7 @@ export default function KarmalogikChat() {
               <BookOpen size={40} className="text-white" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              AI Коуч
+              ИИ КОУЧ
             </h2>
             <p className="text-gray-600 max-w-sm mx-auto leading-relaxed text-sm mb-6">
               Я твой персональный коуч. Помогу разобраться в себе, найти ответы и двигаться к целям через честный диалог.

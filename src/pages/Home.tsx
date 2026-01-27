@@ -31,7 +31,7 @@ const characters = [
     id: 'coach',
     skin: '/images/skins/skin_3.png',
     name: 'Коуч',
-    label: 'Кармалогик',
+    label: 'ИИ КОУЧ',
     path: '/agents/karmalogik',
     task: 'Получи совет по 6 Сутрам',
     defaultSpeech: 'Есть вопрос о жизни? 🧘 Найдём ответ в Сутрах!',

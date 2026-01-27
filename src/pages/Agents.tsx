@@ -84,7 +84,7 @@ export function Agents() {
             </p>
           </div>
 
-          {/* AI Коуч */}
+          {/* ИИ КОУЧ */}
           <Link
             to="/agents/karmalogik"
             className="glass-card p-5 hover:scale-[1.02] transition-all group"
@@ -92,7 +92,7 @@ export function Agents() {
             <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
               <BookOpen className="w-7 h-7 text-white" />
             </div>
-            <h3 className="text-gray-900 font-semibold mb-1">AI Коуч</h3>
+            <h3 className="text-gray-900 font-semibold mb-1">ИИ КОУЧ</h3>
             <p className="text-gray-500 text-sm">Персональный коучинг</p>
           </Link>
 

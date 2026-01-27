@@ -41,7 +41,7 @@ const CHARACTERS = {
   },
   'coach': {
     name: 'Коуч',
-    role: 'Кармалогик',
+    role: 'ИИ КОУЧ',
     personality: 'мудрый, духовный, глубокий, понимающий',
     topics: [
       '6 Сутр жизни',
