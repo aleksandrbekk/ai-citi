@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Coins } from 'lucide-react'
+import { Coins, FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { selectedTemplate, variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
+  const { variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [hasSubscription, setHasSubscription] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -33,11 +33,6 @@ export default function CarouselContent() {
     }
     loadData()
   }, [setUserPhoto])
-
-  if (!selectedTemplate) {
-    navigate('/agents/carousel')
-    return null
-  }
 
   const handleGenerate = async () => {
     // Проверка заполненности обязательных полей
@@ -92,11 +87,11 @@ export default function CarouselContent() {
     // Подготовка данных для отправки
     const requestData = {
       chatId: chatId, // ОБЯЗАТЕЛЬНО число, telegram user id
-      templateId: selectedTemplate === 'custom' ? 'custom' : selectedTemplate,
+      templateId: 'custom', // Всегда custom режим
       userPhoto: finalUserPhoto || '',
       mode: 'ai', // Всегда AI режим
       topic: variables.topic || '',
-      style: style || 'ai-citi', // Стиль дизайна
+      style: style || 'APPLE_GLASSMORPHISM', // Стиль дизайна
       audience: audience || 'networkers', // Целевая аудитория
       customAudience: customAudience || '', // Своя ЦА
       cta_text: ctaText,
@@ -146,67 +141,82 @@ export default function CarouselContent() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/agents/carousel/settings')}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-xl font-bold">Контент</h1>
+      <div className="px-4 pt-6 pb-4">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+            <FileText className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Шаг 2 из 2</h1>
+            <p className="text-sm text-gray-500">Контент карусели</p>
+          </div>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
         {/* Поле "Тема карусели" */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-600">Тема карусели</label>
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-5 h-5 text-orange-500" />
+            <label className="font-semibold text-gray-900">Тема карусели</label>
+          </div>
           <textarea
             value={variables.topic || ''}
             onChange={(e) => setVariable('topic', e.target.value)}
             placeholder="Например: 5 ошибок новичков в МЛМ"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none caret-gray-800"
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
             rows={3}
           />
         </div>
 
         {/* Поле "Заголовок CTA" */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-600">🎯 Заголовок CTA</label>
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Target className="w-5 h-5 text-orange-500" />
+            <label className="font-semibold text-gray-900">Заголовок CTA</label>
+          </div>
           <input
             type="text"
             value={ctaQuestion}
             onChange={(e) => setCtaQuestion(e.target.value)}
             placeholder="Например: Хочешь так же?"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 caret-gray-800"
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
           />
         </div>
 
         {/* Поле "Призыв к действию" */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-600">📣 Призыв к действию</label>
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Megaphone className="w-5 h-5 text-orange-500" />
+            <label className="font-semibold text-gray-900">Призыв к действию</label>
+          </div>
           <textarea
             value={ctaText}
             onChange={(e) => setCtaText(e.target.value)}
             placeholder="Например: НАПИШИ СЛОВО КОМПАНИЯ — ОТПРАВЛЮ ГАЙД"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 resize-none caret-gray-800"
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
             rows={3}
           />
         </div>
 
         {/* Поле "Что получит" */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-600">🎁 Что получит (через запятую)</label>
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Gift className="w-5 h-5 text-orange-500" />
+            <label className="font-semibold text-gray-900">Что получит клиент</label>
+          </div>
           <input
             type="text"
             value={ctaBenefits}
             onChange={(e) => setCtaBenefits(e.target.value)}
             placeholder="Бесплатный урок, Пошаговая инструкция, Поддержка"
-            className="w-full p-3 bg-white/5 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500 caret-gray-800"
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
           />
+          <p className="text-xs text-gray-400 mt-2">Перечислите через запятую</p>
         </div>
 
         {/* Баланс / Подписка */}
-        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-200 rounded-xl">
+        <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-2xl">
           <div className="flex items-center gap-2">
             <Coins className="w-5 h-5 text-orange-500" />
             {hasSubscription ? (
@@ -214,23 +224,23 @@ export default function CarouselContent() {
             ) : (
               <>
                 <span className="text-sm text-gray-600">Баланс:</span>
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-orange-600">
                   {isLoading ? '...' : coinBalance} монет
                 </span>
               </>
             )}
           </div>
-          {!hasSubscription && <span className="text-xs text-gray-500">-30 за генерацию</span>}
+          {!hasSubscription && <span className="text-sm text-gray-500">-30 монет</span>}
         </div>
 
         <button
           onClick={handleGenerate}
-          disabled={(!hasSubscription && coinBalance < 30) || isLoading}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/30"
+          disabled={(!hasSubscription && coinBalance < 30) || isLoading || !variables.topic?.trim()}
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-transform"
         >
           {!hasSubscription && coinBalance < 30 && !isLoading
-            ? '⚠️ Нужна подписка или 30 монет'
-            : '🎨 Создать карусель'}
+            ? 'Недостаточно монет'
+            : 'Создать карусель 🎨'}
         </button>
       </div>
     </div>

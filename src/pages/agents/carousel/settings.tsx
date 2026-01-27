@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { PhotoGallery } from '@/components/carousel/PhotoGallery'
 import { AudienceSelector } from '@/components/carousel/AudienceSelector'
 import { useCarouselStore } from '@/store/carouselStore'
 import { saveUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
+import { Camera, Users } from 'lucide-react'
 
 export default function CarouselSettings() {
   const navigate = useNavigate()
@@ -27,33 +27,47 @@ export default function CarouselSettings() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/agents/carousel')}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-xl font-bold">Настройки</h1>
+      <div className="px-4 pt-6 pb-4">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+            <Camera className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Шаг 1 из 2</h1>
+            <p className="text-sm text-gray-500">Фото и аудитория</p>
+          </div>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
         {/* Галерея фото */}
-        <PhotoGallery
-          onPhotoSelect={handlePhotoSelect}
-          selectedPhoto={userPhoto}
-        />
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Camera className="w-5 h-5 text-orange-500" />
+            <h2 className="font-semibold text-gray-900">Твои фото</h2>
+          </div>
+          <PhotoGallery
+            onPhotoSelect={handlePhotoSelect}
+            selectedPhoto={userPhoto}
+          />
+        </div>
 
         {/* Целевая аудитория */}
-        <AudienceSelector />
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-orange-500" />
+            <h2 className="font-semibold text-gray-900">Целевая аудитория</h2>
+          </div>
+          <AudienceSelector />
+        </div>
 
         {/* Кнопка далее */}
         <button
           onClick={handleNext}
           disabled={!userPhoto}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/30"
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-transform"
         >
-          {userPhoto ? 'Далее →' : 'Выберите фото'}
+          {userPhoto ? 'Далее →' : 'Сначала выберите фото'}
         </button>
       </div>
     </div>
