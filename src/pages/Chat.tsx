@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Trash2, Zap, Crown } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Trash2, Zap, Crown, Menu } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { useChatStore } from '@/store/chatStore'
+import ChatListDrawer from '@/components/chat/ChatListDrawer'
 
 // Типы лимитов
 interface LimitInfo {
@@ -20,6 +22,16 @@ const getTMAPadding = () => {
   const isTMA = !!(tg?.initData && tg.initData.length > 0)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   return isTMA && isMobile
+}
+
+// Проверка, нужно ли показывать кнопку "назад"
+// В TMA на мобильном есть своя кнопка X от Telegram
+const shouldShowBackButton = () => {
+  const tg = window.Telegram?.WebApp
+  const isTMA = !!(tg?.initData && tg.initData.length > 0)
+  const platform = (tg as any)?.platform
+  const isTMAMobile = isTMA && (platform === 'android' || platform === 'ios')
+  return !isTMAMobile
 }
 
 interface Attachment {
@@ -45,7 +57,7 @@ const fileToBase64 = (file: File): Promise<string> => {
   })
 }
 
-interface Message {
+interface LocalMessage {
   id: string
   role: 'user' | 'assistant'
   content: string
@@ -56,25 +68,37 @@ export default function Chat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const needsPadding = getTMAPadding()
-  
+  const showBackButton = shouldShowBackButton()
+
+  // Chat store
+  const {
+    chats,
+    activeChatId,
+    isDrawerOpen,
+    addMessage,
+    getActiveChatMessages,
+    setDrawerOpen,
+    toggleDrawer
+  } = useChatStore()
+
   // Состояние лимита
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
   const [limitError, setLimitError] = useState<string | null>(null)
 
-  // Загрузка истории из localStorage
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const saved = localStorage.getItem('chat-history')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        // Убираем attachments с blob URL (они не сохраняются)
-        return parsed.map((m: Message) => ({ ...m, attachments: undefined }))
-      }
-    } catch (e) {
-      console.error('Failed to load chat history:', e)
-    }
-    return []
-  })
+  // Получаем сообщения из store и конвертируем для локального использования
+  const chatMessages = getActiveChatMessages()
+  const [localMessages, setLocalMessages] = useState<LocalMessage[]>([])
+
+  // Синхронизация localMessages со store
+  useEffect(() => {
+    setLocalMessages(chatMessages.map(m => ({
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      attachments: undefined // Attachments не сохраняются в store
+    })))
+  }, [activeChatId, chatMessages.length])
+
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [attachments, setAttachments] = useState<Attachment[]>([])
@@ -91,22 +115,9 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Сохранение истории в localStorage
-  useEffect(() => {
-    if (messages.length > 0) {
-      // Сохраняем только текст, без attachments
-      const toSave = messages.map(m => ({
-        id: m.id,
-        role: m.role,
-        content: m.content
-      }))
-      localStorage.setItem('chat-history', JSON.stringify(toSave))
-    }
-  }, [messages])
-
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [localMessages])
 
   // Авторазмер textarea
   useEffect(() => {
@@ -195,21 +206,31 @@ export default function Chat() {
   const sendMessage = async () => {
     if ((!input.trim() && attachments.length === 0) || isLoading) return
 
-    const userMessage: Message = {
+    const userMessageContent = input.trim()
+    const userAttachments = attachments.length > 0 ? [...attachments] : undefined
+
+    // Добавляем сообщение пользователя в store
+    addMessage({
+      role: 'user',
+      content: userMessageContent
+    })
+
+    // Локальное обновление с attachments (для отображения)
+    const tempUserMessage: LocalMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
-      attachments: attachments.length > 0 ? [...attachments] : undefined
+      content: userMessageContent,
+      attachments: userAttachments
     }
 
-    setMessages(prev => [...prev, userMessage])
+    setLocalMessages(prev => [...prev, tempUserMessage])
     setInput('')
     setAttachments([])
     setIsLoading(true)
 
     try {
       // Подготавливаем историю для API
-      const history = messages.map(m => ({
+      const history = localMessages.map(m => ({
         role: m.role,
         content: m.content
       }))
@@ -217,8 +238,8 @@ export default function Chat() {
       // Подготавливаем изображения для отправки
       const images: { mimeType: string; data: string }[] = []
 
-      if (userMessage.attachments) {
-        for (const att of userMessage.attachments) {
+      if (userAttachments) {
+        for (const att of userAttachments) {
           if (att.type === 'image' && att.file) {
             const base64 = await fileToBase64(att.file)
             images.push({
@@ -231,7 +252,7 @@ export default function Chat() {
 
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: {
-          message: userMessage.content,
+          message: userMessageContent,
           history,
           images: images.length > 0 ? images : undefined,
           userId: user?.id // Для логирования
@@ -249,8 +270,8 @@ export default function Chat() {
           used: data.used,
           remaining: 0
         })
-        // Удаляем последнее сообщение пользователя
-        setMessages(prev => prev.slice(0, -1))
+        // Удаляем последнее сообщение пользователя из локального состояния
+        setLocalMessages(prev => prev.slice(0, -1))
         return
       }
 
@@ -263,29 +284,36 @@ export default function Chat() {
         setLimitError(null)
       }
 
-      const assistantMessage: Message = {
+      // Добавляем ответ ассистента в store
+      addMessage({
+        role: 'assistant',
+        content: data.reply
+      })
+
+      // Локальное обновление
+      const assistantMessage: LocalMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.reply
       }
 
-      setMessages(prev => [...prev, assistantMessage])
+      setLocalMessages(prev => [...prev, assistantMessage])
     } catch (error: any) {
       console.error('Chat error:', error)
-      
+
       // Проверяем ошибку лимита в catch
       if (error?.message?.includes('limit_exceeded')) {
         setLimitError('Достигнут лимит запросов на сегодня')
-        setMessages(prev => prev.slice(0, -1))
+        setLocalMessages(prev => prev.slice(0, -1))
         return
       }
-      
-      const errorMessage: Message = {
+
+      const errorMessage: LocalMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Извини, произошла ошибка. Попробуй ещё раз.'
       }
-      setMessages(prev => [...prev, errorMessage])
+      setLocalMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -295,6 +323,17 @@ export default function Chat() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage()
+    }
+  }
+
+  // Очистка текущего чата
+  const handleClearChat = () => {
+    if (confirm('Очистить историю текущего чата?')) {
+      // Очищаем в store
+      const { clearActiveChat } = useChatStore.getState()
+      clearActiveChat()
+      // Очищаем локально
+      setLocalMessages([])
     }
   }
 
@@ -329,29 +368,48 @@ export default function Chat() {
     }
   }
 
+  // Получаем название активного чата
+  const activeChat = chats.find(c => c.id === activeChatId)
+  const chatTitle = activeChat?.title || 'AI Ассистент'
+
   return (
     <div className={`min-h-screen bg-[#F8FAFC] flex flex-col ${needsPadding ? 'pt-[100px]' : ''}`}>
+      {/* Chat List Drawer */}
+      <ChatListDrawer isOpen={isDrawerOpen} onClose={() => setDrawerOpen(false)} />
+
       {/* Header - Minimal Chrome (AI-Native UI) */}
       <div className={`sticky ${needsPadding ? 'top-[100px]' : 'top-0'} z-20 bg-white/95 backdrop-blur-xl border-b border-gray-100/30 px-4 py-3 flex items-center gap-3`}>
+        {/* Кнопка назад - только на desktop и в браузере */}
+        {showBackButton && (
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 -ml-2 hover:bg-gray-50 rounded-lg transition-colors duration-200 cursor-pointer"
+          >
+            <ArrowLeft size={24} className="text-gray-700" />
+          </button>
+        )}
+
+        {/* Кнопка меню чатов */}
         <button
-          onClick={() => navigate('/')}
-          className="p-2 -ml-2 hover:bg-gray-50 rounded-lg transition-colors duration-200 cursor-pointer"
+          onClick={toggleDrawer}
+          className="p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200 cursor-pointer"
         >
-          <ArrowLeft size={24} className="text-gray-700" />
+          <Menu size={22} className="text-gray-600" />
         </button>
+
         <div className="flex items-center gap-3 flex-1">
           <div className="w-9 h-9 bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] rounded-full flex items-center justify-center shadow-sm">
             <Bot size={18} className="text-white" />
           </div>
-          <div>
-            <h1 className="text-base font-semibold text-[#1E293B]">AI Ассистент</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-base font-semibold text-[#1E293B] truncate">{chatTitle}</h1>
             <p className="text-xs text-gray-500 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse" />
               Онлайн
             </p>
           </div>
         </div>
-        
+
         {/* Счётчик лимита и модель */}
         {limitInfo && (
           <div className="flex items-center gap-1.5">
@@ -369,10 +427,10 @@ export default function Chat() {
             )}
             {/* Счётчик */}
             <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold ${
-              limitInfo.remaining === 0 
-                ? 'bg-red-100 text-red-600' 
-                : limitInfo.remaining <= 3 
-                  ? 'bg-amber-100 text-amber-600' 
+              limitInfo.remaining === 0
+                ? 'bg-red-100 text-red-600'
+                : limitInfo.remaining <= 3
+                  ? 'bg-amber-100 text-amber-600'
                   : 'bg-green-100 text-green-600'
             }`}>
               <span>{limitInfo.remaining}/{limitInfo.daily}</span>
@@ -380,14 +438,9 @@ export default function Chat() {
           </div>
         )}
         {/* Кнопка очистки чата */}
-        {messages.length > 0 && (
+        {localMessages.length > 0 && (
           <button
-            onClick={() => {
-              if (confirm('Очистить историю чата?')) {
-                setMessages([])
-                localStorage.removeItem('chat-history')
-              }
-            }}
+            onClick={handleClearChat}
             className="p-2 hover:bg-red-50 rounded-xl transition-colors text-gray-400 hover:text-red-500"
             title="Очистить чат"
           >
@@ -412,7 +465,7 @@ export default function Chat() {
               <div className="flex-1">
                 <h3 className="font-semibold text-amber-800 mb-1">Лимит исчерпан</h3>
                 <p className="text-sm text-amber-700 mb-3">
-                  Вы использовали все {limitInfo?.daily || 10} запросов на сегодня. 
+                  Вы использовали все {limitInfo?.daily || 10} запросов на сегодня.
                   Обновите тариф для увеличения лимита.
                 </p>
                 <div className="flex gap-2">
@@ -437,7 +490,7 @@ export default function Chat() {
 
       {/* Messages - AI-Native Layout */}
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
-        {messages.length === 0 && (
+        {localMessages.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -472,7 +525,7 @@ export default function Chat() {
         )}
 
         <AnimatePresence mode="popLayout">
-          {messages.map((message) => (
+          {localMessages.map((message) => (
             <motion.div
               key={message.id}
               initial={{ opacity: 0, y: 12, scale: 0.96 }}
@@ -555,7 +608,7 @@ export default function Chat() {
               <div className="flex gap-1.5 items-center">
                 <motion.span
                   className="w-1.5 h-1.5 bg-[#6366F1] rounded-full"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 1, 0.5]
                   }}
@@ -563,7 +616,7 @@ export default function Chat() {
                 />
                 <motion.span
                   className="w-1.5 h-1.5 bg-[#6366F1] rounded-full"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 1, 0.5]
                   }}
@@ -571,7 +624,7 @@ export default function Chat() {
                 />
                 <motion.span
                   className="w-1.5 h-1.5 bg-[#6366F1] rounded-full"
-                  animate={{ 
+                  animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 1, 0.5]
                   }}
