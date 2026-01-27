@@ -4,9 +4,7 @@ import { useUIStore } from '@/store/uiStore'
 import { UserIcon, HomeIcon } from '@/components/ui/icons'
 import { Shield, ShoppingBag } from 'lucide-react'
 import { useState, useEffect } from 'react'
-
-// ID администраторов
-const ADMIN_IDS = [643763835, 190202791, 1762872372]
+import { isAdmin as checkIsAdmin } from '@/config/admins'
 
 export function BottomNav() {
   const location = useLocation()
@@ -26,7 +24,7 @@ export function BottomNav() {
       }
     }
 
-    if (telegramId && ADMIN_IDS.includes(telegramId)) {
+    if (checkIsAdmin(telegramId)) {
       setIsAdmin(true)
     }
   }, [])

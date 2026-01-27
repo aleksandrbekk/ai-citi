@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
+import { isAdmin as checkIsAdmin } from '@/config/admins'
 import {
   Users,
   UserPlus,
@@ -17,9 +18,6 @@ import {
   ChevronRight,
   ChevronDown
 } from 'lucide-react'
-
-// Админские telegram ID
-const ADMIN_IDS = [643763835, 190202791, 1762872372]
 
 interface User {
   id: string
@@ -99,7 +97,7 @@ export default function MiniAdmin() {
   const [newPaymentMethod, setNewPaymentMethod] = useState('card')
 
   // Проверяем доступ
-  const isAdmin = Boolean(telegramUser?.id && ADMIN_IDS.includes(telegramUser.id))
+  const isAdmin = checkIsAdmin(telegramUser?.id)
 
   // Загрузка пользователей
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
