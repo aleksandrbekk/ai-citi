@@ -29,6 +29,7 @@ import CarouselSettings from './pages/agents/carousel/settings'
 import CarouselContent from './pages/agents/carousel/content'
 import CarouselGenerating from './pages/agents/carousel/generating'
 import CarouselResult from './pages/agents/carousel/result'
+import KarmalogikChat from './pages/agents/karmalogik'
 import QuizzesDashboard from './pages/quizzes/index'
 import QuizBuilder from './pages/quizzes/builder'
 import TakeQuiz from './pages/quizzes/take'
@@ -223,6 +224,7 @@ function AppContent() {
           <Route path="agents/carousel/content" element={<CarouselContent />} />
           <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
           <Route path="agents/carousel/result" element={<CarouselResult />} />
+          <Route path="agents/karmalogik" element={<KarmalogikChat />} />
           <Route path="quizzes" element={<QuizzesDashboard />} />
           <Route path="quizzes/builder" element={<QuizBuilder />} />
           <Route path="quizzes/builder/:id" element={<QuizBuilder />} />

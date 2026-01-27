@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BotIcon, CarouselIcon, CalendarIcon, SparkleIcon, BackIcon, LockIcon } from '@/components/ui/icons'
+import { BookOpen } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 const OWNER_TELEGRAM_ID = 190202791
@@ -82,6 +83,18 @@ export function Agents() {
               {hasPaidAccess ? 'AI-генератор для Instagram' : 'Требуется подписка'}
             </p>
           </div>
+
+          {/* Кармалогик Коуч */}
+          <Link
+            to="/agents/karmalogik"
+            className="glass-card p-5 hover:scale-[1.02] transition-all group"
+          >
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
+              <BookOpen className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-gray-900 font-semibold mb-1">Кармалогик</h3>
+            <p className="text-gray-500 text-sm">AI-коуч по 6 Сутрам</p>
+          </Link>
 
           {/* Нейропостер - только для владельца */}
           {isOwner && (
