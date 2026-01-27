@@ -630,7 +630,7 @@ export default function Chat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Напиши сообщение..."
-              className="w-full px-4 pt-3 pb-2 bg-transparent resize-none focus:outline-none text-gray-900 placeholder:text-gray-400 max-h-[120px]"
+              className="w-full px-4 pt-3 pb-2 bg-transparent resize-none focus:outline-none text-gray-900 placeholder:text-gray-400 max-h-[120px] caret-orange-500"
               rows={1}
               disabled={isLoading}
             />

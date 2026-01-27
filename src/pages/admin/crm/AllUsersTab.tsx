@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '../../../lib/supabase'
-import { Search, Trash2, CreditCard } from 'lucide-react'
+import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
+import { Search, Trash2, CreditCard, X, Coins, Calendar, Globe, User as UserIcon, Send } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface User {
   id: string
@@ -26,6 +27,10 @@ interface PremiumClient {
 export function AllUsersTab() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [coinsAmount, setCoinsAmount] = useState('')
+  const [coinsReason, setCoinsReason] = useState('')
+  const [isAddingCoins, setIsAddingCoins] = useState(false)
 
   // Загрузка всех пользователей
   const { data: users, isLoading } = useQuery({
@@ -57,6 +62,33 @@ export function AllUsersTab() {
     premiumClients?.map(c => [c.telegram_id, c.plan]) || []
   )
 
+  // Баланс монет выбранного юзера
+  const { data: userCoins, refetch: refetchCoins } = useQuery({
+    queryKey: ['user-coins', selectedUser?.telegram_id],
+    queryFn: async () => {
+      if (!selectedUser) return 0
+      return await getCoinBalance(selectedUser.telegram_id)
+    },
+    enabled: !!selectedUser
+  })
+
+  // Профиль выбранного юзера (для будущего расширения)
+  const { data: _userProfile } = useQuery({
+    queryKey: ['user-profile', selectedUser?.telegram_id],
+    queryFn: async () => {
+      if (!selectedUser) return null
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('telegram_id', selectedUser.telegram_id)
+        .single()
+      if (error) return null
+      return data
+    },
+    enabled: !!selectedUser
+  })
+  void _userProfile // используется для будущего расширения
+
   // Удаление пользователя
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
@@ -76,6 +108,54 @@ export function AllUsersTab() {
     if (confirm(`Удалить пользователя "${name}" из базы?`)) {
       deleteUser.mutate(user.id)
     }
+  }
+
+  // Начисление монет
+  const handleAddCoins = async () => {
+    if (!selectedUser || !coinsAmount) return
+
+    const amount = parseInt(coinsAmount)
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Введите корректное количество монет')
+      return
+    }
+
+    setIsAddingCoins(true)
+    try {
+      const result = await addCoins(
+        selectedUser.telegram_id,
+        amount,
+        'bonus',
+        coinsReason || 'Начислено администратором'
+      )
+
+      if (result.success) {
+        toast.success(`Начислено ${amount} монет`)
+        setCoinsAmount('')
+        setCoinsReason('')
+        refetchCoins()
+      } else {
+        toast.error(result.error || 'Ошибка начисления')
+      }
+    } catch (error) {
+      toast.error('Ошибка начисления монет')
+    } finally {
+      setIsAddingCoins(false)
+    }
+  }
+
+  // Открыть карточку юзера
+  const handleOpenUserCard = (user: User) => {
+    setSelectedUser(user)
+    setCoinsAmount('')
+    setCoinsReason('')
+  }
+
+  // Закрыть карточку
+  const handleCloseUserCard = () => {
+    setSelectedUser(null)
+    setCoinsAmount('')
+    setCoinsReason('')
   }
 
   // Фильтрация по поиску
@@ -203,7 +283,8 @@ export function AllUsersTab() {
             return (
               <div
                 key={user.id}
-                className={`bg-white border border-gray-200 rounded-xl p-3 ${
+                onClick={() => handleOpenUserCard(user)}
+                className={`bg-white border border-gray-200 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
                   online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
                 }`}
               >
@@ -235,7 +316,10 @@ export function AllUsersTab() {
 
                   {/* Действия */}
                   <button
-                    onClick={() => handleDelete(user)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(user)
+                    }}
                     disabled={deleteUser.isPending}
                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                   >
@@ -267,6 +351,145 @@ export function AllUsersTab() {
       {filteredUsers && (
         <div className="text-xs text-gray-500 text-center">
           {filteredUsers.length} из {users?.length || 0}
+        </div>
+      )}
+
+      {/* Модальное окно - Карточка юзера */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseUserCard}>
+          <div
+            className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Шапка */}
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Карточка пользователя</h2>
+              <button
+                onClick={handleCloseUserCard}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Контент */}
+            <div className="p-4 space-y-4">
+              {/* Аватар и имя */}
+              <div className="flex items-center gap-4">
+                {selectedUser.photo_url ? (
+                  <img
+                    src={selectedUser.photo_url}
+                    alt=""
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">
+                    {selectedUser.first_name?.[0] || selectedUser.username?.[0] || '?'}
+                  </div>
+                )}
+                <div>
+                  <div className="text-xl font-semibold text-gray-900">
+                    {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(' ') || 'Без имени'}
+                  </div>
+                  <div className="text-gray-500">
+                    {selectedUser.username ? `@${selectedUser.username}` : `ID: ${selectedUser.telegram_id}`}
+                  </div>
+                  {premiumMap.has(selectedUser.telegram_id) && (
+                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs rounded-full">
+                      <CreditCard size={12} />
+                      {premiumMap.get(selectedUser.telegram_id)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Баланс монет */}
+              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-100 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-orange-600 mb-1">
+                  <Coins size={20} />
+                  <span className="font-medium">Баланс монет</span>
+                </div>
+                <div className="text-3xl font-bold text-gray-900">
+                  {userCoins ?? '...'} <span className="text-lg text-gray-500">монет</span>
+                </div>
+              </div>
+
+              {/* Информация */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <UserIcon size={18} className="text-gray-400" />
+                  <span className="text-sm">Telegram ID:</span>
+                  <span className="font-mono text-sm">{selectedUser.telegram_id}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Calendar size={18} className="text-gray-400" />
+                  <span className="text-sm">Регистрация:</span>
+                  <span className="text-sm">{formatDate(selectedUser.created_at)}</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-600">
+                  <Globe size={18} className="text-gray-400" />
+                  <span className="text-sm">Последняя активность:</span>
+                  <span className="text-sm">{getRelativeTime(selectedUser.last_active_at)}</span>
+                </div>
+                {selectedUser.utm_source && (
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <Send size={18} className="text-gray-400" />
+                    <span className="text-sm">Источник:</span>
+                    <span className="text-sm">{selectedUser.utm_source}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Начисление монет */}
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="font-medium text-gray-900 mb-3">Начислить монеты</h3>
+                <div className="space-y-3">
+                  <input
+                    type="number"
+                    placeholder="Количество монет"
+                    value={coinsAmount}
+                    onChange={(e) => setCoinsAmount(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Причина (необязательно)"
+                    value={coinsReason}
+                    onChange={(e) => setCoinsReason(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    onClick={handleAddCoins}
+                    disabled={isAddingCoins || !coinsAmount}
+                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    {isAddingCoins ? (
+                      'Начисляю...'
+                    ) : (
+                      <>
+                        <Coins size={18} />
+                        Начислить
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Действия */}
+              <div className="border-t border-gray-100 pt-4 flex gap-2">
+                <button
+                  onClick={() => {
+                    handleCloseUserCard()
+                    handleDelete(selectedUser)
+                  }}
+                  className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={18} />
+                  Удалить
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
