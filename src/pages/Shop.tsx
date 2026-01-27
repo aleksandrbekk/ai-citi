@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { Coins, Crown, Star, User } from 'lucide-react'
@@ -131,12 +132,12 @@ export function Shop() {
 
     if (!telegramUser?.id) {
       console.error('No telegramUser.id')
-      alert('Ошибка: не удалось определить пользователя. Откройте магазин через Telegram бота.')
+      toast.error('Не удалось определить пользователя. Откройте магазин через Telegram бота.')
       return
     }
 
     if (!pkg.available) {
-      alert('Скоро будет доступно!')
+      toast.info('Скоро будет доступно!')
       return
     }
 
@@ -169,14 +170,14 @@ export function Shop() {
 
     } catch (error: any) {
       console.error('Payment error:', error)
-      alert('Ошибка при создании платежа: ' + (error.message || 'Попробуйте позже'))
+      toast.error('Ошибка при создании платежа: ' + (error.message || 'Попробуйте позже'))
     } finally {
       setIsProcessing(false)
     }
   }
 
   const handleBuySubscription = (_id: string) => {
-    alert('Подписки скоро будут доступны!')
+    toast.info('Подписки скоро будут доступны!')
   }
 
   // Временно скрыто

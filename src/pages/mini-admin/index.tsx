@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { isAdmin as checkIsAdmin } from '@/config/admins'
+import { toast } from 'sonner'
 import {
   Users,
   UserPlus,
@@ -187,10 +188,10 @@ export default function MiniAdmin() {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-premium'] })
       setNewClientId('')
       setNewClientPlan('basic')
-      alert('✅ Клиент добавлен!')
+      toast.success('Клиент добавлен!')
     },
     onError: (error: any) => {
-      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
+      toast.error('Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -232,10 +233,10 @@ export default function MiniAdmin() {
       setNewPaymentSource('manual')
       setNewPaymentMethod('card')
       setShowAddPaymentModal(false)
-      alert('✅ Платёж добавлен!')
+      toast.success('Платёж добавлен!')
     },
     onError: (error: any) => {
-      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
+      toast.error('Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -278,10 +279,10 @@ export default function MiniAdmin() {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
       setNewStudentId('')
       setNewStudentTariff('standard')
-      alert('✅ Ученик добавлен!')
+      toast.success('Ученик добавлен!')
     },
     onError: (error: any) => {
-      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
+      toast.error('Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 
@@ -313,10 +314,10 @@ export default function MiniAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mini-admin-users'] })
       setNewUserId('')
-      alert('✅ Пользователь добавлен!')
+      toast.success('Пользователь добавлен!')
     },
     onError: (error: any) => {
-      alert('❌ Ошибка: ' + (error?.message || JSON.stringify(error)))
+      toast.error('Ошибка: ' + (error?.message || JSON.stringify(error)))
     }
   })
 

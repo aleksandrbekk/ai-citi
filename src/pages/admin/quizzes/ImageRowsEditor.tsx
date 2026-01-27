@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { toast } from 'sonner'
 
 interface ImageRow {
   id: string
@@ -64,7 +65,7 @@ export function ImageRowsEditor({ quizId }: ImageRowsEditorProps) {
 
       if (batchError) {
         console.error('Error loading images batch:', batchError)
-        alert('Ошибка загрузки картинок: ' + batchError.message)
+        toast.error('Ошибка загрузки картинок: ' + batchError.message)
         setIsLoading(false)
         return
       }
@@ -169,7 +170,7 @@ export function ImageRowsEditor({ quizId }: ImageRowsEditorProps) {
 
   const handleImageUpload = async (rowIndex: number, file: File) => {
     if (!quizId) {
-      alert('Сначала сохраните квиз!')
+      toast.error('Сначала сохраните квиз!')
       return
     }
 
@@ -190,7 +191,7 @@ export function ImageRowsEditor({ quizId }: ImageRowsEditorProps) {
 
     if (uploadError) {
       console.error('Upload error:', uploadError)
-      alert('Ошибка загрузки в Storage: ' + uploadError.message)
+      toast.error('Ошибка загрузки в Storage: ' + uploadError.message)
       return
     }
 
@@ -215,7 +216,7 @@ export function ImageRowsEditor({ quizId }: ImageRowsEditorProps) {
 
     if (error) {
       console.error('Error saving image record:', error)
-      alert('Ошибка сохранения в БД: ' + error.message)
+      toast.error('Ошибка сохранения в БД: ' + error.message)
       return
     }
 
@@ -270,12 +271,12 @@ export function ImageRowsEditor({ quizId }: ImageRowsEditorProps) {
 
   const handleAddRow = async () => {
     if (!quizId) {
-      alert('Сначала сохраните квиз!')
+      toast.error('Сначала сохраните квиз!')
       return
     }
-    
+
     const newRowIndex = rows.length
-    
+
     // Создаем ряд в БД
     const { data, error } = await supabase
       .from('quiz_image_rows')
@@ -289,7 +290,7 @@ export function ImageRowsEditor({ quizId }: ImageRowsEditorProps) {
 
     if (error) {
       console.error('Error creating row:', error)
-      alert('Ошибка создания ряда')
+      toast.error('Ошибка создания ряда')
       return
     }
 

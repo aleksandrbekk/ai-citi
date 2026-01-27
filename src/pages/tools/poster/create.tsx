@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Upload, Calendar, X, Loader2, Clock } from 'lucide-react'
 import { usePosts } from '@/hooks/usePosts'
+import { toast } from 'sonner'
 
 // ID Александра - только он имеет доступ к постеру
 const ALLOWED_USER_ID = 643763835
@@ -74,27 +75,27 @@ export default function PosterCreate() {
   // Запланировать публикацию
   const handleSchedule = async () => {
     if (!scheduledDate || !scheduledTime) {
-      alert('Выберите дату и время')
+      toast.error('Выберите дату и время')
       return
     }
-    
+
     try {
       // Создаём дату в МСК (UTC+3)
       const mskDateString = `${scheduledDate}T${scheduledTime}:00+03:00`
       const scheduledAt = new Date(mskDateString)
-      
+
       const post = await createPost({
         caption,
         mediaFiles,
         scheduledAt
       })
-      
+
       if (post) {
         navigate('/tools/poster')
       }
     } catch (error) {
       console.error(error)
-      alert('Ошибка создания поста')
+      toast.error('Ошибка создания поста')
     }
   }
 

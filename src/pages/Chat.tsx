@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useChatStore } from '@/store/chatStore'
 import ChatListDrawer from '@/components/chat/ChatListDrawer'
+import { toast } from 'sonner'
 
 // Типы лимитов
 interface LimitInfo {
@@ -146,7 +147,7 @@ export default function Chat() {
 
   const toggleRecording = () => {
     if (!recognitionRef.current) {
-      alert('Голосовой ввод не поддерживается в вашем браузере')
+      toast.error('Голосовой ввод не поддерживается в вашем браузере')
       return
     }
 
