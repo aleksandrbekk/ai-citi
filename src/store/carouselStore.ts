@@ -16,6 +16,8 @@ export type CarouselStatus = 'idle' | 'generating' | 'completed' | 'error'
 
 export type CarouselMode = 'ai' | 'manual'
 
+export type Gender = 'male' | 'female' | null
+
 interface CarouselState {
   // Шаблон
   selectedTemplate: TemplateId | null
@@ -27,6 +29,7 @@ interface CarouselState {
   customAudience: string
   style: StylePreset
   mode: CarouselMode
+  gender: Gender
 
   // Контент
   variables: Record<string, string>
@@ -47,6 +50,7 @@ interface CarouselState {
   setCustomAudience: (audience: string) => void
   setStyle: (style: StylePreset) => void
   setMode: (mode: CarouselMode) => void
+  setGender: (gender: Gender) => void
   setCtaText: (text: string) => void
   setCtaQuestion: (text: string) => void
   setCtaBenefits: (text: string) => void
@@ -66,6 +70,7 @@ const initialState = {
   customAudience: '',
   style: getDefaultStyle(),
   mode: 'ai' as CarouselMode,
+  gender: null as Gender,
   variables: {},
   ctaText: '',
   ctaQuestion: 'Хочешь так же?',
@@ -87,6 +92,7 @@ export const useCarouselStore = create<CarouselState>()(
       setCustomAudience: (audience) => set({ customAudience: audience }),
       setStyle: (style) => set({ style }),
       setMode: (mode) => set({ mode }),
+      setGender: (gender) => set({ gender }),
       setCtaText: (text) => set({ ctaText: text }),
       setCtaQuestion: (text) => set({ ctaQuestion: text }),
       setCtaBenefits: (text) => set({ ctaBenefits: text }),
@@ -109,6 +115,7 @@ export const useCarouselStore = create<CarouselState>()(
         customAudience: state.customAudience,
         style: state.style,
         mode: state.mode,
+        gender: state.gender,
         variables: state.variables,
         ctaText: state.ctaText,
         ctaQuestion: state.ctaQuestion,

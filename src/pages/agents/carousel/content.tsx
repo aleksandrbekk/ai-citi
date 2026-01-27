@@ -9,7 +9,7 @@ import { haptic } from '@/lib/haptic'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience } = useCarouselStore()
+  const { variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience, gender } = useCarouselStore()
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [hasSubscription, setHasSubscription] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -99,6 +99,7 @@ export default function CarouselContent() {
       style: style || 'APPLE_GLASSMORPHISM', // Стиль дизайна
       audience: audience || 'networkers', // Целевая аудитория
       customAudience: customAudience || '', // Своя ЦА
+      gender: gender || 'male', // Пол для склонения текста (дефолт для обратной совместимости)
       cta_text: ctaText,
       cta_question: ctaQuestion,
       cta_benefits: ctaBenefits,

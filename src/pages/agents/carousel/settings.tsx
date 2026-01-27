@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { PhotoGallery } from '@/components/carousel/PhotoGallery'
 import { AudienceSelector } from '@/components/carousel/AudienceSelector'
+import { GenderSelector } from '@/components/carousel/GenderSelector'
 import { useCarouselStore } from '@/store/carouselStore'
 import { saveUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
-import { Camera, Users } from 'lucide-react'
+import { Camera, Users, UserCircle } from 'lucide-react'
 
 export default function CarouselSettings() {
   const navigate = useNavigate()
@@ -50,6 +51,16 @@ export default function CarouselSettings() {
             onPhotoSelect={handlePhotoSelect}
             selectedPhoto={userPhoto}
           />
+        </div>
+
+        {/* Пол для текста */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <UserCircle className="w-5 h-5 text-orange-500" />
+            <h2 className="font-semibold text-gray-900">Пол для текста</h2>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">Для правильного склонения: "сам" или "сама"</p>
+          <GenderSelector />
         </div>
 
         {/* Целевая аудитория */}
