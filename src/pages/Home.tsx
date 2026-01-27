@@ -14,7 +14,7 @@ const characters = [
     label: 'AI Помощник',
     path: '/chat',
     task: 'Задай вопрос AI',
-    defaultSpeech: 'Привет! Чем могу помочь?',
+    defaultSpeech: 'Есть вопрос? 🤔 Нажми — найдём ответ вместе!',
     icon: MessageCircle
   },
   {
@@ -23,8 +23,8 @@ const characters = [
     name: 'Дизайнер',
     label: 'Создатель карусели',
     path: '/agents/carousel',
-    task: 'Собери карусель для клиента',
-    defaultSpeech: 'Давай создадим крутую карусель!',
+    task: 'Собери карусель за 2 минуты',
+    defaultSpeech: 'Карусель за 2 минуты? 🎨 Легко! Нажми на меня',
     icon: Sparkles
   },
   {
@@ -34,7 +34,7 @@ const characters = [
     label: 'Школа AI',
     path: '/school',
     task: 'Пройди урок и получи XP',
-    defaultSpeech: 'Готов узнать что-то новое?',
+    defaultSpeech: 'Новый урок по ИИ ждёт! 📚 Заходи, получишь XP',
     icon: GraduationCap
   },
 ]
@@ -63,16 +63,18 @@ export default function Home() {
   const navigate = useNavigate()
   const [[currentIndex, direction], setPage] = useState([0, 0]);
   const [greetings, setGreetings] = useState<Record<string, string>>({})
-  const [isLoadingGreeting, setIsLoadingGreeting] = useState(false)
+  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
 
-  // Генерация приветствия для персонажа
-  const generateGreeting = async (characterId: string) => {
-    // Если уже есть приветствие - не генерируем заново
-    if (greetings[characterId]) {
-      return
-    }
+  // Генерация приветствия для персонажа (всегда новое)
+  const generateGreeting = async (characterId: string, forceNew = false) => {
+    // Если уже загружается — не дублируем запрос
+    if (loadingIds.has(characterId)) return
+    
+    // Если есть кешированное и не нужно новое — используем кеш
+    if (greetings[characterId] && !forceNew) return
 
-    setIsLoadingGreeting(true)
+    setLoadingIds(prev => new Set(prev).add(characterId))
+    
     try {
       const { data, error } = await supabase.functions.invoke('character-greeting', {
         body: { characterId }
@@ -88,33 +90,28 @@ export default function Home() {
       console.error('Failed to generate greeting:', error)
       // Используем дефолтное приветствие
       const character = characters.find(c => c.id === characterId)
-      if (character) {
+      if (character && !greetings[characterId]) {
         setGreetings(prev => ({
           ...prev,
           [characterId]: character.defaultSpeech
         }))
       }
     } finally {
-      setIsLoadingGreeting(false)
+      setLoadingIds(prev => {
+        const next = new Set(prev)
+        next.delete(characterId)
+        return next
+      })
     }
   }
 
-  // Генерируем приветствие при загрузке и смене персонажа
+  // Генерируем приветствия для ВСЕХ персонажей при загрузке страницы
   useEffect(() => {
-    const currentCharacter = characters[currentIndex]
-    if (currentCharacter && !greetings[currentCharacter.id]) {
-      generateGreeting(currentCharacter.id)
-    }
-  }, [currentIndex])
-
-  // Генерируем приветствия для всех персонажей при первой загрузке
-  useEffect(() => {
+    // Генерируем для всех персонажей параллельно
     characters.forEach(char => {
-      if (!greetings[char.id]) {
-        generateGreeting(char.id)
-      }
+      generateGreeting(char.id, true) // forceNew = true — всегда новое при загрузке
     })
-  }, [])
+  }, []) // Только при монтировании
 
   const paginate = (newDirection: number) => {
     let nextIndex = currentIndex + newDirection;
@@ -192,13 +189,13 @@ export default function Home() {
             </div>
             {/* Речь */}
             <div className="flex items-center gap-2">
-              {isLoadingGreeting && !greetings[currentCharacter.id] ? (
+              {loadingIds.has(currentCharacter.id) && !greetings[currentCharacter.id] ? (
                 <>
                   <Loader2 className="w-4 h-4 text-cyan-600 animate-spin" />
                   <p className="text-base text-foreground/80 font-medium">Думаю...</p>
                 </>
               ) : (
-                <p className="text-base text-foreground/80 font-medium">
+                <p className="text-base text-foreground/80 font-medium leading-snug">
                   {currentGreeting}
                 </p>
               )}
