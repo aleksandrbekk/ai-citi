@@ -250,17 +250,22 @@ export default function CarouselIndex() {
     setError(null)
 
     // Списываем монеты за генерацию (всегда)
-    console.log('Списание монет:', { userId: user.id, amount: GENERATION_COST })
-    const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели')
-    console.log('Результат списания:', spendResult)
+    try {
+      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели')
 
-    if (!spendResult.success) {
-      setError(spendResult.error || 'Не удалось списать монеты')
+      if (!spendResult || spendResult.success !== true) {
+        const errorMsg = spendResult?.error || 'Не удалось списать монеты'
+        setError(errorMsg)
+        setIsSubmitting(false)
+        return
+      }
+      // Обновляем баланс
+      refetchBalance()
+    } catch (err) {
+      setError('Ошибка при списании монет')
       setIsSubmitting(false)
       return
     }
-    // Обновляем баланс
-    refetchBalance()
 
     let ctaValue = ''
     if (ctaType === 'PRODUCT') {

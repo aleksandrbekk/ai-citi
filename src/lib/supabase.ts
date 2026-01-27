@@ -322,30 +322,29 @@ export async function spendCoinsForGeneration(
   amount: number = 1,
   description: string = 'Генерация карусели'
 ): Promise<SpendCoinsResult> {
-  console.log('spendCoinsForGeneration called:', { telegramId, amount, description })
+  try {
+    const { data, error } = await supabase
+      .rpc('spend_coins', {
+        p_telegram_id: telegramId,
+        p_amount: amount,
+        p_type: 'generation',
+        p_description: description,
+        p_metadata: null
+      })
 
-  const { data, error } = await supabase
-    .rpc('spend_coins', {
-      p_telegram_id: telegramId,
-      p_amount: amount,
-      p_type: 'generation',
-      p_description: description,
-      p_metadata: {}
-    })
+    if (error) {
+      return { success: false, error: error.message }
+    }
 
-  console.log('spendCoinsForGeneration response:', { data, error })
+    // Если data пустой, возвращаем ошибку
+    if (!data) {
+      return { success: false, error: 'Нет ответа от сервера' }
+    }
 
-  if (error) {
-    console.error('Error spending coins:', error)
-    return { success: false, error: error.message }
+    return data as SpendCoinsResult
+  } catch (err) {
+    return { success: false, error: 'Ошибка соединения' }
   }
-
-  // Если data пустой, возвращаем ошибку
-  if (!data) {
-    return { success: false, error: 'No response from server' }
-  }
-
-  return data as SpendCoinsResult
 }
 
 /**
