@@ -116,32 +116,33 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             border_radius: "24px"
         },
         person: {
-            outfit_hook: "black hoodie OR dark blazer (depends on topic)",
-            outfit_cta: "crisp white shirt, top button open, relaxed professional",
-            lighting: "studio lighting, soft shadows, Apple product photography style",
-            aesthetic: "clean, professional, confident"
+            scale: "85% of frame width — LARGE, fills most of the frame",
+            position: "RIGHT or LEFT 40% of frame, chest up to waist visible",
+            lighting: "studio lighting, soft shadows, Apple product photography style, cinematic",
+            aesthetic: "clean, professional, confident, modern 2026"
         },
         decorations: {
             elements: "subtle orange glow effects, floating glass particles, soft light rays",
-            "3d_objects": "glossy 3D icons with orange accents, floating elements",
-            particles: "subtle sparkles, light dust particles"
+            "3d_objects": "glossy 3D icons with orange accents (#FF5A1F), floating elements with soft shadows",
+            particles: "subtle sparkles, light dust particles, energy trails"
         },
         prompt_blocks: {
-            background: "WHITE background #FFFFFF, clean and bright. Premium minimal Apple-style aesthetic. Subtle light gradient from top.",
+            format_prefix: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).",
+            background: "WHITE background #FFFFFF, clean and bright. Premium minimal Apple-style aesthetic. Subtle light gradient from top. Modern 2026 design.",
             cards_content: "Glassmorphism cards: frosted glass effect with 20px blur, white tint rgba(255,255,255,0.7), subtle white border, soft drop shadow. Border radius 24px. Clean modern look.",
-            cards_headline: "White paper STICKER tilted 3-7° with torn ripped edges, strong drop shadow. Bold black text. Below: orange gradient badge (#FF8A3D to #FF5A1F) with white text.",
-            person_hook: "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: black hoodie or dark blazer. Pose: [POSE]. Expression: [EMOTION], theatrical, exaggerated. Lighting: studio quality, soft shadows. CRITICAL: Do NOT invent facial features.",
-            person_cta: "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: crisp white shirt, top button open, relaxed professional. Pose: open palm gesture toward CTA card. Expression: warm, inviting, friendly genuine smile. Lighting: warm golden hour feel. CRITICAL: Do NOT invent facial features.",
-            decorations_hook: "Visual elements: [PROPS]. Floating 3D elements with orange glow (#FF5A1F). Subtle particles and sparkles. Soft shadows under all elements.",
-            cta_card: "Large frosted glass card with strong orange glow (#FF5A1F). Top line (black): 'ПИШИ:'. Main line (HUGE, orange #FF5A1F, neon glow effect): '[PRODUCT_CODE]'. Sparkles and light particles around the code.",
-            viral_elements: "3D paper airplane with orange motion trail. Share icons (Telegram, WhatsApp style) floating. Energy lines and particles. Button: '💾 СОХРАНИ'.",
-            style_footer: "STYLE: Photorealistic, NOT illustration. Cinematic lighting, studio quality. Premium minimal aesthetic. 8K resolution."
+            cards_headline: "White paper STICKER tilted 3-7° with torn ripped edges, strong drop shadow. Bold black text #1A1A1A. Below: orange gradient badge (#FF8A3D to #FF5A1F) with white bold text.",
+            person_hook: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. The reference image is the ONLY source for appearance. Framing: chest up to waist, LARGE SCALE — fills 85% of frame width. Pose: [POSE]. Expression: [EMOTION], theatrical, exaggerated for social media. Outfit: [OUTFIT_BY_TOPIC]. Props around person: [PROPS]. Lighting: studio quality, soft shadows, cinematic. CRITICAL: Do NOT invent or change any facial features.",
+            person_cta: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up, LARGE SCALE — fills 85% of frame width. Pose: open palm gesture pointing toward CTA card, inviting. Expression: warm, friendly, genuine smile, approachable. Outfit: [OUTFIT_CTA] — DIFFERENT from slide 1. Lighting: warm golden hour feel, soft and inviting. CRITICAL: Do NOT invent facial features.",
+            decorations_hook: "Visual elements: [PROPS] — 3D objects floating around person with orange glow (#FF5A1F). Subtle particles and sparkles. Soft shadows under all elements. Energy trails and light effects.",
+            cta_card: "Large frosted glass card with strong orange glow effect (#FF5A1F). Top line (black bold): 'ПИШИ:'. Main line (HUGE, orange #FF5A1F, neon glow effect): '[PRODUCT_CODE]'. Sparkles and light particles around the code. Glassmorphism style with blur.",
+            viral_elements: "3D paper airplane with orange motion trail flying. Share icons (Telegram, WhatsApp style) floating with glow. Energy lines and particles. Button-style element: '💾 СОХРАНИ'.",
+            style_footer: "STYLE: Photorealistic, NOT illustration. Cinematic lighting, studio quality. Premium minimal aesthetic. Orange accent #FF5A1F. 8K resolution. Modern 2026 aesthetic."
         },
         slide_templates: {
-            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\"\nSub text: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, LARGE SCALE — 80% of frame width\n\n{decorations_hook}\n\nBOTTOM AREA:\nGlassmorphism card with text: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" (small, bottom right)\n\n{style_footer}",
-            CONTENT: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT):\nOrange gradient badge: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\nTransition text: \"{TRANSITION}\"\n\nNo person. Clean infographic style.\n\n{style_footer}",
-            CTA: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nTOP LEFT: Orange gradient banner with white text: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, confident pose\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\nBOTTOM:\nSmaller glassmorphism card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\nBackground: White to light orange gradient (#FFFFFF → #FFF5F0), energetic uplifting feel.\n\nCENTER:\nLarge glassmorphism card (prominent, centered)\nTop line (HUGE, bold black): \"ОТПРАВЬ ЭТО\"\nBottom line (large, orange #FF5A1F): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person. Bright, shareable, viral aesthetic.\n\n{style_footer}"
+            HOOK: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nWHITE background #FFFFFF, clean and bright.\n\nHEADLINE (TOP LEFT AREA):\nWhite paper STICKER tilted 3-7° with torn ripped edges, strong drop shadow.\nBold black text: \"{HEADLINE_1}\"\nBelow: Orange gradient badge (#FF8A3D → #FF5A1F) with white text: \"{HEADLINE_2}\"\n\nPERSON:\nPosition: RIGHT 40% of frame\nFraming: chest up to waist, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo. Match ALL facial features precisely.\nOutfit: [OUTFIT_BY_TOPIC]\nPose: [POSE]\nExpression: [EMOTION], theatrical, exaggerated for social media\nProps: [PROPS] — floating 3D objects with orange glow around person\n\nBOTTOM AREA:\nGlassmorphism frosted card with text: \"{BOTTOM_TEXT}\"\nCorner indicator bottom right: \"Листай →\"\n\nSTYLE: Photorealistic, NOT illustration. Cinematic lighting, studio quality. Orange accent #FF5A1F. 8K resolution. Modern 2026 aesthetic.",
+            CONTENT: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nWHITE background #FFFFFF. Premium minimal aesthetic.\n\nHEADLINE (TOP LEFT):\nOrange gradient badge (#FF8A3D → #FF5A1F): \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\nLayout: [CONTENT_LAYOUT]\nGlassmorphism cards: frosted glass effect with 20px blur, white tint, soft drop shadow.\nText: Black #1A1A1A, orange accents #FF5A1F\n[CONTENT_DETAILS]\n\nBOTTOM:\nTransition text: \"{TRANSITION}\"\n\nNo person. Clean infographic style. 8K quality. Modern 2026 design.",
+            CTA: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nWHITE background #FFFFFF, clean and bright.\n\nTOP LEFT:\nOrange gradient banner with white bold text: \"{CTA_HEADLINE}\"\n\nPERSON:\nPosition: LEFT 40% of frame\nFraming: chest up, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo. Match ALL facial features precisely.\nOutfit: [OUTFIT_CTA] — DIFFERENT from slide 1, more relaxed/inviting\nPose: open palm gesture pointing toward CTA card\nExpression: warm, inviting, friendly genuine smile\n\nMAIN CTA CARD (CENTER-RIGHT):\nLarge frosted glass card with orange glow effect\nTop line (black bold): \"ПИШИ:\"\nMain line (HUGE, orange #FF5A1F, neon glow): \"[PRODUCT_CODE]\"\nSparkles and light particles around\n\nBOTTOM:\nSmaller glassmorphism card: \"{BENEFIT_TEXT}\"\n\nPhotorealistic. Warm inviting lighting. 8K. Modern 2026 style.",
+            VIRAL: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: White to light orange gradient (#FFFFFF → #FFF5F0), energetic shareable feel.\n\nCENTER:\nLarge glassmorphism frosted card (prominent, centered)\nTop line (HUGE, bold black): \"ОТПРАВЬ ЭТО\"\nBottom line (large, orange #FF5A1F): \"{VIRAL_TARGET}\"\n\nVISUAL ELEMENTS:\n3D paper airplane with orange motion trail flying\nShare icons (Telegram, WhatsApp style) floating with glow\nEnergy particles, light streaks\n\nBOTTOM:\nButton-style element: \"💾 СОХРАНИ\"\n\nNo person. Bright, viral, shareable aesthetic. 8K. Modern 2026 design."
         }
     },
 
@@ -174,32 +175,33 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             border_radius: "20px"
         },
         person: {
-            outfit_hook: "camel cashmere sweater OR cream knit cardigan",
-            outfit_cta: "cream silk blouse OR soft beige blazer",
-            lighting: "warm natural window light, golden hour, soft diffused",
-            aesthetic: "soft editorial portrait, cozy luxury"
+            scale: "85% of frame width — LARGE, fills most of the frame",
+            position: "RIGHT or LEFT 40% of frame, chest up to waist visible",
+            lighting: "warm natural window light, golden hour, soft diffused, cozy",
+            aesthetic: "soft editorial portrait, cozy luxury, warm inviting, modern 2026"
         },
         decorations: {
-            elements: "dried pampas grass, neutral ceramic vases, woven textures",
-            "3d_objects": "gold geometric shapes, cream colored 3D elements",
-            particles: "soft golden dust, warm light particles"
+            elements: "dried pampas grass, neutral ceramic vases, woven textures, soft fabrics",
+            "3d_objects": "gold geometric shapes, cream colored 3D elements with warm glow",
+            particles: "soft golden dust, warm light particles, floating sparkles"
         },
         prompt_blocks: {
-            background: "Background: warm beige gradient, flowing from soft cream #F5F0E8 at top through warm tan #E8DDD0 to rich beige #D2B48C at bottom. Soft diffused natural lighting. Cozy luxury interior design aesthetic.",
-            cards_content: "Frosted glass cards with warm cream tint rgba(255,253,250,0.6). Subtle gold border rgba(212,175,55,0.3). Soft warm shadow. Elegant rounded corners 20px.",
-            cards_headline: "Cream colored elegant banner with chocolate brown text (#5D4037). Elegant serif typography. Gold accent elements.",
-            person_hook: "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: camel cashmere sweater, cream knit. Pose: [POSE]. Expression: [EMOTION]. Lighting: warm window light, golden hour glow. CRITICAL: Do NOT invent facial features.",
-            person_cta: "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: cream silk blouse or soft beige blazer. Pose: graceful gesture toward CTA card. Expression: warm, genuine smile. Lighting: soft golden glow. CRITICAL: Do NOT invent facial features.",
-            decorations_hook: "Decorative elements: dried pampas grass arrangement, neutral ceramic vase. Soft golden particles floating. [PROPS] with warm beige/gold treatment.",
-            cta_card: "Elegant frosted cream card with gold border. Top line (brown #5D4037): 'ПИШИ:'. Main line (LARGE, gold #D4AF37): '[PRODUCT_CODE]'. Subtle gold sparkles.",
-            viral_elements: "Elegant paper airplane in cream/gold. Share icons in muted warm tones. Button with gold border: '💾 СОХРАНИ'.",
-            style_footer: "STYLE: Photorealistic, editorial quality. Warm natural lighting. Cozy luxury aesthetic. 8K resolution."
+            format_prefix: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).",
+            background: "Background: warm beige gradient, flowing from soft cream #F5F0E8 at top through warm tan #E8DDD0 to rich beige #D2B48C at bottom. Soft diffused natural lighting. Cozy luxury aesthetic. Modern 2026 design.",
+            cards_content: "Frosted glass cards with warm cream tint rgba(255,253,250,0.6). Subtle gold border rgba(212,175,55,0.3). Soft warm shadow. Elegant rounded corners 20px. Clean typography.",
+            cards_headline: "Cream colored elegant banner with chocolate brown text (#5D4037). Elegant serif typography. Gold accent elements. Soft drop shadow.",
+            person_hook: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up to waist, LARGE SCALE — fills 85% of frame width. Pose: [POSE]. Expression: [EMOTION], warm and engaging. Outfit: [OUTFIT_BY_TOPIC] in warm beige/cream/camel tones. Props: [PROPS] with warm gold treatment. Lighting: warm window light, golden hour glow. CRITICAL: Do NOT invent facial features.",
+            person_cta: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up, LARGE SCALE — fills 85% of frame width. Pose: graceful open palm gesture toward CTA card. Expression: warm, genuine inviting smile. Outfit: [OUTFIT_CTA] in cream/beige — DIFFERENT from slide 1. Lighting: soft golden glow. CRITICAL: Do NOT invent facial features.",
+            decorations_hook: "Decorative elements: dried pampas grass arrangement, neutral ceramic vase. [PROPS] with warm beige/gold treatment. Soft golden particles floating. Cozy luxury feel.",
+            cta_card: "Elegant frosted cream card with gold border (#D4AF37). Top line (chocolate brown #5D4037): 'ПИШИ:'. Main line (LARGE, gold #D4AF37, subtle glow): '[PRODUCT_CODE]'. Soft gold sparkles around.",
+            viral_elements: "Elegant paper airplane in cream/gold tones. Share icons in muted warm tones with gold accents. Button with gold border: '💾 СОХРАНИ'.",
+            style_footer: "STYLE: Photorealistic, editorial quality. Warm natural lighting, golden hour. Cozy luxury aesthetic. Gold accent #D4AF37. 8K resolution. Modern 2026 design."
         },
         slide_templates: {
-            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE (TOP LEFT):\n{cards_headline}\nMain: \"{HEADLINE_1}\"\nSub: \"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\n\n{decorations_hook}\n\nBOTTOM:\nWarm frosted glass card: \"{BOTTOM_TEXT}\"\n\n{style_footer}",
-            CONTENT: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\nElegant cream banner: \"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
-            CTA: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nTOP: Elegant cream banner: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\n\nCTA CARD:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\nBackground: Soft beige to warm cream gradient.\n\nCENTER:\nElegant card with gold border\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person.\n\n{style_footer}"
+            HOOK: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: warm beige gradient from soft cream #F5F0E8 through tan #E8DDD0 to rich beige #D2B48C.\n\nHEADLINE (TOP LEFT):\nCream elegant banner with chocolate brown text (#5D4037)\nMain: \"{HEADLINE_1}\"\nSub (gold #D4AF37): \"{HEADLINE_2}\"\n\nPERSON:\nPosition: RIGHT 40% of frame\nFraming: chest up to waist, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo. Match ALL facial features.\nOutfit: [OUTFIT_BY_TOPIC] in warm beige/cream tones\nPose: [POSE]\nExpression: [EMOTION], warm and engaging\nProps: [PROPS] with gold treatment, pampas grass, ceramic elements\n\nBOTTOM:\nWarm frosted glass card: \"{BOTTOM_TEXT}\"\n\"Листай →\" bottom right\n\nPhotorealistic. Warm golden hour lighting. 8K. Modern 2026.",
+            CONTENT: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: warm beige gradient #F5F0E8 → #D2B48C. Cozy aesthetic.\n\nHEADLINE:\nElegant cream banner with gold accent: \"{HEADLINE}\"\n\nCONTENT:\nLayout: [CONTENT_LAYOUT]\nFrosted cream glass cards with gold borders\nText: chocolate brown #5D4037, gold accents #D4AF37\n[CONTENT_DETAILS]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person. Elegant infographic style. 8K. Modern 2026.",
+            CTA: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: warm beige gradient, soft golden lighting.\n\nTOP:\nElegant cream banner: \"{CTA_HEADLINE}\"\n\nPERSON:\nPosition: LEFT 40% of frame\nFraming: chest up, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo.\nOutfit: [OUTFIT_CTA] cream/beige — DIFFERENT from slide 1\nPose: graceful gesture toward CTA card\nExpression: warm, genuine inviting smile\n\nCTA CARD:\nElegant frosted cream card with gold border\n\"ПИШИ:\" (brown #5D4037)\n\"[PRODUCT_CODE]\" (LARGE, gold #D4AF37, glow)\nGold sparkles\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\nPhotorealistic. Warm lighting. 8K. Modern 2026.",
+            VIRAL: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: Soft beige to warm cream gradient, uplifting feel.\n\nCENTER:\nElegant frosted card with gold border\nTop (HUGE, chocolate brown): \"ОТПРАВЬ ЭТО\"\nBottom (gold #D4AF37): \"{VIRAL_TARGET}\"\n\nVISUAL ELEMENTS:\nElegant paper airplane in cream/gold\nShare icons in warm tones with gold\nSoft golden particles\n\nBOTTOM:\nButton: \"💾 СОХРАНИ\"\n\nNo person. Warm shareable aesthetic. 8K. Modern 2026."
         }
     },
 
@@ -233,32 +235,33 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             border_radius: "16px"
         },
         person: {
-            outfit_hook: "dusty rose silk blouse OR soft pink cashmere",
-            outfit_cta: "cream or white elegant top, rose gold jewelry",
-            lighting: "soft diffused pink-tinted light, editorial beauty lighting",
-            aesthetic: "high-fashion editorial, Vogue-style portrait"
+            scale: "85% of frame width — LARGE, fills most of the frame",
+            position: "RIGHT or LEFT 40% of frame, chest up to waist visible",
+            lighting: "soft diffused pink-tinted light, editorial beauty lighting, flattering",
+            aesthetic: "high-fashion editorial, Vogue-style portrait, modern 2026"
         },
         decorations: {
-            elements: "dried roses, soft fabric draping, rose petals",
-            "3d_objects": "rose gold geometric shapes, pink-tinted glass",
-            particles: "soft pink petals floating, rose gold dust"
+            elements: "dried roses, soft fabric draping, rose petals, silk textures",
+            "3d_objects": "rose gold geometric shapes, pink-tinted glass elements with soft glow",
+            particles: "soft pink petals floating, rose gold dust, delicate sparkles"
         },
         prompt_blocks: {
-            background: "Background: soft blush pink gradient, flowing from pale pink #FFF5F5 through blush #FFE4E1 to soft rose #FFC0CB. Editorial lighting.",
-            cards_content: "Frosted glass cards with soft pink tint rgba(255,245,245,0.7). Subtle rose border. Elegant corners 16px.",
-            cards_headline: "Elegant editorial banner, thin serif typography. Deep mauve text #4A3540. Rose gold accent.",
-            person_hook: "Generate person EXACTLY as shown in reference photo. Outfit: dusty rose silk blouse. Pose: [POSE]. Expression: [EMOTION], editorial. Lighting: soft beauty lighting. CRITICAL: Do NOT invent facial features.",
-            person_cta: "Generate person EXACTLY as shown in reference photo. Outfit: cream or white elegant top. Pose: elegant gesture toward CTA. Expression: warm, inviting smile. CRITICAL: Do NOT invent facial features.",
-            decorations_hook: "Decorative elements: dried roses, delicate fabric. [PROPS] with rose/pink treatment. Soft pink particles.",
-            cta_card: "Elegant frosted pink card with rose gold border. Top line (mauve #4A3540): 'ПИШИ:'. Main line (rose gold #B76E79): '[PRODUCT_CODE]'. Rose petals around.",
-            viral_elements: "Elegant paper airplane in rose gold. Share icons in rose tones. Button: '💾 СОХРАНИ'.",
-            style_footer: "STYLE: Photorealistic, high-fashion editorial. Vogue magazine aesthetic. 8K resolution."
+            format_prefix: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).",
+            background: "Background: soft blush pink gradient, flowing from pale pink #FFF5F5 through blush #FFE4E1 to soft rose #FFC0CB. Soft diffused editorial lighting. High-fashion aesthetic. Modern 2026 design.",
+            cards_content: "Frosted glass cards with soft pink tint rgba(255,245,245,0.7). Subtle rose border rgba(183,110,121,0.2). Elegant rounded corners 16px. Soft pink shadow.",
+            cards_headline: "Elegant editorial banner, thin serif typography. Deep mauve text #4A3540. Rose gold accent elements. Fashion magazine style.",
+            person_hook: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up to waist, LARGE SCALE — fills 85% of frame width. Pose: [POSE], editorial fashion pose. Expression: [EMOTION], editorial beauty. Outfit: [OUTFIT_BY_TOPIC] in dusty rose/blush/cream tones, elegant fabrics. Props: [PROPS] with rose gold treatment. Lighting: soft beauty lighting, pink-tinted. CRITICAL: Do NOT invent facial features.",
+            person_cta: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up, LARGE SCALE — fills 85% of frame width. Pose: elegant graceful gesture toward CTA card. Expression: warm, inviting smile, approachable beauty. Outfit: [OUTFIT_CTA] cream or white elegant — DIFFERENT from slide 1, rose gold jewelry. Lighting: soft flattering light. CRITICAL: Do NOT invent facial features.",
+            decorations_hook: "Decorative elements: dried roses, delicate silk fabric draping. [PROPS] with rose/pink/rose gold treatment. Soft pink petals floating. Rose gold sparkles.",
+            cta_card: "Elegant frosted pink card with rose gold border (#B76E79). Top line (mauve #4A3540): 'ПИШИ:'. Main line (LARGE, rose gold #B76E79, soft glow): '[PRODUCT_CODE]'. Rose petals and sparkles around.",
+            viral_elements: "Elegant paper airplane in rose gold tones. Share icons in soft rose/pink with rose gold accents. Floating petals. Button: '💾 СОХРАНИ'.",
+            style_footer: "STYLE: Photorealistic, high-fashion editorial. Vogue magazine aesthetic. Soft beauty lighting. Rose gold accent #B76E79. 8K resolution. Modern 2026 design."
         },
         slide_templates: {
-            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\"\n\"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40%\n\n{decorations_hook}\n\nBOTTOM:\n\"{BOTTOM_TEXT}\"\n\n{style_footer}",
-            CONTENT: "[TECHNICAL: Instagram slide]\n\n{background}\n\nHEADLINE:\n\"{HEADLINE}\"\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
-            CTA: "[TECHNICAL: Instagram slide]\n\n{background}\n\nTOP:\n\"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40%\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "[TECHNICAL: Instagram slide]\n\nBackground: Soft pink gradient.\n\nCENTER:\nElegant card\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\"\n\n{viral_elements}\n\nNo person.\n\n{style_footer}"
+            HOOK: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: soft blush pink gradient from #FFF5F5 through #FFE4E1 to #FFC0CB.\n\nHEADLINE (TOP LEFT):\nElegant editorial banner, thin serif typography\nMain (deep mauve #4A3540): \"{HEADLINE_1}\"\nSub (rose gold #B76E79): \"{HEADLINE_2}\"\n\nPERSON:\nPosition: RIGHT 40% of frame\nFraming: chest up to waist, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo. Match ALL facial features.\nOutfit: [OUTFIT_BY_TOPIC] in dusty rose/blush tones, elegant\nPose: [POSE], fashion editorial\nExpression: [EMOTION], editorial beauty\nProps: [PROPS] with rose gold treatment, dried roses, petals\n\nBOTTOM:\nSoft pink frosted card: \"{BOTTOM_TEXT}\"\n\"Листай →\" bottom right\n\nPhotorealistic. Soft beauty lighting. 8K. Modern 2026.",
+            CONTENT: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: soft blush pink gradient #FFF5F5 → #FFC0CB. Editorial aesthetic.\n\nHEADLINE:\nElegant banner (mauve #4A3540): \"{HEADLINE}\"\nRose gold accent element\n\nCONTENT:\nLayout: [CONTENT_LAYOUT]\nFrosted pink glass cards with rose borders\nText: deep mauve #4A3540, rose gold accents #B76E79\n[CONTENT_DETAILS]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person. Elegant fashion infographic. 8K. Modern 2026.",
+            CTA: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: soft blush pink gradient, flattering beauty lighting.\n\nTOP:\nElegant rose banner: \"{CTA_HEADLINE}\"\n\nPERSON:\nPosition: LEFT 40% of frame\nFraming: chest up, LARGE SCALE — fills 85% of frame width\nGenerate person EXACTLY as shown in reference photo.\nOutfit: [OUTFIT_CTA] cream/white elegant — DIFFERENT from slide 1\nPose: graceful gesture toward CTA card\nExpression: warm, inviting smile\n\nCTA CARD:\nElegant frosted pink card with rose gold border\n\"ПИШИ:\" (mauve #4A3540)\n\"[PRODUCT_CODE]\" (LARGE, rose gold #B76E79, glow)\nRose petals and sparkles\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\nPhotorealistic. Soft beauty lighting. 8K. Modern 2026.",
+            VIRAL: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: Soft pink to blush gradient, uplifting feminine feel.\n\nCENTER:\nElegant frosted pink card with rose gold border\nTop (HUGE, mauve #4A3540): \"ОТПРАВЬ ЭТО\"\nBottom (rose gold #B76E79): \"{VIRAL_TARGET}\"\n\nVISUAL ELEMENTS:\nElegant paper airplane in rose gold\nShare icons in soft pink/rose tones\nFloating petals and sparkles\n\nBOTTOM:\nButton: \"💾 СОХРАНИ\"\n\nNo person. Elegant shareable aesthetic. 8K. Modern 2026."
         }
     },
 
@@ -292,32 +295,33 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
             border_radius: "8px (subtle) or 0px (sharp)"
         },
         person: {
-            outfit_hook: "simple white t-shirt OR white minimalist clothing",
-            outfit_cta: "clean white shirt OR simple white top",
-            lighting: "flat, even lighting, minimal shadows, bright",
-            aesthetic: "clean editorial portrait, lots of negative space"
+            scale: "70-80% of frame width — leave breathing room and white space",
+            position: "CENTER or RIGHT, with generous negative space around",
+            lighting: "flat, even lighting, minimal shadows, bright, clean",
+            aesthetic: "clean editorial portrait, maximum negative space, modern 2026"
         },
         decorations: {
-            elements: "thin black continuous line drawings (1-2px), single orange accent element",
-            "3d_objects": "simple line-art icons, ONE orange element only",
-            particles: "none or minimal thin lines"
+            elements: "thin black continuous line drawings (1-2px only), single orange accent element",
+            "3d_objects": "simple line-art icons, ONE orange element only, no complex shapes",
+            particles: "none or minimal thin lines, extreme restraint"
         },
         prompt_blocks: {
-            background: "Background: PURE WHITE #FFFFFF. No gradients. Extreme minimalism. Generous white space (at least 30% empty).",
-            cards_content: "Minimal cards with thin black border (1px solid #1A1A1A). No shadow. Sharp corners. White background. Clean typography.",
-            cards_headline: "Simple black text on white. Clean sans-serif. ONE orange accent element only (#FF5A1F).",
-            person_hook: "Generate person EXACTLY as shown in reference photo. Outfit: simple white t-shirt. Pose: [POSE]. Expression: [EMOTION], natural, understated. Lighting: flat even lighting. Lots of white space. CRITICAL: Do NOT invent facial features.",
-            person_cta: "Generate person EXACTLY as shown in reference photo. Outfit: clean white shirt. Pose: simple gesture toward CTA. Expression: genuine smile. Lighting: bright, flat. CRITICAL: Do NOT invent facial features.",
-            decorations_hook: "Line art elements: thin black continuous line drawings (1-2px). [PROPS] as simple line illustrations. ONE orange accent (#FF5A1F). Generous white space.",
-            cta_card: "Minimal card with thin black border. White background. Top: 'ПИШИ:'. Main: '[PRODUCT_CODE]' (orange #FF5A1F). Small orange dot accent.",
-            viral_elements: "Simple line art paper airplane. Minimal share icons. ONE orange accent. Button outline: '💾 СОХРАНИ'.",
-            style_footer: "STYLE: Photorealistic person, minimalist design. Maximum white space. Thin lines only. 8K resolution."
+            format_prefix: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).",
+            background: "Background: PURE WHITE #FFFFFF. No gradients. Extreme minimalism. Generous white space (at least 30% of frame empty). Clean and bright. Modern 2026 design.",
+            cards_content: "Minimal cards with thin black border (1px solid #1A1A1A). No shadow or very subtle. Sharp corners 8px or 0px. White background. Clean sans-serif typography.",
+            cards_headline: "Simple black text on white background. Clean modern sans-serif. ONE orange accent element only (#FF5A1F). Extreme restraint.",
+            person_hook: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up to waist, LARGE but with breathing room — 75-80% of frame width, generous white space around. Pose: [POSE], understated. Expression: [EMOTION], natural, not exaggerated. Outfit: [OUTFIT_BY_TOPIC] in white/neutral minimalist style. Props: [PROPS] as thin line art illustrations (1-2px). ONE orange accent. Lighting: flat even lighting, minimal shadows. CRITICAL: Do NOT invent facial features.",
+            person_cta: "Generate person EXACTLY as shown in reference photo provided. Match ALL facial features with photographic precision. Framing: chest up, 75-80% of frame width, white space around. Pose: simple clean gesture toward CTA. Expression: genuine understated smile. Outfit: [OUTFIT_CTA] clean white/neutral — DIFFERENT from slide 1. Lighting: bright, flat, clean. CRITICAL: Do NOT invent facial features.",
+            decorations_hook: "Line art elements: thin black continuous line drawings (1-2px only). [PROPS] as simple line illustrations. ONE orange accent element (#FF5A1F). Maximum white space. Extreme minimalism.",
+            cta_card: "Minimal card with thin black border (1px). Pure white background. Top: 'ПИШИ:' (black). Main: '[PRODUCT_CODE]' (orange #FF5A1F, clean). Small orange dot accent. No glow or effects.",
+            viral_elements: "Simple line art paper airplane (thin black lines). Minimal share icons (line art). ONE orange accent only. Button outline only: '💾 СОХРАНИ'.",
+            style_footer: "STYLE: Photorealistic person, minimalist design. Maximum white space. Thin black lines only. ONE orange accent. 8K resolution. Modern 2026 minimalism."
         },
         slide_templates: {
-            HOOK: "[TECHNICAL: Generate at 1024x1365 pixels, 3:4 aspect ratio]\n\n{background}\n\nHEADLINE:\n{cards_headline}\n\"{HEADLINE_1}\"\n\"{HEADLINE_2}\"\n\nPERSON:\n{person_hook}\nPosition: CENTER or RIGHT\nScale: 60-70% (leave breathing room)\n\n{decorations_hook}\n\nBOTTOM:\n\"{BOTTOM_TEXT}\" →\n\n{style_footer}",
-            CONTENT: "[TECHNICAL: Instagram slide]\n\n{background}\n\nHEADLINE:\n\"{HEADLINE}\" (one orange word)\n\nCONTENT:\n{cards_content}\n[CONTENT_LAYOUT]\nThin line art decorations\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person.\n\n{style_footer}",
-            CTA: "[TECHNICAL: Instagram slide]\n\n{background}\n\nTOP:\n\"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT\nLots of white space\n\nCTA:\n{cta_card}\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\n{style_footer}",
-            VIRAL: "[TECHNICAL: Instagram slide]\n\n{background}\n\nCENTER:\nMinimal card, thin black border\n\"ОТПРАВЬ ЭТО\"\n\"{VIRAL_TARGET}\" (orange)\n\n{viral_elements}\n\nMaximum white space.\n\n{style_footer}"
+            HOOK: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: PURE WHITE #FFFFFF. No gradients. Extreme minimalism.\n\nHEADLINE (TOP LEFT):\nSimple black text on white, clean sans-serif\nMain (black #1A1A1A): \"{HEADLINE_1}\"\nSub (ONE word orange #FF5A1F): \"{HEADLINE_2}\"\n\nPERSON:\nPosition: CENTER or RIGHT with generous white space\nFraming: chest up to waist, 75-80% of frame width, breathing room around\nGenerate person EXACTLY as shown in reference photo. Match ALL facial features.\nOutfit: [OUTFIT_BY_TOPIC] in white/neutral minimalist style\nPose: [POSE], understated\nExpression: [EMOTION], natural\nProps: [PROPS] as thin line art (1-2px), ONE orange accent\n\nBOTTOM:\nSimple text: \"{BOTTOM_TEXT}\" →\n\nPhotorealistic person. Maximum white space. 8K. Modern 2026 minimalism.",
+            CONTENT: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: PURE WHITE #FFFFFF. No gradients.\n\nHEADLINE:\nClean sans-serif: \"{HEADLINE}\" (one word orange #FF5A1F)\n\nCONTENT:\nLayout: [CONTENT_LAYOUT]\nMinimal cards with thin black borders (1px)\nText: black #1A1A1A, ONE orange accent #FF5A1F\nThin line art decorations\n[CONTENT_DETAILS]\n\nBOTTOM:\n\"{TRANSITION}\"\n\nNo person. Extreme minimalism. 8K. Modern 2026.",
+            CTA: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: PURE WHITE #FFFFFF. Clean bright.\n\nTOP:\nSimple black text: \"{CTA_HEADLINE}\"\n\nPERSON:\nPosition: LEFT with lots of white space\nFraming: chest up, 75-80% width, breathing room\nGenerate person EXACTLY as shown in reference photo.\nOutfit: [OUTFIT_CTA] clean white/neutral — DIFFERENT from slide 1\nPose: simple gesture toward CTA\nExpression: genuine understated smile\n\nCTA CARD:\nMinimal card, thin black border\n\"ПИШИ:\" (black)\n\"[PRODUCT_CODE]\" (orange #FF5A1F)\nSmall orange dot\n\nBOTTOM:\n\"{BENEFIT_TEXT}\"\n\nPhotorealistic. Flat lighting. 8K. Modern 2026.",
+            VIRAL: "Create a vertical portrait image for Instagram carousel (3:4 aspect ratio, taller than wide).\n\nBackground: PURE WHITE #FFFFFF.\n\nCENTER:\nMinimal card with thin black border\nTop (black #1A1A1A): \"ОТПРАВЬ ЭТО\"\nBottom (orange #FF5A1F): \"{VIRAL_TARGET}\"\n\nVISUAL ELEMENTS:\nSimple line art paper airplane\nMinimal share icons (line art)\nONE orange accent only\n\nBOTTOM:\nButton outline: \"💾 СОХРАНИ\"\n\nNo person. Maximum white space. 8K. Modern 2026."
         }
     },
 
@@ -387,52 +391,112 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
 
 export const VASIA_CORE = {
     id: "VASIA_CORE",
-    version: "1.0",
-    description: "Справочники для генерации каруселей: позы, эмоции, реквизит, формулы заголовков",
+    version: "6.0",
+    description: "Справочники для генерации каруселей: позы, эмоции, реквизит, одежда, формулы заголовков",
 
+    // =========================================================================
+    // ДИНАМИЧНАЯ ОДЕЖДА ПОД ТЕМУ (v6.0)
+    // =========================================================================
+    outfit_by_topic: {
+        ai_tech: {
+            ru: "AI, технологии, автоматизация",
+            hook: "Sleek futuristic jacket with subtle tech details, modern minimalist tech-wear style",
+            cta: "Smart casual dark sweater, clean modern look"
+        },
+        money_business: {
+            ru: "Деньги, доход, бизнес",
+            hook: "Expensive dark blazer, luxury watch visible, confident businessman style",
+            cta: "Crisp white shirt, relaxed professional, top button open"
+        },
+        mistakes_failures: {
+            ru: "Ошибки, провалы, боль",
+            hook: "Wrinkled shirt, loosened collar, slightly disheveled appearance showing stress",
+            cta: "Clean fresh shirt, composed and recovered look"
+        },
+        system_order: {
+            ru: "Система, порядок, план",
+            hook: "Crisp white shirt, perfectly styled, organized professional appearance",
+            cta: "Smart casual blazer over clean t-shirt"
+        },
+        energy_motivation: {
+            ru: "Энергия, мотивация, старт",
+            hook: "Bright athletic jacket or sporty hoodie, energetic dynamic look",
+            cta: "Casual comfortable wear, approachable and ready"
+        },
+        lifestyle_freedom: {
+            ru: "Lifestyle, свобода, результат",
+            hook: "Light summer shirt, relaxed vacation style, linen fabric",
+            cta: "Casual elegant, beach club smart casual"
+        },
+        expose_truth: {
+            ru: "Разоблачение, правда, секреты",
+            hook: "Black leather jacket, edgy rebellious look, dark mysterious",
+            cta: "Dark turtleneck, insider expert vibe"
+        },
+        company_review: {
+            ru: "Обзор компании, MLM",
+            hook: "Smart casual blazer over t-shirt, approachable expert look",
+            cta: "Professional but friendly, business casual"
+        },
+        default: {
+            ru: "Универсальная тема",
+            hook: "Modern dark blazer or quality hoodie, clean professional",
+            cta: "Crisp white or light shirt, warm inviting appearance"
+        }
+    },
+
+    // =========================================================================
+    // ПОЗЫ И ЖЕСТЫ
+    // =========================================================================
     poses: {
-        SHOCK: { ru: "Руки у головы", prompt: "Hands on head, shocked expression, wide eyes" },
-        EUREKA: { ru: "Палец вверх", prompt: "Pointing up with index finger, eureka moment" },
-        QUESTION: { ru: "Руки разведены", prompt: "Arms spread wide, palms up, really?! expression" },
-        CONFIDENT: { ru: "Руки скрещены", prompt: "Arms crossed, confident smirk" },
-        POINTING: { ru: "Указывает на что-то", prompt: "Pointing or gesturing toward card or element" },
-        DISAPPOINTED: { ru: "Держит голову", prompt: "Hand on forehead, disappointed look" },
-        TIRED: { ru: "Потирает глаза", prompt: "Rubbing eyes, exhausted expression" },
-        VICTORY: { ru: "Кулак вверх", prompt: "Fist pump, celebrating" },
-        SHRUG: { ru: "Пожимает плечами", prompt: "Shrugging, ironic smile" },
-        SECRET: { ru: "Палец у губ", prompt: "Finger on lips, I will tell you a secret" },
-        DENIAL: { ru: "Перечёркивает руками", prompt: "Crossing arms in X, no way gesture" },
-        PRESENTING: { ru: "Открытая ладонь", prompt: "Open palm gesture toward content" },
-        THINKING: { ru: "Рука у подбородка", prompt: "Hand on chin, thinking pose, analytical gaze" }
+        SHOCK: { ru: "Руки у головы", prompt: "Hands on head, shocked expression, wide eyes, dramatic reaction" },
+        EUREKA: { ru: "Палец вверх", prompt: "Pointing up with index finger, eureka moment, excited discovery" },
+        QUESTION: { ru: "Руки разведены", prompt: "Arms spread wide, palms up, really?! expression, disbelief" },
+        CONFIDENT: { ru: "Руки скрещены", prompt: "Arms crossed, confident smirk, powerful stance" },
+        POINTING: { ru: "Указывает на что-то", prompt: "Pointing or gesturing toward card or element, directing attention" },
+        DISAPPOINTED: { ru: "Держит голову", prompt: "Hand on forehead, disappointed look, frustration visible" },
+        TIRED: { ru: "Потирает глаза", prompt: "Rubbing eyes, exhausted expression, burnout visible" },
+        VICTORY: { ru: "Кулак вверх", prompt: "Fist pump, celebrating victory, triumphant" },
+        SHRUG: { ru: "Пожимает плечами", prompt: "Shrugging, ironic smile, what can you do expression" },
+        SECRET: { ru: "Палец у губ", prompt: "Finger on lips, I will tell you a secret, mysterious" },
+        DENIAL: { ru: "Перечёркивает руками", prompt: "Crossing arms in X, no way gesture, stop sign" },
+        PRESENTING: { ru: "Открытая ладонь", prompt: "Open palm gesture toward content, welcoming, inviting" },
+        THINKING: { ru: "Рука у подбородка", prompt: "Hand on chin, thinking pose, analytical gaze, contemplating" }
     },
 
+    // =========================================================================
+    // ЭМОЦИИ
+    // =========================================================================
     emotions: {
-        HOOK_PROBLEM: { ru: "Шок / Возмущение", prompt: "Shocked, frustrated, are you serious?!" },
-        HOOK_PROVOKE: { ru: "Дерзость", prompt: "Confident smirk, raised eyebrow, challenging" },
-        HOOK_ANALYZE: { ru: "Задумчивость", prompt: "Thoughtful, analytical, slight squint" },
-        EMPATHY: { ru: "Сочувствие", prompt: "Empathetic, understanding, slight concern" },
-        DISAPPOINTMENT: { ru: "Разочарование", prompt: "Disappointed, I have seen this too many times" },
-        CONFIDENCE: { ru: "Уверенность", prompt: "Confident, knowing smile, I got this" },
-        FRIENDLY: { ru: "Дружелюбие", prompt: "Warm smile, inviting, approachable" },
-        PROUD: { ru: "Гордость", prompt: "Proud, satisfied, accomplished" }
+        HOOK_PROBLEM: { ru: "Шок / Возмущение", prompt: "Shocked, frustrated, are you serious?! theatrical for social media" },
+        HOOK_PROVOKE: { ru: "Дерзость", prompt: "Confident smirk, raised eyebrow, challenging, provocative" },
+        HOOK_ANALYZE: { ru: "Задумчивость", prompt: "Thoughtful, analytical, slight squint, examining" },
+        EMPATHY: { ru: "Сочувствие", prompt: "Empathetic, understanding, slight concern, I feel you" },
+        DISAPPOINTMENT: { ru: "Разочарование", prompt: "Disappointed, I have seen this too many times, tired of it" },
+        CONFIDENCE: { ru: "Уверенность", prompt: "Confident, knowing smile, I got this, assured" },
+        FRIENDLY: { ru: "Дружелюбие", prompt: "Warm smile, inviting, approachable, genuine friendly" },
+        PROUD: { ru: "Гордость", prompt: "Proud, satisfied, accomplished, achieved" }
     },
 
+    // =========================================================================
+    // WOW-РЕКВИЗИТ ПО ТЕМАМ
+    // =========================================================================
     props_by_topic: {
-        no_leads: { ru: "Нет заявок", props: "Magnifying glass + empty phone screen", metaphor: "Искать нечего" },
-        cold_spam: { ru: "Холодный спам", props: "Ushanka hat, frost on beard, frozen phone covered in ice", metaphor: "Тебя морозят" },
-        burnout: { ru: "Выгорание", props: "Firefighter helmet, smoke, flames", metaphor: "Горишь на работе" },
-        team_leaves: { ru: "Команда уходит", props: "Empty chairs behind, abandoned desks", metaphor: "Все сбежали" },
-        content_void: { ru: "Контент в пустоту", props: "Megaphone pointing to empty space", metaphor: "Никто не слышит" },
-        money_drain: { ru: "Деньги утекают", props: "Leaky bucket with coins falling out", metaphor: "Слив бюджета" },
-        ai_automation: { ru: "AI автоматизация", props: "Control panel, holographic screens, robot helpers", metaphor: "Контроль над всем" },
-        business_chaos: { ru: "Хаос в бизнесе", props: "Flying papers, scattered documents, mess", metaphor: "Нет системы" },
-        analysis: { ru: "Разбор ошибок", props: "Detective magnifying glass, folder labeled CASE FILE", metaphor: "Расследование" },
-        time_running: { ru: "Время утекает", props: "Hourglass, broken clock", metaphor: "Дедлайн горит" },
-        secret_success: { ru: "Секрет успеха", props: "Safe door slightly open, golden glow inside", metaphor: "Ценная информация" },
-        breakthrough: { ru: "Прорыв", props: "Brick wall with hole punched through", metaphor: "Пробил барьер" },
-        fresh_start: { ru: "Старт с нуля", props: "Starting blocks, running track", metaphor: "Готов к забегу" },
-        income_growth: { ru: "Рост дохода", props: "3D chart with arrow going up", metaphor: "Наглядный рост" },
-        transformation: { ru: "До / После", props: "Two phones: old cracked vs new shiny", metaphor: "Трансформация" }
+        no_leads: { ru: "Нет заявок", props: "Magnifying glass searching empty phone screen, tumbleweeds, desert emptiness", metaphor: "Искать нечего" },
+        cold_spam: { ru: "Холодный спам", props: "Frozen phone covered in ice and frost, icicles, cold breath visible, winter hat", metaphor: "Тебя морозят" },
+        burnout: { ru: "Выгорание", props: "Firefighter helmet, sparks and flames around, smoke, fire extinguisher", metaphor: "Горишь на работе" },
+        team_leaves: { ru: "Команда уходит", props: "Empty chairs behind, abandoned desks, exit signs, footprints walking away", metaphor: "Все сбежали" },
+        content_void: { ru: "Контент в пустоту", props: "Megaphone pointing into fog/void, echo waves disappearing, empty audience", metaphor: "Никто не слышит" },
+        money_drain: { ru: "Деньги утекают", props: "Leaky bucket with coins and bills falling out, drain hole, money flying away", metaphor: "Слив бюджета" },
+        ai_automation: { ru: "AI автоматизация", props: "Holographic control panels, floating screens, robot assistants, neural network visuals", metaphor: "Контроль над всем" },
+        business_chaos: { ru: "Хаос в бизнесе", props: "Flying papers everywhere, scattered documents, tangled cables, alarm clocks", metaphor: "Нет системы" },
+        analysis: { ru: "Разбор ошибок", props: "Detective magnifying glass, folder labeled CASE FILE, evidence board, red strings", metaphor: "Расследование" },
+        time_running: { ru: "Время утекает", props: "Shattered hourglass, sand spilling, broken clocks, melting watches", metaphor: "Дедлайн горит" },
+        secret_success: { ru: "Секрет успеха", props: "Safe door slightly open with golden glow inside, treasure chest, key", metaphor: "Ценная информация" },
+        breakthrough: { ru: "Прорыв", props: "Brick wall with hole punched through, light streaming in, breaking chains", metaphor: "Пробил барьер" },
+        fresh_start: { ru: "Старт с нуля", props: "Starting blocks on running track, launch pad, rocket taking off", metaphor: "Готов к забегу" },
+        income_growth: { ru: "Рост дохода", props: "3D chart with glowing arrow going up, money stacks growing, green upward trend", metaphor: "Наглядный рост" },
+        transformation: { ru: "До / После", props: "Two phones: old cracked vs new shiny, butterfly emerging, before/after split", metaphor: "Трансформация" }
     },
 
     headline_formulas: {

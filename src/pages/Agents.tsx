@@ -54,15 +54,6 @@ export function Agents() {
 
       <div className="relative z-10 p-4">
         <div className="grid grid-cols-2 gap-4">
-          {/* AI FERMA - заглушка */}
-          <div className="glass-card p-5 opacity-50">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
-              <BotIcon className="w-7 h-7 text-white" />
-            </div>
-            <h3 className="text-gray-900 font-semibold mb-1">AI FERMA</h3>
-            <p className="text-gray-400 text-sm">Скоро</p>
-          </div>
-
           {/* Карусели - только для платных пользователей */}
           <div
             onClick={() => hasPaidAccess && navigate('/agents/carousel')}
@@ -95,6 +86,15 @@ export function Agents() {
             <h3 className="text-gray-900 font-semibold mb-1">ИИ КОУЧ</h3>
             <p className="text-gray-500 text-sm">Персональный коучинг</p>
           </Link>
+
+          {/* AI FERMA - заглушка */}
+          <div className="glass-card p-5 opacity-50">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
+              <BotIcon className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-gray-900 font-semibold mb-1">AI FERMA</h3>
+            <p className="text-gray-400 text-sm">Скоро</p>
+          </div>
 
           {/* Нейропостер - только для владельца */}
           {isOwner && (
