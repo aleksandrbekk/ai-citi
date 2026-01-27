@@ -131,17 +131,14 @@ export default function CarouselIndex() {
   const hasAccess = hasSubscription || coinBalance >= GENERATION_COST
   const isCheckingAccess = isCheckingSubscription || isLoadingCoins
 
-  // Telegram BackButton - используем ref для хранения актуального состояния
-  const stateRef = useRef({ showStyleModal, showPhotoModal, showCtaPage })
-  stateRef.current = { showStyleModal, showPhotoModal, showCtaPage }
-
+  // Telegram BackButton
   useEffect(() => {
-    if (!tg?.BackButton) return
+    if (!tg) return
 
+    // Показываем кнопку назад
     tg.BackButton.show()
 
     const handleBack = () => {
-      const { showStyleModal, showPhotoModal, showCtaPage } = stateRef.current
       if (showStyleModal) {
         setShowStyleModal(false)
       } else if (showPhotoModal) {
@@ -153,13 +150,20 @@ export default function CarouselIndex() {
       }
     }
 
-    tg.BackButton.onClick(handleBack)
+    // Используем onEvent для надёжности
+    ;(tg as any).onEvent('backButtonClicked', handleBack)
 
     return () => {
-      tg.BackButton.offClick(handleBack)
-      tg.BackButton.hide()
+      ;(tg as any).offEvent('backButtonClicked', handleBack)
     }
-  }, [navigate])
+  }, [showStyleModal, showPhotoModal, showCtaPage, navigate])
+
+  // Скрываем кнопку при размонтировании
+  useEffect(() => {
+    return () => {
+      tg?.BackButton?.hide()
+    }
+  }, [])
 
   // Загружаем сохранённый стиль
   useEffect(() => {
