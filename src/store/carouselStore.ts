@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { type StyleId, getDefaultStyle } from '@/lib/carouselStyles'
+import { type BundleId } from '@/lib/styleBundles'
 
 export type TemplateId = 'mistakes' | 'myths' | 'checklist' | 'before-after' | 'steps' | 'custom'
 
@@ -8,6 +9,9 @@ export type AudiencePreset = 'networkers' | 'experts' | 'moms' | 'freelancers' |
 
 // Re-export StyleId for components
 export type { StyleId }
+
+// Re-export BundleId for components
+export type { BundleId }
 
 // Legacy alias (deprecated, use StyleId)
 export type StylePreset = StyleId
@@ -30,6 +34,7 @@ interface CarouselState {
   style: StylePreset
   mode: CarouselMode
   gender: Gender
+  enabledBundles: BundleId[]
 
   // Контент
   variables: Record<string, string>
@@ -51,6 +56,8 @@ interface CarouselState {
   setStyle: (style: StylePreset) => void
   setMode: (mode: CarouselMode) => void
   setGender: (gender: Gender) => void
+  setEnabledBundles: (bundles: BundleId[]) => void
+  toggleBundle: (bundleId: BundleId) => void
   setCtaText: (text: string) => void
   setCtaQuestion: (text: string) => void
   setCtaBenefits: (text: string) => void
@@ -71,6 +78,7 @@ const initialState = {
   style: getDefaultStyle(),
   mode: 'ai' as CarouselMode,
   gender: null as Gender,
+  enabledBundles: ['base'] as BundleId[],
   variables: {},
   ctaText: '',
   ctaQuestion: 'Хочешь так же?',
@@ -93,6 +101,17 @@ export const useCarouselStore = create<CarouselState>()(
       setStyle: (style) => set({ style }),
       setMode: (mode) => set({ mode }),
       setGender: (gender) => set({ gender }),
+      setEnabledBundles: (bundles) => set({ enabledBundles: bundles }),
+      toggleBundle: (bundleId) => set((state) => {
+        const isEnabled = state.enabledBundles.includes(bundleId)
+        if (isEnabled) {
+          // Нельзя отключить если это единственный включённый набор
+          if (state.enabledBundles.length === 1) return state
+          return { enabledBundles: state.enabledBundles.filter((id) => id !== bundleId) }
+        } else {
+          return { enabledBundles: [...state.enabledBundles, bundleId] }
+        }
+      }),
       setCtaText: (text) => set({ ctaText: text }),
       setCtaQuestion: (text) => set({ ctaQuestion: text }),
       setCtaBenefits: (text) => set({ ctaBenefits: text }),
@@ -116,6 +135,7 @@ export const useCarouselStore = create<CarouselState>()(
         style: state.style,
         mode: state.mode,
         gender: state.gender,
+        enabledBundles: state.enabledBundles,
         variables: state.variables,
         ctaText: state.ctaText,
         ctaQuestion: state.ctaQuestion,

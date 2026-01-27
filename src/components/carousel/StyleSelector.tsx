@@ -1,16 +1,20 @@
-import { STYLES_INDEX, type StyleId } from '@/lib/carouselStyles'
+import { type StyleId } from '@/lib/carouselStyles'
+import { getStylesByBundles } from '@/lib/styleBundles'
 import { useCarouselStore } from '@/store/carouselStore'
 import { CheckIcon } from '@/components/ui/icons'
 
 export function StyleSelector() {
-  const { style, setStyle } = useCarouselStore()
+  const { style, setStyle, enabledBundles } = useCarouselStore()
+
+  // Получаем стили только из включённых наборов
+  const availableStyles = getStylesByBundles(enabledBundles)
 
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium text-gray-700">🎨 Стиль дизайна</label>
 
       <div className="grid grid-cols-1 gap-2">
-        {STYLES_INDEX.map((option) => (
+        {availableStyles.map((option) => (
           <label
             key={option.id}
             className={`

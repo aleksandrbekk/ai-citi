@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom'
 import { PhotoGallery } from '@/components/carousel/PhotoGallery'
 import { AudienceSelector } from '@/components/carousel/AudienceSelector'
 import { GenderSelector } from '@/components/carousel/GenderSelector'
+import { BundleSelector } from '@/components/carousel/BundleSelector'
 import { useCarouselStore } from '@/store/carouselStore'
 import { saveUserPhoto } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
-import { Camera, Users, UserCircle } from 'lucide-react'
+import { Camera, Users, UserCircle, Palette } from 'lucide-react'
 
 export default function CarouselSettings() {
   const navigate = useNavigate()
@@ -70,6 +71,16 @@ export default function CarouselSettings() {
             <h2 className="font-semibold text-gray-900">Целевая аудитория</h2>
           </div>
           <AudienceSelector />
+        </div>
+
+        {/* Наборы стилей */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Palette className="w-5 h-5 text-orange-500" />
+            <h2 className="font-semibold text-gray-900">Наборы стилей</h2>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">Выберите какие стили будут доступны</p>
+          <BundleSelector />
         </div>
 
         {/* Кнопка далее */}
