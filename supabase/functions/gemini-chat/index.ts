@@ -498,8 +498,28 @@ serve(async (req) => {
         
         // Если RAG нашел ответ, используем его
         if (ragResult.answer && ragResult.answer !== 'Не нашел ответа в документах.') {
-          // Комбинируем RAG ответ с Gemini для финального форматирования
-          const enhancedPrompt = `
+          // Формируем контекст из RAG (без упоминания источников)
+          const ragContext = ragResult.sources.map(s => s.snippet).filter(Boolean).join('\n\n')
+
+          // Если есть кастомный системный промпт — используем его стиль
+          // Иначе — стандартный RAG ответ
+          let enhancedPrompt: string
+
+          if (systemPrompt) {
+            // Режим коуча: используем знания как внутреннюю экспертизу
+            enhancedPrompt = `${systemPrompt}
+
+---
+ВНУТРЕННИЕ ЗНАНИЯ (используй как свою экспертизу, НЕ упоминай источники, НЕ цитируй напрямую):
+${ragContext || ragResult.answer}
+---
+
+Сообщение клиента: ${message}
+
+Ответь в соответствии с инструкциями выше. Помни: веди диалог, задавай вопросы, не упоминай источники.`
+          } else {
+            // Стандартный RAG режим с источниками
+            enhancedPrompt = `
 Контекст из документов:
 ${ragResult.answer}
 
@@ -508,11 +528,28 @@ ${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((
 Вопрос пользователя: ${message}
 
 Ответь на основе контекста выше. Если контекста недостаточно, дополни своими знаниями.
-          `.trim()
+            `.trim()
+          }
 
-          const enhancedContents = [
-            { role: "user", parts: [{ text: enhancedPrompt }] }
-          ]
+          // Собираем контент с историей для режима коуча
+          let enhancedContents: any[]
+
+          if (systemPrompt && limitedHistory.length > 0) {
+            // Режим коуча с историей диалога
+            enhancedContents = [
+              { role: "user", parts: [{ text: enhancedPrompt.split('Сообщение клиента:')[0] }] },
+              { role: "model", parts: [{ text: "Понял, готов помочь как коуч." }] },
+              ...limitedHistory.map((msg: { role: string; content: string }) => ({
+                role: msg.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: msg.content }]
+              })),
+              { role: "user", parts: [{ text: message }] }
+            ]
+          } else {
+            enhancedContents = [
+              { role: "user", parts: [{ text: enhancedPrompt }] }
+            ]
+          }
 
           result = await callGemini(
             token,
@@ -521,9 +558,9 @@ ${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((
             settings.temperature,
             settings.max_tokens
           )
-          
-          // Добавляем источники к ответу
-          if (ragResult.sources.length > 0) {
+
+          // Добавляем источники к ответу ТОЛЬКО если нет кастомного промпта
+          if (!systemPrompt && ragResult.sources.length > 0) {
             result.reply += `\n\n📎 Источники:\n${ragResult.sources.map((s, i) => `${i + 1}. ${s.title}`).join('\n')}`
           }
         } else {
