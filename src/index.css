@@ -250,12 +250,8 @@
 }
 
 /* =============================================================================
-   FULLSCREEN & SAFE AREAS
+   SAFE AREAS (Fullsize mode - minimal)
    ============================================================================= */
-.safe-top {
-  padding-top: max(env(safe-area-inset-top, 0px), 100px);
-}
-
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }

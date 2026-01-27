@@ -119,36 +119,8 @@ export function expandWebApp() {
     // }
   }
 
-  // =============================================================================
-  // FULLSCREEN SAFE AREA FOR TELEGRAM UI (Close + Menu buttons)
-  // =============================================================================
-  // В fullscreen режиме Telegram рисует свои кнопки (Закрыть / …) поверх WebApp.
-  // Нам нужен "content safe area top" — отступ до начала безопасного контента.
-  try {
-    const tgAny = tg as any;
-
-    const applyInsets = () => {
-      // Предпочтительно: значение из SDK, если есть
-      const top =
-        typeof tgAny.contentSafeAreaInsetTop === 'number'
-          ? tgAny.contentSafeAreaInsetTop
-          : getContentSafeAreaTop();
-
-      document.documentElement.style.setProperty(
-        '--tg-content-safe-area-inset-top',
-        `${Math.max(0, Math.round(top))}px`
-      );
-    };
-
-    applyInsets();
-
-    // На некоторых платформах инсет меняется при развороте/resize
-    if (typeof tgAny.onEvent === 'function') {
-      tgAny.onEvent('viewportChanged', applyInsets);
-    }
-  } catch (e) {
-    // молча: это только улучшение UX
-  }
+  // В Fullsize режиме дополнительные safe area отступы не нужны
+  // Telegram сам управляет своей шапкой
 
   // Отключаем вертикальные свайпы для навигации (везде)
   try {
@@ -180,36 +152,13 @@ export function isMobileTelegram(): boolean {
 
 /**
  * Получить Content Safe Area Inset Top
- * Это отступ, который учитывает кнопки Telegram (Закрыть, 3 точки) в fullscreen режиме
- * 
- * ВАЖНО: В fullscreen режиме Telegram оставляет фиксированные кнопки вверху:
- * - Кнопка "Закрыть" (X)
- * - Кнопка "3 точки" (меню)
- * 
- * Контент должен размещаться ПОД этими кнопками, используя contentSafeAreaInsetTop
+ *
+ * В режиме Fullsize Telegram сам показывает свою шапку с кнопкой закрытия,
+ * поэтому дополнительные отступы не нужны.
+ *
+ * Оставляем функцию для обратной совместимости, но возвращаем 0.
  */
 export function getContentSafeAreaTop(): number {
-  const tg = window.Telegram?.WebApp;
-  if (!tg) return 0;
-
-  // Пробуем получить из SDK (если доступно)
-  const tgAny = tg as any;
-  if (tgAny.contentSafeAreaInsetTop !== undefined) {
-    return tgAny.contentSafeAreaInsetTop;
-  }
-
-  // Fallback: используем системный safe-area + фиксированный отступ для кнопок
-  // Обычно кнопки Telegram занимают ~44-56px + safe-area
-  const systemSafeArea = parseInt(
-    getComputedStyle(document.documentElement)
-      .getPropertyValue('--safe-area-top') || '0'
-  ) || 0;
-
-  // Фиксированный отступ для кнопок Telegram (примерно 56px на мобильных)
-  const telegramHeaderHeight = isMobileTelegram() ? 56 : 0;
-  // ВАЖНО: на iOS/Android в fullscreen верхний TG-хедер визуально “съедает” больше места,
-  // поэтому держим безопасный минимум 100px (см. src/index.css .safe-top).
-  const minTop = isMobileTelegram() ? 100 : 0;
-
-  return Math.max(systemSafeArea + telegramHeaderHeight, minTop);
+  // В Fullsize режиме отступы не нужны — Telegram сам управляет шапкой
+  return 0;
 }

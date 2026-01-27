@@ -24,11 +24,7 @@ export function AdminLayout() {
   const location = useLocation()
   const logout = useAdminAuth((s) => s.logout)
 
-  // Проверяем, нужен ли отступ для Telegram Mini App
-  const tg = window.Telegram?.WebApp
-  const isTMA = !!(tg?.initData && tg.initData.length > 0)
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-  const needsTopPadding = isTMA && isMobile
+  // В Fullsize режиме Telegram сам управляет шапкой, отступы не нужны
 
   // Делаем body светлым для админки
   useEffect(() => {
@@ -62,18 +58,8 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden" style={{ overscrollBehavior: 'none' }}>
-      {/* Safe area background for iOS TMA only - TOP */}
-      {needsTopPadding && (
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-[100px] z-40 bg-white" />
-      )}
-
-      {/* Safe area background for iOS TMA only - BOTTOM */}
-      {needsTopPadding && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[50px] z-40 bg-white" />
-      )}
-
       {/* Mobile Header */}
-      <header className={`lg:hidden sticky top-0 z-50 bg-white border-b border-gray-200 ${needsTopPadding ? 'pt-[100px]' : ''}`}>
+      <header className="lg:hidden sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link
@@ -294,7 +280,7 @@ export function AdminLayout() {
 
         {/* Main Content */}
         <main className="flex-1 min-h-screen bg-white overflow-x-hidden">
-          <div className={`p-4 lg:p-6 max-w-full overflow-x-hidden ${needsTopPadding ? 'pb-[70px]' : ''}`}>
+          <div className="p-4 lg:p-6 max-w-full overflow-x-hidden">
             <Outlet />
           </div>
         </main>
