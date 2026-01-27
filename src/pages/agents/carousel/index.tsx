@@ -132,31 +132,35 @@ export default function CarouselIndex() {
   const hasAccess = hasSubscription || coinBalance >= GENERATION_COST
   const isCheckingAccess = isCheckingSubscription || isLoadingCoins
 
-  // Telegram BackButton
-  useEffect(() => {
-    if (tg?.BackButton) {
-      tg.BackButton.show()
+  // Telegram BackButton - используем ref для хранения актуального состояния
+  const stateRef = useRef({ showStyleModal, showPhotoModal, showCtaPage })
+  stateRef.current = { showStyleModal, showPhotoModal, showCtaPage }
 
-      const handleBack = () => {
-        if (showStyleModal) {
-          setShowStyleModal(false)
-        } else if (showPhotoModal) {
-          setShowPhotoModal(false)
-        } else if (showCtaPage) {
-          setShowCtaPage(false)
-        } else {
-          navigate('/')
-        }
+  useEffect(() => {
+    if (!tg?.BackButton) return
+
+    tg.BackButton.show()
+
+    const handleBack = () => {
+      const { showStyleModal, showPhotoModal, showCtaPage } = stateRef.current
+      if (showStyleModal) {
+        setShowStyleModal(false)
+      } else if (showPhotoModal) {
+        setShowPhotoModal(false)
+      } else if (showCtaPage) {
+        setShowCtaPage(false)
+      } else {
+        navigate('/')
       }
-
-      tg.BackButton.onClick(handleBack)
-      return () => { tg.BackButton.offClick(handleBack) }
     }
-  }, [showStyleModal, showCtaPage, showPhotoModal, navigate])
 
-  useEffect(() => {
-    return () => { tg?.BackButton?.hide() }
-  }, [])
+    tg.BackButton.onClick(handleBack)
+
+    return () => {
+      tg.BackButton.offClick(handleBack)
+      tg.BackButton.hide()
+    }
+  }, [navigate])
 
   // Загружаем сохранённый стиль
   useEffect(() => {
