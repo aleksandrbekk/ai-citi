@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Outlet, NavLink, useLocation, Link } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { Outlet, NavLink, useLocation, Link, useNavigate } from 'react-router-dom'
 import {
   Users,
   HelpCircle,
@@ -22,9 +22,8 @@ export function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [schoolOpen, setSchoolOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const logout = useAdminAuth((s) => s.logout)
-
-  // В Fullsize режиме Telegram сам управляет шапкой, отступы не нужны
 
   // Делаем body светлым для админки
   useEffect(() => {
@@ -35,6 +34,23 @@ export function AdminLayout() {
       document.documentElement.style.backgroundColor = ''
     }
   }, [])
+
+  // Telegram BackButton — показываем на всех страницах админки
+  const handleBack = useCallback(() => {
+    navigate(-1)
+  }, [navigate])
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    if (!tg?.BackButton) return
+
+    tg.BackButton.show()
+    tg.BackButton.onClick(handleBack)
+
+    return () => {
+      tg.BackButton.offClick(handleBack)
+    }
+  }, [handleBack])
 
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },

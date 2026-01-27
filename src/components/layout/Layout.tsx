@@ -1,4 +1,5 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useCallback } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { useAuth } from '@/hooks/useAuth'
 import { LoaderIcon } from '@/components/ui/icons'
@@ -9,10 +10,32 @@ export function Layout() {
   const { isLoading } = useAuth()
   const user = useAuthStore((state) => state.user)
   const location = useLocation()
+  const navigate = useNavigate()
   const isHomePage = location.pathname === '/'
 
   // UTM трекинг
   useUtmTracking(user?.telegram_id)
+
+  // Telegram BackButton — показываем на всех страницах кроме главной
+  const handleBack = useCallback(() => {
+    navigate(-1)
+  }, [navigate])
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    if (!tg?.BackButton) return
+
+    if (isHomePage) {
+      tg.BackButton.hide()
+    } else {
+      tg.BackButton.show()
+      tg.BackButton.onClick(handleBack)
+    }
+
+    return () => {
+      tg.BackButton.offClick(handleBack)
+    }
+  }, [isHomePage, handleBack])
 
   if (isLoading) {
     return (
