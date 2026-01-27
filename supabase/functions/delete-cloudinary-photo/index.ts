@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createHash } from "https://deno.land/std@0.168.0/crypto/mod.ts"
 
-const CLOUDINARY_CLOUD = 'ds8ylsl2x'
-const CLOUDINARY_API_KEY = '329318552456676'
-const CLOUDINARY_API_SECRET = '1W-H9NYn1vOxwshd7S6iug3JcWk'
+// Ключи из Supabase Secrets (НЕ ХАРДКОДИТЬ!)
+const CLOUDINARY_CLOUD = Deno.env.get('CLOUDINARY_CLOUD') || 'ds8ylsl2x'
+const CLOUDINARY_API_KEY = Deno.env.get('CLOUDINARY_API_KEY')
+const CLOUDINARY_API_SECRET = Deno.env.get('CLOUDINARY_API_SECRET')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,6 +33,18 @@ serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+
+  // Проверяем наличие ключей
+  if (!CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+    console.error('Missing Cloudinary credentials in environment')
+    return new Response(
+      JSON.stringify({
+        error: 'Server configuration error: missing Cloudinary credentials',
+        hint: 'Run: supabase secrets set CLOUDINARY_API_KEY=xxx CLOUDINARY_API_SECRET=xxx'
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   }
 
   try {
