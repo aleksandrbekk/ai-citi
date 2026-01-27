@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { getTelegramUser, isMobileTelegram } from '@/lib/telegram'
+import { getTelegramUser } from '@/lib/telegram'
 import {
   Users,
   UserPlus,
@@ -100,7 +100,6 @@ export default function MiniAdmin() {
 
   // Проверяем доступ
   const isAdmin = Boolean(telegramUser?.id && ADMIN_IDS.includes(telegramUser.id))
-  const isMobile = isMobileTelegram()
 
   // Загрузка пользователей
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({

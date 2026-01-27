@@ -24,6 +24,12 @@ export function AdminLayout() {
   const location = useLocation()
   const logout = useAdminAuth((s) => s.logout)
 
+  // Проверяем, нужен ли отступ для Telegram Mini App
+  const tg = window.Telegram?.WebApp
+  const isTMA = !!(tg?.initData && tg.initData.length > 0)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const needsTopPadding = isTMA && isMobile
+
   // Делаем body светлым для админки
   useEffect(() => {
     document.body.style.backgroundColor = '#ffffff'
