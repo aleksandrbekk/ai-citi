@@ -328,13 +328,13 @@ interface ImageAttachment {
 async function searchRAG(
   token: string,
   query: string,
-  dataStoreId: string
+  engineId: string
 ): Promise<{ answer: string; sources: any[]; ragUsed: boolean }> {
-  // Endpoint для поиска в Data Store
-  // Формат: projects/{PROJECT_ID}/locations/global/collections/default_collection/dataStores/{DATA_STORE_ID}/servingConfigs/default_search
-  const endpoint = `https://discoveryengine.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/collections/default_collection/dataStores/${dataStoreId}/servingConfigs/default_search:search`
+  // Endpoint для поиска через Engine (Enterprise edition)
+  // Формат: projects/{PROJECT_ID}/locations/global/collections/default_collection/engines/{ENGINE_ID}/servingConfigs/default_search
+  const endpoint = `https://discoveryengine.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/collections/default_collection/engines/${engineId}/servingConfigs/default_search:search`
 
-  console.log(`RAG search: query="${query}", dataStoreId="${dataStoreId}"`)
+  console.log(`RAG search: query="${query}", engineId="${engineId}"`)
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -366,17 +366,29 @@ async function searchRAG(
   }
 
   const data = await response.json()
-  console.log('RAG search response:', JSON.stringify(data).substring(0, 500))
+  console.log('RAG search response:', JSON.stringify(data).substring(0, 1000))
 
-  // Извлекаем ответ из summary
-  const answer = data.summary?.summaryText || data.results?.[0]?.document?.structData?.content || 'Не нашел ответа в документах.'
-
-  // Извлекаем источники
+  // Извлекаем источники из результатов поиска
   const sources = (data.results || []).map((r: any) => ({
-    title: r.document?.title || r.document?.structData?.title || 'Без названия',
-    uri: r.document?.uri || r.document?.structData?.uri || '',
-    snippet: r.document?.snippets?.[0]?.snippet || r.document?.structData?.snippet || ''
+    title: r.document?.derivedStructData?.title || r.document?.title || 'Без названия',
+    uri: r.document?.derivedStructData?.link || r.document?.uri || '',
+    snippet: r.document?.derivedStructData?.snippets?.[0]?.snippet || ''
   }))
+
+  // Формируем ответ на основе найденных документов
+  // Если есть summary - используем его, иначе формируем из snippets
+  let answer = data.summary?.summaryText
+  
+  if (!answer && sources.length > 0) {
+    // Формируем контекст из найденных документов
+    answer = sources.map((s: any, i: number) => 
+      `${i + 1}. ${s.title}\n${s.snippet}`
+    ).join('\n\n')
+  }
+  
+  if (!answer) {
+    answer = 'Не нашел ответа в документах.'
+  }
 
   return { answer, sources, ragUsed: true }
 }
@@ -392,7 +404,7 @@ serve(async (req) => {
   let imagesCount = 0
 
   try {
-    const { message, history = [], images = [], userId, useRAG = false, ragDataStoreId } = await req.json()
+    const { message, history = [], images = [], userId, useRAG = false, ragEngineId } = await req.json()
 
     if (!message && images.length === 0) {
       return new Response(
@@ -475,10 +487,10 @@ serve(async (req) => {
     let ragResult: { answer: string; sources: any[]; ragUsed: boolean } | null = null
     let result: { reply: string; inputTokens: number; outputTokens: number }
 
-    if (useRAG && ragDataStoreId) {
+    if (useRAG && ragEngineId) {
       try {
-        console.log('Using RAG mode with dataStoreId:', ragDataStoreId)
-        ragResult = await searchRAG(token, message, ragDataStoreId)
+        console.log('Using RAG mode with engineId:', ragEngineId)
+        ragResult = await searchRAG(token, message, ragEngineId)
         console.log('RAG result:', { answer: ragResult.answer.substring(0, 100), sourcesCount: ragResult.sources.length })
         
         // Если RAG нашел ответ, используем его

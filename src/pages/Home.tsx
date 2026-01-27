@@ -1,6 +1,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, GraduationCap, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -59,6 +60,7 @@ const swipeConfidenceThreshold = 10000;
 const swipePower = (offset: number, velocity: number) => Math.abs(offset) * velocity;
 
 export default function Home() {
+  const navigate = useNavigate()
   const [[currentIndex, direction], setPage] = useState([0, 0]);
   const [greetings, setGreetings] = useState<Record<string, string>>({})
   const [isLoadingGreeting, setIsLoadingGreeting] = useState(false)
@@ -122,7 +124,9 @@ export default function Home() {
   };
 
   const handleCharacterTap = () => {
-    window.location.href = characters[currentIndex].path;
+    // Используем React Router для мгновенной SPA-навигации
+    // вместо window.location.href который вызывает полную перезагрузку страницы
+    navigate(characters[currentIndex].path);
   }
 
   const IconComponent = characters[currentIndex].icon;
