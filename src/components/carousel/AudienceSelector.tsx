@@ -13,13 +13,17 @@ export function AudienceSelector() {
 
   return (
     <div className="space-y-4">
-      <label className="text-sm font-medium text-zinc-300">👥 Целевая аудитория</label>
-      
+      <label className="text-sm font-medium text-gray-700">👥 Целевая аудитория</label>
+
       <div className="space-y-2">
         {AUDIENCE_OPTIONS.map((option) => (
           <label
             key={option.id}
-            className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+            className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${
+              audience === option.id
+                ? 'bg-orange-50 border-orange-200'
+                : 'bg-white border-gray-200 hover:border-orange-200 hover:bg-orange-50/50'
+            }`}
           >
             <input
               type="radio"
@@ -27,19 +31,19 @@ export function AudienceSelector() {
               value={option.id}
               checked={audience === option.id}
               onChange={() => setAudience(option.id as any)}
-              className="w-4 h-4 text-orange-500"
+              className="w-4 h-4 text-orange-500 accent-orange-500"
             />
-            <span className="text-white text-sm">{option.label}</span>
+            <span className="text-gray-900 text-sm">{option.label}</span>
           </label>
         ))}
       </div>
-      
+
       {audience === 'custom' && (
         <textarea
           value={customAudience}
           onChange={(e) => setCustomAudience(e.target.value)}
           placeholder="Опишите целевую аудиторию..."
-          className="w-full p-3 bg-white/5 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 resize-none"
+          className="w-full p-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
           rows={3}
         />
       )}

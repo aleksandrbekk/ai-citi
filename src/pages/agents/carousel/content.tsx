@@ -149,7 +149,7 @@ export default function CarouselContent() {
       <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate('/agents/carousel/settings')}
-          className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg"
+          className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ArrowLeft size={20} />
         </button>
@@ -226,7 +226,7 @@ export default function CarouselContent() {
         <button
           onClick={handleGenerate}
           disabled={(!hasSubscription && coinBalance < 30) || isLoading}
-          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/30"
         >
           {!hasSubscription && coinBalance < 30 && !isLoading
             ? '⚠️ Нужна подписка или 30 монет'

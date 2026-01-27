@@ -303,7 +303,7 @@ export default function CarouselIndex() {
   if (showCtaPage) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="h-[100px]" />
+        <div className="h-4" />
 
         <div className="px-4 pb-8">
           {/* Header */}
@@ -481,8 +481,8 @@ export default function CarouselIndex() {
   // ========== MAIN PAGE ==========
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Safe area */}
-      <div className="h-[100px] flex-shrink-0" />
+      {/* Небольшой отступ сверху */}
+      <div className="h-4 flex-shrink-0" />
 
       <div className="px-4 pb-8 flex-1 flex flex-col">
         {/* Main Glassmorphism Card */}

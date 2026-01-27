@@ -158,7 +158,7 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
       </div>
     )
   }
@@ -166,13 +166,13 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-zinc-300">📸 Ваши фото</label>
-        <span className="text-xs text-zinc-500">
+        <label className="text-sm font-medium text-gray-700">📸 Ваши фото</label>
+        <span className="text-xs text-gray-500">
           {photos.filter(p => p !== null).length} / {MAX_SLOTS}
         </span>
       </div>
 
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-gray-500">
         Загрузите до 3 фото. Они будут использоваться для AI-генерации каруселей.
       </p>
 
@@ -199,7 +199,7 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
               {photo ? (
                 <div
                   className={`relative w-full h-full rounded-xl overflow-hidden cursor-pointer transition-all ${
-                    isSelected ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-black' : 'hover:opacity-90'
+                    isSelected ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-white' : 'hover:opacity-90'
                   }`}
                   onClick={() => handleSlotClick(slotIndex, photo)}
                 >
@@ -227,14 +227,14 @@ export function PhotoGallery({ onPhotoSelect, selectedPhoto }: PhotoGalleryProps
                 <button
                   onClick={() => fileInputRefs.current[index]?.click()}
                   disabled={isUploading}
-                  className="w-full h-full border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-zinc-600 hover:bg-zinc-900/50 transition-colors disabled:opacity-50"
+                  className="w-full h-full border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-orange-400 hover:bg-orange-50/50 transition-colors disabled:opacity-50"
                 >
                   {isUploading ? (
                     <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
                   ) : (
                     <>
-                      <ImagePlus className="w-6 h-6 text-zinc-500" />
-                      <span className="text-xs text-zinc-500">Добавить</span>
+                      <ImagePlus className="w-6 h-6 text-gray-400" />
+                      <span className="text-xs text-gray-500">Добавить</span>
                     </>
                   )}
                 </button>
