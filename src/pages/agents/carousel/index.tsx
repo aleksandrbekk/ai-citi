@@ -626,7 +626,7 @@ export default function CarouselIndex() {
                 <p className="text-white/80 text-xs">Готовые темы для бизнеса</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-medium border border-white/30">
-                Скоро
+                10 февраля
               </span>
             </div>
           </div>
