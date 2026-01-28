@@ -168,21 +168,21 @@ export default function Home() {
         {/* Диалоговое окно - речь персонажа */}
         <motion.div
           key={currentIndex}
-          className="relative z-30 mb-6 w-[85%] max-w-[320px]"
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          className="relative z-30 mb-8 w-[90%] max-w-[300px]"
+          initial={{ opacity: 0, y: -8, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         >
           {/* Основное окно */}
-          <div className="relative px-4 py-3 rounded-2xl backdrop-blur-xl bg-white/90 border border-gray-100 shadow-lg">
-            {/* Имя персонажа с иконкой */}
-            <div className="flex items-center gap-2 mb-1.5">
+          <div className="relative px-5 py-4 rounded-[20px] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] border border-gray-100/80">
+            {/* Бейдж с именем */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-50 mb-2.5">
               <motion.div
-                className="w-2 h-2 rounded-full bg-green-500"
-                animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                className="w-1.5 h-1.5 rounded-full bg-cyan-500"
+                animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
-              <span className="text-xs font-semibold text-cyan-600">
+              <span className="text-[11px] font-semibold text-cyan-600 tracking-wide uppercase">
                 {characters[currentIndex].name}
               </span>
             </div>
@@ -190,16 +190,18 @@ export default function Home() {
             {loadingIds.has(currentCharacter.id) && !greetings[currentCharacter.id] ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-cyan-500 animate-spin" />
-                <p className="text-sm text-gray-500">Думаю...</p>
+                <p className="text-sm text-gray-400">Думаю...</p>
               </div>
             ) : (
-              <p className="text-[15px] text-gray-800 leading-relaxed">
+              <p className="text-[15px] text-gray-700 leading-[1.5] font-medium">
                 {currentGreeting}
               </p>
             )}
           </div>
-          {/* Хвостик */}
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/90 border-r border-b border-gray-100 rotate-45" />
+          {/* Хвостик - треугольник */}
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+            <div className="w-4 h-4 bg-white rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.04)] border-r border-b border-gray-100/80" />
+          </div>
         </motion.div>
 
         {/* Область персонажа со стрелками */}
