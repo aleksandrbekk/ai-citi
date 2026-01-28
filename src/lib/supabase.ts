@@ -76,17 +76,47 @@ export async function getUserTariffsById(telegramId: number): Promise<string[]> 
     .select('id')
     .eq('telegram_id', telegramId)
     .single()
-  
+
   if (!user) return []
-  
+
   // Получаем активные тарифы
   const { data: tariffs } = await supabase
     .from('user_tariffs')
     .select('tariff_slug')
     .eq('user_id', user.id)
     .eq('is_active', true)
-  
+
   return tariffs?.map(t => t.tariff_slug) || []
+}
+
+// Информация о тарифе с датой окончания
+export interface UserTariffInfo {
+  tariff_slug: string
+  expires_at: string | null
+  is_active: boolean
+}
+
+export async function getUserTariffInfo(telegramId: number): Promise<UserTariffInfo | null> {
+  // Получаем user по telegram_id
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (!user) return null
+
+  // Получаем активный тариф с датой окончания
+  const { data: tariff } = await supabase
+    .from('user_tariffs')
+    .select('tariff_slug, expires_at, is_active')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  return tariff || null
 }
 
 // Проверка доступа к модулю
