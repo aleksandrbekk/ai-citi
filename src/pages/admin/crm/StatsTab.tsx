@@ -34,6 +34,7 @@ const CAROUSEL_STYLES = [
   { id: 'SOFT_PINK_EDITORIAL', name: '🌸 Soft Pink', color: 'bg-pink-400' },
   { id: 'MINIMALIST_LINE_ART', name: '✏️ Minimalist', color: 'bg-gray-700' },
   { id: 'GRADIENT_MESH_3D', name: '🌈 Gradient 3D', color: 'bg-purple-500' },
+  { id: '_legacy', name: '📦 Старые (без стиля)', color: 'bg-gray-400' },
 ]
 
 export default function StatsTab() {
@@ -85,10 +86,10 @@ export default function StatsTab() {
     }).length || 0,
   }
 
-  // По стилям
+  // По стилям (null/undefined → '_legacy' для старых генераций)
   const byStyle = carouselGenerations?.reduce((acc, g) => {
     const meta = g.metadata as Record<string, string> | null
-    const style = meta?.style || 'ai-citi'
+    const style = meta?.style || '_legacy'
     acc[style] = (acc[style] || 0) + 1
     return acc
   }, {} as Record<string, number>) || {}
