@@ -72,8 +72,12 @@ export default function CarouselContent() {
         return
       }
 
-      // Списываем 30 монет
-      const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`)
+      // Списываем 30 монет с метаданными о стиле
+      const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`, {
+        style: style,
+        audience: audience,
+        topic: variables.topic
+      })
       if (!spendResult.success) {
         toast.error(spendResult.error === 'Not enough coins'
           ? 'Недостаточно монет для генерации!'

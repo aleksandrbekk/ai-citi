@@ -350,7 +350,8 @@ export async function getCoinBalance(telegramId: number): Promise<number> {
 export async function spendCoinsForGeneration(
   telegramId: number,
   amount: number = 1,
-  description: string = 'Генерация карусели'
+  description: string = 'Генерация карусели',
+  metadata: Record<string, unknown> | null = null
 ): Promise<SpendCoinsResult> {
   try {
     const { data, error } = await supabase
@@ -359,7 +360,7 @@ export async function spendCoinsForGeneration(
         p_amount: amount,
         p_type: 'generation',
         p_description: description,
-        p_metadata: null
+        p_metadata: metadata
       })
 
     if (error) {

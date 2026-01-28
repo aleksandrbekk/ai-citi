@@ -231,7 +231,10 @@ export default function CarouselIndex() {
 
     // Списываем монеты за генерацию (всегда)
     try {
-      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели')
+      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели', {
+        style: style,
+        topic: topic.trim()
+      })
 
       if (!spendResult || spendResult.success !== true) {
         const errorMsg = spendResult?.error || 'Не удалось списать монеты'

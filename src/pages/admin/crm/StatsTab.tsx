@@ -27,13 +27,13 @@ const COIN_PACKAGES = [
   { id: '1000_coins', name: '1000 монет', coins: 1000 },
 ]
 
-// Стили каруселей
+// Стили каруселей (актуальные из carouselStyles.ts)
 const CAROUSEL_STYLES = [
-  { id: 'ai-citi', name: 'AI CITI', color: 'bg-cyan-500' },
-  { id: 'minimal', name: 'Минимализм', color: 'bg-gray-400' },
-  { id: 'bright', name: 'Яркий', color: 'bg-orange-500' },
-  { id: 'business', name: 'Бизнес', color: 'bg-blue-500' },
-  { id: 'creative', name: 'Креатив', color: 'bg-purple-500' },
+  { id: 'APPLE_GLASSMORPHISM', name: '🍎 Apple Glass', color: 'bg-orange-500' },
+  { id: 'AESTHETIC_BEIGE', name: '🤎 Aesthetic Beige', color: 'bg-amber-600' },
+  { id: 'SOFT_PINK_EDITORIAL', name: '🌸 Soft Pink', color: 'bg-pink-400' },
+  { id: 'MINIMALIST_LINE_ART', name: '✏️ Minimalist', color: 'bg-gray-700' },
+  { id: 'GRADIENT_MESH_3D', name: '🌈 Gradient 3D', color: 'bg-purple-500' },
 ]
 
 export default function StatsTab() {
