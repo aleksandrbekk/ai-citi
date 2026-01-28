@@ -80,6 +80,9 @@ export default function CarouselIndex() {
   // Photo upload state
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+
+  // Tips modal state
+  const [showTipsModal, setShowTipsModal] = useState(false)
   
   // Gender state (загружаем из localStorage)
   const [gender, setGender] = useState<'male' | 'female'>(() => {
@@ -502,13 +505,18 @@ export default function CarouselIndex() {
         {/* Topic Input */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-gray-400">Тема</span>
-            <span className="text-[10px] text-gray-300">просто опиши своими словами</span>
+            <span className="text-xs text-gray-400">Тема карусели</span>
+            <button
+              onClick={() => setShowTipsModal(true)}
+              className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors cursor-pointer"
+            >
+              <span className="text-[10px] font-medium">i</span>
+            </button>
           </div>
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="5 способов увеличить продажи..."
+            placeholder="ТОП 5 ответов на возражение «Ваши бады дорогие!» Сделай с юмором 😄"
             className="w-full min-h-[120px] px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none text-sm"
           />
         </div>
@@ -623,6 +631,11 @@ export default function CarouselIndex() {
           onRemove={handleRemovePhoto}
           onClose={() => setShowPhotoModal(false)}
         />
+      )}
+
+      {/* Tips Modal */}
+      {showTipsModal && (
+        <TipsModal onClose={() => setShowTipsModal(false)} />
       )}
     </div>
   )
@@ -894,6 +907,97 @@ function PhotoModal({ photo, isUploading, onUpload, onRemove, onClose }: PhotoMo
               Закрыть
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ========== TIPS MODAL ==========
+const TIPS = [
+  {
+    title: 'Просто опиши тему',
+    desc: 'Не нужны сложные промпты. Пиши как думаешь — AI всё поймёт.',
+  },
+  {
+    title: 'Добавь контекст',
+    desc: 'Укажи нишу, продукт или аудиторию — карусель будет точнее.',
+  },
+  {
+    title: 'Попроси стиль',
+    desc: 'С юмором, серьёзно, провокационно — AI подстроится.',
+  },
+  {
+    title: 'Одно предложение',
+    desc: 'Достаточно темы в 5-10 слов. Мы сделали всю магию за тебя.',
+  },
+]
+
+interface TipsModalProps {
+  onClose: () => void
+}
+
+function TipsModal({ onClose }: TipsModalProps) {
+  const [currentTip, setCurrentTip] = useState(0)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">Как писать запрос</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Tip content */}
+        <div className="p-6 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
+            <span className="text-2xl">💡</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            {TIPS[currentTip].title}
+          </h3>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            {TIPS[currentTip].desc}
+          </p>
+        </div>
+
+        {/* Dots */}
+        <div className="flex justify-center gap-2 pb-4">
+          {TIPS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentTip(i)}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                i === currentTip ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex gap-3 p-4 pt-0">
+          <button
+            onClick={() => setCurrentTip((prev) => (prev > 0 ? prev - 1 : TIPS.length - 1))}
+            className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => setCurrentTip((prev) => (prev < TIPS.length - 1 ? prev + 1 : 0))}
+            className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 transition-colors"
+          >
+            →
+          </button>
         </div>
       </div>
     </div>
