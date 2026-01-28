@@ -1,14 +1,28 @@
 import { useNavigate } from 'react-router-dom'
 import { useCarouselStore } from '@/store/carouselStore'
-import { STYLES_INDEX } from '@/lib/carouselStyles'
+import { STYLES_INDEX, type StyleId } from '@/lib/carouselStyles'
 import { Sparkles, Send, Clock, Lightbulb } from 'lucide-react'
+
+// Превью стилей (те же что на главной)
+const STYLE_PREVIEWS: Record<StyleId, string> = {
+  APPLE_GLASSMORPHISM: '/styles/apple.jpg',
+  AESTHETIC_BEIGE: '/styles/beige.jpg',
+  SOFT_PINK_EDITORIAL: '/styles/pink.jpg',
+  MINIMALIST_LINE_ART: '/styles/minimal.jpg',
+  GRADIENT_MESH_3D: '/styles/gradient.jpg',
+}
 
 export default function CarouselResult() {
   const navigate = useNavigate()
-  const { reset, style } = useCarouselStore()
+  const { reset, style, setStyle } = useCarouselStore()
 
   const handleNewCarousel = () => {
     reset()
+    navigate('/agents/carousel')
+  }
+
+  const handleTryStyle = (styleId: StyleId) => {
+    setStyle(styleId)
     navigate('/agents/carousel')
   }
 
@@ -79,23 +93,32 @@ export default function CarouselResult() {
 
         {/* Try other styles section */}
         <div className="w-full mb-6">
-          <p className="text-sm font-medium text-gray-500 mb-3">Пока ждёте, попробуйте другие стили:</p>
-          <div className="flex gap-2">
-            {otherStyles.map((style) => (
+          <p className="text-xs text-gray-400 mb-2">Попробуйте другой стиль</p>
+          <div className="flex gap-3">
+            {otherStyles.map((s) => (
               <button
-                key={style.id}
-                onClick={() => {
-                  reset()
-                  navigate('/agents/carousel')
-                }}
-                className="flex-1 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-xl p-3 hover:shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+                key={s.id}
+                onClick={() => handleTryStyle(s.id)}
+                className="flex-1 group relative overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all active:scale-[0.98]"
               >
-                <div
-                  className="w-8 h-8 rounded-full mx-auto mb-2 shadow-sm"
-                  style={{ backgroundColor: style.previewColor }}
-                />
-                <p className="text-xs font-medium text-gray-900 truncate">{style.name}</p>
-                <p className="text-[10px] text-gray-500">{style.emoji}</p>
+                {/* Preview image */}
+                <div className="aspect-[4/5] overflow-hidden">
+                  <img
+                    src={STYLE_PREVIEWS[s.id]}
+                    alt={s.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                    }}
+                  />
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                </div>
+                {/* Style name */}
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                  <p className="text-xs font-semibold text-white truncate">{s.name}</p>
+                </div>
               </button>
             ))}
           </div>
