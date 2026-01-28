@@ -12,8 +12,9 @@ const CLOUDINARY_CLOUD = 'ds8ylsl2x'
 const CLOUDINARY_PRESET = 'carousel_unsigned'
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`
 
-// Ключ для localStorage
+// Ключи для localStorage
 const SAVED_STYLE_KEY = 'carousel_default_style'
+const SAVED_GENDER_KEY = 'carousel_default_gender'
 
 // Превью стилей (JPEG)
 const STYLE_PREVIEWS: Record<StyleId, string> = {
@@ -80,8 +81,17 @@ export default function CarouselIndex() {
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   
-  // Gender state
-  const [gender, setGender] = useState<'male' | 'female'>('male')
+  // Gender state (загружаем из localStorage)
+  const [gender, setGender] = useState<'male' | 'female'>(() => {
+    const saved = localStorage.getItem(SAVED_GENDER_KEY)
+    return (saved === 'female') ? 'female' : 'male'
+  })
+
+  // Сохраняем пол при изменении
+  const handleGenderChange = (newGender: 'male' | 'female') => {
+    setGender(newGender)
+    localStorage.setItem(SAVED_GENDER_KEY, newGender)
+  }
 
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
@@ -489,13 +499,13 @@ export default function CarouselIndex() {
       </div>
 
       <div className="px-4 pb-6 flex-1 flex flex-col">
-        {/* Topic Input */}
+        {/* Topic Input - увеличен в 2 раза */}
         <div className="mb-3">
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="О чём карусель? Например: 5 ошибок новичков"
-            className="w-full min-h-[80px] px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none text-sm"
+            placeholder="О чём карусель? Например: 5 ошибок новичков в сетевом бизнесе"
+            className="w-full min-h-[140px] px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none text-sm"
           />
         </div>
 
@@ -540,31 +550,30 @@ export default function CarouselIndex() {
           </button>
         </div>
 
-        {/* Gender - Compact */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs text-gray-500">Автор:</span>
-          <div className="flex gap-1.5 flex-1">
-            <button
-              onClick={() => setGender('male')}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                gender === 'male'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              👨 Мужчина
-            </button>
-            <button
-              onClick={() => setGender('female')}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                gender === 'female'
-                  ? 'bg-pink-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              👩 Женщина
-            </button>
-          </div>
+        {/* Gender Toggle - красивый тумблер */}
+        <div className="flex items-center justify-between mb-4 bg-gray-100 rounded-full p-1">
+          <button
+            onClick={() => handleGenderChange('male')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+              gender === 'male'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500'
+            }`}
+          >
+            <span className="text-base">👨</span>
+            <span>Мужчина</span>
+          </button>
+          <button
+            onClick={() => handleGenderChange('female')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+              gender === 'female'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500'
+            }`}
+          >
+            <span className="text-base">👩</span>
+            <span>Женщина</span>
+          </button>
         </div>
 
         {/* Error */}
