@@ -550,30 +550,31 @@ export default function CarouselIndex() {
           </button>
         </div>
 
-        {/* Gender Toggle - красивый тумблер */}
-        <div className="flex items-center justify-between mb-4 bg-gray-100 rounded-full p-1">
-          <button
-            onClick={() => handleGenderChange('male')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
-              gender === 'male'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500'
-            }`}
-          >
-            <span className="text-base">👨</span>
-            <span>Мужчина</span>
-          </button>
-          <button
-            onClick={() => handleGenderChange('female')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
-              gender === 'female'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500'
-            }`}
-          >
-            <span className="text-base">👩</span>
-            <span>Женщина</span>
-          </button>
+        {/* Gender Toggle - минималистичный */}
+        <div className="flex items-center justify-end gap-2 mb-3">
+          <span className="text-xs text-gray-400">Пол:</span>
+          <div className="flex bg-gray-100 rounded-full p-0.5">
+            <button
+              onClick={() => handleGenderChange('male')}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${
+                gender === 'male'
+                  ? 'bg-white text-gray-700 shadow-sm'
+                  : 'text-gray-400'
+              }`}
+            >
+              ♂
+            </button>
+            <button
+              onClick={() => handleGenderChange('female')}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${
+                gender === 'female'
+                  ? 'bg-white text-gray-700 shadow-sm'
+                  : 'text-gray-400'
+              }`}
+            >
+              ♀
+            </button>
+          </div>
         </div>
 
         {/* Error */}
