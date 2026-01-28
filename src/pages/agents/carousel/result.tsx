@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useCarouselStore } from '@/store/carouselStore'
 import { STYLES_INDEX, type StyleId } from '@/lib/carouselStyles'
-import { Sparkles, Send, Clock, Lightbulb } from 'lucide-react'
+import { Sparkles, Send, Clock } from 'lucide-react'
 
 // Превью стилей (те же что на главной)
 const STYLE_PREVIEWS: Record<StyleId, string> = {
@@ -76,24 +76,9 @@ export default function CarouselResult() {
           <span className="text-sm font-medium text-gray-700">2-3 минуты</span>
         </div>
 
-        {/* Info card */}
-        <div className="w-full bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-4 mb-6 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
-              <Lightbulb className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium text-gray-900 mb-1">Совет</p>
-              <p className="text-xs text-gray-600">
-                Откройте Telegram и дождитесь всех 9 слайдов перед публикацией в Instagram
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Try other styles section */}
         <div className="w-full mb-6">
-          <p className="text-xs text-gray-400 mb-2">Попробуйте другой стиль</p>
+          <p className="text-sm text-gray-500 mb-3">Пока ждёте, попробуйте другие стили:</p>
           <div className="flex gap-3">
             {otherStyles.map((s) => (
               <button
