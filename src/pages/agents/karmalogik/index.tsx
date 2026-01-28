@@ -85,9 +85,10 @@ export default function KarmalogikChat() {
 
   if (!hasSubscription) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Paywall description="AI-Коуч доступен для пользователей с активной подпиской." />
-      </div>
+      <Paywall
+        title="AI-Коуч"
+        description="AI-Коуч доступен для пользователей с активной подпиской."
+      />
     )
   }
 

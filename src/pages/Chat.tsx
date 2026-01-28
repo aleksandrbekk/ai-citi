@@ -57,9 +57,10 @@ export default function Chat() {
 
   if (!hasSubscription) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Paywall description="AI-Ассистент доступен для пользователей с активной подпиской." />
-      </div>
+      <Paywall
+        title="AI-Ассистент"
+        description="AI-Ассистент доступен для пользователей с активной подпиской."
+      />
     )
   }
 
