@@ -130,11 +130,11 @@ export default function Profile() {
         </div>
 
         {/* Сетка действий */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 items-stretch">
           {/* Купить монеты */}
           <Link
             to="/shop"
-            className="group bg-white rounded-2xl p-5 flex flex-col border-2 border-orange-200 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+            className="group bg-white rounded-2xl p-5 flex flex-col border-2 border-orange-200 hover:border-orange-400 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-200 cursor-pointer active:scale-[0.98] h-full"
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center mb-3 shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform duration-200">
               <ShoppingCart className="w-6 h-6 text-white" />
@@ -146,7 +146,7 @@ export default function Profile() {
           {/* Партнёры */}
           <button
             onClick={() => navigate('/referrals')}
-            className="group bg-white rounded-2xl p-5 flex flex-col text-left border-2 border-cyan-200 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+            className="group bg-white rounded-2xl p-5 flex flex-col text-left border-2 border-cyan-200 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 cursor-pointer active:scale-[0.98] h-full"
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center mb-3 shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform duration-200">
               <Users className="w-6 h-6 text-white" />
