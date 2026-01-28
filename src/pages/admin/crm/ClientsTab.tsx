@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import {
-  Plus, Search, X, ChevronRight, CreditCard
+  Plus, Search, X, ChevronRight, CreditCard, Pencil, Save
 } from 'lucide-react'
 
 interface PremiumClient {
@@ -41,6 +41,9 @@ export function ClientsTab() {
   const [showAddClientModal, setShowAddClientModal] = useState(false)
   const [selectedClient, setSelectedClient] = useState<PremiumClient | null>(null)
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editPlan, setEditPlan] = useState('')
+  const [editExpiresAt, setEditExpiresAt] = useState('')
 
   // Форма платежа
   const [paymentAmount, setPaymentAmount] = useState('')
@@ -225,6 +228,25 @@ export function ClientsTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['premium-clients'] })
       setSelectedClient(null)
+    }
+  })
+
+  // Обновление клиента
+  const updateClient = useMutation({
+    mutationFn: async ({ id, plan, expires_at }: { id: string; plan: string; expires_at: string }) => {
+      const { data, error } = await supabase
+        .from('premium_clients')
+        .update({ plan, expires_at })
+        .eq('id', id)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['premium-clients'] })
+      setSelectedClient(data)
+      setIsEditMode(false)
     }
   })
 
@@ -500,49 +522,121 @@ export function ClientsTab() {
                   <div className="text-sm text-gray-500">{selectedClient.telegram_id}</div>
                 </div>
               </div>
-              <button onClick={() => setSelectedClient(null)} className="text-gray-500 hover:text-gray-900">
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                {!isEditMode && (
+                  <button
+                    onClick={() => {
+                      setIsEditMode(true)
+                      setEditPlan(selectedClient.plan)
+                      setEditExpiresAt(selectedClient.expires_at ? new Date(selectedClient.expires_at).toISOString().split('T')[0] : '')
+                    }}
+                    className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                )}
+                <button onClick={() => { setSelectedClient(null); setIsEditMode(false) }} className="text-gray-500 hover:text-gray-900">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="p-4 space-y-4">
-              {/* Основная информация */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Тариф</div>
-                  <div className="text-gray-900 font-medium">{selectedClient.plan}</div>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Осталось</div>
-                  {(() => {
-                    const days = getDaysRemaining(selectedClient.expires_at)
-                    return (
-                      <div className={`font-medium ${days === null ? 'text-gray-600' :
-                        days <= 0 ? 'text-red-500' :
-                          days <= 7 ? 'text-yellow-500' : 'text-green-500'
-                        }`}>
-                        {days === null ? '∞' : days <= 0 ? `Истёк ${Math.abs(days)} дн. назад` : `${days} дн.`}
-                      </div>
-                    )
-                  })()}
-                </div>
-              </div>
+              {/* Режим редактирования */}
+              {isEditMode ? (
+                <div className="space-y-4 bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <div className="text-sm font-medium text-blue-700 mb-2">Редактирование</div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Истекает</div>
-                  <div className="text-gray-900">
-                    {selectedClient.expires_at
-                      ? new Date(selectedClient.expires_at).toLocaleDateString('ru-RU')
-                      : '—'
-                    }
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Тариф</label>
+                    <select
+                      value={editPlan}
+                      onChange={(e) => setEditPlan(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900"
+                    >
+                      <option value="BASIC">BASIC</option>
+                      <option value="PRO">PRO</option>
+                      <option value="VIP">VIP</option>
+                      <option value="ELITE">ELITE</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Дата истечения</label>
+                    <input
+                      type="date"
+                      value={editExpiresAt}
+                      onChange={(e) => setEditExpiresAt(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (editExpiresAt) {
+                          updateClient.mutate({
+                            id: selectedClient.id,
+                            plan: editPlan,
+                            expires_at: new Date(editExpiresAt).toISOString()
+                          })
+                        }
+                      }}
+                      disabled={updateClient.isPending || !editExpiresAt}
+                      className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <Save className="w-4 h-4" />
+                      {updateClient.isPending ? 'Сохранение...' : 'Сохранить'}
+                    </button>
+                    <button
+                      onClick={() => setIsEditMode(false)}
+                      className="py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                    >
+                      Отмена
+                    </button>
                   </div>
                 </div>
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Начало</div>
-                  <div className="text-gray-900">{formatDateShort(selectedClient.created_at)}</div>
-                </div>
-              </div>
+              ) : (
+                <>
+                  {/* Основная информация */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Тариф</div>
+                      <div className="text-gray-900 font-medium">{selectedClient.plan}</div>
+                    </div>
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Осталось</div>
+                      {(() => {
+                        const days = getDaysRemaining(selectedClient.expires_at)
+                        return (
+                          <div className={`font-medium ${days === null ? 'text-gray-600' :
+                            days <= 0 ? 'text-red-500' :
+                              days <= 7 ? 'text-yellow-500' : 'text-green-500'
+                            }`}>
+                            {days === null ? '∞' : days <= 0 ? `Истёк ${Math.abs(days)} дн. назад` : `${days} дн.`}
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Истекает</div>
+                      <div className="text-gray-900">
+                        {selectedClient.expires_at
+                          ? new Date(selectedClient.expires_at).toLocaleDateString('ru-RU')
+                          : '—'
+                        }
+                      </div>
+                    </div>
+                    <div className="bg-gray-100 rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">Начало</div>
+                      <div className="text-gray-900">{formatDateShort(selectedClient.created_at)}</div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Статистика платежей */}
               {(() => {
@@ -594,25 +688,27 @@ export function ClientsTab() {
               </div>
 
               {/* Кнопки действий */}
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => setShowAddPaymentModal(true)}
-                  className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-gray-900 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Добавить платёж
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm('Удалить клиента?')) {
-                      deleteClient.mutate(selectedClient.id)
-                    }
-                  }}
-                  className="py-3 px-4 bg-red-600/20 hover:bg-red-600/30 text-red-500 rounded-lg transition-colors"
-                >
-                  Удалить
-                </button>
-              </div>
+              {!isEditMode && (
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowAddPaymentModal(true)}
+                    className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-gray-900 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Добавить платёж
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Удалить клиента?')) {
+                        deleteClient.mutate(selectedClient.id)
+                      }
+                    }}
+                    className="py-3 px-4 bg-red-600/20 hover:bg-red-600/30 text-red-500 rounded-lg transition-colors"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
