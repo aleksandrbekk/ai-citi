@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Loader2, User, Trash2, Sparkles, BookOpen } from 'lucide-react'
+import { Send, Loader2, User, Trash2, Sparkles, BookOpen } from 'lucide-react'
 import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 // authStore используется для user
@@ -79,7 +78,6 @@ interface Message {
 }
 
 export default function KarmalogikChat() {
-  const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const telegramUser = getTelegramUser()
 
@@ -221,12 +219,6 @@ export default function KarmalogikChat() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-amber-100 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/agents')}
-          className="p-2 -ml-2 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft size={24} className="text-gray-700" />
-        </button>
         <div className="flex items-center gap-3 flex-1">
           <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
             <BookOpen size={20} className="text-white" />

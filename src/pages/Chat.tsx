@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Zap, Crown, Menu } from 'lucide-react'
@@ -69,6 +69,23 @@ export default function Chat() {
 
     checkSubscription()
   }, [telegramUser?.id])
+
+  // Telegram BackButton
+  const handleBack = useCallback(() => {
+    navigate('/')
+  }, [navigate])
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    if (!tg?.BackButton) return
+
+    tg.BackButton.show()
+    tg.BackButton.onClick(handleBack)
+
+    return () => {
+      tg.BackButton.offClick(handleBack)
+    }
+  }, [handleBack])
 
   // Chat store
   const {
