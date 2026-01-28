@@ -258,6 +258,13 @@ export default function StatsTab() {
   )
 }
 
+const MONTH_NAMES = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+
+function getMonthName(monthKey: string): string {
+  const monthNum = parseInt(monthKey.slice(5), 10) - 1
+  return MONTH_NAMES[monthNum] || monthKey.slice(5)
+}
+
 function MonthChart({ data, color }: { data: Record<string, number>, color: string }) {
   const entries = Object.entries(data)
     .sort((a, b) => a[0].localeCompare(b[0]))
@@ -280,7 +287,7 @@ function MonthChart({ data, color }: { data: Record<string, number>, color: stri
               className={`w-full ${color} rounded-t`}
               style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
             />
-            <span className="text-xs text-gray-500 mt-2">{month.slice(5)}</span>
+            <span className="text-xs text-gray-500 mt-2">{getMonthName(month)}</span>
             <span className="text-xs text-gray-900">{countNum}</span>
           </div>
         )

@@ -2,6 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import { BarChart3, Users, DollarSign, TrendingUp, Calendar } from 'lucide-react'
 
+const MONTH_NAMES = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+
+function getMonthName(monthKey: string): string {
+  const monthNum = parseInt(monthKey.slice(5), 10) - 1
+  return MONTH_NAMES[monthNum] || monthKey.slice(5)
+}
+
 export default function AnalyticsTab() {
   const { data: clients } = useQuery({
     queryKey: ['premium_clients'],
@@ -166,7 +173,7 @@ export default function AnalyticsTab() {
                     className="w-full bg-blue-500 rounded-t"
                     style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
                   />
-                  <span className="text-xs text-gray-500 mt-2">{month.slice(5)}</span>
+                  <span className="text-xs text-gray-500 mt-2">{getMonthName(month)}</span>
                   <span className="text-xs text-gray-900">{countNum}</span>
                 </div>
               )
