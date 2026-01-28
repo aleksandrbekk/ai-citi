@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CarouselIcon, CalendarIcon, SparkleIcon, BackIcon, LockIcon } from '@/components/ui/icons'
+import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/ui/icons'
 import { BookOpen } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
@@ -39,17 +39,9 @@ export function Agents() {
       <div className="absolute bottom-40 left-0 w-64 h-64 bg-orange-200/30 rounded-full blur-3xl" />
 
       {/* Header */}
-      <div className="sticky top-0 z-20 nav-glass px-4 py-4 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/')}
-          className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
-        >
-          <BackIcon size={24} className="text-gray-700" />
-        </button>
-        <div className="flex items-center gap-2">
-          <SparkleIcon size={24} className="text-orange-500" />
-          <h1 className="text-xl font-bold text-gray-900">AI Агенты</h1>
-        </div>
+      <div className="sticky top-0 z-20 nav-glass px-4 py-4 flex items-center gap-2">
+        <SparkleIcon size={24} className="text-orange-500" />
+        <h1 className="text-xl font-bold text-gray-900">AI Агенты</h1>
       </div>
 
       <div className="relative z-10 p-4">
