@@ -52,33 +52,23 @@ interface LocalMessage {
 export default function Chat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  const tariffs = useAuthStore((state) => state.tariffs)
   const telegramUser = getTelegramUser()
 
-  // Проверка подписки
+  // Проверка подписки (только premium_clients)
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(true)
   const [hasSubscription, setHasSubscription] = useState(false)
 
   useEffect(() => {
     const checkSubscription = async () => {
-      // Если есть тарифы в store — доступ есть
-      if (tariffs.length > 0) {
-        setHasSubscription(true)
-        setIsCheckingSubscription(false)
-        return
-      }
-
-      // Проверяем premium_clients
       if (telegramUser?.id) {
         const isPremium = await checkPremiumSubscription(telegramUser.id)
         setHasSubscription(isPremium)
       }
-
       setIsCheckingSubscription(false)
     }
 
     checkSubscription()
-  }, [tariffs, telegramUser?.id])
+  }, [telegramUser?.id])
 
   // Chat store
   const {

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Send, Loader2, User, Trash2, Sparkles, BookOpen } from 'lucide-react'
 import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+// authStore используется для user
 import { getTelegramUser } from '@/lib/telegram'
 import Paywall from '@/components/Paywall'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -80,33 +81,23 @@ interface Message {
 export default function KarmalogikChat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  const tariffs = useAuthStore((state) => state.tariffs)
   const telegramUser = getTelegramUser()
 
-  // Проверка подписки
+  // Проверка подписки (только premium_clients)
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(true)
   const [hasSubscription, setHasSubscription] = useState(false)
 
   useEffect(() => {
     const checkSubscription = async () => {
-      // Если есть тарифы в store — доступ есть
-      if (tariffs.length > 0) {
-        setHasSubscription(true)
-        setIsCheckingSubscription(false)
-        return
-      }
-
-      // Проверяем premium_clients
       if (telegramUser?.id) {
         const isPremium = await checkPremiumSubscription(telegramUser.id)
         setHasSubscription(isPremium)
       }
-
       setIsCheckingSubscription(false)
     }
 
     checkSubscription()
-  }, [tariffs, telegramUser?.id])
+  }, [telegramUser?.id])
 
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
