@@ -499,12 +499,31 @@ export default function CarouselIndex() {
       </div>
 
       <div className="px-4 pb-6 flex-1 flex flex-col">
-        {/* Topic Input - увеличен в 2 раза */}
+        {/* Tips Slider */}
+        <div className="mb-2 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 pb-1">
+            {[
+              '💡 Просто опиши тему',
+              '✨ Без промптов — всё настроено',
+              '🎯 Пиши как думаешь',
+              '📝 Одно предложение — достаточно',
+            ].map((tip, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 text-xs font-medium whitespace-nowrap"
+              >
+                {tip}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Topic Input */}
         <div className="mb-3">
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="О чём карусель? Например: 5 ошибок новичков в сетевом бизнесе"
+            placeholder="О чём карусель? Например: 5 способов увеличить продажи"
             className="w-full min-h-[140px] px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none text-sm"
           />
         </div>

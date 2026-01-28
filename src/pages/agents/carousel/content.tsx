@@ -169,7 +169,7 @@ export default function CarouselContent() {
           <textarea
             value={variables.topic || ''}
             onChange={(e) => setVariable('topic', e.target.value)}
-            placeholder="Например: 5 ошибок новичков в МЛМ"
+            placeholder="Например: 5 способов увеличить продажи"
             className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
             rows={3}
           />
