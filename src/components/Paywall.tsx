@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useCallback } from 'react'
 import { Lock } from 'lucide-react'
 
 interface PaywallProps {
@@ -10,7 +11,24 @@ export default function Paywall({
   title,
   description = 'Эта функция доступна для пользователей с активной подпиской.'
 }: PaywallProps) {
-  const navigate = useNavigate() // для кнопки "Оформить подписку"
+  const navigate = useNavigate()
+
+  // Telegram BackButton
+  const handleBack = useCallback(() => {
+    navigate(-1)
+  }, [navigate])
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp
+    if (!tg?.BackButton) return
+
+    tg.BackButton.show()
+    tg.BackButton.onClick(handleBack)
+
+    return () => {
+      tg.BackButton.offClick(handleBack)
+    }
+  }, [handleBack])
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
