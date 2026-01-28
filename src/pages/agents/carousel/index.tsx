@@ -655,6 +655,11 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
     '/styles/AESTHETIC_BEIGE/example_2.jpeg',
     '/styles/AESTHETIC_BEIGE/example_3.jpeg',
     '/styles/AESTHETIC_BEIGE/example_4.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_5.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_6.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_7.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_8.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_9.jpeg',
   ],
   SOFT_PINK_EDITORIAL: [
     '/styles/SOFT_PINK_EDITORIAL/example_1.jpeg',
@@ -757,17 +762,13 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
       {/* Examples Grid */}
       <div className="flex-1 px-4 pb-4 overflow-auto">
         <p className="text-xs text-gray-400 mb-3 text-center">Примеры слайдов в этом стиле</p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {examples.map((src, i) => (
             <div
               key={i}
-              className="aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden relative"
+              className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden"
               style={{ backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-            >
-              <div className="absolute top-2 left-2 px-2 py-1 bg-black/50 rounded-lg">
-                <span className="text-xs text-white font-medium">{i + 1}</span>
-              </div>
-            </div>
+            />
           ))}
         </div>
       </div>
