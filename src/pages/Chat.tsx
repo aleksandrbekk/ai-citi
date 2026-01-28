@@ -331,8 +331,9 @@ export default function Chat() {
       case 'elite':
       case 'platinum':
         return 'ELITE'
+      case 'starter':
       case 'vip':
-        return 'VIP'
+        return 'STARTER'
       case 'pro':
       case 'standard':
         return 'PRO'

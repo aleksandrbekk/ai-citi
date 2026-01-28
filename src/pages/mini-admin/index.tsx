@@ -709,8 +709,9 @@ export default function MiniAdmin() {
               >
                 <option value="all">Все</option>
                 <option value="basic">Basic</option>
+                <option value="starter">Starter</option>
                 <option value="pro">Pro</option>
-                <option value="vip">VIP</option>
+                <option value="elite">Elite</option>
               </select>
               <button
                 onClick={() => setShowAddClientModal(true)}

@@ -292,7 +292,7 @@ export function AdminSettings() {
                 <div>
                   <h3 className="font-semibold text-blue-900">Как работает</h3>
                   <p className="text-sm text-blue-700 mt-1">
-                    Premium пользователи (Pro, VIP, Elite) получают умную модель.<br/>
+                    Premium пользователи (Starter, Pro, Elite) получают умную модель.<br/>
                     Бесплатные пользователи (Basic) — быструю модель.
                   </p>
                 </div>
@@ -316,7 +316,7 @@ export function AdminSettings() {
                   ))}
                 </select>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {['Pro', 'VIP', 'Elite'].map(t => (
+                  {['Starter', 'Pro', 'Elite'].map(t => (
                     <span key={t} className="px-2 py-1 bg-amber-200/50 text-amber-700 text-xs font-medium rounded-lg">{t}</span>
                   ))}
                 </div>
@@ -410,19 +410,19 @@ export function AdminSettings() {
                 <p className="text-center text-xs text-blue-600 mt-2">сообщений/день</p>
               </div>
 
-              {/* VIP */}
-              <div className="p-4 border-2 border-purple-200 rounded-2xl bg-purple-50/50">
+              {/* STARTER */}
+              <div className="p-4 border-2 border-cyan-200 rounded-2xl bg-cyan-50/50">
                 <div className="text-center mb-3">
-                  <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">VIP</span>
+                  <span className="inline-block px-3 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded-full">STARTER</span>
                 </div>
                 <NumberInput
                   value={form.limit_vip}
                   onChange={(v) => setForm(f => ({ ...f, limit_vip: v }))}
                   min={0}
                   max={1000}
-                  className="text-center text-lg font-semibold border-purple-200 bg-white"
+                  className="text-center text-lg font-semibold border-cyan-200 bg-white"
                 />
-                <p className="text-center text-xs text-purple-600 mt-2">сообщений/день</p>
+                <p className="text-center text-xs text-cyan-600 mt-2">сообщений/день</p>
               </div>
 
               {/* Elite */}

@@ -86,10 +86,10 @@ export function BroadcastTab() {
       filter: (c) => c.plan?.toUpperCase() === 'PRO'
     },
     {
-      id: 'vip',
-      label: 'Тариф VIP',
-      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'VIP').length || 0,
-      filter: (c) => c.plan?.toUpperCase() === 'VIP'
+      id: 'starter',
+      label: 'Тариф STARTER',
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'STARTER').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'STARTER'
     },
     {
       id: 'elite',

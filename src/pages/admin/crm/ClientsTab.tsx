@@ -346,8 +346,8 @@ export function ClientsTab() {
         >
           <option value="all">Все</option>
           <option value="BASIC">BASIC</option>
+          <option value="STARTER">STARTER</option>
           <option value="PRO">PRO</option>
-          <option value="VIP">VIP</option>
           <option value="ELITE">ELITE</option>
         </select>
         <button
@@ -480,8 +480,8 @@ export function ClientsTab() {
                   className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900"
                 >
                   <option value="BASIC">BASIC</option>
+                  <option value="STARTER">STARTER</option>
                   <option value="PRO">PRO</option>
-                  <option value="VIP">VIP</option>
                   <option value="ELITE">ELITE</option>
                 </select>
               </div>
@@ -555,8 +555,8 @@ export function ClientsTab() {
                       className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900"
                     >
                       <option value="BASIC">BASIC</option>
+                      <option value="STARTER">STARTER</option>
                       <option value="PRO">PRO</option>
-                      <option value="VIP">VIP</option>
                       <option value="ELITE">ELITE</option>
                     </select>
                   </div>

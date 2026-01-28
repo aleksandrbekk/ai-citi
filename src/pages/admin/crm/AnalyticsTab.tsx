@@ -32,8 +32,8 @@ export default function AnalyticsTab() {
   // По тарифам
   const byPlan = {
     basic: clients?.filter(c => c.plan?.toUpperCase() === 'BASIC').length || 0,
+    starter: clients?.filter(c => c.plan?.toUpperCase() === 'STARTER').length || 0,
     pro: clients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
-    vip: clients?.filter(c => c.plan?.toUpperCase() === 'VIP').length || 0,
     elite: clients?.filter(c => c.plan?.toUpperCase() === 'ELITE').length || 0
   }
 
@@ -119,8 +119,8 @@ export default function AnalyticsTab() {
             <BarChart3 size={16} /> По тарифам
           </h3>
           <ProgressBar label="BASIC" value={byPlan.basic} total={stats.total} color="bg-blue-500" />
+          <ProgressBar label="STARTER" value={byPlan.starter} total={stats.total} color="bg-cyan-500" />
           <ProgressBar label="PRO" value={byPlan.pro} total={stats.total} color="bg-purple-500" />
-          <ProgressBar label="VIP" value={byPlan.vip} total={stats.total} color="bg-orange-500" />
           <ProgressBar label="ELITE" value={byPlan.elite} total={stats.total} color="bg-amber-500" />
         </div>
 
