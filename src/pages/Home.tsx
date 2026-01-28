@@ -168,40 +168,38 @@ export default function Home() {
         {/* Диалоговое окно - речь персонажа */}
         <motion.div
           key={currentIndex}
-          className="relative z-30 mb-6 max-w-[280px]"
+          className="relative z-30 mb-6 w-[85%] max-w-[320px]"
           initial={{ opacity: 0, y: -10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.3 }}
         >
           {/* Основное окно */}
-          <div className="relative px-5 py-4 rounded-2xl backdrop-blur-xl bg-white/80 border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
-            {/* Имя персонажа */}
-            <div className="flex items-center gap-2 mb-2">
+          <div className="relative px-4 py-3 rounded-2xl backdrop-blur-xl bg-white/90 border border-gray-100 shadow-lg">
+            {/* Имя персонажа с иконкой */}
+            <div className="flex items-center gap-2 mb-1.5">
               <motion.div
-                className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                className="w-2 h-2 rounded-full bg-green-500"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
-              <span className="text-sm font-semibold text-cyan-600">
+              <span className="text-xs font-semibold text-cyan-600">
                 {characters[currentIndex].name}
               </span>
             </div>
             {/* Речь */}
-            <div className="flex items-center gap-2">
-              {loadingIds.has(currentCharacter.id) && !greetings[currentCharacter.id] ? (
-                <>
-                  <Loader2 className="w-4 h-4 text-cyan-600 animate-spin" />
-                  <p className="text-base text-foreground/80 font-medium">Думаю...</p>
-                </>
-              ) : (
-                <p className="text-base text-foreground/80 font-medium leading-snug">
-                  {currentGreeting}
-                </p>
-              )}
-            </div>
+            {loadingIds.has(currentCharacter.id) && !greetings[currentCharacter.id] ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 text-cyan-500 animate-spin" />
+                <p className="text-sm text-gray-500">Думаю...</p>
+              </div>
+            ) : (
+              <p className="text-[15px] text-gray-800 leading-relaxed">
+                {currentGreeting}
+              </p>
+            )}
           </div>
-          {/* Хвостик диалогового окна */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/80 border-r border-b border-white/60 rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.05)]" />
+          {/* Хвостик */}
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/90 border-r border-b border-gray-100 rotate-45" />
         </motion.div>
 
         {/* Область персонажа со стрелками */}
