@@ -258,17 +258,17 @@ export default function StatsTab() {
   )
 }
 
-const MONTH_NAMES = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
 function getMonthName(monthKey: string): string {
   const monthNum = parseInt(monthKey.slice(5), 10) - 1
-  return MONTH_NAMES[monthNum] || monthKey.slice(5)
+  return MONTH_NAMES[monthNum] || monthKey
 }
 
 function MonthChart({ data, color }: { data: Record<string, number>, color: string }) {
   const entries = Object.entries(data)
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .slice(-6)
+    .sort((a, b) => b[0].localeCompare(a[0])) // Сначала новые
+    .slice(0, 6)
 
   if (entries.length === 0) {
     return <p className="text-gray-500 text-center py-4">Нет данных</p>
@@ -277,18 +277,20 @@ function MonthChart({ data, color }: { data: Record<string, number>, color: stri
   const maxValue = Math.max(...entries.map(([, v]) => v as number), 1)
 
   return (
-    <div className="flex items-end gap-1 h-24">
+    <div className="space-y-2">
       {entries.map(([month, count]) => {
         const countNum = count as number
-        const height = maxValue > 0 ? (countNum / maxValue) * 100 : 0
+        const percent = maxValue > 0 ? (countNum / maxValue) * 100 : 0
         return (
-          <div key={month} className="flex-1 flex flex-col items-center">
-            <div
-              className={`w-full ${color} rounded-t`}
-              style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
-            />
-            <span className="text-xs text-gray-500 mt-2">{getMonthName(month)}</span>
-            <span className="text-xs text-gray-900">{countNum}</span>
+          <div key={month} className="flex items-center gap-3">
+            <span className="text-sm text-gray-600 w-24 shrink-0">{getMonthName(month)}</span>
+            <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${color} rounded-full transition-all`}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <span className="text-sm font-medium text-gray-900 w-8 text-right">{countNum}</span>
           </div>
         )
       })}

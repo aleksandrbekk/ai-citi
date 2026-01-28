@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import { BarChart3, Users, DollarSign, TrendingUp, Calendar } from 'lucide-react'
 
-const MONTH_NAMES = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
 function getMonthName(monthKey: string): string {
   const monthNum = parseInt(monthKey.slice(5), 10) - 1
-  return MONTH_NAMES[monthNum] || monthKey.slice(5)
+  return MONTH_NAMES[monthNum] || monthKey
 }
 
 export default function AnalyticsTab() {
@@ -157,29 +157,32 @@ export default function AnalyticsTab() {
       {/* По месяцам */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-          <Calendar size={16} /> По месяцам
+          <Calendar size={16} /> Клиенты по месяцам
         </h3>
-        <div className="flex items-end gap-1 h-24">
-          {Object.entries(byMonth)
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .slice(-6)
-            .map(([month, count]) => {
-              const countNum = count as number
-              const maxCount = Math.max(...(Object.values(byMonth) as number[]))
-              const height = maxCount > 0 ? (countNum / maxCount) * 100 : 0
-              return (
-                <div key={month} className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-full bg-blue-500 rounded-t"
-                    style={{ height: `${height}%`, minHeight: countNum > 0 ? '4px' : '0' }}
-                  />
-                  <span className="text-xs text-gray-500 mt-2">{getMonthName(month)}</span>
-                  <span className="text-xs text-gray-900">{countNum}</span>
-                </div>
-              )
-            })}
-        </div>
-        {Object.keys(byMonth).length === 0 && (
+        {Object.keys(byMonth).length > 0 ? (
+          <div className="space-y-2">
+            {Object.entries(byMonth)
+              .sort((a, b) => b[0].localeCompare(a[0]))
+              .slice(0, 6)
+              .map(([month, count]) => {
+                const countNum = count as number
+                const maxCount = Math.max(...(Object.values(byMonth) as number[]), 1)
+                const percent = maxCount > 0 ? (countNum / maxCount) * 100 : 0
+                return (
+                  <div key={month} className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600 w-24 shrink-0">{getMonthName(month)}</span>
+                    <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 rounded-full transition-all"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-gray-900 w-8 text-right">{countNum}</span>
+                  </div>
+                )
+              })}
+          </div>
+        ) : (
           <p className="text-gray-500 text-center">Нет данных</p>
         )}
       </div>
