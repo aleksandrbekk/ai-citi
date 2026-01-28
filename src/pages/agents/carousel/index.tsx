@@ -53,12 +53,6 @@ const MessageIcon = ({ className = '' }: { className?: string }) => (
   </svg>
 )
 
-const ChevronIcon = ({ className = '' }: { className?: string }) => (
-  <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-)
-
 // Иконка замка
 const LockIcon = ({ className = '' }: { className?: string }) => (
   <svg className={className} width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -473,138 +467,109 @@ export default function CarouselIndex() {
 
   // ========== MAIN PAGE ==========
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
-      {/* Header */}
-      <div className="px-4 pt-4 pb-2">
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Compact Header */}
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-            <CarouselIcon className="text-white" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/20">
+            <CarouselIcon className="text-white w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">AI Карусель</h1>
-            <p className="text-sm text-gray-500">9 слайдов за 2 минуты</p>
+            <h1 className="text-lg font-bold text-gray-900">AI Карусель</h1>
+            <p className="text-xs text-gray-500">9 слайдов за 2 минуты</p>
           </div>
+        </div>
+        {/* Balance badge */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500">
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          <span className="text-sm font-semibold text-orange-600">{coinBalance}</span>
         </div>
       </div>
 
-      <div className="px-4 pb-8 flex-1 flex flex-col">
+      <div className="px-4 pb-6 flex-1 flex flex-col">
         {/* Topic Input */}
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">О чём карусель?</label>
+        <div className="mb-3">
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="Например: 5 ошибок новичков в сетевом бизнесе"
-            className="w-full min-h-[100px] px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none shadow-sm"
+            placeholder="О чём карусель? Например: 5 ошибок новичков"
+            className="w-full min-h-[80px] px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none text-sm"
           />
         </div>
 
-        {/* Photo & Style Cards */}
-        <div className="space-y-3 mb-4">
-          {/* Photo Card */}
+        {/* Photo & Style Row */}
+        <div className="flex gap-2 mb-3">
+          {/* Photo */}
           <button
             onClick={() => setShowPhotoModal(true)}
-            className="w-full bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-4 hover:border-orange-300 hover:shadow-md transition-all active:scale-[0.99]"
+            className="flex-1 bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-3 hover:border-orange-300 transition-all active:scale-[0.98] cursor-pointer"
           >
             {userPhoto ? (
-              <img src={userPhoto} alt="" className="w-14 h-14 rounded-2xl object-cover ring-2 ring-orange-500 ring-offset-2" />
+              <img src={userPhoto} alt="" className="w-10 h-10 rounded-lg object-cover ring-2 ring-orange-400" />
             ) : (
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
-                <CameraIcon className="text-orange-400" />
+              <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
+                <CameraIcon className="text-orange-400 w-5 h-5" />
               </div>
             )}
-            <div className="flex-1 text-left">
-              <span className="font-semibold text-gray-900 block">Твоё фото</span>
+            <div className="flex-1 text-left min-w-0">
+              <span className="font-medium text-gray-900 text-sm block truncate">Фото</span>
               {userPhoto ? (
-                <span className="text-sm text-green-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                  Загружено
-                </span>
+                <span className="text-xs text-green-600">Готово</span>
               ) : (
-                <span className="text-sm text-gray-500">Будет на слайдах</span>
+                <span className="text-xs text-gray-400">Добавить</span>
               )}
             </div>
-            <ChevronIcon className="text-gray-400" />
           </button>
 
-          {/* Style Card */}
+          {/* Style */}
           <button
             onClick={() => setShowStyleModal(true)}
-            className="w-full bg-white rounded-2xl border border-gray-200 p-4 flex items-center gap-4 hover:border-orange-300 hover:shadow-md transition-all active:scale-[0.99]"
+            className="flex-1 bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-3 hover:border-orange-300 transition-all active:scale-[0.98] cursor-pointer"
           >
             <img
               src={STYLE_PREVIEWS[style]}
               alt={currentStyleMeta?.name}
-              className="w-14 h-14 rounded-2xl object-cover ring-1 ring-gray-200"
+              className="w-10 h-10 rounded-lg object-cover"
             />
-            <div className="flex-1 text-left">
-              <span className="font-semibold text-gray-900 block">Стиль дизайна</span>
-              <span className="text-sm text-orange-600">{currentStyleMeta?.name}</span>
-            </div>
-            <div className="flex items-center gap-1 text-orange-500">
-              <span className="text-xs font-medium">Смотреть примеры</span>
-              <ChevronIcon className="text-orange-400" />
+            <div className="flex-1 text-left min-w-0">
+              <span className="font-medium text-gray-900 text-sm block truncate">Стиль</span>
+              <span className="text-xs text-orange-500 truncate block">{currentStyleMeta?.name?.split(' ')[0]}</span>
             </div>
           </button>
+        </div>
 
-          {/* Gender Selector */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9333EA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="5"/>
-                  <path d="M20 21a8 8 0 0 0-16 0"/>
-                </svg>
-              </div>
-              <div>
-                <span className="font-semibold text-gray-900 block">Кто автор?</span>
-                <span className="text-sm text-gray-500">Для правильного рода слов</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setGender('male')}
-                className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-                  gender === 'male'
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                👨 Мужчина
-              </button>
-              <button
-                onClick={() => setGender('female')}
-                className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
-                  gender === 'female'
-                    ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                👩 Женщина
-              </button>
-            </div>
+        {/* Gender - Compact */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs text-gray-500">Автор:</span>
+          <div className="flex gap-1.5 flex-1">
+            <button
+              onClick={() => setGender('male')}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                gender === 'male'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              👨 Мужчина
+            </button>
+            <button
+              onClick={() => setGender('female')}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                gender === 'female'
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              👩 Женщина
+            </button>
           </div>
         </div>
 
-        {/* Balance info for non-subscribers */}
-        {!hasSubscription && (
-          <div className="mb-4 p-3 rounded-xl bg-orange-50 border border-orange-100">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-600">Ваш баланс:</span>
-              <span className="font-bold text-orange-600">{coinBalance} монет</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Доступно генераций:</span>
-              <span className="font-bold text-green-600">{Math.floor(coinBalance / GENERATION_COST)}</span>
-            </div>
-          </div>
-        )}
-
         {/* Error */}
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
+          <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-xs border border-red-100">
             {error}
           </div>
         )}
@@ -612,35 +577,14 @@ export default function CarouselIndex() {
         {/* Create Button */}
         <button
           onClick={handleCreate}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2"
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform"
         >
           <span>Создать за {GENERATION_COST}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
             <circle cx="12" cy="12" r="10" fill="currentColor"/>
             <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
           </svg>
         </button>
-
-        {/* Carousel Sets Section */}
-        <div className="mt-4 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/50 shadow-xl overflow-hidden">
-          <div className="relative">
-            <img
-              src="/carousel-sets-cover.jpg"
-              alt="Наборы каруселей"
-              className="w-full h-32 object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-            <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-              <div>
-                <h3 className="text-white font-bold text-lg">Наборы каруселей</h3>
-                <p className="text-white/80 text-xs">Готовые темы для бизнеса</p>
-              </div>
-              <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-medium border border-white/30">
-                10 февраля
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Style Modal */}
