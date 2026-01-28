@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Loader2, Bot, User, Paperclip, Mic, MicOff, X, Image, FileText, Zap, Crown, Menu } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useChatStore } from '@/store/chatStore'
+import { getTelegramUser } from '@/lib/telegram'
 import ChatListDrawer from '@/components/chat/ChatListDrawer'
 import Paywall from '@/components/Paywall'
+import { PageLoader } from '@/components/ui/PageLoader'
 import { toast } from 'sonner'
 
 // Типы лимитов
@@ -51,18 +53,32 @@ export default function Chat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const tariffs = useAuthStore((state) => state.tariffs)
+  const telegramUser = getTelegramUser()
 
-  // Проверка подписки — доступ только с активным тарифом
-  const hasSubscription = tariffs.length > 0
+  // Проверка подписки
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true)
+  const [hasSubscription, setHasSubscription] = useState(false)
 
-  if (!hasSubscription) {
-    return (
-      <Paywall
-        title="AI-Ассистент"
-        description="AI-Ассистент доступен для пользователей с активной подпиской."
-      />
-    )
-  }
+  useEffect(() => {
+    const checkSubscription = async () => {
+      // Если есть тарифы в store — доступ есть
+      if (tariffs.length > 0) {
+        setHasSubscription(true)
+        setIsCheckingSubscription(false)
+        return
+      }
+
+      // Проверяем premium_clients
+      if (telegramUser?.id) {
+        const isPremium = await checkPremiumSubscription(telegramUser.id)
+        setHasSubscription(isPremium)
+      }
+
+      setIsCheckingSubscription(false)
+    }
+
+    checkSubscription()
+  }, [tariffs, telegramUser?.id])
 
   // Chat store
   const {
@@ -345,6 +361,21 @@ export default function Chat() {
   // Название чата
   const activeChat = chats.find(c => c.id === activeChatId)
   const chatTitle = activeChat?.title || 'Ассистент'
+
+  // Загрузка проверки подписки
+  if (isCheckingSubscription) {
+    return <PageLoader />
+  }
+
+  // Нет подписки — показываем Paywall
+  if (!hasSubscription) {
+    return (
+      <Paywall
+        title="AI-Ассистент"
+        description="AI-Ассистент доступен для пользователей с активной подпиской."
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

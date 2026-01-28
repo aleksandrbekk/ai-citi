@@ -89,6 +89,25 @@ export async function getUserTariffsById(telegramId: number): Promise<string[]> 
   return tariffs?.map(t => t.tariff_slug) || []
 }
 
+// Проверка активной подписки в premium_clients
+export async function checkPremiumSubscription(telegramId: number): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('premium_clients')
+    .select('id, expires_at')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (error || !data) return false
+
+  // Если есть expires_at, проверяем не истекла ли подписка
+  if (data.expires_at) {
+    return new Date(data.expires_at) > new Date()
+  }
+
+  // Если expires_at нет — бессрочная подписка
+  return true
+}
+
 // Информация о тарифе с датой окончания
 export interface UserTariffInfo {
   tariff_slug: string
