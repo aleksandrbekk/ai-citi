@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useChatStore } from '@/store/chatStore'
 import ChatListDrawer from '@/components/chat/ChatListDrawer'
+import Paywall from '@/components/Paywall'
 import { toast } from 'sonner'
 
 // Типы лимитов
@@ -49,6 +50,20 @@ interface LocalMessage {
 export default function Chat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  const tariffs = useAuthStore((state) => state.tariffs)
+
+  // Проверка подписки — доступ только с активным тарифом
+  const hasSubscription = tariffs.length > 0
+
+  if (!hasSubscription) {
+    return (
+      <Paywall
+        title="AI-Ассистент"
+        description="Умный помощник для работы и бизнеса доступен по подписке"
+        feature="Безлимитные диалоги с AI"
+      />
+    )
+  }
 
   // Chat store
   const {

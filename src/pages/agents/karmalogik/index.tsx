@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Send, Loader2, User, Trash2, Sparkles, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import Paywall from '@/components/Paywall'
 import { toast } from 'sonner'
 
 // Системный промпт для AI-Коуча
@@ -77,6 +78,20 @@ interface Message {
 export default function KarmalogikChat() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  const tariffs = useAuthStore((state) => state.tariffs)
+
+  // Проверка подписки — доступ только с активным тарифом
+  const hasSubscription = tariffs.length > 0
+
+  if (!hasSubscription) {
+    return (
+      <Paywall
+        title="AI-Коуч"
+        description="Персональный коуч для развития и достижения целей доступен по подписке"
+        feature="Персональные коуч-сессии"
+      />
+    )
+  }
 
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
