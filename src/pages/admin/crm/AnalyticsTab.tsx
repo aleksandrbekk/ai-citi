@@ -1,12 +1,75 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { BarChart3, Users, DollarSign, TrendingUp, Calendar } from 'lucide-react'
+import { BarChart3, Users, DollarSign, TrendingUp, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 
 const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
-function getMonthName(monthKey: string): string {
-  const monthNum = parseInt(monthKey.slice(5), 10) - 1
-  return MONTH_NAMES[monthNum] || monthKey
+function getMonthName(monthNum: number): string {
+  return MONTH_NAMES[monthNum] || ''
+}
+
+function MonthSelector({ data }: { data: Record<string, number> }) {
+  const now = new Date()
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth())
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+
+  const monthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
+  const count = data[monthKey] || 0
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11)
+      setSelectedYear(selectedYear - 1)
+    } else {
+      setSelectedMonth(selectedMonth - 1)
+    }
+  }
+
+  const nextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0)
+      setSelectedYear(selectedYear + 1)
+    } else {
+      setSelectedMonth(selectedMonth + 1)
+    }
+  }
+
+  const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear()
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={prevMonth}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ChevronLeft size={20} className="text-gray-600" />
+        </button>
+        <div className="text-center">
+          <div className="text-lg font-semibold text-gray-900">
+            {getMonthName(selectedMonth)}
+          </div>
+          <div className="text-sm text-gray-500">{selectedYear}</div>
+        </div>
+        <button
+          onClick={nextMonth}
+          disabled={isCurrentMonth}
+          className={`p-2 rounded-lg transition-colors ${isCurrentMonth ? 'opacity-30' : 'hover:bg-gray-100'}`}
+        >
+          <ChevronRight size={20} className="text-gray-600" />
+        </button>
+      </div>
+
+      <div className="bg-blue-50 rounded-xl p-4 text-center">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Users size={16} className="text-blue-600" />
+          <span className="text-sm text-blue-700">Новых клиентов</span>
+        </div>
+        <div className="text-2xl font-bold text-blue-600">{count}</div>
+      </div>
+    </div>
+  )
 }
 
 export default function AnalyticsTab() {
@@ -154,38 +217,8 @@ export default function AnalyticsTab() {
         </div>
       </div>
 
-      {/* По месяцам */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-          <Calendar size={16} /> Клиенты по месяцам
-        </h3>
-        {Object.keys(byMonth).length > 0 ? (
-          <div className="space-y-2">
-            {Object.entries(byMonth)
-              .sort((a, b) => b[0].localeCompare(a[0]))
-              .slice(0, 6)
-              .map(([month, count]) => {
-                const countNum = count as number
-                const maxCount = Math.max(...(Object.values(byMonth) as number[]), 1)
-                const percent = maxCount > 0 ? (countNum / maxCount) * 100 : 0
-                return (
-                  <div key={month} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 w-24 shrink-0">{getMonthName(month)}</span>
-                    <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 rounded-full transition-all"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900 w-8 text-right">{countNum}</span>
-                  </div>
-                )
-              })}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center">Нет данных</p>
-        )}
-      </div>
+      {/* Клиенты по месяцам */}
+      <MonthSelector data={byMonth} />
     </div>
   )
 }

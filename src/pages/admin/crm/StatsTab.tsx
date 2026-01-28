@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import {
@@ -6,7 +7,8 @@ import {
   TrendingUp,
   ShoppingCart,
   Sparkles,
-  Calendar
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 
 interface CoinTransaction {
@@ -211,24 +213,11 @@ export default function StatsTab() {
         </div>
       </div>
 
-      {/* Графики по месяцам */}
-      <div className="grid gap-4">
-        {/* Покупки по месяцам */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-            <Calendar size={16} className="text-green-500" /> Покупки по месяцам
-          </h3>
-          <MonthChart data={purchasesByMonth} color="bg-green-500" />
-        </div>
-
-        {/* Генерации по месяцам */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-            <Calendar size={16} className="text-purple-500" /> Генерации по месяцам
-          </h3>
-          <MonthChart data={generationsByMonth} color="bg-purple-500" />
-        </div>
-      </div>
+      {/* Статистика по месяцам */}
+      <MonthSelector
+        purchasesData={purchasesByMonth}
+        generationsData={generationsByMonth}
+      />
 
       {/* Последние покупки */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -260,40 +249,85 @@ export default function StatsTab() {
 
 const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
-function getMonthName(monthKey: string): string {
-  const monthNum = parseInt(monthKey.slice(5), 10) - 1
-  return MONTH_NAMES[monthNum] || monthKey
+function getMonthName(monthNum: number): string {
+  return MONTH_NAMES[monthNum] || ''
 }
 
-function MonthChart({ data, color }: { data: Record<string, number>, color: string }) {
-  const entries = Object.entries(data)
-    .sort((a, b) => b[0].localeCompare(a[0])) // Сначала новые
-    .slice(0, 6)
+function MonthSelector({
+  purchasesData,
+  generationsData
+}: {
+  purchasesData: Record<string, number>
+  generationsData: Record<string, number>
+}) {
+  const now = new Date()
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth())
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
 
-  if (entries.length === 0) {
-    return <p className="text-gray-500 text-center py-4">Нет данных</p>
+  const monthKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`
+  const purchases = purchasesData[monthKey] || 0
+  const generations = generationsData[monthKey] || 0
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11)
+      setSelectedYear(selectedYear - 1)
+    } else {
+      setSelectedMonth(selectedMonth - 1)
+    }
   }
 
-  const maxValue = Math.max(...entries.map(([, v]) => v as number), 1)
+  const nextMonth = () => {
+    if (selectedMonth === 11) {
+      setSelectedMonth(0)
+      setSelectedYear(selectedYear + 1)
+    } else {
+      setSelectedMonth(selectedMonth + 1)
+    }
+  }
+
+  const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear()
 
   return (
-    <div className="space-y-2">
-      {entries.map(([month, count]) => {
-        const countNum = count as number
-        const percent = maxValue > 0 ? (countNum / maxValue) * 100 : 0
-        return (
-          <div key={month} className="flex items-center gap-3">
-            <span className="text-sm text-gray-600 w-24 shrink-0">{getMonthName(month)}</span>
-            <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${color} rounded-full transition-all`}
-                style={{ width: `${percent}%` }}
-              />
-            </div>
-            <span className="text-sm font-medium text-gray-900 w-8 text-right">{countNum}</span>
+    <div className="bg-white border border-gray-200 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={prevMonth}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ChevronLeft size={20} className="text-gray-600" />
+        </button>
+        <div className="text-center">
+          <div className="text-lg font-semibold text-gray-900">
+            {getMonthName(selectedMonth)}
           </div>
-        )
-      })}
+          <div className="text-sm text-gray-500">{selectedYear}</div>
+        </div>
+        <button
+          onClick={nextMonth}
+          disabled={isCurrentMonth}
+          className={`p-2 rounded-lg transition-colors ${isCurrentMonth ? 'opacity-30' : 'hover:bg-gray-100'}`}
+        >
+          <ChevronRight size={20} className="text-gray-600" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-green-50 rounded-xl p-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <ShoppingCart size={16} className="text-green-600" />
+            <span className="text-sm text-green-700">Покупки</span>
+          </div>
+          <div className="text-2xl font-bold text-green-600">{purchases}</div>
+        </div>
+        <div className="bg-purple-50 rounded-xl p-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Sparkles size={16} className="text-purple-600" />
+            <span className="text-sm text-purple-700">Генерации</span>
+          </div>
+          <div className="text-2xl font-bold text-purple-600">{generations}</div>
+        </div>
+      </div>
     </div>
   )
 }
