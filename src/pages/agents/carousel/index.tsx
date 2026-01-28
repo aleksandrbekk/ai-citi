@@ -629,37 +629,37 @@ export default function CarouselIndex() {
 }
 
 // ========== STYLE MODAL ==========
-// Примеры слайдов для каждого стиля (заглушки — заменить на реальные)
+// Примеры слайдов для каждого стиля (из public/styles/)
 const STYLE_EXAMPLES: Record<StyleId, string[]> = {
   APPLE_GLASSMORPHISM: [
-    '/examples/apple-1.jpg',
-    '/examples/apple-2.jpg',
-    '/examples/apple-3.jpg',
-    '/examples/apple-4.jpg',
+    '/styles/APPLE_GLASSMORPHISM/example_1.jpeg',
+    '/styles/APPLE_GLASSMORPHISM/example_2.jpeg',
+    '/styles/APPLE_GLASSMORPHISM/example_3.jpeg',
+    '/styles/APPLE_GLASSMORPHISM/example_4.jpeg',
   ],
   AESTHETIC_BEIGE: [
-    '/examples/beige-1.jpg',
-    '/examples/beige-2.jpg',
-    '/examples/beige-3.jpg',
-    '/examples/beige-4.jpg',
+    '/styles/AESTHETIC_BEIGE/example_1.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_2.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_3.jpeg',
+    '/styles/AESTHETIC_BEIGE/example_4.jpeg',
   ],
   SOFT_PINK_EDITORIAL: [
-    '/examples/pink-1.jpg',
-    '/examples/pink-2.jpg',
-    '/examples/pink-3.jpg',
-    '/examples/pink-4.jpg',
+    '/styles/SOFT_PINK_EDITORIAL/example_1.jpeg',
+    '/styles/SOFT_PINK_EDITORIAL/example_2.jpeg',
+    '/styles/SOFT_PINK_EDITORIAL/example_3.jpeg',
+    '/styles/SOFT_PINK_EDITORIAL/example_4.jpeg',
   ],
   MINIMALIST_LINE_ART: [
-    '/examples/minimal-1.jpg',
-    '/examples/minimal-2.jpg',
-    '/examples/minimal-3.jpg',
-    '/examples/minimal-4.jpg',
+    '/styles/MINIMALIST_LINE_ART/example_1.jpeg',
+    '/styles/MINIMALIST_LINE_ART/example_2.jpeg',
+    '/styles/MINIMALIST_LINE_ART/example_3.jpeg',
+    '/styles/MINIMALIST_LINE_ART/example_4.jpeg',
   ],
   GRADIENT_MESH_3D: [
-    '/examples/gradient-1.jpg',
-    '/examples/gradient-2.jpg',
-    '/examples/gradient-3.jpg',
-    '/examples/gradient-4.jpg',
+    '/styles/GRADIENT_MESH_3D/example_1.jpeg',
+    '/styles/GRADIENT_MESH_3D/example_2.jpeg',
+    '/styles/GRADIENT_MESH_3D/example_3.jpeg',
+    '/styles/GRADIENT_MESH_3D/example_4.jpeg',
   ],
 }
 
