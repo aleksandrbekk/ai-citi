@@ -168,21 +168,17 @@ export default function Home() {
         {/* Диалоговое окно - речь персонажа */}
         <motion.div
           key={currentIndex}
-          className="relative z-30 mb-8 w-[90%] max-w-[300px]"
+          className="relative z-30 mb-8 max-w-[85%]"
           initial={{ opacity: 0, y: -8, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         >
           {/* Основное окно */}
-          <div className="relative px-5 py-4 rounded-[20px] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] border border-gray-100/80">
+          <div className="relative px-4 py-3 rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100">
             {/* Бейдж с именем */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-50 mb-2.5">
-              <motion.div
-                className="w-1.5 h-1.5 rounded-full bg-cyan-500"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <span className="text-[11px] font-semibold text-cyan-600 tracking-wide uppercase">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-50 mb-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+              <span className="text-[10px] font-semibold text-cyan-600 uppercase">
                 {characters[currentIndex].name}
               </span>
             </div>
@@ -193,15 +189,13 @@ export default function Home() {
                 <p className="text-sm text-gray-400">Думаю...</p>
               </div>
             ) : (
-              <p className="text-[15px] text-gray-700 leading-[1.5] font-medium">
+              <p className="text-sm text-gray-700 leading-relaxed">
                 {currentGreeting}
               </p>
             )}
           </div>
-          {/* Хвостик - треугольник */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-            <div className="w-4 h-4 bg-white rotate-45 shadow-[2px_2px_4px_rgba(0,0,0,0.04)] border-r border-b border-gray-100/80" />
-          </div>
+          {/* Хвостик */}
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-100 rotate-45" />
         </motion.div>
 
         {/* Область персонажа со стрелками */}
