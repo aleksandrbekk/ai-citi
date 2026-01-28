@@ -411,3 +411,14 @@ export async function hasEnoughCoins(telegramId: number, required: number = 1): 
   const balance = await getCoinBalance(telegramId)
   return balance >= required
 }
+
+/**
+ * Обновить время последней активности пользователя
+ */
+export async function updateLastActive(telegramId: number): Promise<void> {
+  try {
+    await supabase.rpc('update_last_active', { p_telegram_id: telegramId })
+  } catch (err) {
+    console.error('Error updating last active:', err)
+  }
+}

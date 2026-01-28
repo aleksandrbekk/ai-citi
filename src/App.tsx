@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { expandWebApp } from './lib/telegram'
-import { getOrCreateUser, getUserTariffs } from './lib/supabase'
+import { getOrCreateUser, getUserTariffs, updateLastActive } from './lib/supabase'
 import { useAuthStore } from './store/authStore'
 import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
@@ -144,6 +144,9 @@ function AppContent() {
           const tariffs = await getUserTariffs(user.id)
           setTariffs(tariffs)
         }
+
+        // Обновляем время последней активности
+        updateLastActive(telegramUser.id)
 
         // Всем разрешаем доступ к приложению
         setHasAccess(true)
