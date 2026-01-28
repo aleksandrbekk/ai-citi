@@ -762,27 +762,8 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             <div
               key={i}
               className="aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden relative"
+              style={{ backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             >
-              <img
-                src={src}
-                alt={`Пример ${i + 1}`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Заглушка если картинка не загрузилась
-                  const target = e.target as HTMLImageElement
-                  target.style.display = 'none'
-                  target.parentElement!.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <path d="M21 15l-5-5L5 21"/>
-                      </svg>
-                      <span class="text-xs text-gray-400 mt-2">Слайд ${i + 1}</span>
-                    </div>
-                  `
-                }}
-              />
               <div className="absolute top-2 left-2 px-2 py-1 bg-black/50 rounded-lg">
                 <span className="text-xs text-white font-medium">{i + 1}</span>
               </div>
