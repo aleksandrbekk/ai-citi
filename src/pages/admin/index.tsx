@@ -32,7 +32,7 @@ export default function AdminPanel() {
       {/* Sidebar */}
       <aside className="w-64 bg-[#1E293B] border-r border-[#334155] p-6 flex flex-col">
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-white mb-1">AI CITI</h1>
+          <h1 className="text-xl font-bold text-white mb-1">AI CiTY</h1>
           <p className="text-sm text-[#94A3B8]">Админ-панель</p>
         </div>
 

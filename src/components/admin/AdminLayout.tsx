@@ -85,7 +85,7 @@ export function AdminLayout() {
               <Home size={20} />
             </Link>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">AI CITI</h1>
+              <h1 className="text-lg font-bold text-gray-900">AI CiTY</h1>
               <p className="text-xs text-gray-500">Админ-панель</p>
             </div>
           </div>
@@ -207,7 +207,7 @@ export function AdminLayout() {
                 <Home size={18} />
               </Link>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">AI CITI</h1>
+                <h1 className="text-xl font-bold text-gray-900">AI CiTY</h1>
                 <p className="text-gray-500 text-sm">Админ-панель</p>
               </div>
             </div>

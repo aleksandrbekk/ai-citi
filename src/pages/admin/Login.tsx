@@ -63,7 +63,7 @@ export function AdminLogin() {
       <div className="bg-zinc-800 rounded-2xl p-8 w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Shield className="text-amber-500" size={28} />
-          <h1 className="text-2xl font-bold text-center text-white">AI CITI</h1>
+          <h1 className="text-2xl font-bold text-center text-white">AI CiTY</h1>
         </div>
         <p className="text-zinc-400 text-center mb-8">Админ-панель</p>
 
