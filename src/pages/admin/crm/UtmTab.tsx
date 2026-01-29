@@ -12,6 +12,7 @@ import {
   Link2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import PromoLinksSection from './PromoLinksSection'
 
 interface UtmCampaign {
   id: string
@@ -334,9 +335,8 @@ export default function UtmTab() {
           {campaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className={`bg-white border rounded-xl p-4 transition-all ${
-                campaign.is_active ? 'border-gray-200' : 'border-gray-200 opacity-60'
-              }`}
+              className={`bg-white border rounded-xl p-4 transition-all ${campaign.is_active ? 'border-gray-200' : 'border-gray-200 opacity-60'
+                }`}
             >
               {/* Header row */}
               <div className="flex items-start justify-between gap-2 mb-3">
@@ -359,11 +359,10 @@ export default function UtmTab() {
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => toggleActive(campaign)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      campaign.is_active
+                    className={`p-2 rounded-lg transition-colors ${campaign.is_active
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-gray-100 text-gray-500'
-                    }`}
+                      }`}
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -422,6 +421,11 @@ export default function UtmTab() {
           ))}
         </div>
       )}
+
+      {/* Промо-ссылки */}
+      <div className="border-t border-gray-200 pt-6 mt-6">
+        <PromoLinksSection />
+      </div>
     </div>
   )
 }

@@ -98,6 +98,25 @@ export default function Chat() {
     toggleDrawer
   } = useChatStore()
 
+  // Welcome message из БД
+  const [welcomeMessage, setWelcomeMessage] = useState<string>('')
+
+  useEffect(() => {
+    const loadWelcome = async () => {
+      const { data } = await supabase
+        .from('chat_settings')
+        .select('welcome_message')
+        .limit(1)
+        .single()
+      if (data?.welcome_message) {
+        // Заменяем {name} на имя пользователя
+        const name = telegramUser?.first_name || 'друг'
+        setWelcomeMessage(data.welcome_message.replace('{name}', name))
+      }
+    }
+    loadWelcome()
+  }, [telegramUser, user])
+
   // Состояние лимита
   const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null)
   const [limitError, setLimitError] = useState<string | null>(null)
@@ -420,13 +439,12 @@ export default function Chat() {
               {limitInfo.tariff !== 'basic' && <Crown size={10} />}
               <span>{getTariffLabel(limitInfo.tariff)}</span>
             </div>
-            <div className={`px-2 py-1 rounded-lg text-[10px] font-semibold ${
-              limitInfo.remaining === 0
-                ? 'bg-red-100 text-red-600'
-                : limitInfo.remaining <= 3
-                  ? 'bg-amber-100 text-amber-600'
-                  : 'bg-green-100 text-green-600'
-            }`}>
+            <div className={`px-2 py-1 rounded-lg text-[10px] font-semibold ${limitInfo.remaining === 0
+              ? 'bg-red-100 text-red-600'
+              : limitInfo.remaining <= 3
+                ? 'bg-amber-100 text-amber-600'
+                : 'bg-green-100 text-green-600'
+              }`}>
               {limitInfo.remaining}/{limitInfo.daily}
             </div>
           </div>
@@ -477,22 +495,35 @@ export default function Chat() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16 px-4"
+            className="text-center py-8 px-4"
           >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
+            {/* Картинка нейрогорода */}
+            <motion.img
+              src="/images/welcome-neuro-city.png"
+              alt="Нейро Город"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 200 }}
-              className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-cyan-500/20"
-            >
-              <Bot size={40} className="text-white" />
-            </motion.div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Привет!
-            </h2>
-            <p className="text-gray-500 max-w-sm mx-auto text-sm">
-              Я твой AI-ассистент. Задай любой вопрос или прикрепи фото.
-            </p>
+              className="w-full max-w-[280px] mx-auto mb-5 rounded-2xl shadow-lg"
+            />
+
+            {/* Welcome message из БД */}
+            {welcomeMessage ? (
+              <div className="text-left bg-gradient-to-br from-cyan-50 to-white border border-cyan-100 rounded-2xl p-4 max-w-sm mx-auto">
+                <p className="text-gray-800 text-sm whitespace-pre-line leading-relaxed">
+                  {welcomeMessage}
+                </p>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Привет!
+                </h2>
+                <p className="text-gray-500 max-w-sm mx-auto text-sm">
+                  Я твой AI-ассистент. Задай любой вопрос или прикрепи фото.
+                </p>
+              </>
+            )}
           </motion.div>
         )}
 
@@ -534,7 +565,7 @@ export default function Chat() {
                     className={`px-4 py-3 rounded-2xl ${message.role === 'user'
                       ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-br-md shadow-sm'
                       : 'bg-gray-100 text-gray-900 rounded-bl-md'
-                    }`}
+                      }`}
                   >
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                   </div>
@@ -658,11 +689,10 @@ export default function Chat() {
 
       {/* Input */}
       <div className="sticky bottom-0 bg-white border-t border-gray-100 px-4 py-3 pb-safe">
-        <div className={`border rounded-2xl bg-white transition-all duration-200 ${
-          isRecording
-            ? 'border-red-300 bg-red-50/50'
-            : 'border-gray-200 focus-within:border-orange-400 focus-within:shadow-sm focus-within:shadow-orange-500/10'
-        }`}>
+        <div className={`border rounded-2xl bg-white transition-all duration-200 ${isRecording
+          ? 'border-red-300 bg-red-50/50'
+          : 'border-gray-200 focus-within:border-orange-400 focus-within:shadow-sm focus-within:shadow-orange-500/10'
+          }`}>
           {isRecording ? (
             <div className="px-4 py-4 flex items-center gap-3">
               <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
@@ -693,11 +723,10 @@ export default function Chat() {
           <div className="flex items-center justify-between px-3 pb-3">
             <button
               onClick={() => setShowAttachMenu(!showAttachMenu)}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${
-                showAttachMenu
-                  ? 'bg-orange-100 text-orange-500'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-              }`}
+              className={`p-2 rounded-xl transition-all cursor-pointer ${showAttachMenu
+                ? 'bg-orange-100 text-orange-500'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`}
             >
               <Paperclip size={20} />
             </button>
@@ -705,11 +734,10 @@ export default function Chat() {
             <div className="flex items-center gap-2">
               <button
                 onClick={toggleRecording}
-                className={`p-2 rounded-xl transition-all cursor-pointer ${
-                  isRecording
-                    ? 'bg-red-500 text-white'
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`p-2 rounded-xl transition-all cursor-pointer ${isRecording
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  }`}
               >
                 {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
               </button>
