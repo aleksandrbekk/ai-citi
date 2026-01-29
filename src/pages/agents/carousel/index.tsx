@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, supabase, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -54,13 +54,6 @@ const MessageIcon = ({ className = '' }: { className?: string }) => (
   </svg>
 )
 
-// Иконка замка
-const LockIcon = ({ className = '' }: { className?: string }) => (
-  <svg className={className} width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-)
 
 export default function CarouselIndex() {
   const navigate = useNavigate()
@@ -83,7 +76,7 @@ export default function CarouselIndex() {
 
   // Tips modal state
   const [showTipsModal, setShowTipsModal] = useState(false)
-  
+
   // Gender state (загружаем из localStorage)
   const [gender, setGender] = useState<'male' | 'female'>(() => {
     const saved = localStorage.getItem(SAVED_GENDER_KEY)
@@ -102,30 +95,8 @@ export default function CarouselIndex() {
   // Стоимость одной генерации
   const GENERATION_COST = 30
 
-  // Проверка подписки premium_clients
-  const { data: hasSubscription, isLoading: isCheckingSubscription } = useQuery({
-    queryKey: ['carousel-subscription', telegramUser?.id],
-    queryFn: async () => {
-      if (!telegramUser?.id) return false
-
-      const { data, error } = await supabase
-        .from('premium_clients')
-        .select('id')
-        .eq('telegram_id', telegramUser.id)
-        .maybeSingle()
-
-      if (error) {
-        console.error('Error checking subscription:', error)
-        return false
-      }
-
-      return !!data
-    },
-    enabled: !!telegramUser?.id,
-  })
-
-  // Получаем баланс монет
-  const { data: coinBalance = 0, isLoading: isLoadingCoins, refetch: refetchBalance } = useQuery({
+  // Получаем баланс монет (проверка только при генерации)
+  const { data: coinBalance = 0, refetch: refetchBalance } = useQuery({
     queryKey: ['coin-balance', telegramUser?.id],
     queryFn: async () => {
       if (!telegramUser?.id) return 0
@@ -133,10 +104,6 @@ export default function CarouselIndex() {
     },
     enabled: !!telegramUser?.id,
   })
-
-  // Доступ есть если подписка ИЛИ достаточно монет
-  const hasAccess = hasSubscription || coinBalance >= GENERATION_COST
-  const isCheckingAccess = isCheckingSubscription || isLoadingCoins
 
   // Модальные окна закрываются системной кнопкой назад (через Layout.tsx)
   // Кастомная логика для модалок не нужна — просто закрываем при navigate(-1)
@@ -408,7 +375,7 @@ export default function CarouselIndex() {
               <>
                 <span>Сгенерировать за {GENERATION_COST}</span>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
-                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                  <circle cx="12" cy="12" r="10" fill="currentColor" />
                   <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
                 </svg>
               </>
@@ -419,67 +386,7 @@ export default function CarouselIndex() {
     )
   }
 
-  // ========== LOADING ==========
-  if (isCheckingAccess) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <LoaderIcon size={32} className="animate-spin text-orange-500 mx-auto mb-3" />
-          <p className="text-gray-500">Проверка доступа...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // ========== NO ACCESS ==========
-  if (!hasAccess) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        {/* Header */}
-        <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => navigate('/')}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-700">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">Карусель</h1>
-              <p className="text-xs text-gray-400">Требуется подписка</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Locked content */}
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="text-center max-w-sm">
-            <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <LockIcon className="text-gray-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h2>
-            <p className="text-gray-500 mb-6">
-              Создание каруселей доступно для пользователей с активной подпиской или достаточным балансом монет.
-            </p>
-            <button
-              onClick={() => navigate('/shop')}
-              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
-            >
-              Оформить подписку
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Доступ открыт для всех — проверка монет только при генерации
 
   // ========== MAIN PAGE ==========
   return (
@@ -498,7 +405,7 @@ export default function CarouselIndex() {
         {/* Balance badge */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500">
-            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="10" />
           </svg>
           <span className="text-sm font-semibold text-orange-600">{coinBalance}</span>
         </div>
@@ -571,21 +478,19 @@ export default function CarouselIndex() {
           <div className="flex bg-gray-100 rounded-full p-0.5">
             <button
               onClick={() => handleGenderChange('male')}
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${
-                gender === 'male'
-                  ? 'bg-white text-gray-700 shadow-sm'
-                  : 'text-gray-400'
-              }`}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${gender === 'male'
+                ? 'bg-white text-gray-700 shadow-sm'
+                : 'text-gray-400'
+                }`}
             >
               ♂
             </button>
             <button
               onClick={() => handleGenderChange('female')}
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${
-                gender === 'female'
-                  ? 'bg-white text-gray-700 shadow-sm'
-                  : 'text-gray-400'
-              }`}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${gender === 'female'
+                ? 'bg-white text-gray-700 shadow-sm'
+                : 'text-gray-400'
+                }`}
             >
               ♀
             </button>
@@ -606,7 +511,7 @@ export default function CarouselIndex() {
         >
           <span>Создать за {GENERATION_COST}</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
-            <circle cx="12" cy="12" r="10" fill="currentColor"/>
+            <circle cx="12" cy="12" r="10" fill="currentColor" />
             <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
           </svg>
         </button>
@@ -714,7 +619,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <button onClick={onClose} className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
         <h2 className="text-lg font-bold text-gray-900">Выбери стиль</h2>
@@ -729,7 +634,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6"/>
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
 
@@ -743,7 +648,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18l6-6-6-6"/>
+              <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
@@ -754,9 +659,8 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             <button
               key={s.id}
               onClick={() => setSelectedStyle(s.id)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                i === styleIndex ? 'w-6 bg-orange-500' : 'bg-gray-300'
-              }`}
+              className={`w-2 h-2 rounded-full transition-all ${i === styleIndex ? 'w-6 bg-orange-500' : 'bg-gray-300'
+                }`}
             />
           ))}
         </div>
@@ -785,9 +689,8 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             onClick={() => setSaveAsDefault(!saveAsDefault)}
             className={`w-12 h-7 rounded-full transition-colors relative ${saveAsDefault ? 'bg-orange-500' : 'bg-gray-300'}`}
           >
-            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
-              saveAsDefault ? 'left-6' : 'left-1'
-            }`} />
+            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${saveAsDefault ? 'left-6' : 'left-1'
+              }`} />
           </button>
         </div>
 
@@ -962,9 +865,8 @@ function TipsModal({ onClose }: TipsModalProps) {
             <button
               key={i}
               onClick={() => setCurrentTip(i)}
-              className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                i === currentTip ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200'
-              }`}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${i === currentTip ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200'
+                }`}
             />
           ))}
         </div>
