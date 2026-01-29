@@ -39,8 +39,15 @@ N8N используется для:
 **URL:** `https://n8n.iferma.pro/webhook/carousel-v2`  
 **Метод:** POST  
 **Workflow:** AI CITI карусели (RgapTTGAu6acuaGc)  
+**Error Workflow:** AI CITI — Refund при ошибке карусели (5xeeTKBqJ6BN14eo) — при ошибке возвращает 30 монет и шлёт сообщение в Telegram  
 **API:** OpenRouter (google/gemini-3-pro-preview для Copywriter, google/gemini-3-pro-image-preview для изображений)  
 **Тело запроса:** chatId, topic, userPhoto, cta, gender, styleConfig, vasiaCore (см. `src/pages/agents/carousel/content.tsx`, `index.tsx`)
+
+### 3. Refund при ошибке (Edge Function)
+**URL:** `https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/refund-carousel-coins`  
+**Метод:** POST  
+**Тело:** `{ chatId?: number, executionId?: string, amount?: number, reason?: string }`  
+**Секреты Supabase:** `N8N_API_KEY` (для получения chatId из executionId), `REFUND_WEBHOOK_SECRET` (опционально, для защиты)
 
 ---
 
