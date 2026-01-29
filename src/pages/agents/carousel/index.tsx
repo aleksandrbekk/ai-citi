@@ -515,6 +515,59 @@ export default function CarouselIndex() {
             <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
           </svg>
         </button>
+
+        {/* Style Marketplace Teaser */}
+        <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl p-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-purple-500">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                <line x1="7" y1="7" x2="7.01" y2="7" />
+              </svg>
+              <span className="font-bold text-gray-900 text-sm">Style Marketplace</span>
+            </div>
+            <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-[10px] font-bold rounded-full uppercase tracking-wide">
+              Скоро
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-500 mb-3">
+            Эксклюзивные стили для твоих каруселей
+          </p>
+
+          {/* Style Previews */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {[
+              { src: '/styles/marketplace/crypto.png', name: 'Crypto Gold' },
+              { src: '/styles/marketplace/product.png', name: 'Product Pro' },
+              { src: '/styles/marketplace/neon.png', name: 'Neon City' },
+            ].map((style, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-20 relative group cursor-pointer"
+              >
+                <img
+                  src={style.src}
+                  alt={style.name}
+                  className="w-20 h-20 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-shadow"
+                />
+                <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <p className="text-[10px] text-gray-600 text-center mt-1 truncate">{style.name}</p>
+              </div>
+            ))}
+
+            {/* More coming */}
+            <div className="flex-shrink-0 w-20 h-20 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-dashed border-purple-200 flex flex-col items-center justify-center">
+              <span className="text-xl">✨</span>
+              <span className="text-[10px] text-purple-500 font-medium">+10</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Style Modal */}

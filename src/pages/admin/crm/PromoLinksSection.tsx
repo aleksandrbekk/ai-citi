@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Copy, Trash2, Check, ExternalLink, Coins, Gift } from 'lucide-react'
+import { Plus, Copy, Trash2, Check, ExternalLink, Coins, Gift, BarChart3 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
@@ -29,12 +29,11 @@ export default function PromoLinksSection() {
     const [isLoading, setIsLoading] = useState(true)
     const [showForm, setShowForm] = useState(false)
     const [copiedId, setCopiedId] = useState<string | null>(null)
+    const [isCreating, setIsCreating] = useState(false)
 
-    // Form state
-    const [newCode, setNewCode] = useState('')
+    // Упрощённая форма: только монеты и описание
     const [newCoins, setNewCoins] = useState(50)
     const [newDescription, setNewDescription] = useState('')
-    const [newMaxUses, setNewMaxUses] = useState<number | ''>('')
 
     useEffect(() => {
         fetchPromoLinks()
@@ -71,53 +70,52 @@ export default function PromoLinksSection() {
             }
         } catch (error) {
             console.error('Error fetching promo links:', error)
+            toast.error('Ошибка загрузки')
         } finally {
             setIsLoading(false)
         }
     }
 
+    // Автогенерация кода
     const generateCode = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         let code = ''
         for (let i = 0; i < 8; i++) {
             code += chars.charAt(Math.floor(Math.random() * chars.length))
         }
-        setNewCode(code)
+        return code
     }
 
     const createPromoLink = async () => {
-        if (!newCode.trim()) {
-            toast.error('Введите код промо-ссылки')
+        if (newCoins < 1) {
+            toast.error('Укажите количество монет')
             return
         }
 
+        setIsCreating(true)
         try {
+            const code = generateCode() // Автогенерация кода
+
             const { error } = await supabase
                 .from('promo_links')
                 .insert({
-                    code: newCode.toUpperCase(),
+                    code: code,
                     coins_amount: newCoins,
-                    description: newDescription || null,
-                    max_uses: newMaxUses || null,
+                    description: newDescription.trim() || null,
                 })
 
             if (error) throw error
 
-            toast.success('Промо-ссылка создана!')
-            setNewCode('')
+            toast.success(`Промо-ссылка ${code} создана!`)
             setNewCoins(50)
             setNewDescription('')
-            setNewMaxUses('')
             setShowForm(false)
-            fetchPromoLinks()
+            await fetchPromoLinks()
         } catch (error: unknown) {
             console.error('Error creating promo link:', error)
-            const err = error as { code?: string }
-            if (err.code === '23505') {
-                toast.error('Код уже существует')
-            } else {
-                toast.error('Ошибка создания')
-            }
+            toast.error('Ошибка создания')
+        } finally {
+            setIsCreating(false)
         }
     }
 
@@ -161,125 +159,95 @@ export default function PromoLinksSection() {
 
     const getStats = (id: string) => stats.get(id) || { total_claims: 0, total_coins: 0 }
 
-    const isExpired = (expiresAt: string | null) => {
-        if (!expiresAt) return false
-        return new Date(expiresAt) < new Date()
-    }
+    const totalClaims = Array.from(stats.values()).reduce((acc, s) => acc + s.total_claims, 0)
+    const totalCoins = Array.from(stats.values()).reduce((acc, s) => acc + s.total_coins, 0)
 
     if (isLoading) {
         return <div className="text-center py-8 text-gray-500">Загрузка...</div>
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-5">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Gift className="w-5 h-5 text-orange-400" />
+                        <Gift className="w-5 h-5 text-orange-500" />
                         Промо-ссылки
                     </h3>
                     <p className="text-sm text-gray-500">Одноразовые бонусы за переход</p>
                 </div>
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors text-sm"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors text-sm font-medium w-full sm:w-auto"
                 >
                     <Plus className="w-4 h-4" />
-                    Создать
+                    Создать промо
                 </button>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold">{promoLinks.length}</div>
-                    <div className="text-xs text-gray-500">Ссылок</div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-gray-900">{promoLinks.length}</div>
+                    <div className="text-xs text-gray-500 mt-1">Ссылок</div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-green-500">
-                        {Array.from(stats.values()).reduce((acc, s) => acc + s.total_claims, 0)}
-                    </div>
-                    <div className="text-xs text-gray-500">Активаций</div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-green-600">{totalClaims}</div>
+                    <div className="text-xs text-gray-500 mt-1">Активаций</div>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-amber-500">
-                        {Array.from(stats.values()).reduce((acc, s) => acc + s.total_coins, 0)}
-                    </div>
-                    <div className="text-xs text-gray-500">Монет</div>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-amber-600">{totalCoins}</div>
+                    <div className="text-xs text-gray-500 mt-1">Монет выдано</div>
                 </div>
             </div>
 
-            {/* Create Form */}
+            {/* Create Form - упрощённая */}
             {showForm && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+                    <h4 className="font-medium text-gray-900">Новая промо-ссылка</h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs text-gray-500 mb-1">Код</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={newCode}
-                                    onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                                    placeholder="BONUS50"
-                                    className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={generateCode}
-                                    className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
-                                >
-                                    🎲
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Монеты</label>
+                            <label className="block text-sm text-gray-600 mb-2">
+                                Количество монет *
+                            </label>
                             <input
                                 type="number"
                                 value={newCoins}
                                 onChange={(e) => setNewCoins(Number(e.target.value))}
                                 min={1}
-                                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                                placeholder="50"
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             />
                         </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs text-gray-500 mb-1">Описание</label>
+                            <label className="block text-sm text-gray-600 mb-2">
+                                Источник трафика
+                            </label>
                             <input
                                 type="text"
                                 value={newDescription}
                                 onChange={(e) => setNewDescription(e.target.value)}
-                                placeholder="Для Reels кампании"
-                                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Лимит</label>
-                            <input
-                                type="number"
-                                value={newMaxUses}
-                                onChange={(e) => setNewMaxUses(e.target.value ? Number(e.target.value) : '')}
-                                placeholder="∞"
-                                min={1}
-                                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                                placeholder="Instagram Reels, Telegram..."
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             />
                         </div>
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         <button
                             onClick={() => setShowForm(false)}
-                            className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+                            className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors"
                         >
                             Отмена
                         </button>
                         <button
                             onClick={createPromoLink}
-                            disabled={!newCode.trim()}
-                            className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 rounded-lg text-sm font-medium"
+                            disabled={isCreating || newCoins < 1}
+                            className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
                         >
-                            Создать
+                            {isCreating ? 'Создание...' : 'Создать'}
                         </button>
                     </div>
                 </div>
@@ -287,82 +255,109 @@ export default function PromoLinksSection() {
 
             {/* Links List */}
             {promoLinks.length === 0 ? (
-                <div className="text-center py-8 bg-white border border-gray-200 rounded-lg">
-                    <Gift className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                    <p className="text-gray-500 text-sm">Нет промо-ссылок</p>
+                <div className="text-center py-12 bg-white border border-gray-200 rounded-xl">
+                    <Gift className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 mb-4">Нет промо-ссылок</p>
+                    <button
+                        onClick={() => setShowForm(true)}
+                        className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
+                    >
+                        Создать первую
+                    </button>
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {promoLinks.map(link => {
                         const linkStats = getStats(link.id)
-                        const expired = isExpired(link.expires_at)
-                        const limitReached = link.max_uses && link.uses_count >= link.max_uses
 
                         return (
                             <div
                                 key={link.id}
-                                className={`bg-white border rounded-lg p-3 ${!link.is_active || expired || limitReached ? 'opacity-60' : 'border-gray-200'
+                                className={`bg-white border rounded-xl p-4 transition-all ${link.is_active
+                                        ? 'border-gray-200 hover:border-gray-300'
+                                        : 'border-gray-200 opacity-50'
                                     }`}
                             >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono font-bold text-orange-500">{link.code}</span>
-                                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-xs flex items-center gap-1">
-                                            <Coins className="w-3 h-3" />
-                                            {link.coins_amount}
-                                        </span>
-                                        {!link.is_active && (
-                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs">Выкл</span>
-                                        )}
-                                        {expired && (
-                                            <span className="px-2 py-0.5 bg-red-100 text-red-500 rounded text-xs">Истёк</span>
-                                        )}
-                                        {limitReached && (
-                                            <span className="px-2 py-0.5 bg-orange-100 text-orange-500 rounded text-xs">Лимит</span>
+                                {/* Row 1: Code + Coins + Actions */}
+                                <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                                    <div className="flex flex-col gap-2">
+                                        {/* Code badge */}
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-mono text-sm font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg">
+                                                {link.code}
+                                            </span>
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-sm font-semibold">
+                                                <Coins className="w-4 h-4" />
+                                                {link.coins_amount}
+                                            </span>
+                                            {!link.is_active && (
+                                                <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-xs">
+                                                    Неактивна
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Description */}
+                                        {link.description && (
+                                            <p className="text-sm text-gray-600">
+                                                📍 {link.description}
+                                            </p>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-1">
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-1 flex-shrink-0">
                                         <button
                                             onClick={() => copyLink(link.code, link.id)}
-                                            className="p-1.5 hover:bg-gray-100 rounded"
+                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                            title="Копировать ссылку"
                                         >
                                             {copiedId === link.id ? (
-                                                <Check className="w-4 h-4 text-green-500" />
+                                                <Check className="w-5 h-5 text-green-500" />
                                             ) : (
-                                                <Copy className="w-4 h-4 text-gray-400" />
+                                                <Copy className="w-5 h-5 text-gray-400" />
                                             )}
                                         </button>
                                         <a
                                             href={`https://t.me/${BOT_USERNAME}?startapp=${link.code}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="p-1.5 hover:bg-gray-100 rounded"
+                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                            title="Открыть ссылку"
                                         >
-                                            <ExternalLink className="w-4 h-4 text-gray-400" />
+                                            <ExternalLink className="w-5 h-5 text-gray-400" />
                                         </a>
                                         <button
                                             onClick={() => toggleActive(link.id, link.is_active)}
-                                            className={`px-2 py-1 rounded text-xs ${link.is_active
-                                                    ? 'bg-gray-100 text-gray-600'
-                                                    : 'bg-green-100 text-green-600'
+                                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${link.is_active
+                                                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                                                    : 'bg-green-100 hover:bg-green-200 text-green-700'
                                                 }`}
                                         >
                                             {link.is_active ? 'Выкл' : 'Вкл'}
                                         </button>
                                         <button
                                             onClick={() => deletePromoLink(link.id)}
-                                            className="p-1.5 hover:bg-red-50 rounded"
+                                            className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Удалить"
                                         >
-                                            <Trash2 className="w-4 h-4 text-red-400" />
+                                            <Trash2 className="w-5 h-5 text-red-400" />
                                         </button>
                                     </div>
                                 </div>
-                                {link.description && (
-                                    <p className="text-xs text-gray-500 mb-2">{link.description}</p>
-                                )}
-                                <div className="flex items-center gap-4 text-xs text-gray-500">
-                                    <span>Активаций: <strong className="text-green-500">{linkStats.total_claims}</strong> / {link.max_uses || '∞'}</span>
-                                    <span>Монет выдано: <strong className="text-amber-500">{linkStats.total_coins}</strong></span>
+
+                                {/* Stats Row */}
+                                <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
+                                    <div className="flex items-center gap-2">
+                                        <BarChart3 className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm text-gray-500">Активаций:</span>
+                                        <span className="text-sm font-bold text-green-600">{linkStats.total_claims}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Coins className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm text-gray-500">Выдано:</span>
+                                        <span className="text-sm font-bold text-amber-600">{linkStats.total_coins}</span>
+                                    </div>
                                 </div>
                             </div>
                         )
