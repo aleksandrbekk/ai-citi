@@ -691,11 +691,14 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
         <p className="text-xs text-gray-400 mb-3 text-center">Примеры слайдов в этом стиле</p>
         <div className="grid grid-cols-3 gap-2">
           {examples.map((src, i) => (
-            <div
-              key={i}
-              className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden"
-              style={{ backgroundImage: `url(${src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-            />
+            <div key={i} className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden">
+              <img
+                src={src}
+                alt={`Пример ${i + 1}`}
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+            </div>
           ))}
         </div>
       </div>
