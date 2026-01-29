@@ -204,37 +204,63 @@ export default function PromoLinksSection() {
 
             {/* Create Form - упрощённая */}
             {showForm && (
-                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-5">
                     <h4 className="font-medium text-gray-900">Новая промо-ссылка</h4>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-2">
-                                Количество монет *
-                            </label>
-                            <input
-                                type="number"
-                                value={newCoins}
-                                onChange={(e) => setNewCoins(Number(e.target.value))}
-                                min={1}
-                                placeholder="50"
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            />
+                    {/* Монеты - ползунок с пресетами */}
+                    <div>
+                        <label className="block text-sm text-gray-600 mb-3">
+                            Количество монет: <span className="font-bold text-orange-600 text-lg">{newCoins}</span>
+                        </label>
+
+                        {/* Пресеты */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {[10, 25, 50, 100, 200, 500].map(preset => (
+                                <button
+                                    key={preset}
+                                    type="button"
+                                    onClick={() => setNewCoins(preset)}
+                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${newCoins === preset
+                                            ? 'bg-orange-500 text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {preset}
+                                </button>
+                            ))}
                         </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-2">
-                                Источник трафика
-                            </label>
-                            <input
-                                type="text"
-                                value={newDescription}
-                                onChange={(e) => setNewDescription(e.target.value)}
-                                placeholder="Instagram Reels, Telegram..."
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            />
+
+                        {/* Ползунок */}
+                        <input
+                            type="range"
+                            min={10}
+                            max={500}
+                            step={10}
+                            value={newCoins}
+                            onChange={(e) => setNewCoins(Number(e.target.value))}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                        />
+                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                            <span>10</span>
+                            <span>500</span>
                         </div>
                     </div>
 
+                    {/* Источник трафика */}
+                    <div>
+                        <label className="block text-sm text-gray-600 mb-2">
+                            Источник трафика
+                        </label>
+                        <input
+                            type="text"
+                            value={newDescription}
+                            onChange={(e) => setNewDescription(e.target.value)}
+                            placeholder="Instagram Reels, Telegram, YouTube..."
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        />
+                    </div>
+
+                    {/* Кнопки */}
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         <button
                             onClick={() => setShowForm(false)}
@@ -245,9 +271,19 @@ export default function PromoLinksSection() {
                         <button
                             onClick={createPromoLink}
                             disabled={isCreating || newCoins < 1}
-                            className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
+                            className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
                         >
-                            {isCreating ? 'Создание...' : 'Создать'}
+                            {isCreating ? (
+                                <>
+                                    <span className="animate-spin">⏳</span>
+                                    Создание...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4" />
+                                    Создать ссылку
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -274,8 +310,8 @@ export default function PromoLinksSection() {
                             <div
                                 key={link.id}
                                 className={`bg-white border rounded-xl p-4 transition-all ${link.is_active
-                                        ? 'border-gray-200 hover:border-gray-300'
-                                        : 'border-gray-200 opacity-50'
+                                    ? 'border-gray-200 hover:border-gray-300'
+                                    : 'border-gray-200 opacity-50'
                                     }`}
                             >
                                 {/* Row 1: Code + Coins + Actions */}
@@ -330,8 +366,8 @@ export default function PromoLinksSection() {
                                         <button
                                             onClick={() => toggleActive(link.id, link.is_active)}
                                             className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${link.is_active
-                                                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                                                    : 'bg-green-100 hover:bg-green-200 text-green-700'
+                                                ? 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                                                : 'bg-green-100 hover:bg-green-200 text-green-700'
                                                 }`}
                                         >
                                             {link.is_active ? 'Выкл' : 'Вкл'}

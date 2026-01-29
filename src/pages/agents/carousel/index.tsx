@@ -26,13 +26,6 @@ const STYLE_PREVIEWS: Record<StyleId, string> = {
 }
 
 // SVG иконки (thin-line, без эмодзи)
-const CarouselIcon = ({ className = '' }: { className?: string }) => (
-  <svg className={className} width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="6" width="6" height="12" rx="1" />
-    <rect x="9" y="4" width="6" height="16" rx="1" />
-    <rect x="16" y="6" width="6" height="12" rx="1" />
-  </svg>
-)
 
 const CameraIcon = ({ className = '' }: { className?: string }) => (
   <svg className={className} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -394,8 +387,8 @@ export default function CarouselIndex() {
       {/* Compact Header */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/20">
-            <CarouselIcon className="text-white w-5 h-5" />
+          <div className="w-11 h-11 rounded-xl overflow-hidden shadow-md shadow-orange-500/20">
+            <img src="/carousel-icon.png" alt="AI Карусель" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900">AI Карусель</h1>
@@ -507,64 +500,53 @@ export default function CarouselIndex() {
         {/* Create Button */}
         <button
           onClick={handleCreate}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl hover:shadow-orange-500/40"
         >
           <span>Создать за {GENERATION_COST}</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
             <circle cx="12" cy="12" r="10" fill="currentColor" />
             <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
           </svg>
         </button>
 
         {/* Style Marketplace Teaser */}
-        <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl p-4 border border-gray-100">
+        <div className="mt-6 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-2xl p-4 border-2 border-purple-100/50 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-purple-500">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                <line x1="7" y1="7" x2="7.01" y2="7" />
-              </svg>
-              <span className="font-bold text-gray-900 text-sm">Style Marketplace</span>
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
+              </div>
+              <span className="font-bold text-gray-900">Style Marketplace</span>
             </div>
-            <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-[10px] font-bold rounded-full uppercase tracking-wide">
+            <span className="px-2.5 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full uppercase tracking-wide shadow-lg shadow-purple-500/30">
               Скоро
             </span>
           </div>
 
-          <p className="text-xs text-gray-500 mb-3">
-            Эксклюзивные стили для твоих каруселей
+          <p className="text-sm text-gray-600 mb-4">
+            Эксклюзивные стили для твоих каруселей ✨
           </p>
 
-          {/* Style Previews */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {[
-              { src: '/styles/marketplace/crypto.png', name: 'Crypto Gold' },
-              { src: '/styles/marketplace/product.png', name: 'Product Pro' },
-              { src: '/styles/marketplace/neon.png', name: 'Neon City' },
-            ].map((style, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-20 relative group cursor-pointer"
-              >
-                <img
-                  src={style.src}
-                  alt={style.name}
-                  className="w-20 h-20 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-shadow"
-                />
-                <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <p className="text-[10px] text-gray-600 text-center mt-1 truncate">{style.name}</p>
-              </div>
-            ))}
+          {/* Main Preview Image */}
+          <div className="relative rounded-xl overflow-hidden border-2 border-white shadow-lg">
+            <img
+              src="/styles/marketplace/sets_preview.jpg"
+              alt="Style Marketplace Preview"
+              className="w-full h-auto object-cover"
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-            {/* More coming */}
-            <div className="flex-shrink-0 w-20 h-20 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-dashed border-purple-200 flex flex-col items-center justify-center">
-              <span className="text-xl">✨</span>
-              <span className="text-[10px] text-purple-500 font-medium">+10</span>
+            {/* Lock Badge */}
+            <div className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-700">+10 стилей</span>
             </div>
           </div>
         </div>
