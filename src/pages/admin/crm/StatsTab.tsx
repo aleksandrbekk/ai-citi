@@ -8,7 +8,9 @@ import {
   ShoppingCart,
   Sparkles,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  AlertCircle,
+  Users
 } from 'lucide-react'
 
 interface CoinTransaction {
@@ -20,6 +22,37 @@ interface CoinTransaction {
   description: string
   metadata: Record<string, unknown> | null
   created_at: string
+}
+
+interface CarouselRefund {
+  id: string
+  user_id: string
+  telegram_id: number
+  username: string | null
+  amount: number
+  balance_after: number
+  description: string | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+interface CarouselStatsSummary {
+  total_generations: number
+  total_refunds: number
+  total_coins_spent: number
+  total_coins_refunded: number
+  week_generations: number
+  week_refunds: number
+}
+
+interface CarouselStatsByUser {
+  user_id: string
+  telegram_id: number
+  username: string | null
+  generations_count: number
+  refunds_count: number
+  coins_spent: number
+  coins_refunded: number
 }
 
 // Типы пакетов монет
@@ -58,6 +91,33 @@ export default function StatsTab() {
     }
   })
 
+  // Возвраты монет при ошибках генерации
+  const { data: carouselRefunds } = useQuery<CarouselRefund[]>({
+    queryKey: ['carousel_refunds_stats'],
+    queryFn: async () => {
+      const { data } = await supabase.rpc('admin_get_carousel_refunds')
+      return (data as CarouselRefund[]) || []
+    }
+  })
+
+  // Сводка: генерации и возвраты (для карточек)
+  const { data: statsSummary } = useQuery<CarouselStatsSummary[]>({
+    queryKey: ['carousel_stats_summary'],
+    queryFn: async () => {
+      const { data } = await supabase.rpc('admin_get_carousel_stats_summary')
+      return (data as CarouselStatsSummary[]) || []
+    }
+  })
+
+  // По пользователям: генерации и возвраты
+  const { data: statsByUser } = useQuery<CarouselStatsByUser[]>({
+    queryKey: ['carousel_stats_by_user'],
+    queryFn: async () => {
+      const { data } = await supabase.rpc('admin_get_carousel_stats_by_user')
+      return (data as CarouselStatsByUser[]) || []
+    }
+  })
+
   // Расчёт статистики покупок
   const purchaseStats = {
     total: coinPurchases?.length || 0,
@@ -86,6 +146,17 @@ export default function StatsTab() {
       weekAgo.setDate(weekAgo.getDate() - 7)
       return new Date(g.created_at) >= weekAgo
     }).length || 0,
+  }
+
+  const summaryRow = statsSummary?.[0]
+  const refundStats = {
+    total: summaryRow?.total_refunds ?? carouselRefunds?.length ?? 0,
+    weekRefunds: summaryRow?.week_refunds ?? carouselRefunds?.filter(r => {
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      return new Date(r.created_at) >= weekAgo
+    }).length ?? 0,
+    totalCoinsRefunded: summaryRow?.total_coins_refunded ?? carouselRefunds?.reduce((s, r) => s + (r.amount || 0), 0) ?? 0,
   }
 
   // По стилям (null/undefined → '_legacy' для старых генераций)
@@ -171,6 +242,13 @@ export default function StatsTab() {
           subvalue="на генерации"
           color="bg-cyan-100 text-cyan-600"
         />
+        <StatCard
+          icon={AlertCircle}
+          label="Ошибки (возвраты)"
+          value={refundStats.total}
+          subvalue={`+${refundStats.weekRefunds} за неделю · возвращено ${refundStats.totalCoinsRefunded} монет`}
+          color="bg-red-100 text-red-600"
+        />
       </div>
 
       <div className="grid gap-4">
@@ -241,6 +319,85 @@ export default function StatsTab() {
           {(!coinPurchases || coinPurchases.length === 0) && (
             <p className="text-gray-500 text-center py-4">Пока нет покупок</p>
           )}
+        </div>
+
+        {/* Последние возвраты (ошибки генерации) */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+            <AlertCircle size={16} className="text-red-500" /> Последние возвраты
+          </h3>
+          <p className="text-gray-500 text-xs mb-3">
+            Когда генерация карусели падала — монеты возвращались пользователю. Здесь видно все такие случаи.
+          </p>
+          <div className="space-y-2">
+            {carouselRefunds?.slice(0, 10).map((refund, i) => (
+              <div key={refund.id || i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div>
+                  <span className="text-gray-900 text-sm">
+                    {new Date(refund.created_at).toLocaleString('ru-RU')}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-2">
+                    {refund.username ? `@${refund.username}` : `ID ${refund.telegram_id}`}
+                  </span>
+                </div>
+                <span className="text-red-600 font-medium">+{refund.amount} монет</span>
+              </div>
+            ))}
+            {(!carouselRefunds || carouselRefunds.length === 0) && (
+              <p className="text-gray-500 text-center py-4">Возвратов пока не было</p>
+            )}
+          </div>
+        </div>
+
+        {/* По пользователям: генерации и ошибки */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+            <Users size={16} className="text-indigo-500" /> По пользователям
+          </h3>
+          <p className="text-gray-500 text-xs mb-3">
+            Сколько раз каждый пользователь генерировал карусели и сколько раз получал возврат из-за ошибки.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 border-b border-gray-200">
+                  <th className="py-2 pr-2">Пользователь</th>
+                  <th className="py-2 pr-2 text-center">Генераций</th>
+                  <th className="py-2 pr-2 text-center">Возвратов</th>
+                  <th className="py-2 pr-2 text-right">Потрачено</th>
+                  <th className="py-2 pr-2 text-right">Возвращено</th>
+                </tr>
+              </thead>
+              <tbody>
+                {statsByUser?.slice(0, 20).map((row) => (
+                  <tr key={row.user_id} className="border-b border-gray-100">
+                    <td className="py-2 pr-2 text-gray-900">
+                      {row.username ? `@${row.username}` : `ID ${row.telegram_id}`}
+                    </td>
+                    <td className="py-2 pr-2 text-center">{row.generations_count}</td>
+                    <td className="py-2 pr-2 text-center">
+                      {row.refunds_count > 0 ? (
+                        <span className="text-red-600 font-medium">{row.refunds_count}</span>
+                      ) : (
+                        row.refunds_count
+                      )}
+                    </td>
+                    <td className="py-2 pr-2 text-right">{row.coins_spent}</td>
+                    <td className="py-2 pr-2 text-right">
+                      {row.coins_refunded > 0 ? (
+                        <span className="text-red-600">+{row.coins_refunded}</span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(!statsByUser || statsByUser.length === 0) && (
+              <p className="text-gray-500 text-center py-4">Нет данных</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
