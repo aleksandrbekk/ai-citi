@@ -33,4 +33,13 @@ gen-lang-client-*.json
 google-credentials.json
 docs/CREDENTIALS.md
 API_KEYS_AND_CONFIG.md
-.env*.local
+
+# Рабочие материалы (большие папки с изображениями)
+PLASHKI/
+SKIN/
+SKIN_V2/
+КАРУСЕЛИ/
+ОТБОР/
+Рендеры/
+ЛОГО/
+ЛОГОТИП/

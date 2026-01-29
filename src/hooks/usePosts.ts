@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
-const N8N_PUBLISH_WEBHOOK = 'https://n8n.iferma.pro/webhook/neuroposter-publish'
+// URL n8n теперь хранится в Edge Function для безопасности
 
 interface CreatePostData {
   caption: string
@@ -20,19 +20,19 @@ export function usePosts() {
     const tg = window.Telegram?.WebApp
     if (tg?.initDataUnsafe?.user?.id) {
       const telegramId = tg.initDataUnsafe.user.id
-      
+
       const { data } = await supabase
         .from('users')
         .select('id')
         .eq('telegram_id', telegramId)
         .single()
-      
+
       if (data?.id) {
         console.log('Got user_id from Telegram:', data.id)
         return data.id
       }
     }
-    
+
     // Fallback: хардкод для тестирования вне Telegram
     const FALLBACK_USER_ID = 'fe23f297-c1da-46b3-9f21-1e13a2ca9165'
     console.log('Using fallback user_id:', FALLBACK_USER_ID)
@@ -42,28 +42,28 @@ export function usePosts() {
   // Загрузка медиа в Storage
   const uploadMedia = async (postId: string, files: File[]) => {
     const uploadedMedia = []
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const fileExt = file.name.split('.').pop() || 'jpg'
       const fileName = `${postId}/${i + 1}_${Date.now()}.${fileExt}`
-      
+
       const { error: uploadError } = await supabase.storage
         .from('poster-media')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         })
-      
+
       if (uploadError) {
         console.error('Upload error:', uploadError)
         throw new Error(`Ошибка загрузки: ${uploadError.message}`)
       }
-      
+
       const { data: { publicUrl } } = supabase.storage
         .from('poster-media')
         .getPublicUrl(fileName)
-      
+
       uploadedMedia.push({
         order_index: i + 1,
         storage_path: fileName,
@@ -71,7 +71,7 @@ export function usePosts() {
         file_size: file.size
       })
     }
-    
+
     return uploadedMedia
   }
 
@@ -83,14 +83,14 @@ export function usePosts() {
     try {
       // Получаем user_id
       const userId = await getUserId()
-      
+
       if (!userId) {
         throw new Error('Пользователь не найден. Перезайдите в приложение.')
       }
 
       // 1. Создаём пост в БД
       const status = data.scheduledAt ? 'scheduled' : 'draft'
-      
+
       const { data: post, error: postError } = await supabase
         .from('scheduled_posts')
         .insert({
@@ -109,7 +109,7 @@ export function usePosts() {
       // 2. Загружаем медиа
       if (data.mediaFiles.length > 0) {
         const uploadedMedia = await uploadMedia(post.id, data.mediaFiles)
-        
+
         // 3. Сохраняем медиа в БД
         const { error: mediaError } = await supabase
           .from('post_media')
@@ -318,23 +318,18 @@ export const usePublishToInstagram = () => {
         .sort((a: any, b: any) => a.order_index - b.order_index)
         .map((m: any) => m.public_url)
 
-      // Отправляем в n8n
-      const response = await fetch(N8N_PUBLISH_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Отправляем через Edge Function (URL n8n скрыт)
+      const { data: result, error } = await supabase.functions.invoke('n8n-publish-proxy', {
+        body: {
           postId: post.id,
           caption: post.caption || '',
           imageUrls
-        })
+        }
       })
 
-      if (!response.ok) {
-        const error = await response.text()
-        throw new Error(`Publish failed: ${error}`)
+      if (error) {
+        throw new Error(`Publish failed: ${error.message}`)
       }
-
-      const result = await response.json()
 
       // Обновляем статус поста
       await supabase
