@@ -36,9 +36,11 @@ N8N используется для:
 ```
 
 ### 2. Генерация каруселей
-**URL:** `https://n8n.iferma.pro/webhook/client-carousel`  
+**URL:** `https://n8n.iferma.pro/webhook/carousel-v2`  
 **Метод:** POST  
-**Тело запроса:** (см. `src/pages/agents/carousel/content.tsx`)
+**Workflow:** AI CITI карусели (RgapTTGAu6acuaGc)  
+**API:** OpenRouter (google/gemini-3-pro-preview для Copywriter, google/gemini-3-pro-image-preview для изображений)  
+**Тело запроса:** chatId, topic, userPhoto, cta, gender, styleConfig, vasiaCore (см. `src/pages/agents/carousel/content.tsx`, `index.tsx`)
 
 ---
 

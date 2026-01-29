@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Coins, FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
+import { STYLE_CONFIGS, VASIA_CORE } from '@/lib/carouselStyles'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
@@ -104,9 +105,12 @@ export default function CarouselContent() {
       audience: audience || 'networkers', // Целевая аудитория
       customAudience: customAudience || '', // Своя ЦА
       gender: gender || 'male', // Пол для склонения текста (дефолт для обратной совместимости)
+      cta: ctaText?.split(/[—\-]/)[0]?.trim() || 'МАГИЯ', // CTA код для Copywriter
       cta_text: ctaText,
       cta_question: ctaQuestion,
       cta_benefits: ctaBenefits,
+      styleConfig: STYLE_CONFIGS[style || 'APPLE_GLASSMORPHISM'],
+      vasiaCore: VASIA_CORE,
       variables: {},
     }
 
