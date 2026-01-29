@@ -9,6 +9,7 @@ import AccessDenied from './components/AccessDenied'
 import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
 import { PageLoader } from '@/components/ui/PageLoader'
+import { usePromoCode } from '@/hooks/usePromoCode'
 
 // Быстрые страницы - обычный импорт
 import Home from '@/pages/Home'
@@ -98,6 +99,9 @@ function AppContent() {
   const [isChecking, setIsChecking] = useState(true)
   const setTariffs = useAuthStore((state) => state.setTariffs)
   const login = useAuthStore((state) => state.login)
+
+  // Обработка промокодов из startapp параметра
+  usePromoCode()
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
   const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral' || location.pathname === '/payment-success'
