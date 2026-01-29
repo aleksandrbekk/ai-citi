@@ -270,7 +270,7 @@ export default function UtmTab() {
   }
 
   const buildPromoUrl = (code: string) => {
-    return `https://t.me/${BOT_USERNAME}?startapp=${code}`
+    return `https://t.me/${BOT_USERNAME}/app?startapp=${code}`
   }
 
   const createPromoLink = async () => {
