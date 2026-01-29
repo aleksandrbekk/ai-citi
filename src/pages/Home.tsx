@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, PenTool, Loader2, Lock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, PenTool, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // Персонажи привязаны к разделам
@@ -186,22 +186,15 @@ export default function Home() {
                 </span>
               )}
             </div>
-            {/* Речь с typing эффектом */}
-            {loadingIds.has(currentCharacter.id) && !greetings[currentCharacter.id] ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 text-cyan-500 animate-spin" />
-                <p className="text-sm text-gray-400">Думаю...</p>
-              </div>
-            ) : (
-              <motion.p
-                className="text-base text-gray-800 leading-relaxed whitespace-pre-line font-medium"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {currentGreeting}
-              </motion.p>
-            )}
+            {/* Речь персонажа */}
+            <motion.p
+              className="text-base text-gray-800 leading-relaxed whitespace-pre-line font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              {currentGreeting}
+            </motion.p>
           </div>
           {/* Хвостик */}
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r border-b border-gray-100/80 rotate-45 shadow-sm" />
@@ -307,14 +300,14 @@ export default function Home() {
               {/* Контент */}
               <div className="flex items-center gap-3 relative z-10">
                 <div className={`p-2 rounded-xl border ${currentCharacter.disabled
-                    ? 'bg-gradient-to-br from-gray-300/30 to-gray-400/20 border-gray-300/30'
-                    : 'bg-gradient-to-br from-cyan-400/30 to-cyan-500/20 border-cyan-300/30'
+                  ? 'bg-gradient-to-br from-gray-300/30 to-gray-400/20 border-gray-300/30'
+                  : 'bg-gradient-to-br from-cyan-400/30 to-cyan-500/20 border-cyan-300/30'
                   }`}>
                   <IconComponent size={20} className={currentCharacter.disabled ? 'text-gray-500' : 'text-cyan-600'} />
                 </div>
                 <span className={`text-sm font-medium transition-colors ${currentCharacter.disabled
-                    ? 'text-gray-500'
-                    : 'text-foreground/70 group-hover:text-foreground/90'
+                  ? 'text-gray-500'
+                  : 'text-foreground/70 group-hover:text-foreground/90'
                   }`}>
                   {characters[currentIndex].task}
                 </span>
