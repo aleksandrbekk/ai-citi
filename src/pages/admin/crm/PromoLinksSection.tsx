@@ -21,7 +21,7 @@ interface ClaimStats {
     total_coins: number
 }
 
-const BOT_USERNAME = 'aiciti_bot'
+const BOT_USERNAME = 'Neirociti_bot'
 
 export default function PromoLinksSection() {
     const [promoLinks, setPromoLinks] = useState<PromoLink[]>([])
@@ -221,8 +221,8 @@ export default function PromoLinksSection() {
                                     type="button"
                                     onClick={() => setNewCoins(preset)}
                                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${newCoins === preset
-                                            ? 'bg-orange-500 text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        ? 'bg-orange-500 text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
                                     {preset}

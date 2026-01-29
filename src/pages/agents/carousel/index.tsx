@@ -530,24 +530,32 @@ export default function CarouselIndex() {
             Эксклюзивные стили для твоих каруселей ✨
           </p>
 
-          {/* Main Preview Image */}
-          <div className="relative rounded-xl overflow-hidden border-2 border-white shadow-lg">
-            <img
-              src="/styles/marketplace/sets_preview.jpg"
-              alt="Style Marketplace Preview"
-              className="w-full h-auto object-cover"
-            />
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-            {/* Lock Badge */}
-            <div className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-              <span className="text-xs font-semibold text-gray-700">+10 стилей</span>
-            </div>
+          {/* Style Previews - 4 icons */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {[
+              { src: '/styles/marketplace/crypto.png', name: 'Crypto Gold' },
+              { src: '/styles/marketplace/product.png', name: 'Product Pro' },
+              { src: '/styles/marketplace/neon.png', name: 'Neon City' },
+              { src: '/styles/marketplace/carousel_sets.jpg', name: 'Коллекции' },
+            ].map((style, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-20 relative group cursor-pointer"
+              >
+                <img
+                  src={style.src}
+                  alt={style.name}
+                  className="w-20 h-20 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-shadow"
+                />
+                <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <p className="text-[10px] text-gray-600 text-center mt-1 truncate">{style.name}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
