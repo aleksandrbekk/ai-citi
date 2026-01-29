@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, MessageCircle, Sparkles, BookOpen, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, PenTool, Loader2, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // Персонажи привязаны к разделам
@@ -13,28 +13,22 @@ const characters = [
     label: 'Создатель карусели',
     path: '/agents/carousel',
     task: 'Создать карусель',
-    defaultSpeech: 'Нужна карусель? 🎨 Нажми на меня!',
-    icon: Sparkles
+    defaultSpeech: 'Карусель за 2 минуты?\nЛегко! 🎨',
+    icon: Sparkles,
+    disabled: false,
+    comingSoon: false
   },
   {
-    id: 'assistant',
+    id: 'copywriter',
     skin: '/images/skins/skin_1.png',
-    name: 'Ассистент',
-    label: 'AI Помощник',
+    name: 'Копирайтер',
+    label: 'AI Тексты',
     path: '/chat',
-    task: 'Задай вопрос AI',
-    defaultSpeech: 'Есть вопрос? 🤔 Нажми — найдём ответ вместе!',
-    icon: MessageCircle
-  },
-  {
-    id: 'coach',
-    skin: '/images/skins/skin_3.png',
-    name: 'Коуч',
-    label: 'ИИ КОУЧ',
-    path: '/agents/karmalogik',
-    task: 'Получи совет по 6 Сутрам',
-    defaultSpeech: 'Есть вопрос о жизни? 🧘 Найдём ответ в Сутрах!',
-    icon: BookOpen
+    task: 'Написать текст',
+    defaultSpeech: 'Напишу любой текст\nза минуту ✍️',
+    icon: PenTool,
+    disabled: true,
+    comingSoon: true
   },
 ]
 
@@ -68,12 +62,12 @@ export default function Home() {
   const generateGreeting = async (characterId: string, forceNew = false) => {
     // Если уже загружается — не дублируем запрос
     if (loadingIds.has(characterId)) return
-    
+
     // Если есть кешированное и не нужно новое — используем кеш
     if (greetings[characterId] && !forceNew) return
 
     setLoadingIds(prev => new Set(prev).add(characterId))
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('character-greeting', {
         body: { characterId }
@@ -120,8 +114,9 @@ export default function Home() {
   };
 
   const handleCharacterTap = () => {
+    // Если персонаж disabled — не переходим
+    if (characters[currentIndex].disabled) return
     // Используем React Router для мгновенной SPA-навигации
-    // вместо window.location.href который вызывает полную перезагрузку страницы
     navigate(characters[currentIndex].path);
   }
 
@@ -174,28 +169,42 @@ export default function Home() {
           transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
         >
           {/* Основное окно */}
-          <div className="relative px-4 py-3 rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100">
+          <div className="relative px-5 py-4 rounded-2xl bg-white shadow-[0_4px_24px_rgba(0,0,0,0.1)] border border-gray-100/80">
             {/* Бейдж с именем */}
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyan-50 mb-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-              <span className="text-[10px] font-semibold text-cyan-600 uppercase">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-50 to-orange-50 mb-3">
+              <motion.div
+                className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-400"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <span className="text-xs font-bold text-cyan-700 tracking-wide">
                 {characters[currentIndex].name}
               </span>
+              {currentCharacter.comingSoon && (
+                <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold text-orange-600 bg-orange-100 rounded-full">
+                  СКОРО
+                </span>
+              )}
             </div>
-            {/* Речь */}
+            {/* Речь с typing эффектом */}
             {loadingIds.has(currentCharacter.id) && !greetings[currentCharacter.id] ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-cyan-500 animate-spin" />
                 <p className="text-sm text-gray-400">Думаю...</p>
               </div>
             ) : (
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <motion.p
+                className="text-base text-gray-800 leading-relaxed whitespace-pre-line font-medium"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
                 {currentGreeting}
-              </p>
+              </motion.p>
             )}
           </div>
           {/* Хвостик */}
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-gray-100 rotate-45" />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r border-b border-gray-100/80 rotate-45 shadow-sm" />
         </motion.div>
 
         {/* Область персонажа со стрелками */}
@@ -245,12 +254,12 @@ export default function Home() {
                     alt={characters[currentIndex].name}
                     className="h-72 w-72 object-contain pointer-events-none select-none"
                     draggable={false}
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
                   />
                 </motion.div>
               </AnimatePresence>
@@ -263,29 +272,50 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               onClick={handleCharacterTap}
-              className="relative cursor-pointer px-6 py-3 rounded-2xl
-                bg-gradient-to-b from-cyan-200/40 via-cyan-100/30 to-white/50
-                backdrop-blur-xl border border-cyan-200/50
-                shadow-[0_8px_32px_rgba(6,182,212,0.2),inset_0_1px_0_rgba(255,255,255,0.6)]
-                hover:shadow-[0_12px_40px_rgba(6,182,212,0.3)]
-                transition-all duration-300 group"
+              className={`relative px-6 py-3 rounded-2xl backdrop-blur-xl transition-all duration-300 group
+                ${currentCharacter.disabled
+                  ? 'cursor-not-allowed bg-gradient-to-b from-gray-200/40 via-gray-100/30 to-white/50 border border-gray-200/50 shadow-[0_8px_24px_rgba(100,100,100,0.15)]'
+                  : 'cursor-pointer bg-gradient-to-b from-cyan-200/40 via-cyan-100/30 to-white/50 border border-cyan-200/50 shadow-[0_8px_32px_rgba(6,182,212,0.2),inset_0_1px_0_rgba(255,255,255,0.6)] hover:shadow-[0_12px_40px_rgba(6,182,212,0.3)]'
+                }`}
             >
+              {/* Бейдж "Скоро" для disabled */}
+              {currentCharacter.comingSoon && (
+                <div className="absolute -top-2 -right-2 z-20">
+                  <motion.div
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500 to-orange-400 text-white text-[10px] font-bold shadow-lg"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Lock size={10} />
+                    СКОРО
+                  </motion.div>
+                </div>
+              )}
+
               {/* Блики */}
               <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
                 <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
-                <motion.div
-                  className="absolute top-2 right-6 w-1 h-1 bg-white rounded-full"
-                  animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
+                {!currentCharacter.disabled && (
+                  <motion.div
+                    className="absolute top-2 right-6 w-1 h-1 bg-white rounded-full"
+                    animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                )}
               </div>
 
               {/* Контент */}
               <div className="flex items-center gap-3 relative z-10">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-400/30 to-cyan-500/20 border border-cyan-300/30">
-                  <IconComponent size={20} className="text-cyan-600" />
+                <div className={`p-2 rounded-xl border ${currentCharacter.disabled
+                    ? 'bg-gradient-to-br from-gray-300/30 to-gray-400/20 border-gray-300/30'
+                    : 'bg-gradient-to-br from-cyan-400/30 to-cyan-500/20 border-cyan-300/30'
+                  }`}>
+                  <IconComponent size={20} className={currentCharacter.disabled ? 'text-gray-500' : 'text-cyan-600'} />
                 </div>
-                <span className="text-sm font-medium text-foreground/70 group-hover:text-foreground/90 transition-colors">
+                <span className={`text-sm font-medium transition-colors ${currentCharacter.disabled
+                    ? 'text-gray-500'
+                    : 'text-foreground/70 group-hover:text-foreground/90'
+                  }`}>
                   {characters[currentIndex].task}
                 </span>
               </div>
