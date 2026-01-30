@@ -161,7 +161,7 @@ export default function SimpleStyleEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-y-auto pb-safe" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="h-full overflow-y-auto bg-gray-50" style={{ maxHeight: 'calc(100vh - 80px)' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
