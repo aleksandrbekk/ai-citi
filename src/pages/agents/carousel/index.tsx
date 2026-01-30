@@ -710,7 +710,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
     <div className="fixed inset-0 z-50 flex flex-col bg-white">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <button onClick={onClose} className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors">
+        <button onClick={onClose} className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
@@ -724,7 +724,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
         <div className="flex items-center justify-between">
           <button
             onClick={goToPrev}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M15 18l-6-6 6-6" />
@@ -738,7 +738,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
 
           <button
             onClick={goToNext}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 18l6-6-6-6" />
@@ -752,7 +752,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             <button
               key={s.id}
               onClick={() => setSelectedStyle(s.id)}
-              className={`w-2 h-2 rounded-full transition-all ${i === styleIndex ? 'w-6 bg-orange-500' : 'bg-gray-300'
+              className={`w-2 h-2 rounded-full transition-all cursor-pointer ${i === styleIndex ? 'w-6 bg-orange-500' : 'bg-gray-300'
                 }`}
             />
           ))}
@@ -783,7 +783,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
           <span className="text-sm text-gray-600">Сохранить как основной</span>
           <button
             onClick={() => setSaveAsDefault(!saveAsDefault)}
-            className={`w-12 h-7 rounded-full transition-colors relative ${saveAsDefault ? 'bg-orange-500' : 'bg-gray-300'}`}
+            className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer ${saveAsDefault ? 'bg-orange-500' : 'bg-gray-300'}`}
           >
             <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${saveAsDefault ? 'left-6' : 'left-1'
               }`} />
@@ -795,7 +795,7 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             if (saveAsDefault) localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
             onSelect(selectedStyle)
           }}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-transform"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-transform cursor-pointer"
         >
           Выбрать этот стиль
         </button>

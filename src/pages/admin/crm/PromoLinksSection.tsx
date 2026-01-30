@@ -150,7 +150,7 @@ export default function PromoLinksSection() {
     }
 
     const copyLink = async (code: string, id: string) => {
-        const link = `https://t.me/${BOT_USERNAME}/app?startapp=${code}`
+        const link = `https://t.me/${BOT_USERNAME}?start=${code}`
         await navigator.clipboard.writeText(link)
         setCopiedId(id)
         toast.success('Ссылка скопирована!')
@@ -355,7 +355,7 @@ export default function PromoLinksSection() {
                                             )}
                                         </button>
                                         <a
-                                            href={`https://t.me/${BOT_USERNAME}/app?startapp=${link.code}`}
+                                            href={`https://t.me/${BOT_USERNAME}?start=${link.code}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"

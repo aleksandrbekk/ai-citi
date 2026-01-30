@@ -32,11 +32,8 @@ export function usePromoCode() {
         // Пропускаем реферальные ссылки (они обрабатываются отдельно)
         if (!startParam || startParam.startsWith('ref_')) return
 
-        // DEBUG: показать startParam
-        console.log('🎁 [usePromoCode] startParam detected:', startParam)
-        alert(`DEBUG: startParam = ${startParam}`)
-
         // Это промокод — обрабатываем
+        console.log('🎁 [usePromoCode] Processing promo code:', startParam)
         const claimPromoCode = async () => {
             processedRef.current = true
             setIsChecking(true)
