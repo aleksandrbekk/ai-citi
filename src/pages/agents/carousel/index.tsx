@@ -100,7 +100,7 @@ export default function CarouselIndex() {
     staleTime: 5 * 60 * 1000, // 5 минут
   })
 
-  // Используем стили из БД, если есть. Иначе - из кода (STYLES_INDEX)
+  // Используем стили из БД, если есть. Иначе — fallback на захардкоженные STYLES_INDEX
   const mergedStylesIndex = dbStyles.length > 0
     ? dbStyles.map(s => ({
         id: s.style_id as StyleId,
@@ -112,7 +112,29 @@ export default function CarouselIndex() {
       }))
     : STYLES_INDEX
 
-  // Функция получения конфига стиля (сначала БД, потом код)
+  // Локальные превью для fallback (когда БД пустая)
+  const LOCAL_STYLE_PREVIEWS: Record<StyleId, string> = {
+    APPLE_GLASSMORPHISM: '/styles/apple.jpg',
+    AESTHETIC_BEIGE: '/styles/beige.jpg',
+    SOFT_PINK_EDITORIAL: '/styles/pink.jpg',
+    MINIMALIST_LINE_ART: '/styles/minimal.jpg',
+    GRADIENT_MESH_3D: '/styles/gradient.jpg',
+  }
+
+  // Локальные примеры для fallback (когда БД пустая)
+  const getLocalExamples = (styleId: StyleId): string[] => {
+    const counts: Record<StyleId, number> = {
+      APPLE_GLASSMORPHISM: 9,
+      AESTHETIC_BEIGE: 9,
+      SOFT_PINK_EDITORIAL: 7,
+      MINIMALIST_LINE_ART: 9,
+      GRADIENT_MESH_3D: 9,
+    }
+    const count = counts[styleId] || 9
+    return Array.from({ length: count }, (_, i) => `/styles/${styleId}/example_${i + 1}.jpeg`)
+  }
+
+  // Функция получения конфига стиля (сначала БД, потом захардкоженные)
   const getStyleConfig = (styleId: StyleId) => {
     // Сначала ищем в БД
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
@@ -126,13 +148,19 @@ export default function CarouselIndex() {
   // Функция получения превью стиля
   const getStylePreview = (styleId: StyleId) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
-    return dbStyle?.preview_image || '/styles/default.jpg'
+    if (dbStyle?.preview_image) return dbStyle.preview_image
+    // Fallback на локальные превью
+    return LOCAL_STYLE_PREVIEWS[styleId] || '/styles/apple.jpg'
   }
 
   // Функция получения примеров стиля
   const getStyleExamples = (styleId: StyleId) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
-    return dbStyle?.example_images || []
+    if (dbStyle?.example_images && dbStyle.example_images.length > 0) {
+      return dbStyle.example_images
+    }
+    // Fallback на локальные примеры
+    return getLocalExamples(styleId)
   }
 
   // Загружаем сохранённый стиль
