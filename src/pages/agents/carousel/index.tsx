@@ -654,8 +654,6 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
     '/styles/SOFT_PINK_EDITORIAL/example_5.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_6.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_7.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_8.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_9.jpeg',
   ],
 
   MINIMALIST_LINE_ART: [
@@ -693,6 +691,11 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [hasError, setHasError] = useState(false)
 
+  // Swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const minSwipeDistance = 50
+
   // Safe access with fallbacks
   const styleIndex = STYLES_INDEX?.findIndex(s => s.id === selectedStyle) ?? 0
   const totalStyles = STYLES_INDEX?.length ?? 5
@@ -712,6 +715,29 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
     const newIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
     setSelectedStyle(STYLES_INDEX[newIndex].id)
     setLoadedImages(new Set()) // Reset for new style
+  }
+
+  // Swipe handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      goToNext()
+    } else if (isRightSwipe) {
+      goToPrev()
+    }
   }
 
   // Handle image load
@@ -766,7 +792,12 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white">
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Header with Navigation */}
       <div className="px-4 py-4 border-b border-gray-100/50">
         <div className="flex items-center justify-between">
