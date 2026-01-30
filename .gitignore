@@ -44,3 +44,6 @@ SKIN_V2/
 ЛОГО/
 ЛОГОТИП/
 .env*.local
+
+# Claude secrets (local only)
+.claude/secrets.local.json
