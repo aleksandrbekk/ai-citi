@@ -84,7 +84,7 @@ const AdminQuizAnalytics = lazy(() => import('./pages/admin/quizzes/QuizAnalytic
 const AdminQuizImageEditor = lazy(() => import('./pages/admin/quizzes/QuizImageEditor').then(m => ({ default: m.AdminQuizImageEditor })))
 const AiAnalytics = lazy(() => import('./pages/admin/AiAnalytics'))
 const CarouselStylesList = lazy(() => import('./pages/admin/carousel/StylesList'))
-const CarouselStyleEditor = lazy(() => import('./pages/admin/carousel/StyleEditor'))
+const CarouselStyleEditor = lazy(() => import('./pages/admin/carousel/SimpleStyleEditor'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
