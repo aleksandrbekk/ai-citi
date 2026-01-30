@@ -1,296 +1,202 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  Search,
-  Palette,
-  Download,
-  Code,
-  Database
-} from 'lucide-react'
-import {
-  getAllCarouselStyles,
-  deleteCarouselStyle,
-  updateCarouselStyle,
-  createCarouselStyle,
-  type CarouselStyleDB,
-  type CarouselStyleInput
-} from '@/lib/supabase'
-import { STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image } from 'lucide-react'
+import { getAllCarouselStyles, deleteCarouselStyle, updateCarouselStyle, type CarouselStyleDB } from '@/lib/supabase'
 
 export default function CarouselStylesList() {
   const navigate = useNavigate()
-  const [dbStyles, setDbStyles] = useState<CarouselStyleDB[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [copyingStyle, setCopyingStyle] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  const loadStyles = async () => {
-    setIsLoading(true)
-    const data = await getAllCarouselStyles()
-    setDbStyles(data)
-    setIsLoading(false)
-  }
+  // Загружаем стили из БД
+  const { data: styles = [], isLoading } = useQuery({
+    queryKey: ['admin-carousel-styles'],
+    queryFn: getAllCarouselStyles,
+  })
 
-  useEffect(() => {
-    loadStyles()
-  }, [])
+  // Мутация для переключения активности
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, is_active }: { id: string; is_active: boolean }) =>
+      updateCarouselStyle(id, { is_active }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] }),
+  })
 
-  // Копирует захардкоженный стиль в БД
-  const copyHardcodedToDb = async (styleId: StyleId) => {
-    setCopyingStyle(styleId)
+  // Мутация для удаления
+  const deleteMutation = useMutation({
+    mutationFn: deleteCarouselStyle,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] }),
+  })
 
-    const meta = STYLES_INDEX.find(s => s.id === styleId)
-    const config = STYLE_CONFIGS[styleId]
-
-    if (!meta || !config) {
-      setCopyingStyle(null)
-      return
-    }
-
-    const styleData: CarouselStyleInput = {
-      style_id: styleId,
-      name: meta.name,
-      emoji: meta.emoji,
-      description: meta.description,
-      audience: meta.audience,
-      preview_color: meta.previewColor,
-      config: config as unknown as Record<string, unknown>,
-      example_images: [],
-      is_active: true
-    }
-
-    const created = await createCarouselStyle(styleData)
-    setCopyingStyle(null)
-
-    if (created) {
-      await loadStyles()
-      navigate(`/admin/carousel-styles/${created.id}`)
+  const handleDelete = (style: CarouselStyleDB) => {
+    if (confirm(`Удалить стиль "${style.name}"? Это действие нельзя отменить.`)) {
+      deleteMutation.mutate(style.id)
     }
   }
 
-  const handleDelete = async (style: CarouselStyleDB) => {
-    if (!confirm(`Удалить стиль "${style.name}"?`)) return
-    const success = await deleteCarouselStyle(style.id)
-    if (success) loadStyles()
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+      </div>
+    )
   }
-
-  const handleToggleActive = async (style: CarouselStyleDB) => {
-    const updated = await updateCarouselStyle(style.id, { is_active: !style.is_active })
-    if (updated) loadStyles()
-  }
-
-  // Фильтрация
-  const filteredDbStyles = dbStyles.filter(s =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.style_id.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  // Захардкоженные стили, которых ещё нет в БД
-  const hardcodedNotInDb = STYLES_INDEX.filter(
-    meta => !dbStyles.some(db => db.style_id === meta.id)
-  ).filter(meta =>
-    meta.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    meta.id.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   return (
-    <div className="pb-20">
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Palette className="w-6 h-6" />
-          Стили каруселей
-        </h2>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Palette className="w-6 h-6 text-orange-500" />
+            Стили каруселей
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {styles.length} стилей • {styles.filter(s => s.is_active).length} активных
+          </p>
+        </div>
         <button
           onClick={() => navigate('/admin/carousel-styles/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          Новый
+          Добавить стиль
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Поиск..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          />
+      {/* Список стилей */}
+      {styles.length === 0 ? (
+        <div className="text-center py-16 bg-gray-50 rounded-xl">
+          <Palette className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">Стили ещё не созданы</p>
+          <button
+            onClick={() => navigate('/admin/carousel-styles/new')}
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+          >
+            Создать первый стиль
+          </button>
         </div>
-      </div>
-
-      {isLoading ? (
-        <div className="text-center py-12 text-gray-500">Загрузка...</div>
       ) : (
-        <div className="space-y-6">
-          {/* DB Styles - редактируемые */}
-          {filteredDbStyles.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
-                <Database className="w-4 h-4" />
-                В базе данных (редактируемые)
-              </h3>
-              <div className="space-y-2">
-                {filteredDbStyles.map((style) => (
-                  <DbStyleCard
-                    key={style.id}
-                    style={style}
-                    onEdit={() => navigate(`/admin/carousel-styles/${style.id}`)}
-                    onDelete={() => handleDelete(style)}
-                    onToggleActive={() => handleToggleActive(style)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Hardcoded Styles - нужно скопировать в БД */}
-          {hardcodedNotInDb.length > 0 && (
-            <div>
-              <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                Встроенные стили (нажми чтобы редактировать)
-              </h3>
-              <div className="space-y-2">
-                {hardcodedNotInDb.map((meta) => (
-                  <HardcodedStyleCard
-                    key={meta.id}
-                    meta={meta}
-                    isCopying={copyingStyle === meta.id}
-                    onCopyToDb={() => copyHardcodedToDb(meta.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {filteredDbStyles.length === 0 && hardcodedNotInDb.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Palette className="w-10 h-10 text-gray-400" />
-              </div>
-              <p className="text-gray-500 mb-4">Ничего не найдено</p>
-            </div>
-          )}
+        <div className="space-y-3">
+          {styles.map((style) => (
+            <StyleCard
+              key={style.id}
+              style={style}
+              onEdit={() => navigate(`/admin/carousel-styles/${style.id}`)}
+              onToggle={() => toggleMutation.mutate({ id: style.id, is_active: !style.is_active })}
+              onDelete={() => handleDelete(style)}
+              isToggling={toggleMutation.isPending}
+            />
+          ))}
         </div>
       )}
+
+      {/* Подсказка */}
+      <div className="mt-8 p-4 bg-blue-50 rounded-xl">
+        <p className="text-sm text-blue-800">
+          <strong>💡 Подсказка:</strong> Отключённые стили не показываются пользователям при выборе.
+          Изменения сразу применяются к генерации каруселей.
+        </p>
+      </div>
     </div>
   )
 }
 
-// Карточка стиля из БД
-function DbStyleCard({
+function StyleCard({
   style,
   onEdit,
+  onToggle,
   onDelete,
-  onToggleActive
+  isToggling,
 }: {
   style: CarouselStyleDB
   onEdit: () => void
+  onToggle: () => void
   onDelete: () => void
-  onToggleActive: () => void
+  isToggling: boolean
 }) {
-  return (
-    <div className={`bg-white border rounded-xl p-4 flex items-center gap-4 transition-all ${
-      style.is_active ? 'border-gray-200' : 'border-gray-100 opacity-60'
-    }`}>
-      {/* Preview */}
-      <div
-        className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-        style={{ backgroundColor: style.preview_color + '20' }}
-      >
-        {style.emoji || '🎨'}
-      </div>
+  const exampleCount = style.example_images?.length || 0
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-semibold text-gray-900 truncate">{style.name}</h3>
-          {!style.is_active && (
-            <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">Скрыт</span>
+  return (
+    <div
+      className={`bg-white border rounded-xl p-4 transition-all ${
+        style.is_active ? 'border-gray-200 shadow-sm' : 'border-gray-100 opacity-60'
+      }`}
+    >
+      <div className="flex items-center gap-4">
+        {/* Превью/Аватар */}
+        <div
+          className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 overflow-hidden"
+          style={{ backgroundColor: style.preview_color + '20' }}
+        >
+          {style.preview_image ? (
+            <img src={style.preview_image} alt={style.name} className="w-full h-full object-cover" />
+          ) : (
+            style.emoji || '🎨'
           )}
         </div>
-        <p className="text-xs text-gray-400 truncate">{style.style_id}</p>
-      </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <button
-          onClick={onToggleActive}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
-          title={style.is_active ? 'Скрыть' : 'Показать'}
-        >
-          {style.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-        </button>
-        <button
-          onClick={onEdit}
-          className="p-2 hover:bg-orange-50 rounded-lg transition-colors text-gray-400 hover:text-orange-500"
-          title="Редактировать"
-        >
-          <Edit className="w-4 h-4" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 hover:bg-red-50 rounded-lg transition-colors text-gray-400 hover:text-red-500"
-          title="Удалить"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        {/* Информация */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-gray-900 truncate">{style.name}</h3>
+            {!style.is_active && (
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded-full">
+                Скрыт
+              </span>
+            )}
+            <span className={`px-2 py-0.5 text-xs rounded-full ${
+              style.audience === 'female' ? 'bg-pink-100 text-pink-600' :
+              style.audience === 'male' ? 'bg-blue-100 text-blue-600' :
+              'bg-gray-100 text-gray-600'
+            }`}>
+              {style.audience === 'female' ? '👩 Женский' :
+               style.audience === 'male' ? '👨 Мужской' : '👥 Универс.'}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 truncate">{style.description}</p>
+          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+            <span className="flex items-center gap-1">
+              <Image className="w-3 h-3" />
+              {exampleCount} превью
+            </span>
+            <span>{style.style_id}</span>
+          </div>
+        </div>
+
+        {/* Действия */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Вкл/Выкл */}
+          <button
+            onClick={onToggle}
+            disabled={isToggling}
+            className={`p-2.5 rounded-lg transition-colors ${
+              style.is_active
+                ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+            }`}
+            title={style.is_active ? 'Отключить' : 'Включить'}
+          >
+            {style.is_active ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+          </button>
+
+          {/* Редактировать */}
+          <button
+            onClick={onEdit}
+            className="p-2.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
+            title="Редактировать"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+
+          {/* Удалить */}
+          <button
+            onClick={onDelete}
+            className="p-2.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
+            title="Удалить"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
-  )
-}
-
-// Карточка захардкоженного стиля
-function HardcodedStyleCard({
-  meta,
-  isCopying,
-  onCopyToDb
-}: {
-  meta: { id: string; name: string; emoji: string; previewColor: string; description: string }
-  isCopying: boolean
-  onCopyToDb: () => void
-}) {
-  return (
-    <button
-      onClick={onCopyToDb}
-      disabled={isCopying}
-      className="w-full bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 flex items-center gap-4 hover:bg-orange-50 hover:border-orange-300 transition-all text-left disabled:opacity-50"
-    >
-      {/* Preview */}
-      <div
-        className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-        style={{ backgroundColor: meta.previewColor + '20' }}
-      >
-        {meta.emoji}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 truncate">{meta.name}</h3>
-        <p className="text-xs text-gray-500 truncate">{meta.description}</p>
-      </div>
-
-      {/* Action */}
-      <div className="flex items-center gap-2 text-orange-500 flex-shrink-0">
-        {isCopying ? (
-          <span className="text-sm">Копирование...</span>
-        ) : (
-          <>
-            <Download className="w-4 h-4" />
-            <span className="text-sm font-medium">Скопировать в БД</span>
-          </>
-        )}
-      </div>
-    </button>
   )
 }

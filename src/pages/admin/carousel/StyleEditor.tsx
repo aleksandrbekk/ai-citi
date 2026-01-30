@@ -1,730 +1,864 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Save,
   ArrowLeft,
-  Palette,
-  Type,
-  Image,
-  User,
-  Sparkles,
-  FileText,
-  Trash2,
+  Save,
+  Loader2,
   Upload,
+  X,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Eye,
+  EyeOff,
+  Image,
+  Palette,
+  User,
+  Type,
+  Layers,
+  Sparkles
 } from 'lucide-react'
 import {
   getCarouselStyleById,
   createCarouselStyle,
   updateCarouselStyle,
-  type CarouselStyleDB,
   type CarouselStyleInput
 } from '@/lib/supabase'
-import { getTelegramUser } from '@/lib/telegram'
-import { STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 
 // Cloudinary config
-const CLOUDINARY_CLOUD = 'ds8ylsl2x'
-const CLOUDINARY_PRESET = 'carousel_unsigned'
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`
+const CLOUDINARY_CLOUD = 'drplvjqpz'
+const CLOUDINARY_PRESET = 'carousel_uploads'
 
-// Дефолтная структура конфига
-const DEFAULT_CONFIG = {
-  colors: {
-    background_primary: '#FFFFFF',
-    background_gradient: 'linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 100%)',
-    accent_primary: '#FF5A1F',
-    accent_secondary: '#FF8A3D',
-    text_primary: '#1A1A1A',
-    text_secondary: '#666666',
-    card_background: 'rgba(255, 255, 255, 0.7)',
-    card_border: 'rgba(255, 255, 255, 0.5)'
-  },
-  typography: {
-    style: 'bold modern sans-serif',
-    headline: 'bold, black #1A1A1A',
-    body: 'medium weight, #1A1A1A',
-    accent_text: 'bold, white on accent'
-  },
-  cards: {
-    style: 'glassmorphism',
-    blur: '20px backdrop blur',
-    border: '1px solid rgba(255,255,255,0.5)',
-    shadow: 'soft drop shadow',
-    border_radius: '24px'
-  },
-  person: {
-    scale: '85% of frame width',
-    position: 'RIGHT or LEFT 40% of frame',
-    lighting: 'studio lighting, soft shadows',
-    aesthetic: 'clean, professional, modern 2026'
-  },
-  decorations: {
-    elements: 'subtle glow effects, floating particles',
-    '3d_objects': 'glossy 3D icons with accent colors',
-    particles: 'subtle sparkles, light dust'
-  },
-  prompt_blocks: {
-    format_prefix: 'Create a vertical portrait image, taller than wide.',
-    background: '',
-    cards_content: '',
-    cards_headline: '',
-    person_hook: '',
-    person_cta: '',
-    decorations_hook: '',
-    cta_card: '',
-    viral_elements: '',
-    style_footer: ''
-  },
-  slide_templates: {
-    HOOK: '',
-    CONTENT: '',
-    CTA: '',
-    VIRAL: ''
-  }
-}
-
-export default function CarouselStyleEditor() {
+export default function StyleEditor() {
+  const { id } = useParams()
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
   const isNew = id === 'new'
 
-  const [isLoading, setIsLoading] = useState(!isNew)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Секции (раскрытие/скрытие)
+  const [sections, setSections] = useState({
+    basic: true,
+    avatar: true,
+    examples: true,
+    person: false,
+    colors: false,
+    typography: false,
+    cards: false,
+    decorations: false,
+    templates: true
+  })
 
-  // Form state
+  // Basic info
   const [styleId, setStyleId] = useState('')
   const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
   const [emoji, setEmoji] = useState('🎨')
+  const [description, setDescription] = useState('')
   const [audience, setAudience] = useState<'universal' | 'female' | 'male'>('universal')
   const [previewColor, setPreviewColor] = useState('#FF5A1F')
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isActive, setIsActive] = useState(true)
-  const [sortOrder, setSortOrder] = useState(0)
-  const [config, setConfig] = useState(DEFAULT_CONFIG)
-  const [exampleImages, setExampleImages] = useState<string[]>([])
 
-  // UI state
-  const [activeTab, setActiveTab] = useState<'basic' | 'colors' | 'typography' | 'cards' | 'person' | 'decorations' | 'prompts' | 'templates' | 'examples'>('basic')
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['basic']))
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  // Avatar/Preview image
+  const [previewImage, setPreviewImage] = useState('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
+  // Example images (9 штук)
+  const [exampleImages, setExampleImages] = useState<string[]>([])
+  const [uploadingExample, setUploadingExample] = useState<number | null>(null)
+
+  // Person settings
+  const [personScale, setPersonScale] = useState('85% of frame width')
+  const [personPosition, setPersonPosition] = useState('RIGHT or LEFT 40% of frame')
+  const [personLighting, setPersonLighting] = useState('studio lighting, soft shadows')
+  const [personAesthetic, setPersonAesthetic] = useState('clean, professional, modern 2026')
+
+  // Colors
+  const [colorBgPrimary, setColorBgPrimary] = useState('#FFFFFF')
+  const [colorBgSecondary, setColorBgSecondary] = useState('#F5F5F5')
+  const [colorAccentPrimary, setColorAccentPrimary] = useState('#FF5A1F')
+  const [colorAccentSecondary, setColorAccentSecondary] = useState('#06B6D4')
+  const [colorTextPrimary, setColorTextPrimary] = useState('#1A1A1A')
+  const [colorTextSecondary, setColorTextSecondary] = useState('#666666')
+
+  // Typography
+  const [typoStyle, setTypoStyle] = useState('bold modern sans-serif')
+  const [typoHeadline, setTypoHeadline] = useState('bold, black')
+  const [typoBody, setTypoBody] = useState('medium weight')
+
+  // Cards
+  const [cardsStyle, setCardsStyle] = useState('glassmorphism')
+  const [cardsBlur, setCardsBlur] = useState('20px backdrop blur')
+  const [cardsBorderRadius, setCardsBorderRadius] = useState('24px')
+
+  // Decorations
+  const [decorElements, setDecorElements] = useState('subtle glow effects')
+
+  // Slide Templates (промпты для n8n)
+  const [hookTemplate, setHookTemplate] = useState('')
+  const [contentTemplate, setContentTemplate] = useState('')
+  const [ctaTemplate, setCtaTemplate] = useState('')
+  const [viralTemplate, setViralTemplate] = useState('')
+
+  // Refs for file inputs
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const exampleInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Load existing style
+  const { data: existingStyle, isLoading } = useQuery({
+    queryKey: ['carousel-style', id],
+    queryFn: () => getCarouselStyleById(id!),
+    enabled: !isNew && !!id
+  })
+
+  // Populate form when data loads
   useEffect(() => {
-    if (!isNew && id) {
-      loadStyle(id)
-    }
-  }, [id, isNew])
+    if (existingStyle) {
+      setStyleId(existingStyle.style_id || '')
+      setName(existingStyle.name)
+      setEmoji(existingStyle.emoji || '🎨')
+      setDescription(existingStyle.description || '')
+      setAudience(existingStyle.audience as 'universal' | 'female' | 'male' || 'universal')
+      setPreviewColor(existingStyle.preview_color || '#FF5A1F')
+      setPreviewImage(existingStyle.preview_image || '')
+      setIsActive(existingStyle.is_active ?? true)
+      setExampleImages(existingStyle.example_images || [])
 
-  const loadStyle = async (styleId: string) => {
-    setIsLoading(true)
-    const style = await getCarouselStyleById(styleId)
-    if (style) {
-      setStyleId(style.style_id)
-      setName(style.name)
-      setDescription(style.description || '')
-      setEmoji(style.emoji)
-      setAudience(style.audience)
-      setPreviewColor(style.preview_color)
-      setPreviewImage(style.preview_image)
-      setIsActive(style.is_active)
-      setSortOrder(style.sort_order)
-      setConfig({ ...DEFAULT_CONFIG, ...style.config as typeof DEFAULT_CONFIG })
-      setExampleImages(style.example_images || [])
-    } else {
-      setError('Стиль не найден')
+      const config = existingStyle.config as Record<string, unknown> | null
+      if (config) {
+        // Person
+        const person = config.person as Record<string, string> | undefined
+        if (person) {
+          setPersonScale(person.scale || '')
+          setPersonPosition(person.position || '')
+          setPersonLighting(person.lighting || '')
+          setPersonAesthetic(person.aesthetic || '')
+        }
+
+        // Colors
+        const colors = config.colors as Record<string, string> | undefined
+        if (colors) {
+          setColorBgPrimary(colors.background_primary || '#FFFFFF')
+          setColorBgSecondary(colors.background_secondary || '#F5F5F5')
+          setColorAccentPrimary(colors.accent_primary || '#FF5A1F')
+          setColorAccentSecondary(colors.accent_secondary || '#06B6D4')
+          setColorTextPrimary(colors.text_primary || '#1A1A1A')
+          setColorTextSecondary(colors.text_secondary || '#666666')
+        }
+
+        // Typography
+        const typo = config.typography as Record<string, string> | undefined
+        if (typo) {
+          setTypoStyle(typo.style || '')
+          setTypoHeadline(typo.headline || '')
+          setTypoBody(typo.body || '')
+        }
+
+        // Cards
+        const cards = config.cards as Record<string, string> | undefined
+        if (cards) {
+          setCardsStyle(cards.style || '')
+          setCardsBlur(cards.blur || '')
+          setCardsBorderRadius(cards.border_radius || '')
+        }
+
+        // Decorations
+        const decor = config.decorations as Record<string, string> | undefined
+        if (decor) {
+          setDecorElements(decor.elements || '')
+        }
+
+        // Slide templates
+        const templates = config.slide_templates as Record<string, string> | undefined
+        if (templates) {
+          setHookTemplate(templates.HOOK || '')
+          setContentTemplate(templates.CONTENT || '')
+          setCtaTemplate(templates.CTA || '')
+          setViralTemplate(templates.VIRAL || '')
+        }
+      }
     }
-    setIsLoading(false)
+  }, [existingStyle])
+
+  // Upload to Cloudinary
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('upload_preset', CLOUDINARY_PRESET)
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
+      { method: 'POST', body: formData }
+    )
+
+    if (!response.ok) {
+      throw new Error('Upload failed')
+    }
+
+    const data = await response.json()
+    return data.secure_url
   }
 
-  const handleSave = async () => {
-    if (!styleId.trim()) {
-      setError('Введите ID стиля')
-      return
-    }
-    if (!name.trim()) {
-      setError('Введите название стиля')
-      return
-    }
+  // Handle avatar upload
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-    setIsSaving(true)
-    setError(null)
-
-    const user = getTelegramUser()
-    const styleData: CarouselStyleInput = {
-      style_id: styleId.toUpperCase().replace(/[^A-Z0-9_]/g, '_'),
-      name,
-      description: description || null,
-      emoji,
-      audience,
-      preview_color: previewColor,
-      preview_image: previewImage,
-      is_active: isActive,
-      sort_order: sortOrder,
-      config,
-      example_images: exampleImages,
-      updated_by: user?.id
-    }
-
-    let result: CarouselStyleDB | null = null
-
-    if (isNew) {
-      styleData.created_by = user?.id
-      result = await createCarouselStyle(styleData)
-    } else if (id) {
-      result = await updateCarouselStyle(id, styleData)
-    }
-
-    setIsSaving(false)
-
-    if (result) {
-      navigate('/admin/carousel-styles')
-    } else {
-      setError('Не удалось сохранить стиль')
-    }
-  }
-
-  const handleImageUpload = async (file: File, type: 'preview' | 'example') => {
-    if (!file.type.startsWith('image/')) {
-      setError('Выберите изображение')
-      return
-    }
-
-    setIsUploadingImage(true)
-
+    setUploadingAvatar(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', CLOUDINARY_PRESET)
-      formData.append('folder', 'carousel-styles')
-
-      const response = await fetch(CLOUDINARY_URL, {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!response.ok) throw new Error('Upload failed')
-
-      const data = await response.json()
-      const imageUrl = data.secure_url
-
-      if (type === 'preview') {
-        setPreviewImage(imageUrl)
-      } else {
-        setExampleImages([...exampleImages, imageUrl])
-      }
-    } catch {
-      setError('Не удалось загрузить изображение')
+      const url = await uploadToCloudinary(file)
+      setPreviewImage(url)
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      alert('Ошибка загрузки аватарки')
     } finally {
-      setIsUploadingImage(false)
+      setUploadingAvatar(false)
     }
   }
 
-  const removeExampleImage = (index: number) => {
-    setExampleImages(exampleImages.filter((_, i) => i !== index))
-  }
+  // Handle example image upload
+  const handleExampleUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  const updateConfigField = (section: string, field: string, value: string) => {
-    setConfig(prev => ({
-      ...prev,
-      [section]: {
-        ...(prev as any)[section],
-        [field]: value
-      }
-    }))
-  }
-
-  const importFromExisting = (existingStyleId: StyleId) => {
-    const existingConfig = STYLE_CONFIGS[existingStyleId]
-    if (existingConfig) {
-      setConfig({
-        colors: existingConfig.colors as any,
-        typography: existingConfig.typography as any,
-        cards: existingConfig.cards as any,
-        person: existingConfig.person as any,
-        decorations: existingConfig.decorations as any,
-        prompt_blocks: existingConfig.prompt_blocks as any,
-        slide_templates: existingConfig.slide_templates as any
+    setUploadingExample(index)
+    try {
+      const url = await uploadToCloudinary(file)
+      setExampleImages(prev => {
+        const newImages = [...prev]
+        newImages[index] = url
+        return newImages
       })
-      setName(existingConfig.name)
-      setDescription(existingConfig.description)
+    } catch (error) {
+      console.error('Example upload error:', error)
+      alert('Ошибка загрузки превью')
+    } finally {
+      setUploadingExample(null)
     }
   }
 
-  const toggleSection = (section: string) => {
-    const newExpanded = new Set(expandedSections)
-    if (newExpanded.has(section)) {
-      newExpanded.delete(section)
-    } else {
-      newExpanded.add(section)
+  // Remove example image
+  const removeExampleImage = (index: number) => {
+    setExampleImages(prev => {
+      const newImages = [...prev]
+      newImages.splice(index, 1)
+      return newImages
+    })
+  }
+
+  // Save mutation
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const generatedStyleId = styleId || name.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '')
+
+      const styleData: CarouselStyleInput = {
+        style_id: generatedStyleId,
+        name,
+        emoji,
+        description,
+        audience,
+        preview_color: previewColor,
+        preview_image: previewImage,
+        is_active: isActive,
+        example_images: exampleImages.filter(Boolean),
+        config: {
+          id: generatedStyleId,
+          name,
+          description,
+          audience,
+          colors: {
+            background_primary: colorBgPrimary,
+            background_secondary: colorBgSecondary,
+            accent_primary: colorAccentPrimary,
+            accent_secondary: colorAccentSecondary,
+            text_primary: colorTextPrimary,
+            text_secondary: colorTextSecondary
+          },
+          typography: {
+            style: typoStyle,
+            headline: typoHeadline,
+            body: typoBody
+          },
+          cards: {
+            style: cardsStyle,
+            blur: cardsBlur,
+            border_radius: cardsBorderRadius
+          },
+          person: {
+            scale: personScale,
+            position: personPosition,
+            lighting: personLighting,
+            aesthetic: personAesthetic
+          },
+          decorations: {
+            elements: decorElements
+          },
+          prompt_blocks: {},
+          slide_templates: {
+            HOOK: hookTemplate,
+            CONTENT: contentTemplate,
+            CTA: ctaTemplate,
+            VIRAL: viralTemplate
+          }
+        }
+      }
+
+      if (isNew) {
+        return createCarouselStyle(styleData)
+      } else {
+        return updateCarouselStyle(id!, styleData)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carousel-styles'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] })
+      navigate('/admin/carousel-styles')
     }
-    setExpandedSections(newExpanded)
+  })
+
+  const toggleSection = (key: keyof typeof sections) => {
+    setSections(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center">
-        <div className="text-[#94A3B8]">Загрузка...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white">
+    <div className="h-full overflow-y-auto bg-gray-50" style={{ maxHeight: 'calc(100vh - 80px)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0F172A] border-b border-[#334155] px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/admin/carousel-styles')}
-              className="p-2 hover:bg-[#1E293B] rounded-lg transition-colors"
-            >
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/admin/carousel-styles')} className="p-2 hover:bg-gray-100 rounded-lg">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-xl font-bold">
-                {isNew ? 'Новый стиль' : `Редактирование: ${name}`}
-              </h1>
-              <p className="text-sm text-[#94A3B8]">
-                {isNew ? 'Создание нового стиля карусели' : styleId}
-              </p>
+              <h1 className="font-bold text-gray-900">{isNew ? 'Новый стиль' : 'Редактирование'}</h1>
+              <p className="text-xs text-gray-500">Полный редактор стиля карусели</p>
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 rounded-lg transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            {isSaving ? 'Сохранение...' : 'Сохранить'}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Active toggle */}
+            <button
+              onClick={() => setIsActive(!isActive)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
+                isActive
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-gray-100 text-gray-400'
+              }`}
+            >
+              {isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              <span className="text-sm">{isActive ? 'Активен' : 'Скрыт'}</span>
+            </button>
+            <button
+              onClick={() => saveMutation.mutate()}
+              disabled={saveMutation.isPending || !name}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+            >
+              {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Сохранить
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Error */}
-      {error && (
-        <div className="mx-6 mt-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400">
-          {error}
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div className="px-6 pt-4 border-b border-[#334155] flex gap-1 overflow-x-auto">
-        {[
-          { id: 'basic', label: 'Основное', icon: Palette },
-          { id: 'colors', label: 'Цвета', icon: Palette },
-          { id: 'typography', label: 'Типографика', icon: Type },
-          { id: 'cards', label: 'Карточки', icon: FileText },
-          { id: 'person', label: 'Персонаж', icon: User },
-          { id: 'decorations', label: 'Декор', icon: Sparkles },
-          { id: 'prompts', label: 'Промпты', icon: FileText },
-          { id: 'templates', label: 'Шаблоны слайдов', icon: FileText },
-          { id: 'examples', label: 'Примеры', icon: Image }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'border-[#3B82F6] text-white'
-                : 'border-transparent text-[#94A3B8] hover:text-white'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        {/* Basic Tab */}
-        {activeTab === 'basic' && (
-          <div className="space-y-6 max-w-2xl">
-            {/* Import from existing */}
-            {isNew && (
-              <div className="bg-[#1E293B] rounded-lg border border-[#334155] p-4">
-                <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-                  Импортировать из существующего стиля
-                </label>
-                <select
-                  onChange={(e) => e.target.value && importFromExisting(e.target.value as StyleId)}
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
-                >
-                  <option value="">Выберите стиль...</option>
-                  {Object.keys(STYLE_CONFIGS).map(key => (
-                    <option key={key} value={key}>{STYLE_CONFIGS[key as StyleId].name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <FormField label="ID стиля" required>
-              <input
-                type="text"
-                value={styleId}
-                onChange={(e) => setStyleId(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                placeholder="APPLE_GLASSMORPHISM"
-                className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
-              />
-              <p className="text-xs text-[#64748B] mt-1">Уникальный идентификатор (латиница, цифры, _)</p>
-            </FormField>
-
-            <FormField label="Название" required>
+      <div className="max-w-4xl mx-auto p-4 space-y-4 pb-20">
+        {/* SECTION: Basic Info */}
+        <Section
+          title="Основная информация"
+          icon={<Palette className="w-4 h-4" />}
+          isOpen={sections.basic}
+          onToggle={() => toggleSection('basic')}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Apple Glassmorphism"
-                className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
+                placeholder="Мой стиль"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               />
-            </FormField>
-
-            <FormField label="Описание">
-              <textarea
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Style ID</label>
+              <input
+                type="text"
+                value={styleId}
+                onChange={(e) => setStyleId(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
+                placeholder="AUTO_GENERATED"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">Оставьте пустым для автогенерации</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Эмодзи</label>
+              <input
+                type="text"
+                value={emoji}
+                onChange={(e) => setEmoji(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center text-2xl"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Цвет превью</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={previewColor}
+                  onChange={(e) => setPreviewColor(e.target.value)}
+                  className="w-12 h-10 border border-gray-200 rounded-lg cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={previewColor}
+                  onChange={(e) => setPreviewColor(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Аудитория</label>
+              <select
+                value={audience}
+                onChange={(e) => setAudience(e.target.value as 'universal' | 'female' | 'male')}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+              >
+                <option value="universal">👥 Универсальная</option>
+                <option value="female">👩 Женская</option>
+                <option value="male">👨 Мужская</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
+              <input
+                type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Универсальный премиум стиль..."
-                rows={3}
-                className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white resize-none"
+                placeholder="Краткое описание стиля для пользователей"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
               />
-            </FormField>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="Эмодзи">
-                <input
-                  type="text"
-                  value={emoji}
-                  onChange={(e) => setEmoji(e.target.value)}
-                  placeholder="🎨"
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white text-center text-2xl"
-                />
-              </FormField>
-
-              <FormField label="Цвет превью">
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={previewColor}
-                    onChange={(e) => setPreviewColor(e.target.value)}
-                    className="w-12 h-10 bg-[#0F172A] border border-[#334155] rounded-lg cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={previewColor}
-                    onChange={(e) => setPreviewColor(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
-                  />
-                </div>
-              </FormField>
             </div>
+          </div>
+        </Section>
 
-            <FormField label="Целевая аудитория">
-              <div className="flex gap-2">
-                {[
-                  { value: 'universal', label: '👥 Универсальный' },
-                  { value: 'female', label: '👩 Женский' },
-                  { value: 'male', label: '👨 Мужской' }
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setAudience(opt.value as any)}
-                    className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                      audience === opt.value
-                        ? 'bg-[#3B82F6] border-[#3B82F6] text-white'
-                        : 'bg-[#0F172A] border-[#334155] text-[#94A3B8] hover:border-[#3B82F6]'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </FormField>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="Порядок сортировки">
-                <input
-                  type="number"
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
-                />
-              </FormField>
-
-              <FormField label="Статус">
+        {/* SECTION: Avatar */}
+        <Section
+          title="Аватарка стиля"
+          icon={<Image className="w-4 h-4" />}
+          isOpen={sections.avatar}
+          onToggle={() => toggleSection('avatar')}
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className="w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 cursor-pointer hover:border-orange-400 transition-colors"
+              style={{ backgroundColor: previewColor + '20' }}
+              onClick={() => avatarInputRef.current?.click()}
+            >
+              {uploadingAvatar ? (
+                <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+              ) : previewImage ? (
+                <img src={previewImage} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-center">
+                  <Upload className="w-6 h-6 text-gray-400 mx-auto" />
+                  <span className="text-xs text-gray-400">Загрузить</span>
+                </div>
+              )}
+            </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 mb-2">
+                Аватарка отображается в списке стилей и при выборе стиля пользователем.
+              </p>
+              {previewImage && (
                 <button
-                  onClick={() => setIsActive(!isActive)}
-                  className={`w-full px-4 py-2 rounded-lg border transition-colors ${
-                    isActive
-                      ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                      : 'bg-[#0F172A] border-[#334155] text-[#94A3B8]'
-                  }`}
+                  onClick={() => setPreviewImage('')}
+                  className="text-sm text-red-500 hover:text-red-600"
                 >
-                  {isActive ? '✓ Активен' : 'Скрыт'}
+                  Удалить аватарку
                 </button>
-              </FormField>
+              )}
             </div>
           </div>
-        )}
+        </Section>
 
-        {/* Colors Tab */}
-        {activeTab === 'colors' && (
-          <div className="space-y-4 max-w-2xl">
-            <h3 className="text-lg font-semibold mb-4">Цветовая палитра</h3>
-            {Object.entries(config.colors).map(([key, value]) => (
-              <FormField key={key} label={key.replace(/_/g, ' ')}>
-                <div className="flex gap-2">
-                  {!value.toString().includes('gradient') && !value.toString().includes('rgba') && (
-                    <input
-                      type="color"
-                      value={value.toString().startsWith('#') ? value : '#FFFFFF'}
-                      onChange={(e) => updateConfigField('colors', key, e.target.value)}
-                      className="w-12 h-10 bg-[#0F172A] border border-[#334155] rounded-lg cursor-pointer"
-                    />
-                  )}
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => updateConfigField('colors', key, e.target.value)}
-                    className="flex-1 px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white font-mono text-sm"
-                  />
-                </div>
-              </FormField>
-            ))}
-          </div>
-        )}
-
-        {/* Typography Tab */}
-        {activeTab === 'typography' && (
-          <div className="space-y-4 max-w-2xl">
-            <h3 className="text-lg font-semibold mb-4">Типографика</h3>
-            {Object.entries(config.typography).map(([key, value]) => (
-              <FormField key={key} label={key.replace(/_/g, ' ')}>
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => updateConfigField('typography', key, e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
-                />
-              </FormField>
-            ))}
-          </div>
-        )}
-
-        {/* Cards Tab */}
-        {activeTab === 'cards' && (
-          <div className="space-y-4 max-w-2xl">
-            <h3 className="text-lg font-semibold mb-4">Стиль карточек</h3>
-            {Object.entries(config.cards).map(([key, value]) => (
-              <FormField key={key} label={key.replace(/_/g, ' ')}>
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => updateConfigField('cards', key, e.target.value)}
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white"
-                />
-              </FormField>
-            ))}
-          </div>
-        )}
-
-        {/* Person Tab */}
-        {activeTab === 'person' && (
-          <div className="space-y-4 max-w-2xl">
-            <h3 className="text-lg font-semibold mb-4">Настройки персонажа</h3>
-            {Object.entries(config.person).map(([key, value]) => (
-              <FormField key={key} label={key.replace(/_/g, ' ')}>
-                <textarea
-                  value={value}
-                  onChange={(e) => updateConfigField('person', key, e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white resize-none"
-                />
-              </FormField>
-            ))}
-          </div>
-        )}
-
-        {/* Decorations Tab */}
-        {activeTab === 'decorations' && (
-          <div className="space-y-4 max-w-2xl">
-            <h3 className="text-lg font-semibold mb-4">Декоративные элементы</h3>
-            {Object.entries(config.decorations).map(([key, value]) => (
-              <FormField key={key} label={key.replace(/_/g, ' ')}>
-                <textarea
-                  value={value}
-                  onChange={(e) => updateConfigField('decorations', key, e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white resize-none"
-                />
-              </FormField>
-            ))}
-          </div>
-        )}
-
-        {/* Prompts Tab */}
-        {activeTab === 'prompts' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">Prompt-блоки для генерации</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">
-              Эти тексты отправляются в n8n для генерации изображений. Используйте переменные: [POSE], [EMOTION], [OUTFIT_BY_TOPIC], [PROPS] и т.д.
-            </p>
-            {Object.entries(config.prompt_blocks).map(([key, value]) => (
-              <CollapsibleSection
-                key={key}
-                title={key.replace(/_/g, ' ')}
-                isExpanded={expandedSections.has(key)}
-                onToggle={() => toggleSection(key)}
+        {/* SECTION: Example Images (9) */}
+        <Section
+          title="Превью карусели (9 шт)"
+          icon={<Layers className="w-4 h-4" />}
+          isOpen={sections.examples}
+          onToggle={() => toggleSection('examples')}
+        >
+          <p className="text-sm text-gray-600 mb-4">
+            Загрузите до 9 примеров карусели в этом стиле. Они показываются пользователям при выборе стиля.
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            {[...Array(9)].map((_, index) => (
+              <div
+                key={index}
+                className="aspect-[4/5] rounded-lg border-2 border-dashed border-gray-300 overflow-hidden relative group cursor-pointer hover:border-orange-400 transition-colors"
+                onClick={() => exampleInputRefs.current[index]?.click()}
               >
-                <textarea
-                  value={value}
-                  onChange={(e) => updateConfigField('prompt_blocks', key, e.target.value)}
-                  rows={6}
-                  placeholder={`Промпт для ${key}...`}
-                  className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-lg text-white resize-none font-mono text-sm"
-                />
-              </CollapsibleSection>
-            ))}
-          </div>
-        )}
-
-        {/* Templates Tab */}
-        {activeTab === 'templates' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">Шаблоны слайдов</h3>
-            <p className="text-sm text-[#94A3B8] mb-6">
-              Полные промпты для каждого типа слайда. Переменные: {'{HEADLINE_1}'}, {'{HEADLINE_2}'}, {'{BOTTOM_TEXT}'}, {'{TRANSITION}'} и т.д.
-            </p>
-            {Object.entries(config.slide_templates).map(([key, value]) => (
-              <CollapsibleSection
-                key={key}
-                title={`Слайд: ${key}`}
-                isExpanded={expandedSections.has(`template_${key}`)}
-                onToggle={() => toggleSection(`template_${key}`)}
-              >
-                <textarea
-                  value={value}
-                  onChange={(e) => updateConfigField('slide_templates', key, e.target.value)}
-                  rows={12}
-                  placeholder={`Полный промпт для слайда ${key}...`}
-                  className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-lg text-white resize-none font-mono text-sm"
-                />
-              </CollapsibleSection>
-            ))}
-          </div>
-        )}
-
-        {/* Examples Tab */}
-        {activeTab === 'examples' && (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold mb-4">Примеры слайдов</h3>
-
-            {/* Upload */}
-            <div className="bg-[#1E293B] rounded-lg border border-dashed border-[#334155] p-8 text-center">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'example')}
-                className="hidden"
-                id="example-upload"
-                disabled={isUploadingImage}
-              />
-              <label
-                htmlFor="example-upload"
-                className="cursor-pointer flex flex-col items-center gap-2"
-              >
-                {isUploadingImage ? (
-                  <div className="w-12 h-12 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Upload className="w-12 h-12 text-[#64748B]" />
-                )}
-                <p className="text-[#94A3B8]">
-                  {isUploadingImage ? 'Загрузка...' : 'Нажмите для загрузки изображения'}
-                </p>
-                <p className="text-xs text-[#64748B]">PNG, JPG до 10MB</p>
-              </label>
-            </div>
-
-            {/* Examples Grid */}
-            {exampleImages.length > 0 && (
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {exampleImages.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Пример ${index + 1}`}
-                      className="w-full aspect-[3/4] object-cover rounded-lg"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                      <button
-                        onClick={() => removeExampleImage(index)}
-                        className="p-2 bg-red-500 rounded-full text-white"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="absolute bottom-2 left-2 bg-black/50 rounded px-2 py-0.5 text-xs">
-                      {index + 1}
-                    </div>
+                {uploadingExample === index ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                    <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
                   </div>
-                ))}
+                ) : exampleImages[index] ? (
+                  <>
+                    <img
+                      src={exampleImages[index]}
+                      alt={`Example ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeExampleImage(index)
+                      }}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                    <Upload className="w-5 h-5 mb-1" />
+                    <span className="text-xs">{index + 1}</span>
+                  </div>
+                )}
+                <input
+                  ref={(el) => { exampleInputRefs.current[index] = el }}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleExampleUpload(e, index)}
+                  className="hidden"
+                />
               </div>
-            )}
+            ))}
           </div>
-        )}
+        </Section>
+
+        {/* SECTION: Person Settings */}
+        <Section
+          title="Настройки персонажа"
+          icon={<User className="w-4 h-4" />}
+          isOpen={sections.person}
+          onToggle={() => toggleSection('person')}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Масштаб (scale)</label>
+              <input
+                type="text"
+                value={personScale}
+                onChange={(e) => setPersonScale(e.target.value)}
+                placeholder="85% of frame width"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Позиция (position)</label>
+              <input
+                type="text"
+                value={personPosition}
+                onChange={(e) => setPersonPosition(e.target.value)}
+                placeholder="RIGHT or LEFT 40% of frame"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Освещение (lighting)</label>
+              <input
+                type="text"
+                value={personLighting}
+                onChange={(e) => setPersonLighting(e.target.value)}
+                placeholder="studio lighting, soft shadows"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Эстетика (aesthetic)</label>
+              <input
+                type="text"
+                value={personAesthetic}
+                onChange={(e) => setPersonAesthetic(e.target.value)}
+                placeholder="clean, professional, modern 2026"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* SECTION: Colors */}
+        <Section
+          title="Цвета"
+          icon={<Palette className="w-4 h-4" />}
+          isOpen={sections.colors}
+          onToggle={() => toggleSection('colors')}
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <ColorInput label="Фон основной" value={colorBgPrimary} onChange={setColorBgPrimary} />
+            <ColorInput label="Фон вторичный" value={colorBgSecondary} onChange={setColorBgSecondary} />
+            <ColorInput label="Акцент основной" value={colorAccentPrimary} onChange={setColorAccentPrimary} />
+            <ColorInput label="Акцент вторичный" value={colorAccentSecondary} onChange={setColorAccentSecondary} />
+            <ColorInput label="Текст основной" value={colorTextPrimary} onChange={setColorTextPrimary} />
+            <ColorInput label="Текст вторичный" value={colorTextSecondary} onChange={setColorTextSecondary} />
+          </div>
+        </Section>
+
+        {/* SECTION: Typography */}
+        <Section
+          title="Типографика"
+          icon={<Type className="w-4 h-4" />}
+          isOpen={sections.typography}
+          onToggle={() => toggleSection('typography')}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Стиль</label>
+              <input
+                type="text"
+                value={typoStyle}
+                onChange={(e) => setTypoStyle(e.target.value)}
+                placeholder="bold modern sans-serif"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Заголовки</label>
+              <input
+                type="text"
+                value={typoHeadline}
+                onChange={(e) => setTypoHeadline(e.target.value)}
+                placeholder="bold, black"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Основной текст</label>
+              <input
+                type="text"
+                value={typoBody}
+                onChange={(e) => setTypoBody(e.target.value)}
+                placeholder="medium weight"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* SECTION: Cards */}
+        <Section
+          title="Стиль карточек"
+          icon={<Layers className="w-4 h-4" />}
+          isOpen={sections.cards}
+          onToggle={() => toggleSection('cards')}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Стиль</label>
+              <input
+                type="text"
+                value={cardsStyle}
+                onChange={(e) => setCardsStyle(e.target.value)}
+                placeholder="glassmorphism"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Blur</label>
+              <input
+                type="text"
+                value={cardsBlur}
+                onChange={(e) => setCardsBlur(e.target.value)}
+                placeholder="20px backdrop blur"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Border Radius</label>
+              <input
+                type="text"
+                value={cardsBorderRadius}
+                onChange={(e) => setCardsBorderRadius(e.target.value)}
+                placeholder="24px"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        </Section>
+
+        {/* SECTION: Decorations */}
+        <Section
+          title="Декорации"
+          icon={<Sparkles className="w-4 h-4" />}
+          isOpen={sections.decorations}
+          onToggle={() => toggleSection('decorations')}
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Элементы декора</label>
+            <input
+              type="text"
+              value={decorElements}
+              onChange={(e) => setDecorElements(e.target.value)}
+              placeholder="subtle glow effects, floating particles"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+            />
+          </div>
+        </Section>
+
+        {/* SECTION: Slide Templates (MAIN PROMPTS) */}
+        <Section
+          title="Промпты слайдов (для n8n)"
+          icon={<Sparkles className="w-4 h-4 text-orange-500" />}
+          isOpen={sections.templates}
+          onToggle={() => toggleSection('templates')}
+          highlight
+        >
+          <p className="text-sm text-gray-600 mb-4">
+            Эти промпты отправляются в n8n при генерации карусели. Используйте плейсхолдеры: {'{headline}'}, {'{body}'}, {'{background}'} и др.
+          </p>
+
+          {/* HOOK */}
+          <div className="mb-6">
+            <label className="block font-medium text-orange-600 mb-2">🎣 HOOK (первый слайд)</label>
+            <textarea
+              value={hookTemplate}
+              onChange={(e) => setHookTemplate(e.target.value)}
+              rows={6}
+              placeholder="Промпт для первого слайда (зацепка)..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
+            />
+          </div>
+
+          {/* CONTENT */}
+          <div className="mb-6">
+            <label className="block font-medium text-blue-600 mb-2">📝 CONTENT (контентные слайды)</label>
+            <textarea
+              value={contentTemplate}
+              onChange={(e) => setContentTemplate(e.target.value)}
+              rows={6}
+              placeholder="Промпт для контентных слайдов..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
+            />
+          </div>
+
+          {/* CTA */}
+          <div className="mb-6">
+            <label className="block font-medium text-green-600 mb-2">📢 CTA (призыв к действию)</label>
+            <textarea
+              value={ctaTemplate}
+              onChange={(e) => setCtaTemplate(e.target.value)}
+              rows={6}
+              placeholder="Промпт для слайда с призывом..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
+            />
+          </div>
+
+          {/* VIRAL */}
+          <div>
+            <label className="block font-medium text-purple-600 mb-2">🚀 VIRAL (вирусный слайд)</label>
+            <textarea
+              value={viralTemplate}
+              onChange={(e) => setViralTemplate(e.target.value)}
+              rows={6}
+              placeholder="Промпт для вирального слайда (поделись)..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
+            />
+          </div>
+        </Section>
+
+        {/* Save button at bottom */}
+        <button
+          onClick={() => saveMutation.mutate()}
+          disabled={saveMutation.isPending || !name}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium"
+        >
+          {saveMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+          Сохранить стиль
+        </button>
       </div>
     </div>
   )
 }
 
-function FormField({
-  label,
-  required,
+// Collapsible Section Component
+function Section({
+  title,
+  icon,
+  isOpen,
+  onToggle,
+  highlight,
   children
 }: {
-  label: string
-  required?: boolean
+  title: string
+  icon: React.ReactNode
+  isOpen: boolean
+  onToggle: () => void
+  highlight?: boolean
   children: React.ReactNode
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-[#94A3B8] mb-2">
-        {label}
-        {required && <span className="text-red-400 ml-1">*</span>}
-      </label>
-      {children}
+    <div className={`bg-white rounded-xl shadow-sm overflow-hidden ${highlight ? 'ring-2 ring-orange-200' : ''}`}>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="font-semibold text-gray-900">{title}</span>
+        </div>
+        {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4 border-t border-gray-100">
+          <div className="pt-4">
+            {children}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function CollapsibleSection({
-  title,
-  isExpanded,
-  onToggle,
-  children
+// Color Input Component
+function ColorInput({
+  label,
+  value,
+  onChange
 }: {
-  title: string
-  isExpanded: boolean
-  onToggle: () => void
-  children: React.ReactNode
+  label: string
+  value: string
+  onChange: (value: string) => void
 }) {
   return (
-    <div className="bg-[#1E293B] rounded-lg border border-[#334155] overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#334155]/30 transition-colors"
-      >
-        <span className="font-medium capitalize">{title}</span>
-        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-      </button>
-      {isExpanded && (
-        <div className="p-4 border-t border-[#334155]">
-          {children}
-        </div>
-      )}
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <div className="flex gap-2">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-10 h-10 border border-gray-200 rounded cursor-pointer"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 px-2 py-1 border border-gray-200 rounded font-mono text-xs"
+        />
+      </div>
     </div>
   )
 }
