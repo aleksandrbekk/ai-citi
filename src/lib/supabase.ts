@@ -441,3 +441,218 @@ export async function updateLastActive(telegramId: number): Promise<void> {
     console.error('Error updating last active:', err)
   }
 }
+
+// ===========================================
+// СТИЛИ КАРУСЕЛЕЙ (АДМИНКА)
+// ===========================================
+
+export interface CarouselStyleDB {
+  id: string
+  style_id: string
+  name: string
+  description: string | null
+  emoji: string
+  audience: 'universal' | 'female' | 'male'
+  preview_color: string
+  preview_image: string | null
+  is_active: boolean
+  sort_order: number
+  config: Record<string, unknown>
+  example_images: string[]
+  created_at: string
+  updated_at: string
+  created_by: number | null
+  updated_by: number | null
+}
+
+export interface CarouselStyleInput {
+  style_id: string
+  name: string
+  description?: string | null
+  emoji?: string
+  audience?: 'universal' | 'female' | 'male'
+  preview_color?: string
+  preview_image?: string | null
+  is_active?: boolean
+  sort_order?: number
+  config: Record<string, unknown>
+  example_images?: string[]
+  created_by?: number
+  updated_by?: number
+}
+
+/**
+ * Получить все активные стили каруселей
+ */
+export async function getCarouselStyles(): Promise<CarouselStyleDB[]> {
+  const { data, error } = await supabase
+    .from('carousel_styles')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching carousel styles:', error)
+    return []
+  }
+
+  return data || []
+}
+
+/**
+ * Получить все стили (включая неактивные) - для админки
+ */
+export async function getAllCarouselStyles(): Promise<CarouselStyleDB[]> {
+  const { data, error } = await supabase
+    .from('carousel_styles')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching all carousel styles:', error)
+    return []
+  }
+
+  return data || []
+}
+
+/**
+ * Получить стиль по ID
+ */
+export async function getCarouselStyleById(id: string): Promise<CarouselStyleDB | null> {
+  const { data, error } = await supabase
+    .from('carousel_styles')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching carousel style:', error)
+    return null
+  }
+
+  return data
+}
+
+/**
+ * Получить стиль по style_id
+ */
+export async function getCarouselStyleByStyleId(styleId: string): Promise<CarouselStyleDB | null> {
+  const { data, error } = await supabase
+    .from('carousel_styles')
+    .select('*')
+    .eq('style_id', styleId)
+    .single()
+
+  if (error) {
+    console.error('Error fetching carousel style by style_id:', error)
+    return null
+  }
+
+  return data
+}
+
+/**
+ * Создать новый стиль
+ */
+export async function createCarouselStyle(style: CarouselStyleInput): Promise<CarouselStyleDB | null> {
+  const { data, error } = await supabase
+    .from('carousel_styles')
+    .insert(style)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating carousel style:', error)
+    return null
+  }
+
+  return data
+}
+
+/**
+ * Обновить стиль
+ */
+export async function updateCarouselStyle(
+  id: string,
+  updates: Partial<CarouselStyleInput>
+): Promise<CarouselStyleDB | null> {
+  const { data, error } = await supabase
+    .from('carousel_styles')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating carousel style:', error)
+    return null
+  }
+
+  return data
+}
+
+/**
+ * Удалить стиль (мягкое удаление - деактивация)
+ */
+export async function deleteCarouselStyle(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('carousel_styles')
+    .update({ is_active: false })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting carousel style:', error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Жёсткое удаление стиля
+ */
+export async function hardDeleteCarouselStyle(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('carousel_styles')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error hard deleting carousel style:', error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Дублировать стиль
+ */
+export async function duplicateCarouselStyle(
+  id: string,
+  newStyleId: string,
+  newName: string,
+  createdBy?: number
+): Promise<CarouselStyleDB | null> {
+  const original = await getCarouselStyleById(id)
+  if (!original) return null
+
+  const duplicate: CarouselStyleInput = {
+    style_id: newStyleId,
+    name: newName,
+    description: original.description,
+    emoji: original.emoji,
+    audience: original.audience,
+    preview_color: original.preview_color,
+    preview_image: original.preview_image,
+    is_active: false, // Дубликат по умолчанию неактивен
+    sort_order: original.sort_order + 1,
+    config: original.config,
+    example_images: original.example_images,
+    created_by: createdBy,
+  }
+
+  return createCarouselStyle(duplicate)
+}
+

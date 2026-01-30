@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Users,
@@ -14,14 +14,15 @@ import {
   BarChart3,
   Search,
   Link2,
-  Cpu
+  Cpu,
+  Palette
 } from 'lucide-react'
 import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 import UtmTab from './crm/UtmTab'
 import StatsTab from './crm/StatsTab'
 import AiAnalytics from './AiAnalytics'
 
-type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'ai-analytics' | 'settings'
+type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'carousel-styles' | 'ai-analytics' | 'settings'
 
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<AdminSection>('crm')
@@ -56,6 +57,12 @@ export default function AdminPanel() {
             onClick={() => setActiveSection('quizzes')}
           />
           <SidebarItem
+            icon={Palette}
+            label="Карусели"
+            active={activeSection === 'carousel-styles'}
+            onClick={() => setActiveSection('carousel-styles')}
+          />
+          <SidebarItem
             icon={Cpu}
             label="AI Аналитика"
             active={activeSection === 'ai-analytics'}
@@ -85,6 +92,7 @@ export default function AdminPanel() {
           {activeSection === 'crm' && <CRMSection />}
           {activeSection === 'mlm-camp' && <MLMCampSection />}
           {activeSection === 'quizzes' && <QuizzesSection navigate={navigate} />}
+          {activeSection === 'carousel-styles' && <CarouselStylesSection navigate={navigate} />}
           {activeSection === 'ai-analytics' && <AiAnalytics />}
           {activeSection === 'settings' && <SettingsSection />}
         </div>
@@ -430,6 +438,19 @@ function AdminQuizCard({
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function CarouselStylesSection({ navigate }: { navigate: any }) {
+  // Редирект на отдельную страницу списка стилей
+  useEffect(() => {
+    navigate('/admin/carousel-styles')
+  }, [navigate])
+
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="text-[#94A3B8]">Перенаправление...</div>
     </div>
   )
 }

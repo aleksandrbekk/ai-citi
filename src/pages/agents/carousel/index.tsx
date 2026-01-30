@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, getCarouselStyles } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -101,13 +101,59 @@ export default function CarouselIndex() {
   // Модальные окна закрываются системной кнопкой назад (через Layout.tsx)
   // Кастомная логика для модалок не нужна — просто закрываем при navigate(-1)
 
+  // Загружаем стили из БД (если есть)
+  const { data: dbStyles = [] } = useQuery({
+    queryKey: ['carousel-styles'],
+    queryFn: getCarouselStyles,
+    staleTime: 5 * 60 * 1000, // 5 минут
+  })
+
+  // Объединяем стили: БД имеет приоритет над захардкоженными
+  const mergedStylesIndex = dbStyles.length > 0
+    ? dbStyles.map(s => ({
+        id: s.style_id as StyleId,
+        name: s.name,
+        emoji: s.emoji,
+        audience: s.audience as 'universal' | 'female',
+        previewColor: s.preview_color,
+        description: s.description || ''
+      }))
+    : STYLES_INDEX
+
+  // Функция получения конфига стиля (из БД или захардкоженного)
+  const getStyleConfig = (styleId: StyleId) => {
+    const dbStyle = dbStyles.find(s => s.style_id === styleId)
+    if (dbStyle && dbStyle.config && Object.keys(dbStyle.config).length > 0) {
+      return dbStyle.config
+    }
+    return STYLE_CONFIGS[styleId]
+  }
+
+  // Функция получения превью стиля
+  const getStylePreview = (styleId: StyleId) => {
+    const dbStyle = dbStyles.find(s => s.style_id === styleId)
+    if (dbStyle?.preview_image) {
+      return dbStyle.preview_image
+    }
+    return STYLE_PREVIEWS[styleId] || '/styles/apple.jpg'
+  }
+
+  // Функция получения примеров стиля
+  const getStyleExamples = (styleId: StyleId) => {
+    const dbStyle = dbStyles.find(s => s.style_id === styleId)
+    if (dbStyle?.example_images && dbStyle.example_images.length > 0) {
+      return dbStyle.example_images
+    }
+    return STYLE_EXAMPLES[styleId] || []
+  }
+
   // Загружаем сохранённый стиль
   useEffect(() => {
     const savedStyle = localStorage.getItem(SAVED_STYLE_KEY) as StyleId | null
-    if (savedStyle && STYLES_INDEX.find(s => s.id === savedStyle)) {
+    if (savedStyle && mergedStylesIndex.find(s => s.id === savedStyle)) {
       setStyle(savedStyle)
     }
-  }, [setStyle])
+  }, [setStyle, mergedStylesIndex])
 
   // Загружаем фото пользователя
   useEffect(() => {
@@ -223,7 +269,8 @@ export default function CarouselIndex() {
     }
 
     try {
-      const styleConfig = STYLE_CONFIGS[style]
+      // Получаем конфиг стиля (из БД или захардкоженный)
+      const styleConfig = getStyleConfig(style)
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -252,7 +299,7 @@ export default function CarouselIndex() {
     }
   }
 
-  const currentStyleMeta = STYLES_INDEX.find(s => s.id === style)
+  const currentStyleMeta = mergedStylesIndex.find(s => s.id === style)
 
   // ========== CTA PAGE ==========
   if (showCtaPage) {
@@ -488,7 +535,7 @@ export default function CarouselIndex() {
             className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-purple-200 transition-all active:scale-[0.98] cursor-pointer"
           >
             <img
-              src={STYLE_PREVIEWS[style]}
+              src={getStylePreview(style)}
               alt={currentStyleMeta?.name}
               className="w-9 h-9 rounded-lg object-cover ring-2 ring-purple-200"
             />
@@ -546,6 +593,8 @@ export default function CarouselIndex() {
             localStorage.setItem(SAVED_STYLE_KEY, id)
             setShowStyleModal(false)
           }}
+          stylesIndex={mergedStylesIndex}
+          getExamples={getStyleExamples}
         />
       )}
 
@@ -627,12 +676,23 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
   ],
 }
 
+interface StyleMeta {
+  id: StyleId
+  name: string
+  emoji: string
+  audience: 'universal' | 'female'
+  previewColor: string
+  description: string
+}
+
 interface StyleModalProps {
   currentStyle: StyleId
   onSelect: (id: StyleId) => void
+  stylesIndex: StyleMeta[]
+  getExamples: (styleId: StyleId) => string[]
 }
 
-function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
+function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleModalProps) {
   const [selectedStyle, setSelectedStyle] = useState<StyleId>(currentStyle)
   const [saveAsDefault, setSaveAsDefault] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
@@ -644,18 +704,21 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const minSwipeDistance = 50
 
+  // Используем переданные стили (из БД или захардкоженные)
+  const activeStylesIndex = stylesIndex?.length > 0 ? stylesIndex : STYLES_INDEX
+
   // Safe access with fallbacks
-  const styleIndex = STYLES_INDEX?.findIndex(s => s.id === selectedStyle) ?? 0
-  const totalStyles = STYLES_INDEX?.length ?? 5
-  const selectedMeta = STYLES_INDEX?.[styleIndex]
-  const examples = STYLE_EXAMPLES?.[selectedStyle] ?? []
+  const styleIndex = activeStylesIndex?.findIndex(s => s.id === selectedStyle) ?? 0
+  const totalStyles = activeStylesIndex?.length ?? 5
+  const selectedMeta = activeStylesIndex?.[styleIndex]
+  const examples = getExamples(selectedStyle)
 
   // Preload next/prev style images
   useEffect(() => {
-    if (!STYLES_INDEX?.length) return
+    if (!activeStylesIndex?.length) return
 
     const preloadImages = (styleId: StyleId) => {
-      const images = STYLE_EXAMPLES?.[styleId] ?? []
+      const images = getExamples(styleId)
       images.slice(0, 3).forEach(src => {
         const img = new Image()
         img.src = src
@@ -666,19 +729,19 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
     const nextIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
     const prevIndex = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
 
-    preloadImages(STYLES_INDEX[nextIndex].id)
-    preloadImages(STYLES_INDEX[prevIndex].id)
-  }, [styleIndex, totalStyles])
+    preloadImages(activeStylesIndex[nextIndex].id)
+    preloadImages(activeStylesIndex[prevIndex].id)
+  }, [styleIndex, totalStyles, activeStylesIndex, getExamples])
 
   // Handle navigation with smooth transition
   const navigateToStyle = (newIndex: number) => {
-    if (!STYLES_INDEX?.length || isTransitioning) return
+    if (!activeStylesIndex?.length || isTransitioning) return
 
     setIsTransitioning(true)
 
     // Short delay for visual feedback
     setTimeout(() => {
-      setSelectedStyle(STYLES_INDEX[newIndex].id)
+      setSelectedStyle(activeStylesIndex[newIndex].id)
       setLoadedImages(new Set())
       setIsTransitioning(false)
     }, 150)
@@ -747,7 +810,7 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   }
 
   // Error boundary fallback
-  if (hasError || !STYLES_INDEX?.length) {
+  if (hasError || !activeStylesIndex?.length) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white p-6">
         <div className="text-center">
@@ -813,10 +876,10 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
 
         {/* Progress Dots */}
         <div className="mt-3 flex justify-center gap-1">
-          {STYLES_INDEX?.map((s, i) => (
+          {activeStylesIndex?.map((s, i) => (
             <button
               key={s.id}
-              onClick={() => setSelectedStyle(STYLES_INDEX[i].id)}
+              onClick={() => setSelectedStyle(activeStylesIndex[i].id)}
               className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === styleIndex
                 ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500'
                 : 'w-1.5 bg-gray-200 hover:bg-gray-300'
