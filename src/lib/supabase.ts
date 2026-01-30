@@ -1,22 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Supabase проект: syxjkircmiwpnpagznay
+// Хардкодим напрямую, чтобы не зависеть от env переменных Vercel
+const SUPABASE_URL = 'https://syxjkircmiwpnpagznay.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
 
-// Логирование для отладки
-console.log('=== SUPABASE CONFIG ===')
-console.log('URL:', supabaseUrl || 'MISSING!')
-console.log('Key exists:', !!supabaseAnonKey)
-console.log('Key prefix:', supabaseAnonKey?.substring(0, 30) || 'MISSING!')
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables!')
-}
-
-export const supabase = createClient(
-  supabaseUrl || 'https://syxjkircmiwpnpagznay.supabase.co',
-  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
-)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export async function checkWhitelist(telegramId: number): Promise<boolean> {
   const { data, error } = await supabase
