@@ -59,7 +59,7 @@ export default function CarouselStylesList() {
       description: meta.description,
       audience: meta.audience,
       preview_color: meta.previewColor,
-      config: config,
+      config: config as unknown as Record<string, unknown>,
       example_images: [],
       is_active: true
     }
