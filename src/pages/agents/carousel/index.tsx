@@ -397,9 +397,7 @@ export default function CarouselIndex() {
         </div>
         {/* Balance badge */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-orange-500">
-            <circle cx="12" cy="12" r="10" />
-          </svg>
+          <img src="/neiro-coin.png" alt="Нейро" className="w-5 h-5 object-contain" />
           <span className="text-sm font-semibold text-orange-600">{coinBalance}</span>
         </div>
       </div>

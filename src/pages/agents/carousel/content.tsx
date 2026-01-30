@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Coins, FileText, Target, Megaphone, Gift } from 'lucide-react'
+import { FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { STYLE_CONFIGS, VASIA_CORE } from '@/lib/carouselStyles'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
@@ -232,7 +232,7 @@ export default function CarouselContent() {
         {/* Баланс / Подписка */}
         <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-2xl">
           <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-orange-500" />
+            <img src="/neiro-coin.png" alt="Нейро" className="w-5 h-5 object-contain" />
             {hasSubscription ? (
               <span className="font-bold text-green-600">Подписка активна ✓</span>
             ) : (

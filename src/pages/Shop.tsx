@@ -203,22 +203,20 @@ export function Shop() {
         <div className="flex gap-1.5 bg-white/80 backdrop-blur-sm p-1.5 rounded-xl border border-gray-200/50">
           <button
             onClick={() => setActiveTab('coins')}
-            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${
-              activeTab === 'coins'
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'coins'
                 ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             <Coins className="w-4 h-4 inline mr-1" />
             МОНЕТЫ
           </button>
           <button
             onClick={() => setActiveTab('subscription')}
-            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${
-              activeTab === 'subscription'
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'subscription'
                 ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             <Star className="w-4 h-4 inline mr-1" />
             ПОДПИСКА
@@ -249,8 +247,8 @@ export function Shop() {
                 {/* Аватарка */}
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {telegramUser?.photo_url ? (
-                    <img 
-                      src={telegramUser.photo_url} 
+                    <img
+                      src={telegramUser.photo_url}
                       alt={telegramUser.first_name || 'User'}
                       className="w-full h-full object-cover"
                     />
@@ -258,14 +256,14 @@ export function Shop() {
                     <User className="w-6 h-6 text-white" />
                   )}
                 </div>
-                
+
                 {/* Имя и монеты */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">
                     {telegramUser?.first_name || 'Пользователь'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <Coins className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                    <img src="/neiro-coin.png" alt="Нейро" className="w-5 h-5 object-contain flex-shrink-0" />
                     <span className="text-base font-bold text-gray-900">
                       {isLoadingCoins ? '...' : coinBalance}
                     </span>
@@ -287,11 +285,10 @@ export function Shop() {
                 <button
                   key={cur}
                   onClick={() => setCurrency(cur)}
-                  className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${
-                    currency === cur
+                  className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${currency === cur
                       ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
                       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                  }`}
+                    }`}
                 >
                   {cur === 'RUB' ? '₽ Рубли' : cur === 'USD' ? '$ Доллары' : '€ Евро'}
                 </button>
@@ -341,11 +338,10 @@ export function Shop() {
                 <button
                   key={pkg.id}
                   onClick={() => handleBuySubscription(pkg.id)}
-                  className={`relative w-full bg-white border-2 ${pkg.borderColor} rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-xl hover:border-opacity-100 active:scale-[0.99] cursor-pointer ${
-                    pkg.popular 
-                      ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30' 
+                  className={`relative w-full bg-white border-2 ${pkg.borderColor} rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-xl hover:border-opacity-100 active:scale-[0.99] cursor-pointer ${pkg.popular
+                      ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
                       : 'hover:border-opacity-60'
-                  }`}
+                    }`}
                 >
                   {pkg.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
@@ -354,7 +350,7 @@ export function Shop() {
                       </span>
                     </div>
                   )}
-                  
+
                   {/* Header */}
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-4">
@@ -367,40 +363,38 @@ export function Shop() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Features */}
                   <div className="space-y-3 mb-6">
                     {pkg.features.map((feature, i) => (
                       <div key={i} className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                          pkg.popular 
-                            ? 'bg-orange-500' 
-                            : pkg.id === 'elite' 
-                              ? 'bg-amber-500' 
-                              : pkg.id === 'starter' 
-                                ? 'bg-cyan-500' 
+                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${pkg.popular
+                            ? 'bg-orange-500'
+                            : pkg.id === 'elite'
+                              ? 'bg-amber-500'
+                              : pkg.id === 'starter'
+                                ? 'bg-cyan-500'
                                 : 'bg-gray-400'
-                        }`} />
+                          }`} />
                         <span className="text-sm text-gray-700 leading-relaxed flex-1">{feature}</span>
                       </div>
                     ))}
                   </div>
-                  
+
                   {/* CTA Button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
                       handleBuySubscription(pkg.id)
                     }}
-                    className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
-                      pkg.popular
+                    className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${pkg.popular
                         ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/40 hover:scale-[1.02]'
                         : pkg.id === 'elite'
                           ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-lg hover:shadow-amber-500/40 hover:scale-[1.02]'
                           : pkg.id === 'starter'
                             ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02]'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                      }`}
                   >
                     {pkg.id === 'basic' ? 'Начать бесплатно' : 'Выбрать план'}
                   </button>

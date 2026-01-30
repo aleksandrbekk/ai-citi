@@ -13,7 +13,7 @@ interface PromoResult {
 
 /**
  * Хук для обработки промокодов из startParam
- * Формат ссылки: https://t.me/Neirociti_bot/app?startapp=BONUS50
+ * Формат ссылки: https://t.me/Neirociti_bot?start=BONUS50
  * 
  * Промокод активируется один раз для каждого пользователя
  */
