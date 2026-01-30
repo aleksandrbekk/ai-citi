@@ -647,8 +647,8 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
     '/styles/AESTHETIC_BEIGE/example_9.jpeg',
   ],
   SOFT_PINK_EDITORIAL: [
-    '/styles/SOFT_PINK_EDITORIAL/example_2.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_1.jpeg',
+    '/styles/SOFT_PINK_EDITORIAL/example_2.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_3.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_4.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_5.jpeg',
@@ -657,6 +657,7 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
     '/styles/SOFT_PINK_EDITORIAL/example_8.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_9.jpeg',
   ],
+
   MINIMALIST_LINE_ART: [
     '/styles/MINIMALIST_LINE_ART/example_1.jpeg',
     '/styles/MINIMALIST_LINE_ART/example_2.jpeg',
