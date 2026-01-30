@@ -270,8 +270,8 @@ export default function UtmTab() {
   }
 
   const buildPromoUrl = (code: string) => {
-    // Формат ?start= открывает чат с ботом, бот отправит приветствие с кнопкой
-    return `https://t.me/${BOT_USERNAME}?start=${code}`
+    // Формат /app?startapp= открывает TMA напрямую, хук usePromoCode обработает код
+    return `https://t.me/${BOT_USERNAME}/app?startapp=${code}`
   }
 
   const createPromoLink = async () => {

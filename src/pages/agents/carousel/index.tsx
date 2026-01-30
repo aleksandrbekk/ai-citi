@@ -258,89 +258,104 @@ export default function CarouselIndex() {
   if (showCtaPage) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="h-4" />
-
-        <div className="px-4 pb-8">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-2">
-            <MegaphoneIcon className="text-orange-500" />
-            <h1 className="text-2xl font-bold text-gray-900">Призыв к действию</h1>
+        <div className="px-4 pt-3 pb-6">
+          {/* Step Indicator */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">✓</div>
+                <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-pink-400" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-pink-500/30">2</div>
+              </div>
+            </div>
+            {/* Balance */}
+            <div className="flex items-center gap-1.5">
+              <img src="/neiro-coin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+              <span className="text-base font-bold text-orange-500">{coinBalance}</span>
+            </div>
           </div>
-          <p className="text-gray-500 mb-6">Что должен сделать читатель?</p>
 
-          {/* Segment Control */}
-          <div className="flex bg-white/60 backdrop-blur-xl rounded-2xl p-1.5 mb-6 border border-white/50 shadow-lg">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <MegaphoneIcon className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Призыв к действию</h1>
+              <p className="text-sm text-gray-500">Шаг 2 — Финальный слайд</p>
+            </div>
+          </div>
+
+          {/* Segment Control - Glass */}
+          <div className="flex bg-gray-100/80 backdrop-blur-xl rounded-2xl p-1 mb-5">
             <button
               onClick={() => setCtaType('PRODUCT')}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${ctaType === 'PRODUCT'
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
-                : 'text-gray-600'
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${ctaType === 'PRODUCT'
+                ? 'bg-white text-gray-900 shadow-md'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-              Продажа
+              🛍️ Продажа
             </button>
             <button
               onClick={() => setCtaType('ENGAGEMENT')}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${ctaType === 'ENGAGEMENT'
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
-                : 'text-gray-600'
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${ctaType === 'ENGAGEMENT'
+                ? 'bg-white text-gray-900 shadow-md'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-              Охват
+              📈 Охват
             </button>
           </div>
 
           {ctaType === 'PRODUCT' ? (
             <>
-              {/* Card */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 p-4 mb-4 flex items-center gap-4 shadow-lg">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-                  <CheckIcon size={20} className="text-white" />
+              {/* Info Card */}
+              <div className="bg-gradient-to-br from-orange-50 to-pink-50 rounded-2xl border border-orange-100 p-4 mb-4 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
+                  <MessageIcon className="text-white w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageIcon className="text-gray-400" />
-                    <span className="font-semibold text-gray-900">Кодовое слово</span>
-                  </div>
-                  <p className="text-sm text-gray-500">Клиент напишет его в директ</p>
+                  <span className="font-semibold text-gray-900 block mb-0.5">Кодовое слово</span>
+                  <p className="text-sm text-gray-500">Клиент напишет его вам в директ</p>
                 </div>
               </div>
 
               {/* Input Card */}
-              <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/50 p-4 shadow-lg mb-6">
-                <label className="block text-sm font-medium text-gray-600 mb-2">
-                  Ваше слово
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 shadow-lg shadow-gray-500/5 mb-5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Введите ваше слово
                 </label>
                 <input
                   type="text"
                   value={ctaKeyword}
                   onChange={(e) => setCtaKeyword(e.target.value.toUpperCase())}
-                  placeholder="МАГИЯ"
-                  className="w-full px-4 py-3 rounded-xl bg-white/80 border border-gray-200 text-gray-900 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  placeholder="ХОЧУ"
+                  className="w-full px-4 py-3.5 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 tracking-wider"
                 />
-                <p className="text-xs text-gray-400 mt-2">Например: СТАРТ, ХОЧУ, VIP</p>
+                <p className="text-xs text-gray-400 mt-2">Примеры: СТАРТ, ХОЧУ, VIP, МАГИЯ</p>
               </div>
             </>
           ) : (
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-5">
               {[
-                { id: 'SUBSCRIBE' as const, label: 'Подпишись', desc: 'Призыв подписаться' },
-                { id: 'COMMENT' as const, label: 'Комментируй', desc: 'Напиши в комментах' },
-                { id: 'SAVE' as const, label: 'Сохрани', desc: 'Сохрани себе пост' },
+                { id: 'SUBSCRIBE' as const, label: 'Подпишись', desc: 'Призыв подписаться', icon: '👆' },
+                { id: 'COMMENT' as const, label: 'Комментируй', desc: 'Напиши в комментах', icon: '💬' },
+                { id: 'SAVE' as const, label: 'Сохрани', desc: 'Сохрани себе пост', icon: '🔖' },
               ].map(option => (
                 <button
                   key={option.id}
                   onClick={() => setEngagementType(option.id)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl transition-all shadow-lg ${engagementType === option.id
-                    ? 'border-orange-500 bg-orange-50/80'
-                    : 'border-white/50 bg-white/70'
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl transition-all cursor-pointer ${engagementType === option.id
+                    ? 'border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg shadow-purple-500/10'
+                    : 'border-gray-100 bg-white/80 hover:border-purple-200'
                     }`}
                 >
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-lg ${engagementType === option.id
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-600'
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${engagementType === option.id
+                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg'
                     : 'bg-gray-100'
                     }`}>
-                    {engagementType === option.id && <CheckIcon size={20} className="text-white" />}
+                    {engagementType === option.id ? <CheckIcon size={20} className="text-white" /> : option.icon}
                   </div>
                   <div className="text-left">
                     <span className="font-semibold text-gray-900 block">{option.label}</span>
@@ -357,22 +372,28 @@ export default function CarouselIndex() {
             </div>
           )}
 
+          {/* Generate Button */}
           <button
             onClick={handleGenerate}
             disabled={isSubmitting}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-pink-500/30 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer"
           >
             {isSubmitting ? (
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
             ) : (
               <>
                 <span>Сгенерировать за {GENERATION_COST}</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
-                  <circle cx="12" cy="12" r="10" fill="currentColor" />
-                  <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
-                </svg>
+                <img src="/neiro-coin.png" alt="Нейро" className="w-6 h-6 object-contain" />
               </>
             )}
+          </button>
+
+          {/* Back link */}
+          <button
+            onClick={() => setShowCtaPage(false)}
+            className="w-full mt-3 py-3 text-gray-500 text-sm font-medium hover:text-gray-700 transition-colors cursor-pointer"
+          >
+            ← Вернуться к шагу 1
           </button>
         </div>
       </div>
@@ -385,61 +406,76 @@ export default function CarouselIndex() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Compact Header */}
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl overflow-hidden shadow-md shadow-orange-500/20">
+      <div className="px-4 pt-3 pb-2">
+        {/* Step Indicator */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">1</div>
+              <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-gray-200" />
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-medium text-sm">2</div>
+            </div>
+          </div>
+          {/* Balance */}
+          <div className="flex items-center gap-1.5">
+            <img src="/neiro-coin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+            <span className="text-base font-bold text-orange-500">{coinBalance}</span>
+          </div>
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg shadow-orange-500/20 ring-2 ring-white">
             <img src="/carousel-icon.png" alt="AI Карусель" className="w-full h-full object-cover" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">AI Карусель</h1>
-            <p className="text-xs text-gray-500">9 слайдов за 2 минуты</p>
+            <h1 className="text-xl font-bold text-gray-900">Создание карусели</h1>
+            <p className="text-sm text-gray-500">Шаг 1 — Тема и стиль</p>
           </div>
-        </div>
-        {/* Balance badge */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-100">
-          <img src="/neiro-coin.png" alt="Нейро" className="w-5 h-5 object-contain" />
-          <span className="text-sm font-semibold text-orange-600">{coinBalance}</span>
         </div>
       </div>
 
       <div className="px-4 pb-6 flex-1 flex flex-col">
-        {/* Topic Input */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-gray-400">Тема карусели</span>
+        {/* Topic Input - Glass Card */}
+        <div className="mb-4 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 shadow-lg shadow-gray-500/5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">О чём карусель?</span>
             <button
               onClick={() => setShowTipsModal(true)}
-              className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors cursor-pointer"
+              className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-orange-100 hover:text-orange-500 transition-colors cursor-pointer"
             >
-              <span className="text-[10px] font-medium">i</span>
+              <span className="text-xs font-medium">?</span>
             </button>
           </div>
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            placeholder="ТОП 5 ответов на возражение «Ваши бады дорогие!» Сделай с юмором 😄"
-            className="w-full min-h-[120px] px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300 resize-none text-sm"
+            placeholder="Например: ТОП 5 ответов на возражение «Ваши бады дорогие!» 😄"
+            className="w-full min-h-[100px] px-4 py-3 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 resize-none text-sm leading-relaxed"
           />
+          <div className="flex justify-end mt-1">
+            <span className="text-xs text-gray-400">{topic.length} / 500</span>
+          </div>
         </div>
 
-        {/* Photo & Style Row */}
-        <div className="flex gap-2 mb-3">
+        {/* Photo & Style Row - Glass Cards */}
+        <div className="flex gap-3 mb-4">
           {/* Photo */}
           <button
             onClick={() => setShowPhotoModal(true)}
-            className="flex-1 bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-3 hover:border-orange-300 transition-all active:scale-[0.98] cursor-pointer"
+            className="flex-1 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/10 transition-all active:scale-[0.98] cursor-pointer"
           >
             {userPhoto ? (
-              <img src={userPhoto} alt="" className="w-10 h-10 rounded-lg object-cover ring-2 ring-orange-400" />
+              <img src={userPhoto} alt="" className="w-12 h-12 rounded-xl object-cover ring-2 ring-orange-400 shadow-md" />
             ) : (
-              <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
-                <CameraIcon className="text-orange-400 w-5 h-5" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
+                <CameraIcon className="text-orange-400 w-6 h-6" />
               </div>
             )}
             <div className="flex-1 text-left min-w-0">
-              <span className="font-medium text-gray-900 text-sm block truncate">Фото</span>
+              <span className="font-semibold text-gray-900 text-sm block">Фото</span>
               {userPhoto ? (
-                <span className="text-xs text-green-600">Готово</span>
+                <span className="text-xs text-green-600 font-medium">✓ Загружено</span>
               ) : (
                 <span className="text-xs text-gray-400">Добавить</span>
               )}
@@ -449,41 +485,41 @@ export default function CarouselIndex() {
           {/* Style */}
           <button
             onClick={() => setShowStyleModal(true)}
-            className="flex-1 bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-3 hover:border-orange-300 transition-all active:scale-[0.98] cursor-pointer"
+            className="flex-1 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/10 transition-all active:scale-[0.98] cursor-pointer"
           >
             <img
               src={STYLE_PREVIEWS[style]}
               alt={currentStyleMeta?.name}
-              className="w-10 h-10 rounded-lg object-cover"
+              className="w-12 h-12 rounded-xl object-cover shadow-md ring-2 ring-purple-200"
             />
             <div className="flex-1 text-left min-w-0">
-              <span className="font-medium text-gray-900 text-sm block truncate">Стиль</span>
-              <span className="text-xs text-orange-500 truncate block">{currentStyleMeta?.name?.split(' ')[0]}</span>
+              <span className="font-semibold text-gray-900 text-sm block">Стиль</span>
+              <span className="text-xs text-purple-500 font-medium truncate block">{currentStyleMeta?.name?.split(' ')[0]}</span>
             </div>
           </button>
         </div>
 
-        {/* Gender Toggle - минималистичный */}
-        <div className="flex items-center justify-end gap-2 mb-3">
-          <span className="text-xs text-gray-400">Пол:</span>
-          <div className="flex bg-gray-100 rounded-full p-0.5">
+        {/* Gender Toggle - Compact Pill */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <span className="text-xs text-gray-400">Склонение текста:</span>
+          <div className="flex bg-gray-100/80 backdrop-blur rounded-full p-1 gap-0.5">
             <button
               onClick={() => handleGenderChange('male')}
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${gender === 'male'
-                ? 'bg-white text-gray-700 shadow-sm'
-                : 'text-gray-400'
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${gender === 'male'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-              ♂
+              Он ♂
             </button>
             <button
               onClick={() => handleGenderChange('female')}
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all cursor-pointer ${gender === 'female'
-                ? 'bg-white text-gray-700 shadow-sm'
-                : 'text-gray-400'
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${gender === 'female'
+                ? 'bg-white text-gray-800 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-              ♀
+              Она ♀
             </button>
           </div>
         </div>
@@ -495,16 +531,12 @@ export default function CarouselIndex() {
           </div>
         )}
 
-        {/* Create Button */}
+        {/* Next Button */}
         <button
           onClick={handleCreate}
           className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl hover:shadow-orange-500/40"
         >
-          <span>Создать за {GENERATION_COST}</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-yellow-300">
-            <circle cx="12" cy="12" r="10" fill="currentColor" />
-            <text x="12" y="16" textAnchor="middle" fontSize="12" fill="#B45309" fontWeight="bold">N</text>
-          </svg>
+          Далее →
         </button>
 
         {/* Style Marketplace Teaser */}
