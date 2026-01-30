@@ -1,11 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase проект: syxjkircmiwpnpagznay
-// Хардкодим напрямую, чтобы не зависеть от env переменных Vercel
-const SUPABASE_URL = 'https://syxjkircmiwpnpagznay.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
+// Supabase credentials из переменных окружения
+// Локально: .env.local (gitignored)
+// Vercel: Environment Variables в настройках проекта
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Missing Supabase environment variables!')
+  console.error('Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY')
+}
+
+export const supabase = createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || '')
 
 export async function checkWhitelist(telegramId: number): Promise<boolean> {
   const { data, error } = await supabase

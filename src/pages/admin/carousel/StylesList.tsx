@@ -1,7 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image } from 'lucide-react'
-import { getAllCarouselStyles, deleteCarouselStyle, updateCarouselStyle, type CarouselStyleDB } from '@/lib/supabase'
+import {
+  getAllCarouselStyles,
+  deleteCarouselStyle,
+  updateCarouselStyle,
+  type CarouselStyleDB
+} from '@/lib/carouselStylesApi'
 
 export default function CarouselStylesList() {
   const navigate = useNavigate()
