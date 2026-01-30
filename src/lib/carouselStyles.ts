@@ -387,76 +387,236 @@ export const STYLE_CONFIGS: Record<StyleId, StyleConfig> = {
 }
 
 // =============================================================================
-// VASIA CORE (poses, emotions, props, formulas)
+// VASIA CORE v7.0 — УНИВЕРСАЛЬНАЯ СИСТЕМА
 // =============================================================================
 
 export const VASIA_CORE = {
     id: "VASIA_CORE",
-    version: "6.0",
-    description: "Справочники для генерации каруселей: позы, эмоции, реквизит, одежда, формулы заголовков",
+    version: "7.0",
+    description: "Универсальная система для генерации каруселей любой ниши: позы, эмоции, реквизит, одежда с автодетекцией темы",
 
     // =========================================================================
-    // ДИНАМИЧНАЯ ОДЕЖДА ПОД ТЕМУ (v6.0)
+    // АВТОДЕТЕКТОР НИШИ ПО КЛЮЧЕВЫМ СЛОВАМ
     // =========================================================================
-    outfit_by_topic: {
-        ai_tech: {
-            ru: "AI, технологии, автоматизация",
-            hook: "Sleek futuristic jacket with subtle tech details, modern minimalist tech-wear style",
-            cta: "Smart casual dark sweater, clean modern look"
+    niche_detector: {
+        business: {
+            keywords: ["бизнес", "продажи", "доход", "заработок", "клиенты", "заявки", "воронка", "маркетинг", "сетевой", "mlm", "партнёр", "команда", "деньги", "прибыль"],
+            default_mood: "professional"
         },
-        money_business: {
-            ru: "Деньги, доход, бизнес",
-            hook: "Expensive dark blazer, luxury watch visible, confident businessman style",
-            cta: "Crisp white shirt, relaxed professional, top button open"
+        health: {
+            keywords: ["здоровье", "похудение", "диета", "фитнес", "спорт", "тренировка", "питание", "вес", "калории", "тело", "зож", "йога", "массаж", "медицина", "витамины"],
+            default_mood: "energetic"
         },
-        mistakes_failures: {
-            ru: "Ошибки, провалы, боль",
-            hook: "Wrinkled shirt, loosened collar, slightly disheveled appearance showing stress",
-            cta: "Clean fresh shirt, composed and recovered look"
+        relationships: {
+            keywords: ["отношения", "любовь", "семья", "брак", "партнёр", "муж", "жена", "свидание", "романтика", "чувства", "эмоции", "психология", "терапия"],
+            default_mood: "warm"
         },
-        system_order: {
-            ru: "Система, порядок, план",
-            hook: "Crisp white shirt, perfectly styled, organized professional appearance",
-            cta: "Smart casual blazer over clean t-shirt"
+        education: {
+            keywords: ["обучение", "курс", "урок", "школа", "знания", "навыки", "учёба", "студент", "преподаватель", "образование", "развитие", "рост"],
+            default_mood: "inspiring"
         },
-        energy_motivation: {
-            ru: "Энергия, мотивация, старт",
-            hook: "Bright athletic jacket or sporty hoodie, energetic dynamic look",
-            cta: "Casual comfortable wear, approachable and ready"
+        creativity: {
+            keywords: ["творчество", "искусство", "дизайн", "фото", "видео", "музыка", "рисование", "хендмейд", "крафт", "художник", "креатив"],
+            default_mood: "expressive"
         },
-        lifestyle_freedom: {
-            ru: "Lifestyle, свобода, результат",
-            hook: "Light summer shirt, relaxed vacation style, linen fabric",
-            cta: "Casual elegant, beach club smart casual"
+        lifestyle: {
+            keywords: ["lifestyle", "жизнь", "путешествия", "отдых", "хобби", "дом", "уют", "стиль", "мода", "красота", "свобода"],
+            default_mood: "relaxed"
         },
-        expose_truth: {
-            ru: "Разоблачение, правда, секреты",
-            hook: "Black leather jacket, edgy rebellious look, dark mysterious",
-            cta: "Dark turtleneck, insider expert vibe"
+        parenting: {
+            keywords: ["дети", "ребёнок", "материнство", "отцовство", "родители", "воспитание", "мама", "папа", "семья", "малыш"],
+            default_mood: "caring"
         },
-        company_review: {
-            ru: "Обзор компании, MLM",
-            hook: "Smart casual blazer over t-shirt, approachable expert look",
-            cta: "Professional but friendly, business casual"
-        },
-        default: {
-            ru: "Универсальная тема",
-            hook: "Modern dark blazer or quality hoodie, clean professional",
-            cta: "Crisp white or light shirt, warm inviting appearance"
+        cooking: {
+            keywords: ["рецепт", "готовка", "еда", "блюдо", "кухня", "выпечка", "десерт", "завтрак", "обед", "ужин", "продукты"],
+            default_mood: "joyful"
         }
     },
 
     // =========================================================================
-    // ПОЗЫ И ЖЕСТЫ
+    // УНИВЕРСАЛЬНЫЕ ПОЗЫ (v7.0) — НЕ ПРИВЯЗАНЫ К НИШЕ
+    // =========================================================================
+    poses_universal: {
+        WELCOMING: { ru: "Приветствие", prompt: "Open arms welcoming gesture, warm and inviting, friendly body language" },
+        EXPLAINING: { ru: "Объяснение", prompt: "Hand gesture pointing to content, teaching pose, engaging explanation" },
+        PRESENTING: { ru: "Презентация", prompt: "Open palm gesture toward content, showcasing, professional presenter" },
+        CELEBRATING: { ru: "Празднование", prompt: "Arms raised in celebration, joyful victory pose, genuine happiness" },
+        CONTEMPLATING: { ru: "Размышление", prompt: "Thoughtful pose, hand on chin, wise contemplation, intellectual" },
+        DEMONSTRATING: { ru: "Демонстрация", prompt: "Showing or displaying something, hands active, engaging demonstration" },
+        INVITING: { ru: "Приглашение", prompt: "Beckoning gesture, inviting viewer to join, open and approachable" },
+        RELAXED: { ru: "Расслабленность", prompt: "Relaxed comfortable pose, natural stance, at ease" },
+        ENGAGED: { ru: "Увлечённость", prompt: "Leaning in slightly, focused and interested, active engagement" },
+        CONFIDENT: { ru: "Уверенность", prompt: "Confident stance, assured posture, professional confidence" },
+        CURIOUS: { ru: "Любопытство", prompt: "Curious expression, head slightly tilted, intrigued and interested" },
+        INSPIRED: { ru: "Вдохновение", prompt: "Inspired pose, looking up slightly, motivated and energized" }
+    },
+
+    // =========================================================================
+    // ПОЗЫ ПО НАСТРОЕНИЮ КОНТЕНТА
+    // =========================================================================
+    poses_by_mood: {
+        problem_aware: ["CONTEMPLATING", "CURIOUS", "ENGAGED"],
+        solution_focused: ["CONFIDENT", "PRESENTING", "EXPLAINING"],
+        celebratory: ["CELEBRATING", "INSPIRED", "WELCOMING"],
+        educational: ["EXPLAINING", "DEMONSTRATING", "PRESENTING"],
+        warm_personal: ["WELCOMING", "RELAXED", "INVITING"],
+        professional: ["CONFIDENT", "PRESENTING", "ENGAGED"],
+        energetic: ["CELEBRATING", "INSPIRED", "DEMONSTRATING"],
+        calm_peaceful: ["RELAXED", "CONTEMPLATING", "WELCOMING"]
+    },
+
+    // =========================================================================
+    // УНИВЕРСАЛЬНЫЙ СПЕКТР ЭМОЦИЙ (v7.0)
+    // =========================================================================
+    emotions_spectrum: {
+        // Позитивные
+        JOYFUL: { ru: "Радость", prompt: "Genuinely joyful, bright smile, eyes lit up with happiness" },
+        WARM: { ru: "Теплота", prompt: "Warm and friendly, genuine soft smile, approachable and kind" },
+        CONFIDENT: { ru: "Уверенность", prompt: "Confident and assured, knowing smile, professional composure" },
+        INSPIRED: { ru: "Вдохновение", prompt: "Inspired and motivated, eyes bright with purpose, uplifted" },
+        PEACEFUL: { ru: "Спокойствие", prompt: "Peaceful and calm, serene expression, inner tranquility" },
+        PROUD: { ru: "Гордость", prompt: "Proud and accomplished, satisfied smile, dignified" },
+        CURIOUS: { ru: "Любопытство", prompt: "Curious and intrigued, engaged expression, interested" },
+        EXCITED: { ru: "Воодушевление", prompt: "Excited and enthusiastic, energetic expression, eager" },
+
+        // Нейтральные/Задумчивые
+        THOUGHTFUL: { ru: "Задумчивость", prompt: "Thoughtful and reflective, contemplative gaze, wise" },
+        FOCUSED: { ru: "Сосредоточенность", prompt: "Focused and concentrated, determined expression, intent" },
+        EMPATHETIC: { ru: "Сочувствие", prompt: "Empathetic and understanding, compassionate expression" },
+
+        // Лёгкие негативные (для проблемных тем — БЕЗ драматизма)
+        CONCERNED: { ru: "Обеспокоенность", prompt: "Slightly concerned, caring expression, genuine worry" },
+        QUESTIONING: { ru: "Вопросительность", prompt: "Questioning expression, raised eyebrow, seeking answers" }
+    },
+
+    // =========================================================================
+    // ЭМОЦИИ ПО ТИПУ КОНТЕНТА
+    // =========================================================================
+    emotions_by_content_type: {
+        success_story: ["PROUD", "JOYFUL", "INSPIRED"],
+        how_to_guide: ["CONFIDENT", "FOCUSED", "WARM"],
+        problem_solution: ["EMPATHETIC", "CONCERNED", "CONFIDENT"],
+        motivation: ["INSPIRED", "EXCITED", "CONFIDENT"],
+        personal_story: ["WARM", "THOUGHTFUL", "EMPATHETIC"],
+        tips_tricks: ["CURIOUS", "EXCITED", "CONFIDENT"],
+        review_analysis: ["THOUGHTFUL", "FOCUSED", "QUESTIONING"],
+        lifestyle: ["PEACEFUL", "JOYFUL", "RELAXED"],
+        celebration: ["JOYFUL", "PROUD", "EXCITED"]
+    },
+
+    // =========================================================================
+    // ОДЕЖДА ПО НИШАМ (v7.0 — расширенная)
+    // =========================================================================
+    outfit_by_niche: {
+        business: {
+            ru: "Бизнес, продажи",
+            hook: "Modern professional attire, smart blazer or quality sweater, clean and polished",
+            cta: "Crisp shirt or elegant casual, approachable professional look"
+        },
+        health: {
+            ru: "Здоровье, фитнес",
+            hook: "Athletic wear, sporty jacket or comfortable activewear, energetic look",
+            cta: "Clean athletic casual, fresh and healthy appearance"
+        },
+        relationships: {
+            ru: "Отношения, психология",
+            hook: "Soft comfortable cardigan or cozy sweater, warm approachable style",
+            cta: "Elegant casual in warm colors, inviting and trustworthy"
+        },
+        education: {
+            ru: "Образование, обучение",
+            hook: "Smart casual with glasses optional, professional educator look",
+            cta: "Comfortable professional, approachable teacher style"
+        },
+        creativity: {
+            ru: "Творчество, дизайн",
+            hook: "Creative artistic style, unique accessories, expressive fashion",
+            cta: "Artistic casual, creative professional appearance"
+        },
+        lifestyle: {
+            ru: "Lifestyle, путешествия",
+            hook: "Relaxed elegant style, linen or light fabrics, vacation vibes",
+            cta: "Casual chic, effortlessly stylish and comfortable"
+        },
+        parenting: {
+            ru: "Родительство, семья",
+            hook: "Comfortable cozy clothes, practical yet stylish, warm colors",
+            cta: "Friendly casual, approachable parent look"
+        },
+        cooking: {
+            ru: "Кулинария, еда",
+            hook: "Clean apron or chef-inspired look, practical and presentable",
+            cta: "Fresh casual, clean and appetizing appearance"
+        },
+        default: {
+            ru: "Универсальная тема",
+            hook: "Modern smart casual, clean and professional yet approachable",
+            cta: "Elegant casual, warm and inviting appearance"
+        }
+    },
+
+    // =========================================================================
+    // РЕКВИЗИТ ПО НИШАМ (v7.0 — расширенный)
+    // =========================================================================
+    props_by_niche: {
+        business: {
+            success: { props: "Laptop, phone with notifications, charts showing growth, coffee cup", metaphor: "Успешный бизнес" },
+            challenge: { props: "Scattered papers, multiple screens, busy desk, clock", metaphor: "Рабочие будни" },
+            solution: { props: "Organized workspace, clean desk, success charts, green plants", metaphor: "Порядок и система" }
+        },
+        health: {
+            success: { props: "Fresh fruits, yoga mat, dumbbells, healthy smoothie, nature background", metaphor: "Здоровый образ жизни" },
+            challenge: { props: "Running shoes, fitness tracker, water bottle, gym equipment", metaphor: "Путь к здоровью" },
+            solution: { props: "Balanced meal, exercise equipment, wellness journal, plants", metaphor: "Баланс и гармония" }
+        },
+        relationships: {
+            success: { props: "Cozy home setting, warm lighting, cups of tea/coffee, soft textiles", metaphor: "Тёплые отношения" },
+            challenge: { props: "Photo frames, letters, comfortable seating, gentle lighting", metaphor: "Близость и понимание" },
+            solution: { props: "Candles, comfortable space, books on psychology, plants", metaphor: "Гармония в отношениях" }
+        },
+        education: {
+            success: { props: "Books, notebooks, laptop, certificates, study desk", metaphor: "Путь к знаниям" },
+            challenge: { props: "Open books, notes, highlighters, study materials", metaphor: "Процесс обучения" },
+            solution: { props: "Organized study space, achievement badges, graduation cap", metaphor: "Результат обучения" }
+        },
+        creativity: {
+            success: { props: "Art supplies, canvas, creative tools, colorful workspace", metaphor: "Творческий процесс" },
+            challenge: { props: "Sketchbook, pencils, inspiration board, creative mess", metaphor: "Поиск вдохновения" },
+            solution: { props: "Finished artwork, portfolio, creative achievements", metaphor: "Творческий успех" }
+        },
+        lifestyle: {
+            success: { props: "Travel items, passport, camera, scenic background, coffee", metaphor: "Свобода и путешествия" },
+            challenge: { props: "Suitcase, maps, adventure gear, exploration items", metaphor: "Приключения" },
+            solution: { props: "Relaxing setting, vacation vibes, freedom elements", metaphor: "Идеальный lifestyle" }
+        },
+        parenting: {
+            success: { props: "Family items, toys, cozy home, warm lighting, comfort", metaphor: "Счастливая семья" },
+            challenge: { props: "Children's books, educational toys, family photos", metaphor: "Родительство" },
+            solution: { props: "Organized family space, happy home elements, warmth", metaphor: "Гармония в семье" }
+        },
+        cooking: {
+            success: { props: "Fresh ingredients, beautiful dishes, kitchen utensils, herbs", metaphor: "Кулинарное мастерство" },
+            challenge: { props: "Recipe book, cooking process, fresh produce, spices", metaphor: "Приготовление" },
+            solution: { props: "Finished beautiful dish, plated food, garnishes", metaphor: "Вкусный результат" }
+        },
+        default: {
+            success: { props: "Modern workspace, laptop, coffee, plants, clean aesthetic", metaphor: "Успех и достижения" },
+            challenge: { props: "Work materials, planning items, focused environment", metaphor: "Работа над целью" },
+            solution: { props: "Achievement symbols, organized space, results visible", metaphor: "Достигнутый результат" }
+        }
+    },
+
+    // =========================================================================
+    // LEGACY: Старые позы (для обратной совместимости)
     // =========================================================================
     poses: {
-        SHOCK: { ru: "Руки у головы", prompt: "Hands on head, shocked expression, wide eyes, dramatic reaction" },
+        SHOCK: { ru: "Руки у головы", prompt: "Hands on head, surprised expression, wide eyes, dramatic reaction", deprecated: true },
         EUREKA: { ru: "Палец вверх", prompt: "Pointing up with index finger, eureka moment, excited discovery" },
-        QUESTION: { ru: "Руки разведены", prompt: "Arms spread wide, palms up, really?! expression, disbelief" },
+        QUESTION: { ru: "Руки разведены", prompt: "Arms spread wide, palms up, questioning expression" },
         CONFIDENT: { ru: "Руки скрещены", prompt: "Arms crossed, confident smirk, powerful stance" },
         POINTING: { ru: "Указывает на что-то", prompt: "Pointing or gesturing toward card or element, directing attention" },
-        DISAPPOINTED: { ru: "Держит голову", prompt: "Hand on forehead, disappointed look, frustration visible" },
-        TIRED: { ru: "Потирает глаза", prompt: "Rubbing eyes, exhausted expression, burnout visible" },
+        DISAPPOINTED: { ru: "Держит голову", prompt: "Hand on forehead, thoughtful look", deprecated: true },
+        TIRED: { ru: "Потирает глаза", prompt: "Rubbing eyes, tired expression", deprecated: true },
         VICTORY: { ru: "Кулак вверх", prompt: "Fist pump, celebrating victory, triumphant" },
         SHRUG: { ru: "Пожимает плечами", prompt: "Shrugging, ironic smile, what can you do expression" },
         SECRET: { ru: "Палец у губ", prompt: "Finger on lips, I will tell you a secret, mysterious" },
@@ -466,60 +626,48 @@ export const VASIA_CORE = {
     },
 
     // =========================================================================
-    // ЭМОЦИИ
+    // LEGACY: Старые эмоции (для обратной совместимости)
     // =========================================================================
     emotions: {
-        HOOK_PROBLEM: { ru: "Шок / Возмущение", prompt: "Shocked, frustrated, are you serious?! theatrical for social media" },
+        HOOK_PROBLEM: { ru: "Шок / Возмущение", prompt: "Concerned, empathetic, understanding expression", modernized: true },
         HOOK_PROVOKE: { ru: "Дерзость", prompt: "Confident smirk, raised eyebrow, challenging, provocative" },
-        HOOK_ANALYZE: { ru: "Задумчивость", prompt: "Thoughtful, analytical, slight squint, examining" },
+        HOOK_ANALYZE: { ru: "Задумчивость", prompt: "Thoughtful, analytical, contemplating" },
         EMPATHY: { ru: "Сочувствие", prompt: "Empathetic, understanding, slight concern, I feel you" },
-        DISAPPOINTMENT: { ru: "Разочарование", prompt: "Disappointed, I have seen this too many times, tired of it" },
+        DISAPPOINTMENT: { ru: "Разочарование", prompt: "Thoughtful, reflective expression", modernized: true },
         CONFIDENCE: { ru: "Уверенность", prompt: "Confident, knowing smile, I got this, assured" },
         FRIENDLY: { ru: "Дружелюбие", prompt: "Warm smile, inviting, approachable, genuine friendly" },
         PROUD: { ru: "Гордость", prompt: "Proud, satisfied, accomplished, achieved" }
     },
 
     // =========================================================================
-    // WOW-РЕКВИЗИТ ПО ТЕМАМ
+    // УНИВЕРСАЛЬНЫЕ ФОРМУЛЫ ЗАГОЛОВКОВ (v7.0)
     // =========================================================================
-    props_by_topic: {
-        no_leads: { ru: "Нет заявок", props: "Magnifying glass searching empty phone screen, tumbleweeds, desert emptiness", metaphor: "Искать нечего" },
-        cold_spam: { ru: "Холодный спам", props: "Frozen phone covered in ice and frost, icicles, cold breath visible, winter hat", metaphor: "Тебя морозят" },
-        burnout: { ru: "Выгорание", props: "Firefighter helmet, sparks and flames around, smoke, fire extinguisher", metaphor: "Горишь на работе" },
-        team_leaves: { ru: "Команда уходит", props: "Empty chairs behind, abandoned desks, exit signs, footprints walking away", metaphor: "Все сбежали" },
-        content_void: { ru: "Контент в пустоту", props: "Megaphone pointing into fog/void, echo waves disappearing, empty audience", metaphor: "Никто не слышит" },
-        money_drain: { ru: "Деньги утекают", props: "Leaky bucket with coins and bills falling out, drain hole, money flying away", metaphor: "Слив бюджета" },
-        ai_automation: { ru: "AI автоматизация", props: "Holographic control panels, floating screens, robot assistants, neural network visuals", metaphor: "Контроль над всем" },
-        business_chaos: { ru: "Хаос в бизнесе", props: "Flying papers everywhere, scattered documents, tangled cables, alarm clocks", metaphor: "Нет системы" },
-        analysis: { ru: "Разбор ошибок", props: "Detective magnifying glass, folder labeled CASE FILE, evidence board, red strings", metaphor: "Расследование" },
-        time_running: { ru: "Время утекает", props: "Shattered hourglass, sand spilling, broken clocks, melting watches", metaphor: "Дедлайн горит" },
-        secret_success: { ru: "Секрет успеха", props: "Safe door slightly open with golden glow inside, treasure chest, key", metaphor: "Ценная информация" },
-        breakthrough: { ru: "Прорыв", props: "Brick wall with hole punched through, light streaming in, breaking chains", metaphor: "Пробил барьер" },
-        fresh_start: { ru: "Старт с нуля", props: "Starting blocks on running track, launch pad, rocket taking off", metaphor: "Готов к забегу" },
-        income_growth: { ru: "Рост дохода", props: "3D chart with glowing arrow going up, money stacks growing, green upward trend", metaphor: "Наглядный рост" },
-        transformation: { ru: "До / После", props: "Two phones: old cracked vs new shiny, butterfly emerging, before/after split", metaphor: "Трансформация" }
-    },
-
     headline_formulas: {
-        number_fail: { formula: "[ЧИСЛО] + [НЕГАТИВ]", examples: ["47 ОТКАЗОВ ЗА ДЕНЬ", "0 ЗАЯВОК ЗА 30 ДНЕЙ", "НАПИСАЛ 500 — ОТВЕТИЛИ 3"] },
-        action_shock: { formula: "[СДЕЛАЛ] — [ШОК]", examples: ["УДАЛИЛ ИНСТАГРАМ — ДОХОД ×3", "УВОЛИЛ КОМАНДУ — ВЫРОС В 2 РАЗА"] },
-        provoke: { formula: "[СПОРНОЕ УТВЕРЖДЕНИЕ]?", examples: ["MLM — ПИРАМИДА?", "СЕТЕВОЙ МЁРТВ?"] },
-        contrast: { formula: "[А] vs [Б]", examples: ["СПАМ vs ВОРОНКА", "ХАОС vs СИСТЕМА"] },
-        confession: { formula: "Я [НЕГАТИВ] [ВРЕМЯ]", examples: ["Я ВРАЛ 3 ГОДА", "Я СЛИЛ 200К НА РЕКЛАМУ"] },
-        secret: { formula: "[КТО] СКРЫВАЮТ [ЧТО]", examples: ["ЧТО СКРЫВАЮТ ТОПЫ", "СЕКРЕТ КОТОРЫЙ НЕ РАССКАЖУТ"] },
-        ultimatum: { formula: "[СДЕЛАЙ] ИЛИ [ПОСЛЕДСТВИЕ]", examples: ["ВНЕДРИ ИЛИ СЛИВАЙ", "АВТОМАТИЗИРУЙ ИЛИ ВЫГОРИ"] }
+        // Проблема-решение (универсальные)
+        number_insight: { formula: "[ЧИСЛО] + [ИНСАЙТ]", examples: ["5 СЕКРЕТОВ ПРОДУКТИВНОСТИ", "3 ПРИВЫЧКИ УСПЕШНЫХ", "7 ШАГОВ К ЦЕЛИ"] },
+        how_to: { formula: "КАК + [РЕЗУЛЬТАТ]", examples: ["КАК ДОСТИЧЬ БАЛАНСА", "КАК НАЧАТЬ С НУЛЯ", "КАК ИЗМЕНИТЬ ЖИЗНЬ"] },
+        transformation: { formula: "[БЫЛО] → [СТАЛО]", examples: ["ОТ НОВИЧКА К ЭКСПЕРТУ", "ОТ ХАОСА К ПОРЯДКУ", "ОТ МЕЧТЫ К РЕАЛЬНОСТИ"] },
+        question: { formula: "[ВОПРОС]?", examples: ["ПОЧЕМУ ЭТО РАБОТАЕТ?", "ЧТО МЕШАЕТ УСПЕХУ?", "КАК ЭТО ВОЗМОЖНО?"] },
+        secret: { formula: "СЕКРЕТ + [ЧЕГО]", examples: ["СЕКРЕТ ПРОДУКТИВНОСТИ", "СЕКРЕТ УСПЕХА", "СЕКРЕТ БАЛАНСА"] },
+        mistake: { formula: "[ЧИСЛО] ОШИБОК + [В ЧЁМ]", examples: ["5 ОШИБОК НОВИЧКОВ", "3 ОШИБКИ В ПИТАНИИ", "7 ОШИБОК В ОТНОШЕНИЯХ"] },
+        simple: { formula: "ПРОСТОЙ СПОСОБ + [РЕЗУЛЬТАТ]", examples: ["ПРОСТОЙ СПОСОБ НАЧАТЬ", "ПРОСТОЙ ПУТЬ К ЦЕЛИ", "ПРОСТОЕ РЕШЕНИЕ"] }
     },
 
+    // =========================================================================
+    // УНИВЕРСАЛЬНЫЕ ВИРУСНЫЕ ЦЕЛИ (v7.0)
+    // =========================================================================
     viral_targets: {
-        mistakes_newbie: "ТОМУ КТО СЛИВАЕТ КОМАНДУ",
-        ai_automation: "КТО ЕЩЁ НЕ ИСПОЛЬЗУЕТ AI",
-        content_struggle: "КТО МУЧАЕТСЯ С КОНТЕНТОМ",
-        no_system: "КТО РАБОТАЕТ БЕЗ СИСТЕМЫ",
-        burnout: "КТО ВЫГОРАЕТ НА РАБОТЕ",
-        company_choice: "ТОМУ КТО ВЫБИРАЕТ КОМПАНИЮ",
-        universal: "ПАРТНЁРУ ИЗ СЕТЕВОГО"
+        beginners: "ТОМУ КТО ТОЛЬКО НАЧИНАЕТ",
+        strugglers: "ТОМУ КТО ЗАСТРЯЛ",
+        seekers: "ТОМУ КТО ИЩЕТ ОТВЕТЫ",
+        dreamers: "ТОМУ КТО ХОЧЕТ ИЗМЕНЕНИЙ",
+        achievers: "ТОМУ КТО СТРЕМИТСЯ К БОЛЬШЕМУ",
+        universal: "ТОМУ КОМУ ЭТО НУЖНО"
     },
 
+    // =========================================================================
+    // ПЕРЕХОДНЫЕ ФРАЗЫ (универсальные)
+    // =========================================================================
     transition_phrases: [
         "И знаете что?",
         "Короче",
@@ -528,11 +676,20 @@ export const VASIA_CORE = {
         "Простыми словами",
         "А теперь главное...",
         "Но это ещё не всё...",
-        "Смотри дальше →"
+        "Смотри дальше →",
+        "Вот что важно...",
+        "Секрет в том, что...",
+        "На самом деле..."
     ],
 
+    // =========================================================================
+    // ШАБЛОН ЧЕЛОВЕКА (без изменений)
+    // =========================================================================
     person_block_template: "Generate the person EXACTLY as shown in the reference photo provided. Match face, hair, skin tone, and all facial features with photographic precision. The reference image is the ONLY source for the person's appearance. CRITICAL: Do NOT invent or change any facial features.",
 
+    // =========================================================================
+    // ТЕХНИЧЕСКИЕ ПАРАМЕТРЫ
+    // =========================================================================
     technical: {
         aspect_ratio: "3:4",
         size_final: "1080x1440",
@@ -625,4 +782,207 @@ export function getStyleMeta(id: StyleId): StyleMeta | undefined {
 
 export function getDefaultStyle(): StyleId {
     return 'APPLE_GLASSMORPHISM'
+}
+
+// =============================================================================
+// VASIA v7.0 HELPER FUNCTIONS — Автодетекция ниши и подбор поз/эмоций
+// =============================================================================
+
+export type NicheType = 'business' | 'health' | 'relationships' | 'education' | 'creativity' | 'lifestyle' | 'parenting' | 'cooking' | 'default'
+export type MoodType = 'professional' | 'energetic' | 'warm' | 'inspiring' | 'expressive' | 'relaxed' | 'caring' | 'joyful'
+export type SlideType = 'HOOK' | 'CONTENT' | 'CTA' | 'VIRAL'
+export type ContentTone = 'problem_aware' | 'solution_focused' | 'celebratory' | 'educational'
+
+/**
+ * Определяет нишу на основе заголовка/контента
+ */
+export function detectNicheFromHeadline(headline: string): NicheType {
+    const lowercaseHeadline = headline.toLowerCase()
+
+    for (const [niche, config] of Object.entries(VASIA_CORE.niche_detector)) {
+        const nicheConfig = config as { keywords: string[], default_mood: string }
+        for (const keyword of nicheConfig.keywords) {
+            if (lowercaseHeadline.includes(keyword.toLowerCase())) {
+                return niche as NicheType
+            }
+        }
+    }
+
+    return 'default'
+}
+
+/**
+ * Определяет тональность контента на основе заголовка
+ */
+export function detectContentTone(headline: string): ContentTone {
+    const lowercaseHeadline = headline.toLowerCase()
+
+    // Проблемные индикаторы
+    const problemIndicators = ['ошибк', 'проблем', 'почему не', 'как не', 'что делать', 'помощь', 'сложно', 'трудно']
+    // Решательные индикаторы
+    const solutionIndicators = ['как ', 'способ', 'метод', 'секрет', 'шаг', 'план', 'система']
+    // Праздничные индикаторы
+    const celebratoryIndicators = ['достиг', 'успех', 'победа', 'результат', 'сделал', 'получил', 'наконец']
+    // Образовательные индикаторы
+    const educationalIndicators = ['урок', 'совет', 'факт', 'знай', 'запомни', 'важно', 'правило']
+
+    for (const indicator of problemIndicators) {
+        if (lowercaseHeadline.includes(indicator)) return 'problem_aware'
+    }
+    for (const indicator of celebratoryIndicators) {
+        if (lowercaseHeadline.includes(indicator)) return 'celebratory'
+    }
+    for (const indicator of educationalIndicators) {
+        if (lowercaseHeadline.includes(indicator)) return 'educational'
+    }
+    for (const indicator of solutionIndicators) {
+        if (lowercaseHeadline.includes(indicator)) return 'solution_focused'
+    }
+
+    return 'solution_focused' // По умолчанию — позитивный подход
+}
+
+/**
+ * Подбирает позу для слайда на основе ниши и типа слайда
+ */
+export function getPoseForSlide(
+    slideType: SlideType,
+    _niche: NicheType,
+    contentTone: ContentTone
+): { id: string, prompt: string } {
+    const poses = VASIA_CORE.poses_universal
+    const posesByMood = VASIA_CORE.poses_by_mood
+
+    // Определяем настроение на основе тональности
+    let moodKey: keyof typeof posesByMood
+    switch (contentTone) {
+        case 'problem_aware': moodKey = 'problem_aware'; break
+        case 'solution_focused': moodKey = 'solution_focused'; break
+        case 'celebratory': moodKey = 'celebratory'; break
+        case 'educational': moodKey = 'educational'; break
+        default: moodKey = 'professional'
+    }
+
+    // Для CTA всегда используем приглашающие позы
+    if (slideType === 'CTA') {
+        moodKey = 'warm_personal'
+    }
+
+    // Получаем список подходящих поз
+    const suitablePoseIds = posesByMood[moodKey] || ['PRESENTING', 'CONFIDENT', 'WELCOMING']
+
+    // Выбираем случайную позу из списка (в реальности можно добавить более умную логику)
+    const poseId = suitablePoseIds[0] as keyof typeof poses
+    const poseConfig = poses[poseId]
+
+    return {
+        id: poseId,
+        prompt: poseConfig?.prompt || 'Natural, engaging pose, open and approachable'
+    }
+}
+
+/**
+ * Подбирает эмоцию для слайда на основе ниши и типа слайда
+ */
+export function getEmotionForSlide(
+    slideType: SlideType,
+    _niche: NicheType,
+    contentTone: ContentTone
+): { id: string, prompt: string } {
+    const emotions = VASIA_CORE.emotions_spectrum
+    const emotionsByContent = VASIA_CORE.emotions_by_content_type
+
+    // Определяем тип контента на основе тональности
+    let contentType: keyof typeof emotionsByContent
+    switch (contentTone) {
+        case 'problem_aware': contentType = 'problem_solution'; break
+        case 'solution_focused': contentType = 'how_to_guide'; break
+        case 'celebratory': contentType = 'celebration'; break
+        case 'educational': contentType = 'tips_tricks'; break
+        default: contentType = 'personal_story'
+    }
+
+    // Для CTA всегда дружелюбная эмоция
+    if (slideType === 'CTA') {
+        return {
+            id: 'WARM',
+            prompt: emotions.WARM.prompt
+        }
+    }
+
+    // Получаем список подходящих эмоций
+    const suitableEmotionIds = emotionsByContent[contentType] || ['CONFIDENT', 'WARM', 'INSPIRED']
+
+    // Для HOOK берём первую эмоцию (обычно самую сильную)
+    const emotionId = suitableEmotionIds[slideType === 'HOOK' ? 0 : 1] as keyof typeof emotions
+    const emotionConfig = emotions[emotionId]
+
+    return {
+        id: emotionId,
+        prompt: emotionConfig?.prompt || 'Warm and friendly, genuine expression'
+    }
+}
+
+/**
+ * Подбирает реквизит для ниши и типа слайда
+ */
+export function getPropsForNiche(
+    niche: NicheType,
+    variant: 'success' | 'challenge' | 'solution' = 'success'
+): { props: string, metaphor: string } {
+    const propsByNiche = VASIA_CORE.props_by_niche
+    const nicheProps = propsByNiche[niche] || propsByNiche.default
+
+    const propsConfig = nicheProps[variant] || nicheProps.success
+
+    return {
+        props: propsConfig.props,
+        metaphor: propsConfig.metaphor
+    }
+}
+
+/**
+ * Подбирает одежду для ниши и типа слайда
+ */
+export function getOutfitForNiche(
+    niche: NicheType,
+    slideType: SlideType
+): string {
+    const outfitByNiche = VASIA_CORE.outfit_by_niche
+    const nicheOutfit = outfitByNiche[niche] || outfitByNiche.default
+
+    return slideType === 'HOOK' ? nicheOutfit.hook : nicheOutfit.cta
+}
+
+/**
+ * Главная функция: генерирует полный набор параметров для слайда
+ */
+export function getSlideGenerationParams(
+    headline: string,
+    slideType: SlideType
+): {
+    niche: NicheType
+    contentTone: ContentTone
+    pose: { id: string, prompt: string }
+    emotion: { id: string, prompt: string }
+    props: { props: string, metaphor: string }
+    outfit: string
+} {
+    const niche = detectNicheFromHeadline(headline)
+    const contentTone = detectContentTone(headline)
+
+    const pose = getPoseForSlide(slideType, niche, contentTone)
+    const emotion = getEmotionForSlide(slideType, niche, contentTone)
+    const propsVariant = contentTone === 'problem_aware' ? 'challenge' : 'success'
+    const props = getPropsForNiche(niche, propsVariant)
+    const outfit = getOutfitForNiche(niche, slideType)
+
+    return {
+        niche,
+        contentTone,
+        pose,
+        emotion,
+        props,
+        outfit
+    }
 }

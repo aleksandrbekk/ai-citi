@@ -458,68 +458,65 @@ export default function CarouselIndex() {
           </div>
         </div>
 
-        {/* Photo & Style Row - Glass Cards */}
-        <div className="flex gap-3 mb-4">
-          {/* Photo */}
+        {/* Compact Settings Row: Photo + Style + Gender */}
+        <div className="flex items-center gap-2 mb-4">
+          {/* Photo - Compact */}
           <button
             onClick={() => setShowPhotoModal(true)}
-            className="flex-1 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/10 transition-all active:scale-[0.98] cursor-pointer"
+            className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
           >
             {userPhoto ? (
-              <img src={userPhoto} alt="" className="w-12 h-12 rounded-xl object-cover ring-2 ring-orange-400 shadow-md" />
+              <img src={userPhoto} alt="" className="w-9 h-9 rounded-lg object-cover ring-2 ring-orange-400" />
             ) : (
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
-                <CameraIcon className="text-orange-400 w-6 h-6" />
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
+                <CameraIcon className="text-orange-400 w-5 h-5" />
               </div>
             )}
             <div className="flex-1 text-left min-w-0">
-              <span className="font-semibold text-gray-900 text-sm block">Фото</span>
+              <span className="font-medium text-gray-900 text-xs block">Фото</span>
               {userPhoto ? (
-                <span className="text-xs text-green-600 font-medium">✓ Загружено</span>
+                <span className="text-[10px] text-green-600">✓</span>
               ) : (
-                <span className="text-xs text-gray-400">Добавить</span>
+                <span className="text-[10px] text-gray-400">+</span>
               )}
             </div>
           </button>
 
-          {/* Style */}
+          {/* Style - Compact */}
           <button
             onClick={() => setShowStyleModal(true)}
-            className="flex-1 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/10 transition-all active:scale-[0.98] cursor-pointer"
+            className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-purple-200 transition-all active:scale-[0.98] cursor-pointer"
           >
             <img
               src={STYLE_PREVIEWS[style]}
               alt={currentStyleMeta?.name}
-              className="w-12 h-12 rounded-xl object-cover shadow-md ring-2 ring-purple-200"
+              className="w-9 h-9 rounded-lg object-cover ring-2 ring-purple-200"
             />
             <div className="flex-1 text-left min-w-0">
-              <span className="font-semibold text-gray-900 text-sm block">Стиль</span>
-              <span className="text-xs text-purple-500 font-medium truncate block">{currentStyleMeta?.name?.split(' ')[0]}</span>
+              <span className="font-medium text-gray-900 text-xs block">Стиль</span>
+              <span className="text-[10px] text-purple-500 truncate block">{currentStyleMeta?.name?.split(' ')[0]}</span>
             </div>
           </button>
-        </div>
 
-        {/* Gender Toggle - Compact Pill */}
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <span className="text-xs text-gray-400">Склонение текста:</span>
-          <div className="flex bg-gray-100/80 backdrop-blur rounded-full p-1 gap-0.5">
+          {/* Gender - Compact Toggle */}
+          <div className="flex bg-gray-100/80 backdrop-blur rounded-xl p-1">
             <button
               onClick={() => handleGenderChange('male')}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${gender === 'male'
+              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${gender === 'male'
                 ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-400'
                 }`}
             >
-              Он ♂
+              ♂
             </button>
             <button
               onClick={() => handleGenderChange('female')}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${gender === 'female'
+              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${gender === 'female'
                 ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-400'
                 }`}
             >
-              Она ♀
+              ♀
             </button>
           </div>
         </div>
@@ -538,56 +535,6 @@ export default function CarouselIndex() {
         >
           Далее →
         </button>
-
-        {/* Style Marketplace Teaser */}
-        <div className="mt-6 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 rounded-2xl p-4 border-2 border-purple-100/50 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                  <line x1="7" y1="7" x2="7.01" y2="7" />
-                </svg>
-              </div>
-              <span className="font-bold text-gray-900">Style Marketplace</span>
-            </div>
-            <span className="px-2.5 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full uppercase tracking-wide shadow-lg shadow-purple-500/30">
-              Скоро
-            </span>
-          </div>
-
-          <p className="text-sm text-gray-600 mb-4">
-            Эксклюзивные стили для твоих каруселей ✨
-          </p>
-
-          {/* Style Previews - 4 icons */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {[
-              { src: '/styles/marketplace/crypto.png', name: 'Crypto Gold' },
-              { src: '/styles/marketplace/product.png', name: 'Product Pro' },
-              { src: '/styles/marketplace/neon.png', name: 'Neon City' },
-              { src: '/styles/marketplace/carousel_sets.jpg', name: 'Коллекции' },
-            ].map((style, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-20 relative group cursor-pointer"
-              >
-                <img
-                  src={style.src}
-                  alt={style.name}
-                  className="w-20 h-20 rounded-xl object-cover border-2 border-white shadow-md group-hover:shadow-lg transition-shadow"
-                />
-                <div className="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <p className="text-[10px] text-gray-600 text-center mt-1 truncate">{style.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Style Modal */}

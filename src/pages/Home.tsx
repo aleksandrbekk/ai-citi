@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Sparkles, PenTool, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
 
 // Персонажи привязаны к разделам
 const characters = [
@@ -57,6 +58,9 @@ export default function Home() {
   const [[currentIndex, direction], setPage] = useState([0, 0]);
   const [greetings, setGreetings] = useState<Record<string, string>>({})
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
+
+  // Onboarding
+  const { showOnboarding, isChecked, completeOnboarding } = useOnboarding()
 
   // Генерация приветствия для персонажа (всегда новое)
   const generateGreeting = async (characterId: string, forceNew = false) => {
@@ -126,6 +130,14 @@ export default function Home() {
 
   return (
     <div className="h-screen bg-white text-foreground overflow-hidden relative">
+
+      {/* Onboarding для новых пользователей */}
+      {isChecked && showOnboarding && (
+        <OnboardingOverlay
+          onComplete={completeOnboarding}
+          onCreateCarousel={() => navigate('/agents/carousel')}
+        />
+      )}
 
       {/* Фон */}
       <div className="absolute inset-0 pointer-events-none">

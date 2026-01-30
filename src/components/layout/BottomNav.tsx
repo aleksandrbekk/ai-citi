@@ -59,8 +59,8 @@ export function BottomNav() {
           <span className="text-[10px] font-medium">Главная</span>
         </Link>
 
-        {/* Профиль */}
-        <Link
+        {/* Профиль — ВРЕМЕННО СКРЫТО для тестовой группы */}
+        {/* <Link
           to="/profile"
           onClick={() => haptic.tap()}
           className={cn(
@@ -72,10 +72,10 @@ export function BottomNav() {
         >
           <UserIcon size={22} className={location.pathname === '/profile' ? 'text-orange-500' : ''} />
           <span className="text-[10px] font-medium">Профиль</span>
-        </Link>
+        </Link> */}
 
-        {/* Магазин */}
-        <Link
+        {/* Магазин — ВРЕМЕННО СКРЫТО для тестовой группы */}
+        {/* <Link
           to="/shop"
           onClick={() => haptic.tap()}
           className={cn(
@@ -87,7 +87,7 @@ export function BottomNav() {
         >
           <ShoppingBag size={22} className={location.pathname === '/shop' ? 'text-orange-500' : ''} />
           <span className="text-[10px] font-medium">Магазин</span>
-        </Link>
+        </Link> */}
 
         {/* Админ - только для админов */}
         {isAdmin && (
