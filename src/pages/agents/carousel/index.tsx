@@ -687,100 +687,181 @@ interface StyleModalProps {
 }
 
 function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
-  const [selectedStyle, setSelectedStyle] = useState(currentStyle)
+  const [selectedStyle, setSelectedStyle] = useState<StyleId>(currentStyle)
   const [saveAsDefault, setSaveAsDefault] = useState(true)
-  const styleIndex = STYLES_INDEX.findIndex(s => s.id === selectedStyle)
-  const totalStyles = STYLES_INDEX.length
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [hasError, setHasError] = useState(false)
 
-  const selectedMeta = STYLES_INDEX.find(s => s.id === selectedStyle)
-  const examples = STYLE_EXAMPLES[selectedStyle]
+  // Safe access with fallbacks
+  const styleIndex = STYLES_INDEX?.findIndex(s => s.id === selectedStyle) ?? 0
+  const totalStyles = STYLES_INDEX?.length ?? 5
+  const selectedMeta = STYLES_INDEX?.[styleIndex]
+  const examples = STYLE_EXAMPLES?.[selectedStyle] ?? []
 
+  // Handle navigation safely
   const goToPrev = () => {
+    if (!STYLES_INDEX?.length) return
     const newIndex = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
     setSelectedStyle(STYLES_INDEX[newIndex].id)
+    setLoadedImages(new Set()) // Reset for new style
   }
 
   const goToNext = () => {
+    if (!STYLES_INDEX?.length) return
     const newIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
     setSelectedStyle(STYLES_INDEX[newIndex].id)
+    setLoadedImages(new Set()) // Reset for new style
+  }
+
+  // Handle image load
+  const handleImageLoad = (src: string) => {
+    setLoadedImages(prev => new Set(prev).add(src))
+  }
+
+  // Handle image error
+  const handleImageError = (src: string) => {
+    console.warn('Failed to load image:', src)
+    // If critical images fail, show error state
+    if (examples.indexOf(src) === 0) {
+      setHasError(true)
+    }
+  }
+
+  // Handle confirm selection
+  const handleConfirm = () => {
+    try {
+      if (saveAsDefault && selectedStyle) {
+        localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
+      }
+      onSelect(selectedStyle)
+    } catch (err) {
+      console.error('Error saving style:', err)
+      onSelect(selectedStyle)
+    }
+  }
+
+  // Error boundary fallback
+  if (hasError || !STYLES_INDEX?.length) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">Не удалось загрузить стили</h3>
+          <p className="text-sm text-gray-500 mb-6">Попробуйте обновить страницу</p>
+          <button
+            onClick={() => onSelect(currentStyle)}
+            className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white">
-      {/* Style Name & Navigation */}
-      <div className="px-4 py-5">
+      {/* Header with Navigation */}
+      <div className="px-4 py-4 border-b border-gray-100/50">
         <div className="flex items-center justify-between">
           {/* Prev Button */}
           <button
             onClick={goToPrev}
-            className="w-12 h-12 rounded-2xl bg-white shadow-lg shadow-gray-200/50 flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all cursor-pointer border border-gray-100"
+            className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95"
+            aria-label="Предыдущий стиль"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
 
-          <div className="text-center flex-1 px-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-orange-100 to-pink-100 rounded-full mb-2">
-              <span className="text-xs font-semibold text-orange-600">Стиль {styleIndex + 1}</span>
+          {/* Style Info */}
+          <div className="text-center flex-1 px-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-orange-100 to-pink-100 rounded-full mb-1.5">
+              <span className="text-xs font-semibold text-orange-600">{styleIndex + 1} из {totalStyles}</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMeta?.name}</h3>
-            <p className="text-sm text-gray-500 line-clamp-2">{selectedMeta?.description}</p>
+            <h3 className="text-lg font-bold text-gray-900 truncate">{selectedMeta?.name || 'Стиль'}</h3>
           </div>
 
           {/* Next Button */}
           <button
             onClick={goToNext}
-            className="w-12 h-12 rounded-2xl bg-white shadow-lg shadow-gray-200/50 flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all cursor-pointer border border-gray-100"
+            className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95"
+            aria-label="Следующий стиль"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
 
-        {/* Style Progress Bar */}
-        <div className="mt-4 flex justify-center gap-1.5">
-          {STYLES_INDEX.map((s, i) => (
+        {/* Progress Dots */}
+        <div className="mt-3 flex justify-center gap-1">
+          {STYLES_INDEX?.map((s, i) => (
             <button
               key={s.id}
               onClick={() => setSelectedStyle(STYLES_INDEX[i].id)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${i === styleIndex
-                ? 'w-8 bg-gradient-to-r from-orange-500 to-pink-500'
+              className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === styleIndex
+                ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500'
                 : 'w-1.5 bg-gray-200 hover:bg-gray-300'
                 }`}
+              aria-label={`Стиль ${i + 1}`}
             />
           ))}
         </div>
       </div>
 
-      {/* Examples Grid with Transition */}
-      <div className="flex-1 px-4 pb-4 overflow-auto">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-gray-400">Примеры слайдов</p>
-          <span className="text-xs text-gray-300">← Листай →</span>
+      {/* Description */}
+      {selectedMeta?.description && (
+        <div className="px-4 py-3 bg-gray-50/50">
+          <p className="text-sm text-gray-500 text-center line-clamp-2">{selectedMeta.description}</p>
+        </div>
+      )}
+
+      {/* Examples Grid */}
+      <div className="flex-1 px-4 py-3 overflow-auto">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-gray-500">Примеры слайдов</p>
+          <span className="text-xs text-gray-400">← Листай →</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
-          {examples.map((src, i) => (
-            <div
-              key={`${selectedStyle}-${i}`}
-              className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
-            >
-              <img
-                src={src}
-                alt={`Пример ${i + 1}`}
-                loading="lazy"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-
+        {examples.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {examples.map((src, i) => (
+              <div
+                key={`${selectedStyle}-${i}`}
+                className="aspect-[3/4] rounded-xl overflow-hidden shadow-sm bg-gray-100 relative"
+              >
+                {/* Skeleton while loading */}
+                {!loadedImages.has(src) && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-50 animate-pulse" />
+                )}
+                <img
+                  src={src}
+                  alt={`Пример ${i + 1}`}
+                  loading="lazy"
+                  onLoad={() => handleImageLoad(src)}
+                  onError={() => handleImageError(src)}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${loadedImages.has(src) ? 'opacity-100' : 'opacity-0'
+                    }`}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-32 bg-gray-50 rounded-xl">
+            <p className="text-sm text-gray-400">Нет примеров</p>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Actions with Glass */}
-      <div className="px-4 py-4 bg-white/90 backdrop-blur-xl border-t border-gray-100/50">
+      {/* Bottom Actions */}
+      <div className="px-4 py-4 bg-white border-t border-gray-100">
         {/* Save toggle */}
         <div className="flex items-center justify-between mb-4 bg-gray-50 rounded-xl px-4 py-3">
           <div>
@@ -789,29 +870,28 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
           </div>
           <button
             onClick={() => setSaveAsDefault(!saveAsDefault)}
-            className={`w-12 h-7 rounded-full transition-all relative cursor-pointer ${saveAsDefault
-              ? 'bg-gradient-to-r from-orange-500 to-pink-500'
-              : 'bg-gray-300'
+            className={`w-11 h-6 rounded-full transition-all relative cursor-pointer ${saveAsDefault ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-gray-300'
               }`}
+            role="switch"
+            aria-checked={saveAsDefault}
           >
-            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all ${saveAsDefault ? 'left-6' : 'left-1'
+            <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${saveAsDefault ? 'left-5' : 'left-0.5'
               }`} />
           </button>
         </div>
 
+        {/* Confirm Button */}
         <button
-          onClick={() => {
-            if (saveAsDefault) localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
-            onSelect(selectedStyle)
-          }}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-all cursor-pointer hover:shadow-2xl hover:shadow-orange-500/40"
+          onClick={handleConfirm}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-base shadow-lg shadow-orange-500/25 active:scale-[0.98] transition-all cursor-pointer hover:shadow-xl"
         >
-          Выбрать «{selectedMeta?.name?.split(' ')[0]}»
+          ✓ Выбрать «{selectedMeta?.name?.split(' ')[0] || 'стиль'}»
         </button>
       </div>
     </div>
   )
 }
+
 
 // ========== PHOTO MODAL ==========
 interface PhotoModalProps {
