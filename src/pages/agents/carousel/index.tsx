@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, getCarouselStyles } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
-import { STYLES_INDEX, STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
+import { VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 
 // Cloudinary config
@@ -15,15 +15,6 @@ const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/imag
 // Ключи для localStorage
 const SAVED_STYLE_KEY = 'carousel_default_style'
 const SAVED_GENDER_KEY = 'carousel_default_gender'
-
-// Превью стилей (JPEG)
-const STYLE_PREVIEWS: Record<StyleId, string> = {
-  APPLE_GLASSMORPHISM: '/styles/apple.jpg',
-  AESTHETIC_BEIGE: '/styles/beige.jpg',
-  SOFT_PINK_EDITORIAL: '/styles/pink.jpg',
-  MINIMALIST_LINE_ART: '/styles/minimal.jpg',
-  GRADIENT_MESH_3D: '/styles/gradient.jpg',
-}
 
 // SVG иконки (thin-line, без эмодзи)
 
@@ -108,43 +99,35 @@ export default function CarouselIndex() {
     staleTime: 5 * 60 * 1000, // 5 минут
   })
 
-  // Объединяем стили: БД имеет приоритет над захардкоженными
-  const mergedStylesIndex = dbStyles.length > 0
-    ? dbStyles.map(s => ({
-        id: s.style_id as StyleId,
-        name: s.name,
-        emoji: s.emoji,
-        audience: s.audience as 'universal' | 'female',
-        previewColor: s.preview_color,
-        description: s.description || ''
-      }))
-    : STYLES_INDEX
+  // Стили ТОЛЬКО из БД (никаких захардкоженных)
+  const mergedStylesIndex = dbStyles.map(s => ({
+    id: s.style_id as StyleId,
+    name: s.name,
+    emoji: s.emoji,
+    audience: s.audience as 'universal' | 'female',
+    previewColor: s.preview_color,
+    description: s.description || ''
+  }))
 
-  // Функция получения конфига стиля (из БД или захардкоженного)
+  // Функция получения конфига стиля (ТОЛЬКО из БД)
   const getStyleConfig = (styleId: StyleId) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
     if (dbStyle && dbStyle.config && Object.keys(dbStyle.config).length > 0) {
       return dbStyle.config
     }
-    return STYLE_CONFIGS[styleId]
+    return null // Нет конфига - нет генерации
   }
 
   // Функция получения превью стиля
   const getStylePreview = (styleId: StyleId) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
-    if (dbStyle?.preview_image) {
-      return dbStyle.preview_image
-    }
-    return STYLE_PREVIEWS[styleId] || '/styles/apple.jpg'
+    return dbStyle?.preview_image || '/styles/default.jpg'
   }
 
   // Функция получения примеров стиля
   const getStyleExamples = (styleId: StyleId) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
-    if (dbStyle?.example_images && dbStyle.example_images.length > 0) {
-      return dbStyle.example_images
-    }
-    return STYLE_EXAMPLES[styleId] || []
+    return dbStyle?.example_images || []
   }
 
   // Загружаем сохранённый стиль
@@ -449,6 +432,21 @@ export default function CarouselIndex() {
 
   // Доступ открыт для всех — проверка монет только при генерации
 
+  // ========== NO STYLES STATE ==========
+  if (mergedStylesIndex.length === 0) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8">
+        <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+          <span className="text-4xl">🎨</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Нет стилей</h2>
+        <p className="text-gray-500 text-center mb-6">
+          Стили ещё не настроены. Попросите администратора добавить стили в админ-панели.
+        </p>
+      </div>
+    )
+  }
+
   // ========== MAIN PAGE ==========
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -618,63 +616,6 @@ export default function CarouselIndex() {
 }
 
 // ========== STYLE MODAL ==========
-// Примеры слайдов для каждого стиля (из public/styles/)
-const STYLE_EXAMPLES: Record<StyleId, string[]> = {
-  APPLE_GLASSMORPHISM: [
-    '/styles/APPLE_GLASSMORPHISM/example_1.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_2.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_3.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_4.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_5.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_6.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_7.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_8.jpeg',
-    '/styles/APPLE_GLASSMORPHISM/example_9.jpeg',
-  ],
-  AESTHETIC_BEIGE: [
-    '/styles/AESTHETIC_BEIGE/example_1.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_2.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_3.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_4.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_5.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_6.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_7.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_8.jpeg',
-    '/styles/AESTHETIC_BEIGE/example_9.jpeg',
-  ],
-  SOFT_PINK_EDITORIAL: [
-    '/styles/SOFT_PINK_EDITORIAL/example_1.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_2.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_3.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_4.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_5.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_6.jpeg',
-    '/styles/SOFT_PINK_EDITORIAL/example_7.jpeg',
-  ],
-
-  MINIMALIST_LINE_ART: [
-    '/styles/MINIMALIST_LINE_ART/example_1.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_2.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_3.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_4.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_5.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_6.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_7.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_8.jpeg',
-    '/styles/MINIMALIST_LINE_ART/example_9.jpeg',
-  ],
-  GRADIENT_MESH_3D: [
-    '/styles/GRADIENT_MESH_3D/example_1.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_2.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_3.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_4.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_5.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_6.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_7.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_8.jpeg',
-    '/styles/GRADIENT_MESH_3D/example_9.jpeg',
-  ],
-}
 
 interface StyleMeta {
   id: StyleId
@@ -704,8 +645,8 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const minSwipeDistance = 50
 
-  // Используем переданные стили (из БД или захардкоженные)
-  const activeStylesIndex = stylesIndex?.length > 0 ? stylesIndex : STYLES_INDEX
+  // Используем переданные стили из БД
+  const activeStylesIndex = stylesIndex || []
 
   // Safe access with fallbacks
   const styleIndex = activeStylesIndex?.findIndex(s => s.id === selectedStyle) ?? 0
