@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getStartParam } from '@/lib/telegram'
 import { useAuthStore } from '@/store/authStore'
-import { toast } from 'sonner'
+import { triggerCoinReward } from '@/components/CoinReward'
 
 interface PromoResult {
     success: boolean
@@ -60,10 +60,8 @@ export function usePromoCode() {
                     const currentCoins = profile?.coins || 0
                     updateProfile({ coins: currentCoins + result.coins })
 
-                    // Показываем уведомление
-                    toast.success(`🎁 ${result.message || `Получено ${result.coins} монет!`}`, {
-                        duration: 5000,
-                    })
+                    // Показываем красивую анимацию начисления
+                    triggerCoinReward(result.coins, result.message || 'Бонус активирован!')
 
                     console.log('✅ Promo claimed successfully:', result)
                 } else if (result.error) {

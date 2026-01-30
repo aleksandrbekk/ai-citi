@@ -10,6 +10,7 @@ import Login from './pages/Login'
 import { Layout } from '@/components/layout/Layout'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { usePromoCode } from '@/hooks/usePromoCode'
+import { CoinRewardProvider } from '@/components/CoinReward'
 
 // Быстрые страницы - обычный импорт
 import Home from '@/pages/Home'
@@ -279,8 +280,10 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
-      <Toaster position="top-center" richColors />
+      <CoinRewardProvider>
+        <AppContent />
+        <Toaster position="top-center" richColors />
+      </CoinRewardProvider>
     </BrowserRouter>
   )
 }
