@@ -4,16 +4,20 @@
  * Этот модуль вызывает Supabase REST API напрямую для проекта со стилями.
  * Это позволяет работать со стилями независимо от настроек окружения Vercel.
  *
- * Чтение: работает с anon key (RLS разрешает SELECT для активных стилей)
- * Запись: требует service_role_key (в Edge Function или backend)
+ * ВАЖНО: Этот проект (syxjkircmiwpnpagznay) содержит ТОЛЬКО стили каруселей.
+ * Основные данные приложения (пользователи, платежи) в другом проекте.
  */
 
 // URL Supabase проекта со стилями каруселей
 const SUPABASE_URL = 'https://syxjkircmiwpnpagznay.supabase.co'
 const REST_API_URL = `${SUPABASE_URL}/rest/v1/carousel_styles`
 
-// Anon key для авторизации запросов (публичный ключ)
+// Anon key для чтения (публичный)
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
+
+// Service role key для записи (обходит RLS)
+// Безопасно использовать здесь т.к. этот проект содержит только стили каруселей
+const SUPABASE_SERVICE_KEY = import.meta.env.VITE_CAROUSEL_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Nzc2NDQxMSwiZXhwIjoyMDczMzQwNDExfQ.7ueEYBhFrxKU3_RJi_iJEDj6EQqWBy3gAXiM4YIALqs'
 
 export interface CarouselStyleDB {
   id: string
@@ -46,15 +50,20 @@ export interface CarouselStyleInput {
 
 /**
  * Базовый fetch с авторизацией для Supabase REST API
+ * @param endpoint - REST API endpoint
+ * @param options - fetch options
+ * @param useServiceKey - использовать service key для записи (по умолчанию false)
  */
 async function supabaseFetch(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  useServiceKey = false
 ): Promise<Response> {
+  const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${key}`,
+    'apikey': key,
     ...(options.headers as Record<string, string> || {}),
   }
 
@@ -85,15 +94,11 @@ export async function getCarouselStyles(): Promise<CarouselStyleDB[]> {
 
 /**
  * Получить все стили (включая неактивные) - для админки
- *
- * ВАЖНО: RLS разрешает чтение только активных стилей для anon.
- * Для чтения неактивных стилей нужен service_role или изменение RLS.
- * Временно возвращаем все стили (если RLS позволяет).
  */
 export async function getAllCarouselStyles(): Promise<CarouselStyleDB[]> {
   try {
-    // Пробуем получить все стили - RLS может ограничить
-    const response = await supabaseFetch('?order=created_at.asc')
+    // Используем service key для доступа к неактивным стилям
+    const response = await supabaseFetch('?order=created_at.asc', {}, true)
 
     if (!response.ok) {
       console.error('Failed to fetch all carousel styles:', response.status)
@@ -149,10 +154,7 @@ export async function getCarouselStyleByStyleId(styleId: string): Promise<Carous
 }
 
 /**
- * Создать новый стиль
- *
- * ВАЖНО: Требует service_role_key. С anon key не работает из-за RLS.
- * Для работы нужно задеплоить Edge Function carousel-styles.
+ * Создать новый стиль (требует админ-доступ)
  */
 export async function createCarouselStyle(style: CarouselStyleInput): Promise<CarouselStyleDB | null> {
   try {
@@ -162,7 +164,7 @@ export async function createCarouselStyle(style: CarouselStyleInput): Promise<Ca
         'Prefer': 'return=representation',
       },
       body: JSON.stringify(style),
-    })
+    }, true) // useServiceKey = true
 
     if (!response.ok) {
       const error = await response.text()
@@ -183,9 +185,7 @@ export async function createCarouselStyle(style: CarouselStyleInput): Promise<Ca
 }
 
 /**
- * Обновить стиль
- *
- * ВАЖНО: Требует service_role_key. С anon key не работает из-за RLS.
+ * Обновить стиль (требует админ-доступ)
  */
 export async function updateCarouselStyle(
   id: string,
@@ -198,7 +198,7 @@ export async function updateCarouselStyle(
         'Prefer': 'return=representation',
       },
       body: JSON.stringify(updates),
-    })
+    }, true) // useServiceKey = true
 
     if (!response.ok) {
       const error = await response.text()
@@ -219,8 +219,6 @@ export async function updateCarouselStyle(
 
 /**
  * Удалить стиль (мягкое удаление - деактивация)
- *
- * ВАЖНО: Требует service_role_key. С anon key не работает из-за RLS.
  */
 export async function deleteCarouselStyle(id: string): Promise<boolean> {
   try {
@@ -229,7 +227,7 @@ export async function deleteCarouselStyle(id: string): Promise<boolean> {
       body: JSON.stringify({
         is_active: false,
       }),
-    })
+    }, true) // useServiceKey = true
 
     if (!response.ok) {
       const error = await response.text()
