@@ -14,8 +14,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(
-  supabaseUrl || 'https://debcwvxlvozjlqkhnauy.supabase.co',
-  supabaseAnonKey || ''
+  supabaseUrl || 'https://syxjkircmiwpnpagznay.supabase.co',
+  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
 )
 
 export async function checkWhitelist(telegramId: number): Promise<boolean> {
