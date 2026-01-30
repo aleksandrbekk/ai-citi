@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   ChevronDown,
   Home,
-  Cpu
+  Cpu,
+  Palette
 } from 'lucide-react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
 
@@ -55,6 +56,7 @@ export function AdminLayout() {
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
+    { to: '/admin/carousel-styles', icon: Palette, label: 'Карусели' },
     { to: '/admin/ai-analytics', icon: Cpu, label: 'AI Аналитика' },
   ]
 
