@@ -23,7 +23,7 @@ import {
   createCarouselStyle,
   updateCarouselStyle,
   type CarouselStyleInput
-} from '@/lib/supabase'
+} from '@/lib/carouselStylesApi'
 
 // Cloudinary config
 const CLOUDINARY_CLOUD = 'drplvjqpz'

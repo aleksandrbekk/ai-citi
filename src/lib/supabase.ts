@@ -1,22 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Supabase credentials из переменных окружения
+// Локально: .env.local (gitignored)
+// Vercel: Environment Variables в настройках проекта
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Логирование для отладки
-console.log('=== SUPABASE CONFIG ===')
-console.log('URL:', supabaseUrl || 'MISSING!')
-console.log('Key exists:', !!supabaseAnonKey)
-console.log('Key prefix:', supabaseAnonKey?.substring(0, 30) || 'MISSING!')
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables!')
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Missing Supabase environment variables!')
+  console.error('Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY')
 }
 
-export const supabase = createClient(
-  supabaseUrl || 'https://debcwvxlvozjlqkhnauy.supabase.co',
-  supabaseAnonKey || ''
-)
+export const supabase = createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || '')
 
 export async function checkWhitelist(telegramId: number): Promise<boolean> {
   const { data, error } = await supabase
