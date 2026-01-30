@@ -637,6 +637,7 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   const [saveAsDefault, setSaveAsDefault] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [hasError, setHasError] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Swipe state
   const [touchStart, setTouchStart] = useState<number | null>(null)
@@ -649,19 +650,48 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   const selectedMeta = STYLES_INDEX?.[styleIndex]
   const examples = STYLE_EXAMPLES?.[selectedStyle] ?? []
 
-  // Handle navigation safely
-  const goToPrev = () => {
+  // Preload next/prev style images
+  useEffect(() => {
     if (!STYLES_INDEX?.length) return
+
+    const preloadImages = (styleId: StyleId) => {
+      const images = STYLE_EXAMPLES?.[styleId] ?? []
+      images.slice(0, 3).forEach(src => {
+        const img = new Image()
+        img.src = src
+      })
+    }
+
+    // Preload adjacent styles
+    const nextIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
+    const prevIndex = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
+
+    preloadImages(STYLES_INDEX[nextIndex].id)
+    preloadImages(STYLES_INDEX[prevIndex].id)
+  }, [styleIndex, totalStyles])
+
+  // Handle navigation with smooth transition
+  const navigateToStyle = (newIndex: number) => {
+    if (!STYLES_INDEX?.length || isTransitioning) return
+
+    setIsTransitioning(true)
+
+    // Short delay for visual feedback
+    setTimeout(() => {
+      setSelectedStyle(STYLES_INDEX[newIndex].id)
+      setLoadedImages(new Set())
+      setIsTransitioning(false)
+    }, 150)
+  }
+
+  const goToPrev = () => {
     const newIndex = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
-    setSelectedStyle(STYLES_INDEX[newIndex].id)
-    setLoadedImages(new Set()) // Reset for new style
+    navigateToStyle(newIndex)
   }
 
   const goToNext = () => {
-    if (!STYLES_INDEX?.length) return
     const newIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
-    setSelectedStyle(STYLES_INDEX[newIndex].id)
-    setLoadedImages(new Set()) // Reset for new style
+    navigateToStyle(newIndex)
   }
 
   // Swipe handlers
@@ -692,10 +722,12 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
     setLoadedImages(prev => new Set(prev).add(src))
   }
 
-  // Handle image error
+  // Handle image error - more resilient
   const handleImageError = (src: string) => {
     console.warn('Failed to load image:', src)
-    // If critical images fail, show error state
+    // Mark as "loaded" to hide skeleton even on error
+    setLoadedImages(prev => new Set(prev).add(src))
+    // Only set error if first image fails
     if (examples.indexOf(src) === 0) {
       setHasError(true)
     }
@@ -740,7 +772,7 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white"
+      className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white overflow-hidden"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -806,11 +838,17 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
       <div className="flex-1 px-4 py-3 overflow-auto">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-gray-500">Примеры слайдов</p>
-          <span className="text-xs text-gray-400">← Листай →</span>
+          <span className="text-xs text-gray-400">← Свайп для смены стиля →</span>
         </div>
 
         {examples.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div
+            className="grid grid-cols-3 gap-2 transition-all duration-200"
+            style={{
+              opacity: isTransitioning ? 0.5 : 1,
+              transform: isTransitioning ? 'scale(0.98)' : 'scale(1)'
+            }}
+          >
             {examples.map((src, i) => (
               <div
                 key={`${selectedStyle}-${i}`}
@@ -818,17 +856,26 @@ function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
               >
                 {/* Skeleton while loading */}
                 {!loadedImages.has(src) && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-50 animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-orange-400 animate-spin" />
+                  </div>
                 )}
                 <img
                   src={src}
                   alt={`Пример ${i + 1}`}
-                  loading="lazy"
+                  loading={i < 6 ? 'eager' : 'lazy'}
                   onLoad={() => handleImageLoad(src)}
                   onError={() => handleImageError(src)}
-                  className={`w-full h-full object-cover transition-opacity duration-300 ${loadedImages.has(src) ? 'opacity-100' : 'opacity-0'
-                    }`}
+                  className="w-full h-full object-cover"
+                  style={{
+                    opacity: loadedImages.has(src) ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
                 />
+                {/* Номер слайда */}
+                <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center">
+                  <span className="text-[10px] text-white font-medium">{i + 1}</span>
+                </div>
               </div>
             ))}
           </div>
