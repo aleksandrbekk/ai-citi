@@ -5,7 +5,7 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
 import { getCarouselStyles } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
-import { VASIA_CORE, FORMAT_UNIVERSAL, type StyleId } from '@/lib/carouselStyles'
+import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 
 // Cloudinary config
@@ -100,23 +100,27 @@ export default function CarouselIndex() {
     staleTime: 5 * 60 * 1000, // 5 минут
   })
 
-  // Стили ТОЛЬКО из БД (никаких захардкоженных)
-  const mergedStylesIndex = dbStyles.map(s => ({
-    id: s.style_id as StyleId,
-    name: s.name,
-    emoji: s.emoji,
-    audience: s.audience as 'universal' | 'female',
-    previewColor: s.preview_color,
-    description: s.description || ''
-  }))
+  // Используем стили из БД, если есть. Иначе - из кода (STYLES_INDEX)
+  const mergedStylesIndex = dbStyles.length > 0
+    ? dbStyles.map(s => ({
+        id: s.style_id as StyleId,
+        name: s.name,
+        emoji: s.emoji,
+        audience: s.audience as 'universal' | 'female',
+        previewColor: s.preview_color,
+        description: s.description || ''
+      }))
+    : STYLES_INDEX
 
-  // Функция получения конфига стиля (ТОЛЬКО из БД)
+  // Функция получения конфига стиля (сначала БД, потом код)
   const getStyleConfig = (styleId: StyleId) => {
+    // Сначала ищем в БД
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
     if (dbStyle && dbStyle.config && Object.keys(dbStyle.config).length > 0) {
       return dbStyle.config
     }
-    return null // Нет конфига - нет генерации
+    // Fallback на захардкоженные конфиги
+    return STYLE_CONFIGS[styleId] || null
   }
 
   // Функция получения превью стиля
