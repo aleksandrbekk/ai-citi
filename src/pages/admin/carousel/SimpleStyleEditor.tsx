@@ -161,7 +161,7 @@ export default function SimpleStyleEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-y-auto pb-safe" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -185,7 +185,7 @@ export default function SimpleStyleEditor() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 space-y-6 pb-20">
         {/* Basic Info */}
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h2 className="font-semibold text-gray-900 mb-4">Основное</h2>
