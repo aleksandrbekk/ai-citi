@@ -8,16 +8,15 @@
  * Основные данные приложения (пользователи, платежи) в другом проекте.
  */
 
-// URL Supabase проекта со стилями каруселей
-const SUPABASE_URL = 'https://syxjkircmiwpnpagznay.supabase.co'
+// URL Supabase проекта AI CITI (debcwvxlvozjlqkhnauy)
+const SUPABASE_URL = 'https://debcwvxlvozjlqkhnauy.supabase.co'
 const REST_API_URL = `${SUPABASE_URL}/rest/v1/carousel_styles`
 
 // Anon key для чтения (публичный)
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlYmN3dnhsdm96amxxa2huYXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NDk5NTksImV4cCI6MjA4MTQyNTk1OX0.PYX-O9CbKiNuVsR8CtidbvgTcPWqwUeuHcWq6uY2BG4'
 
 // Service role key для записи (обходит RLS)
-// Безопасно использовать здесь т.к. этот проект содержит только стили каруселей
-const SUPABASE_SERVICE_KEY = import.meta.env.VITE_CAROUSEL_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Nzc2NDQxMSwiZXhwIjoyMDczMzQwNDExfQ.7ueEYBhFrxKU3_RJi_iJEDj6EQqWBy3gAXiM4YIALqs'
+const SUPABASE_SERVICE_KEY = import.meta.env.VITE_CAROUSEL_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlYmN3dnhsdm96amxxa2huYXV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTg0OTk1OSwiZXhwIjoyMDgxNDI1OTU5fQ.JQdPDqFfs055C4FzabojTUsU6X6qmIrNnJgTN_L21S8'
 
 export interface CarouselStyleDB {
   id: string
