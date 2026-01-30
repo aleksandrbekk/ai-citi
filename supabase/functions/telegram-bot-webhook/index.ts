@@ -9,6 +9,9 @@ const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!
 const BOT_USERNAME = 'Neirociti_bot'
 const APP_SHORT_NAME = 'app' // Имя Mini App в BotFather
 
+// URL картинки приветствия (хостится на Vercel)
+const WELCOME_IMAGE_URL = 'https://aiciti.pro/images/welcome-neuro-city.png'
+
 interface TelegramUpdate {
     update_id: number
     message?: {
@@ -32,6 +35,29 @@ async function sendMessage(chatId: number, text: string, replyMarkup?: object) {
     const body: any = {
         chat_id: chatId,
         text,
+        parse_mode: 'HTML',
+    }
+
+    if (replyMarkup) {
+        body.reply_markup = replyMarkup
+    }
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    })
+
+    return response.json()
+}
+
+async function sendPhoto(chatId: number, photoUrl: string, caption: string, replyMarkup?: object) {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`
+
+    const body: any = {
+        chat_id: chatId,
+        photo: photoUrl,
+        caption,
         parse_mode: 'HTML',
     }
 
@@ -72,58 +98,52 @@ serve(async (req) => {
             const parts = text.split(' ')
             const promoCode = parts.length > 1 ? parts[1] : null
 
+            // Inline кнопка
+            const getKeyboard = (buttonText: string, startapp?: string) => ({
+                inline_keyboard: [[
+                    {
+                        text: buttonText,
+                        url: startapp
+                            ? `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}?startapp=${startapp}`
+                            : `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}`
+                    }
+                ]]
+            })
+
             if (promoCode && !promoCode.startsWith('ref_')) {
-                // Это промокод! Отправляем приветствие с кнопкой
+                // Это промокод! Отправляем с кнопкой получения бонуса
                 const welcomeText = `🎁 <b>Привет, ${firstName}!</b>\n\n` +
-                    `Ты получил промокод на бонусные монеты!\n\n` +
-                    `Нажми кнопку ниже, чтобы войти в приложение и получить свой бонус 🪙`
+                    `Ты получил промокод на бонусные нейроны!\n\n` +
+                    `Нажми кнопку ниже, чтобы войти в AI-CITI и получить свой бонус 🧠`
 
-                // Inline кнопка с передачей промокода в startapp
-                const keyboard = {
-                    inline_keyboard: [[
-                        {
-                            text: '🚀 Получить бонус',
-                            url: `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}?startapp=${promoCode}`
-                        }
-                    ]]
-                }
+                await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard('🎁 Получить бонус', promoCode))
 
-                await sendMessage(chatId, welcomeText, keyboard)
             } else if (promoCode && promoCode.startsWith('ref_')) {
                 // Это реферальная ссылка
-                const welcomeText = `👋 <b>Привет, ${firstName}!</b>\n\n` +
-                    `Добро пожаловать в AI-CITI — нейросетевую платформу для создания контента!\n\n` +
-                    `Нажми кнопку ниже, чтобы начать ✨`
+                const welcomeText = `🏙 <b>Ты в Нейро Городе, ${firstName}!</b>\n\n` +
+                    `Твоя команда роботов уже на месте:\n` +
+                    `☕️ Один варит кофе и пишет посты\n` +
+                    `🎨 Другой рисует карусели\n` +
+                    `🧠 Третий качает твой бизнес-мозг\n\n` +
+                    `Никаких промптов. Никаких инструкций.\n` +
+                    `Всё уже настроено — просто нажимай кнопки.\n\n` +
+                    `📌 Закрепи чат, чтобы не пропустить.`
 
-                const keyboard = {
-                    inline_keyboard: [[
-                        {
-                            text: '🚀 Открыть приложение',
-                            url: `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}?startapp=${promoCode}`
-                        }
-                    ]]
-                }
+                await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard('🚀 Войти в город', promoCode))
 
-                await sendMessage(chatId, welcomeText, keyboard)
             } else {
                 // Обычный /start без параметров
-                const welcomeText = `👋 <b>Привет, ${firstName}!</b>\n\n` +
-                    `Добро пожаловать в <b>AI-CITI</b> — нейросетевую платформу для создания контента!\n\n` +
-                    `🎨 Создавай карусели для Instagram\n` +
-                    `🤖 Используй продвинутые AI-агенты\n` +
-                    `💰 Зарабатывай и трать нейро-монеты\n\n` +
-                    `Нажми кнопку ниже, чтобы начать ✨`
+                const welcomeText = `🏙 <b>Ты в Нейро Городе, ${firstName}!</b>\n\n` +
+                    `Твоя команда роботов уже на месте:\n` +
+                    `☕️ Один варит кофе и пишет посты\n` +
+                    `🎨 Другой рисует карусели\n` +
+                    `🧠 Третий качает твой бизнес-мозг\n\n` +
+                    `Никаких промптов. Никаких инструкций.\n` +
+                    `Всё уже настроено — просто нажимай кнопки.\n\n` +
+                    `🏗 Город растёт — каждую неделю появляются новые возможности.\n\n` +
+                    `📌 Закрепи чат, чтобы не пропустить.`
 
-                const keyboard = {
-                    inline_keyboard: [[
-                        {
-                            text: '🚀 Открыть AI-CITI',
-                            url: `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}`
-                        }
-                    ]]
-                }
-
-                await sendMessage(chatId, welcomeText, keyboard)
+                await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard('🚀 Войти в город'))
             }
         }
 
@@ -134,3 +154,4 @@ serve(async (req) => {
         return new Response('ok', { headers: corsHeaders })
     }
 })
+

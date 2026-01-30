@@ -263,7 +263,7 @@ export function Shop() {
                     {telegramUser?.first_name || 'Пользователь'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <img src="/neiro-coin.png" alt="Нейро" className="w-5 h-5 object-contain flex-shrink-0" />
+                    <img src="/neirocoin.png" alt="Нейро" className="w-5 h-5 object-contain flex-shrink-0" />
                     <span className="text-base font-bold text-gray-900">
                       {isLoadingCoins ? '...' : coinBalance}
                     </span>

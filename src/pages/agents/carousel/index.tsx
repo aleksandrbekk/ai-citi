@@ -270,7 +270,7 @@ export default function CarouselIndex() {
             </div>
             {/* Balance */}
             <div className="flex items-center gap-1.5">
-              <img src="/neiro-coin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+              <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
               <span className="text-base font-bold text-orange-500">{coinBalance}</span>
             </div>
           </div>
@@ -383,7 +383,7 @@ export default function CarouselIndex() {
             ) : (
               <>
                 <span>Сгенерировать за {GENERATION_COST}</span>
-                <img src="/neiro-coin.png" alt="Нейро" className="w-6 h-6 object-contain" />
+                <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
               </>
             )}
           </button>
@@ -418,7 +418,7 @@ export default function CarouselIndex() {
           </div>
           {/* Balance */}
           <div className="flex items-center gap-1.5">
-            <img src="/neiro-coin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+            <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
             <span className="text-base font-bold text-orange-500">{coinBalance}</span>
           </div>
         </div>
@@ -599,7 +599,6 @@ export default function CarouselIndex() {
             localStorage.setItem(SAVED_STYLE_KEY, id)
             setShowStyleModal(false)
           }}
-          onClose={() => setShowStyleModal(false)}
         />
       )}
 
@@ -648,8 +647,8 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
     '/styles/AESTHETIC_BEIGE/example_9.jpeg',
   ],
   SOFT_PINK_EDITORIAL: [
-    '/styles/SOFT_PINK_EDITORIAL/example_1.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_2.jpeg',
+    '/styles/SOFT_PINK_EDITORIAL/example_1.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_3.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_4.jpeg',
     '/styles/SOFT_PINK_EDITORIAL/example_5.jpeg',
@@ -685,86 +684,89 @@ const STYLE_EXAMPLES: Record<StyleId, string[]> = {
 interface StyleModalProps {
   currentStyle: StyleId
   onSelect: (id: StyleId) => void
-  onClose: () => void
 }
 
-function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
+function StyleModal({ currentStyle, onSelect }: StyleModalProps) {
   const [selectedStyle, setSelectedStyle] = useState(currentStyle)
   const [saveAsDefault, setSaveAsDefault] = useState(true)
   const styleIndex = STYLES_INDEX.findIndex(s => s.id === selectedStyle)
+  const totalStyles = STYLES_INDEX.length
 
   const selectedMeta = STYLES_INDEX.find(s => s.id === selectedStyle)
   const examples = STYLE_EXAMPLES[selectedStyle]
 
   const goToPrev = () => {
-    const newIndex = styleIndex > 0 ? styleIndex - 1 : STYLES_INDEX.length - 1
+    const newIndex = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
     setSelectedStyle(STYLES_INDEX[newIndex].id)
   }
 
   const goToNext = () => {
-    const newIndex = styleIndex < STYLES_INDEX.length - 1 ? styleIndex + 1 : 0
+    const newIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
     setSelectedStyle(STYLES_INDEX[newIndex].id)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <button onClick={onClose} className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h2 className="text-lg font-bold text-gray-900">Выбери стиль</h2>
-        <div className="w-10" />
-      </div>
-
+    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white">
       {/* Style Name & Navigation */}
-      <div className="px-4 py-4">
+      <div className="px-4 py-5">
         <div className="flex items-center justify-between">
+          {/* Prev Button */}
           <button
             onClick={goToPrev}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer"
+            className="w-12 h-12 rounded-2xl bg-white shadow-lg shadow-gray-200/50 flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all cursor-pointer border border-gray-100"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
 
           <div className="text-center flex-1 px-4">
-            <h3 className="text-xl font-bold text-gray-900">{selectedMeta?.name}</h3>
-            <p className="text-sm text-gray-500">{selectedMeta?.description}</p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-orange-100 to-pink-100 rounded-full mb-2">
+              <span className="text-xs font-semibold text-orange-600">Стиль {styleIndex + 1}</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMeta?.name}</h3>
+            <p className="text-sm text-gray-500 line-clamp-2">{selectedMeta?.description}</p>
           </div>
 
+          {/* Next Button */}
           <button
             onClick={goToNext}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer"
+            className="w-12 h-12 rounded-2xl bg-white shadow-lg shadow-gray-200/50 flex items-center justify-center hover:shadow-xl hover:scale-105 transition-all cursor-pointer border border-gray-100"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
 
-        {/* Style dots */}
-        <div className="flex justify-center gap-2 mt-3">
+        {/* Style Progress Bar */}
+        <div className="mt-4 flex justify-center gap-1.5">
           {STYLES_INDEX.map((s, i) => (
             <button
               key={s.id}
-              onClick={() => setSelectedStyle(s.id)}
-              className={`w-2 h-2 rounded-full transition-all cursor-pointer ${i === styleIndex ? 'w-6 bg-orange-500' : 'bg-gray-300'
+              onClick={() => setSelectedStyle(STYLES_INDEX[i].id)}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${i === styleIndex
+                ? 'w-8 bg-gradient-to-r from-orange-500 to-pink-500'
+                : 'w-1.5 bg-gray-200 hover:bg-gray-300'
                 }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Examples Grid */}
+      {/* Examples Grid with Transition */}
       <div className="flex-1 px-4 pb-4 overflow-auto">
-        <p className="text-xs text-gray-400 mb-3 text-center">Примеры слайдов в этом стиле</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-gray-400">Примеры слайдов</p>
+          <span className="text-xs text-gray-300">← Листай →</span>
+        </div>
+
         <div className="grid grid-cols-3 gap-2">
           {examples.map((src, i) => (
-            <div key={i} className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden">
+            <div
+              key={`${selectedStyle}-${i}`}
+              className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
+            >
               <img
                 src={src}
                 alt={`Пример ${i + 1}`}
@@ -774,18 +776,25 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             </div>
           ))}
         </div>
+
       </div>
 
-      {/* Bottom Actions */}
-      <div className="px-4 py-4 border-t border-gray-100 bg-white">
+      {/* Bottom Actions with Glass */}
+      <div className="px-4 py-4 bg-white/90 backdrop-blur-xl border-t border-gray-100/50">
         {/* Save toggle */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-sm text-gray-600">Сохранить как основной</span>
+        <div className="flex items-center justify-between mb-4 bg-gray-50 rounded-xl px-4 py-3">
+          <div>
+            <span className="text-sm font-medium text-gray-700">Сохранить как основной</span>
+            <p className="text-xs text-gray-400">Будет выбран по умолчанию</p>
+          </div>
           <button
             onClick={() => setSaveAsDefault(!saveAsDefault)}
-            className={`w-12 h-7 rounded-full transition-colors relative cursor-pointer ${saveAsDefault ? 'bg-orange-500' : 'bg-gray-300'}`}
+            className={`w-12 h-7 rounded-full transition-all relative cursor-pointer ${saveAsDefault
+              ? 'bg-gradient-to-r from-orange-500 to-pink-500'
+              : 'bg-gray-300'
+              }`}
           >
-            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform ${saveAsDefault ? 'left-6' : 'left-1'
+            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all ${saveAsDefault ? 'left-6' : 'left-1'
               }`} />
           </button>
         </div>
@@ -795,9 +804,9 @@ function StyleModal({ currentStyle, onSelect, onClose }: StyleModalProps) {
             if (saveAsDefault) localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
             onSelect(selectedStyle)
           }}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold text-lg shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-transform cursor-pointer"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-all cursor-pointer hover:shadow-2xl hover:shadow-orange-500/40"
         >
-          Выбрать этот стиль
+          Выбрать «{selectedMeta?.name?.split(' ')[0]}»
         </button>
       </div>
     </div>

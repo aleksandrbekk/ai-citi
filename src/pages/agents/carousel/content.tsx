@@ -232,7 +232,7 @@ export default function CarouselContent() {
         {/* Баланс / Подписка - улучшенный дизайн */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
-            <img src="/neiro-coin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+            <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
             {hasSubscription ? (
               <span className="font-bold text-green-600">Подписка активна ✓</span>
             ) : (
@@ -244,7 +244,7 @@ export default function CarouselContent() {
           {!hasSubscription && (
             <div className="flex items-center gap-1.5 text-gray-500">
               <span className="text-sm">-30</span>
-              <img src="/neiro-coin.png" alt="" className="w-4 h-4 object-contain opacity-70" />
+              <img src="/neirocoin.png" alt="" className="w-4 h-4 object-contain opacity-70" />
             </div>
           )}
         </div>
@@ -260,7 +260,7 @@ export default function CarouselContent() {
               : 'Сгенерировать за 30'}
           </span>
           {(!hasSubscription || coinBalance >= 30) && !isLoading && (
-            <img src="/neiro-coin.png" alt="Нейро" className="w-6 h-6 object-contain" />
+            <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
           )}
         </button>
       </div>
