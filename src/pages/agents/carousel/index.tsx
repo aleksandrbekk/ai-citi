@@ -395,36 +395,38 @@ function CarouselIndexInner() {
     setError(null)
 
     // Проверяем доступ: подписка ИЛИ монеты
-    if (hasSubscription) {
-      // Есть подписка — генерация бесплатная
-      console.log('[Carousel] User has subscription, free generation')
-    } else {
-      // Нет подписки — списываем монеты
-      if (coinBalance < GENERATION_COST) {
-        setError(`Недостаточно монет. Нужно ${GENERATION_COST}, у вас ${coinBalance}`)
+    const isFreeGeneration = hasSubscription
+    const costToCharge = isFreeGeneration ? 0 : GENERATION_COST
+
+    if (!isFreeGeneration && coinBalance < GENERATION_COST) {
+      setError(`Недостаточно монет. Нужно ${GENERATION_COST}, у вас ${coinBalance}`)
+      setIsSubmitting(false)
+      return
+    }
+
+    // Записываем генерацию в статистику (для всех пользователей)
+    try {
+      const spendResult = await spendCoinsForGeneration(user.id, costToCharge, 'Генерация карусели', {
+        style: style,
+        topic: topic.trim(),
+        free_generation: isFreeGeneration,
+        subscription: isFreeGeneration ? 'premium' : null
+      })
+
+      if (!spendResult || spendResult.success !== true) {
+        const errorMsg = spendResult?.error || 'Не удалось записать генерацию'
+        setError(errorMsg)
         setIsSubmitting(false)
         return
       }
-
-      try {
-        const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели', {
-          style: style,
-          topic: topic.trim()
-        })
-
-        if (!spendResult || spendResult.success !== true) {
-          const errorMsg = spendResult?.error || 'Не удалось списать монеты'
-          setError(errorMsg)
-          setIsSubmitting(false)
-          return
-        }
-        // Обновляем баланс
+      // Обновляем баланс (если списали монеты)
+      if (!isFreeGeneration) {
         refetchBalance()
-      } catch (err) {
-        setError('Ошибка при списании монет')
-        setIsSubmitting(false)
-        return
       }
+    } catch (err) {
+      setError('Ошибка при записи генерации')
+      setIsSubmitting(false)
+      return
     }
 
     let ctaValue = ''
