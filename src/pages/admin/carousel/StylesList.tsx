@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle } from 'lucide-react'
 import {
   getAllCarouselStyles,
   deleteCarouselStyle,
@@ -9,6 +9,7 @@ import {
   seedDefaultStyles,
   type CarouselStyleDB
 } from '@/lib/carouselStylesApi'
+import { STYLES_INDEX } from '@/lib/carouselStyles'
 
 export default function CarouselStylesList() {
   const navigate = useNavigate()
@@ -108,29 +109,75 @@ export default function CarouselStylesList() {
 
       {/* Список стилей */}
       {styles.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-xl">
-          <Palette className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 mb-4">Стили ещё не созданы</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <>
+          {/* Информация о fallback режиме */}
+          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div>
+                <p className="text-sm text-amber-800 font-medium">
+                  Используются встроенные стили
+                </p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Пользователи видят 5 стандартных стилей. Для редактирования в админке нужно создать таблицу в БД и нажать "Загрузить 5 стандартных".
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Показываем захардкоженные стили как read-only */}
+          <div className="space-y-3 mb-6">
+            {STYLES_INDEX.map((styleMeta) => (
+              <div
+                key={styleMeta.id}
+                className="bg-white border border-gray-200 rounded-xl p-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+                    style={{ backgroundColor: styleMeta.previewColor + '20' }}
+                  >
+                    {styleMeta.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">{styleMeta.name}</h3>
+                      <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">
+                        Активен
+                      </span>
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${
+                        styleMeta.audience === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {styleMeta.audience === 'female' ? '👩 Женский' : '👥 Универс.'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500">{styleMeta.description}</p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span>{styleMeta.id}</span>
+                      <span className="text-blue-500">• встроенный стиль</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Кнопка для инициализации БД */}
+          <div className="text-center py-8 bg-gray-50 rounded-xl">
+            <p className="text-gray-500 mb-4">Хотите редактировать стили? Инициализируйте БД:</p>
             <button
               onClick={handleSeedStyles}
               disabled={isSeeding}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center gap-2 justify-center"
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center gap-2 justify-center mx-auto"
             >
               {isSeeding ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Создание...</>
               ) : (
-                <><Download className="w-4 h-4" /> Загрузить 5 стандартных</>
+                <><Download className="w-4 h-4" /> Загрузить в БД для редактирования</>
               )}
             </button>
-            <button
-              onClick={() => navigate('/admin/carousel-styles/new')}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2 justify-center"
-            >
-              <Plus className="w-4 h-4" /> Создать свой стиль
-            </button>
           </div>
-        </div>
+        </>
       ) : (
         <div className="space-y-3">
           {styles.map((style) => (
