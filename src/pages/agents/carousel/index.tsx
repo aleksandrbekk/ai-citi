@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, Component, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 import { getCarouselStyles } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
@@ -160,16 +161,10 @@ function CarouselIndexInner() {
     enabled: !!telegramUser?.id,
   })
 
-  // Проверяем подписку пользователя
-  const { data: userTariffs = [] } = useQuery({
-    queryKey: ['user-tariffs', telegramUser?.id],
-    queryFn: async () => {
-      if (!telegramUser?.id) return []
-      return await getUserTariffsById(telegramUser.id)
-    },
-    enabled: !!telegramUser?.id,
-  })
-  const hasSubscription = userTariffs.length > 0
+  // Проверяем подписку пользователя из authStore
+  const tariffs = useAuthStore((state) => state.tariffs)
+  const hasSubscription = tariffs.length > 0
+  console.log('[Carousel] Tariffs from authStore:', tariffs, 'hasSubscription:', hasSubscription)
 
   // Модальные окна закрываются системной кнопкой назад (через Layout.tsx)
   // Кастомная логика для модалок не нужна — просто закрываем при navigate(-1)
