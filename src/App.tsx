@@ -177,6 +177,7 @@ function AppContent() {
         // Загружаем тарифы пользователя
         if (user?.id) {
           const tariffs = await getUserTariffs(user.id)
+          console.log('[App] Loaded tariffs for user', user.id, ':', tariffs)
           setTariffs(tariffs)
         }
 
