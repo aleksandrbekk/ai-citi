@@ -123,9 +123,9 @@ export function Shop() {
   const [currency, setCurrency] = useState<'RUB' | 'USD' | 'EUR'>('RUB')
 
   const currencyPrices = {
-    RUB: '377 ₽',
-    USD: '$5',
-    EUR: '€4'
+    RUB: '~ 1000 ₽',
+    USD: '$10',
+    EUR: '~ €9'
   }
 
   const handleBuy = async (pkg: typeof coinPackages[0]) => {
