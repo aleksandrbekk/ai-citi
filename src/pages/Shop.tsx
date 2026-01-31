@@ -122,11 +122,6 @@ export function Shop() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [currency, setCurrency] = useState<'RUB' | 'USD' | 'EUR'>('RUB')
 
-  const currencyPrices = {
-    RUB: '~ 1000 ₽',
-    USD: '$10',
-    EUR: '~ €9'
-  }
 
   const handleBuy = async (pkg: typeof coinPackages[0]) => {
     haptic.action() // Вибрация при покупке
@@ -276,7 +271,7 @@ export function Shop() {
             {/* Заголовок пакетов */}
             <div className="pt-2">
               <h2 className="text-lg font-bold text-gray-900 mb-1">Пополнить баланс</h2>
-              <p className="text-xs text-gray-500 mb-4">Выберите валюту и пакет</p>
+              <p className="text-xs text-gray-500 mb-4">Выберите валюту для оплаты</p>
             </div>
 
             {/* Выбор валюты */}
@@ -319,7 +314,7 @@ export function Shop() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold text-gray-900">{currencyPrices[currency]}</p>
+                        <p className="text-xl font-bold text-gray-900">$10</p>
                         <p className="text-xs text-gray-500 mt-0.5">{pkg.coins} монет</p>
                       </div>
                     </div>
