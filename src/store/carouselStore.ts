@@ -1,10 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { type StyleId, getDefaultStyle, STYLES_INDEX } from '@/lib/carouselStyles'
+import { type StyleId, getDefaultStyle } from '@/lib/carouselStyles'
 import { type BundleId } from '@/lib/styleBundles'
 
-// Валидные ID стилей
-const VALID_STYLE_IDS = STYLES_INDEX.map(s => s.id)
+// Валидные ID стилей (хардкод чтобы избежать проблем с импортом)
+const VALID_STYLE_IDS: string[] = [
+  'APPLE_GLASSMORPHISM',
+  'AESTHETIC_BEIGE',
+  'SOFT_PINK_EDITORIAL',
+  'MINIMALIST_LINE_ART',
+  'GRADIENT_MESH_3D'
+]
 
 export type TemplateId = 'mistakes' | 'myths' | 'checklist' | 'before-after' | 'steps' | 'custom'
 
@@ -147,31 +153,37 @@ export const useCarouselStore = create<CarouselState>()(
       }),
       // Миграция: валидация и фикс битых данных при загрузке
       migrate: (persistedState: unknown, version: number) => {
-        const state = persistedState as Partial<CarouselState>
-        console.log('[CarouselStore] Migrating from version:', version)
+        try {
+          console.log('[CarouselStore] Migrating from version:', version)
+          const state = (persistedState || {}) as Record<string, unknown>
 
-        // Валидируем style
-        if (!state.style || !VALID_STYLE_IDS.includes(state.style as StyleId)) {
-          console.log('[CarouselStore] Invalid style detected, resetting to default:', state.style)
-          state.style = getDefaultStyle()
+          // Валидируем style
+          const styleValue = state.style as string | undefined
+          if (!styleValue || !VALID_STYLE_IDS.includes(styleValue)) {
+            console.log('[CarouselStore] Invalid style, resetting:', styleValue)
+            state.style = getDefaultStyle()
+          }
+
+          // Валидируем enabledBundles
+          if (!Array.isArray(state.enabledBundles) || state.enabledBundles.length === 0) {
+            state.enabledBundles = ['base']
+          }
+
+          // Валидируем mode
+          if (state.mode !== 'ai' && state.mode !== 'manual') {
+            state.mode = 'ai'
+          }
+
+          // Валидируем gender
+          if (state.gender !== 'male' && state.gender !== 'female' && state.gender !== null) {
+            state.gender = null
+          }
+
+          return state
+        } catch (e) {
+          console.error('[CarouselStore] Migration error, returning defaults:', e)
+          return {}
         }
-
-        // Валидируем enabledBundles
-        if (!Array.isArray(state.enabledBundles) || state.enabledBundles.length === 0) {
-          state.enabledBundles = ['base'] as BundleId[]
-        }
-
-        // Валидируем mode
-        if (state.mode !== 'ai' && state.mode !== 'manual') {
-          state.mode = 'ai'
-        }
-
-        // Валидируем gender
-        if (state.gender !== 'male' && state.gender !== 'female' && state.gender !== null) {
-          state.gender = null
-        }
-
-        return state as CarouselState
       },
     }
   )
