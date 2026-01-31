@@ -61,6 +61,7 @@ async function supabaseFetch(
   const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json', // Явно указываем JSON array формат, не single object
     'Authorization': `Bearer ${key}`,
     'apikey': key,
     ...(options.headers as Record<string, string> || {}),
