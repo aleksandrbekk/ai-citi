@@ -1,7 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { type StyleId, getDefaultStyle } from '@/lib/carouselStyles'
+import { type StyleId, getDefaultStyle, STYLES_INDEX } from '@/lib/carouselStyles'
 import { type BundleId } from '@/lib/styleBundles'
+
+// Валидные ID стилей
+const VALID_STYLE_IDS = STYLES_INDEX.map(s => s.id)
 
 export type TemplateId = 'mistakes' | 'myths' | 'checklist' | 'before-after' | 'steps' | 'custom'
 
@@ -126,6 +129,7 @@ export const useCarouselStore = create<CarouselState>()(
     }),
     {
       name: 'carousel-storage',
+      version: 2, // Версия для миграции
       partialize: (state) => ({
         selectedTemplate: state.selectedTemplate,
         customTemplateDescription: state.customTemplateDescription,
@@ -141,6 +145,34 @@ export const useCarouselStore = create<CarouselState>()(
         ctaQuestion: state.ctaQuestion,
         ctaBenefits: state.ctaBenefits,
       }),
+      // Миграция: валидация и фикс битых данных при загрузке
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as Partial<CarouselState>
+        console.log('[CarouselStore] Migrating from version:', version)
+
+        // Валидируем style
+        if (!state.style || !VALID_STYLE_IDS.includes(state.style as StyleId)) {
+          console.log('[CarouselStore] Invalid style detected, resetting to default:', state.style)
+          state.style = getDefaultStyle()
+        }
+
+        // Валидируем enabledBundles
+        if (!Array.isArray(state.enabledBundles) || state.enabledBundles.length === 0) {
+          state.enabledBundles = ['base'] as BundleId[]
+        }
+
+        // Валидируем mode
+        if (state.mode !== 'ai' && state.mode !== 'manual') {
+          state.mode = 'ai'
+        }
+
+        // Валидируем gender
+        if (state.gender !== 'male' && state.gender !== 'female' && state.gender !== null) {
+          state.gender = null
+        }
+
+        return state as CarouselState
+      },
     }
   )
 )
