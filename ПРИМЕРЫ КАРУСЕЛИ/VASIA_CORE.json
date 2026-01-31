@@ -5,8 +5,8 @@
   
   "poses": {
     "SHOCK": {
-      "ru": "Руки у головы",
-      "prompt": "Hands on head, shocked expression, wide eyes"
+      "ru": "Удивление",
+      "prompt": "Surprised expression, wide eyes, eyebrows raised, engaged and curious reaction"
     },
     "EUREKA": {
       "ru": "Палец вверх",

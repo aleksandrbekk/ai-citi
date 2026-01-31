@@ -610,7 +610,7 @@ export const VASIA_CORE = {
     // LEGACY: Старые позы (для обратной совместимости)
     // =========================================================================
     poses: {
-        SHOCK: { ru: "Руки у головы", prompt: "Hands on head, surprised expression, wide eyes, dramatic reaction", deprecated: true },
+        SHOCK: { ru: "Удивление", prompt: "Surprised expression, wide eyes, eyebrows raised, engaged and curious reaction", deprecated: true },
         EUREKA: { ru: "Палец вверх", prompt: "Pointing up with index finger, eureka moment, excited discovery" },
         QUESTION: { ru: "Руки разведены", prompt: "Arms spread wide, palms up, questioning expression" },
         CONFIDENT: { ru: "Руки скрещены", prompt: "Arms crossed, confident smirk, powerful stance" },
