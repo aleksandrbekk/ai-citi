@@ -111,26 +111,27 @@ export interface UserTariffInfo {
 }
 
 export async function getUserTariffInfo(telegramId: number): Promise<UserTariffInfo | null> {
-  // Получаем user по telegram_id
-  const { data: user } = await supabase
-    .from('users')
-    .select('id')
+  // Получаем тариф из premium_clients по telegram_id
+  const { data: client, error } = await supabase
+    .from('premium_clients')
+    .select('plan, expires_at')
     .eq('telegram_id', telegramId)
-    .single()
-
-  if (!user) return null
-
-  // Получаем активный тариф с датой окончания
-  const { data: tariff } = await supabase
-    .from('user_tariffs')
-    .select('tariff_slug, expires_at, is_active')
-    .eq('user_id', user.id)
-    .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
 
-  return tariff || null
+  if (error || !client) return null
+
+  // Проверяем не истёк ли тариф
+  const isActive = !client.expires_at || new Date(client.expires_at) > new Date()
+
+  if (!isActive) return null
+
+  return {
+    tariff_slug: client.plan,
+    expires_at: client.expires_at,
+    is_active: isActive
+  }
 }
 
 // Проверка доступа к модулю
