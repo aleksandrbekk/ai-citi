@@ -3,15 +3,6 @@ import { persist } from 'zustand/middleware'
 import { type StyleId, getDefaultStyle } from '@/lib/carouselStyles'
 import { type BundleId } from '@/lib/styleBundles'
 
-// Валидные ID стилей (хардкод чтобы избежать проблем с импортом)
-const VALID_STYLE_IDS: string[] = [
-  'APPLE_GLASSMORPHISM',
-  'AESTHETIC_BEIGE',
-  'SOFT_PINK_EDITORIAL',
-  'MINIMALIST_LINE_ART',
-  'GRADIENT_MESH_3D'
-]
-
 export type TemplateId = 'mistakes' | 'myths' | 'checklist' | 'before-after' | 'steps' | 'custom'
 
 export type AudiencePreset = 'networkers' | 'experts' | 'moms' | 'freelancers' | 'custom'
@@ -135,7 +126,6 @@ export const useCarouselStore = create<CarouselState>()(
     }),
     {
       name: 'carousel-storage',
-      version: 2, // Версия для миграции
       partialize: (state) => ({
         selectedTemplate: state.selectedTemplate,
         customTemplateDescription: state.customTemplateDescription,
@@ -151,40 +141,6 @@ export const useCarouselStore = create<CarouselState>()(
         ctaQuestion: state.ctaQuestion,
         ctaBenefits: state.ctaBenefits,
       }),
-      // Миграция: валидация и фикс битых данных при загрузке
-      migrate: (persistedState: unknown, version: number) => {
-        try {
-          console.log('[CarouselStore] Migrating from version:', version)
-          const state = (persistedState || {}) as Record<string, unknown>
-
-          // Валидируем style
-          const styleValue = state.style as string | undefined
-          if (!styleValue || !VALID_STYLE_IDS.includes(styleValue)) {
-            console.log('[CarouselStore] Invalid style, resetting:', styleValue)
-            state.style = getDefaultStyle()
-          }
-
-          // Валидируем enabledBundles
-          if (!Array.isArray(state.enabledBundles) || state.enabledBundles.length === 0) {
-            state.enabledBundles = ['base']
-          }
-
-          // Валидируем mode
-          if (state.mode !== 'ai' && state.mode !== 'manual') {
-            state.mode = 'ai'
-          }
-
-          // Валидируем gender
-          if (state.gender !== 'male' && state.gender !== 'female' && state.gender !== null) {
-            state.gender = null
-          }
-
-          return state
-        } catch (e) {
-          console.error('[CarouselStore] Migration error, returning defaults:', e)
-          return {}
-        }
-      },
     }
   )
 )
