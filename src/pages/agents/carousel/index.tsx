@@ -163,13 +163,25 @@ export default function CarouselIndex() {
     return getLocalExamples(styleId)
   }
 
-  // Загружаем сохранённый стиль
+  // Загружаем сохранённый стиль с валидацией
   useEffect(() => {
+    if (mergedStylesIndex.length === 0) return // Ждём загрузки стилей
+
     const savedStyle = localStorage.getItem(SAVED_STYLE_KEY) as StyleId | null
-    if (savedStyle && mergedStylesIndex.find(s => s.id === savedStyle)) {
+    const currentStyleValid = mergedStylesIndex.some(s => s.id === style)
+
+    // Если сохранённый стиль валидный — используем его
+    if (savedStyle && mergedStylesIndex.some(s => s.id === savedStyle)) {
       setStyle(savedStyle)
     }
-  }, [setStyle, mergedStylesIndex])
+    // Если текущий стиль невалидный — сбрасываем на первый доступный
+    else if (!currentStyleValid && mergedStylesIndex.length > 0) {
+      const defaultStyle = mergedStylesIndex[0].id
+      console.log('[Carousel] Resetting invalid style to:', defaultStyle)
+      setStyle(defaultStyle)
+      localStorage.setItem(SAVED_STYLE_KEY, defaultStyle)
+    }
+  }, [setStyle, mergedStylesIndex, style])
 
   // Загружаем фото пользователя
   useEffect(() => {

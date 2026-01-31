@@ -50,7 +50,7 @@ export default function Referrals() {
         </div>
 
         {/* Список партнеров */}
-        {stats && stats.total_referrals > 0 && (
+        {stats && (stats.total_referrals > 0 || (stats.referrals && stats.referrals.length > 0)) && (
           <div>
             <h4 className="font-semibold text-gray-900 mb-3">Ваши партнеры:</h4>
             <div className="space-y-2">
