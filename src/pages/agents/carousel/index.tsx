@@ -233,24 +233,39 @@ function CarouselIndexInner() {
     return getLocalExamples(styleId)
   }
 
-  // Загружаем сохранённый стиль с валидацией
+  // Загружаем сохранённый стиль с валидацией (только один раз)
+  const styleValidatedRef = useRef(false)
   useEffect(() => {
-    if (mergedStylesIndex.length === 0) return // Ждём загрузки стилей
+    // Выполняем валидацию только один раз
+    if (styleValidatedRef.current) return
+    if (mergedStylesIndex.length === 0) return
+
+    styleValidatedRef.current = true
+    console.log('[Carousel] Validating style, current:', style)
 
     const savedStyle = localStorage.getItem(SAVED_STYLE_KEY) as StyleId | null
-    const currentStyleValid = mergedStylesIndex.some(s => s.id === style)
+    const validStyleIds = mergedStylesIndex.map(s => s.id)
 
-    // Если сохранённый стиль валидный — используем его
-    if (savedStyle && mergedStylesIndex.some(s => s.id === savedStyle)) {
-      setStyle(savedStyle)
+    // Проверяем сохранённый стиль из localStorage
+    if (savedStyle && validStyleIds.includes(savedStyle)) {
+      if (style !== savedStyle) {
+        console.log('[Carousel] Using saved style:', savedStyle)
+        setStyle(savedStyle)
+      }
+      return
     }
-    // Если текущий стиль невалидный — сбрасываем на первый доступный
-    else if (!currentStyleValid && mergedStylesIndex.length > 0) {
-      const defaultStyle = mergedStylesIndex[0].id
-      console.log('[Carousel] Resetting invalid style to:', defaultStyle)
-      setStyle(defaultStyle)
-      localStorage.setItem(SAVED_STYLE_KEY, defaultStyle)
+
+    // Проверяем текущий стиль из store
+    if (validStyleIds.includes(style)) {
+      console.log('[Carousel] Current style is valid:', style)
+      return
     }
+
+    // Сбрасываем на дефолтный
+    const defaultStyle = mergedStylesIndex[0].id
+    console.log('[Carousel] Resetting to default style:', defaultStyle)
+    setStyle(defaultStyle)
+    localStorage.setItem(SAVED_STYLE_KEY, defaultStyle)
   }, [setStyle, mergedStylesIndex, style])
 
   // Загружаем фото пользователя
