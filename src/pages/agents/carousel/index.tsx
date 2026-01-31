@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Component, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getCarouselStyles } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
@@ -159,6 +159,17 @@ function CarouselIndexInner() {
     },
     enabled: !!telegramUser?.id,
   })
+
+  // Проверяем подписку пользователя
+  const { data: userTariffs = [] } = useQuery({
+    queryKey: ['user-tariffs', telegramUser?.id],
+    queryFn: async () => {
+      if (!telegramUser?.id) return []
+      return await getUserTariffsById(telegramUser.id)
+    },
+    enabled: !!telegramUser?.id,
+  })
+  const hasSubscription = userTariffs.length > 0
 
   // Модальные окна закрываются системной кнопкой назад (через Layout.tsx)
   // Кастомная логика для модалок не нужна — просто закрываем при navigate(-1)
@@ -348,25 +359,37 @@ function CarouselIndexInner() {
     setIsSubmitting(true)
     setError(null)
 
-    // Списываем монеты за генерацию (всегда)
-    try {
-      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели', {
-        style: style,
-        topic: topic.trim()
-      })
-
-      if (!spendResult || spendResult.success !== true) {
-        const errorMsg = spendResult?.error || 'Не удалось списать монеты'
-        setError(errorMsg)
+    // Проверяем доступ: подписка ИЛИ монеты
+    if (hasSubscription) {
+      // Есть подписка — генерация бесплатная
+      console.log('[Carousel] User has subscription, free generation')
+    } else {
+      // Нет подписки — списываем монеты
+      if (coinBalance < GENERATION_COST) {
+        setError(`Недостаточно монет. Нужно ${GENERATION_COST}, у вас ${coinBalance}`)
         setIsSubmitting(false)
         return
       }
-      // Обновляем баланс
-      refetchBalance()
-    } catch (err) {
-      setError('Ошибка при списании монет')
-      setIsSubmitting(false)
-      return
+
+      try {
+        const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели', {
+          style: style,
+          topic: topic.trim()
+        })
+
+        if (!spendResult || spendResult.success !== true) {
+          const errorMsg = spendResult?.error || 'Не удалось списать монеты'
+          setError(errorMsg)
+          setIsSubmitting(false)
+          return
+        }
+        // Обновляем баланс
+        refetchBalance()
+      } catch (err) {
+        setError('Ошибка при списании монет')
+        setIsSubmitting(false)
+        return
+      }
     }
 
     let ctaValue = ''
@@ -535,11 +558,13 @@ function CarouselIndexInner() {
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
-            disabled={isSubmitting}
+            disabled={isSubmitting || (!hasSubscription && coinBalance < GENERATION_COST)}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-pink-500/30 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer"
           >
             {isSubmitting ? (
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
+            ) : hasSubscription ? (
+              <span>✨ Сгенерировать бесплатно</span>
             ) : (
               <>
                 <span>Сгенерировать за {GENERATION_COST}</span>
