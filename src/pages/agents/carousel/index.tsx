@@ -218,22 +218,41 @@ function CarouselIndexInner() {
 
   // Функция получения конфига стиля (сначала БД, потом захардкоженные)
   const getStyleConfig = (styleId: StyleId) => {
+    console.log('[Carousel] getStyleConfig called for:', styleId)
+
     // Сначала ищем в БД
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
     const dbConfig = dbStyle?.config as Record<string, unknown> | undefined
+
+    console.log('[Carousel] DB style found:', !!dbStyle)
+    console.log('[Carousel] DB config:', dbConfig ? 'present' : 'missing')
 
     // Проверяем что у конфига есть slide_templates (главное для генерации)
     if (dbConfig && typeof dbConfig === 'object' && 'slide_templates' in dbConfig) {
       const slideTemplates = dbConfig.slide_templates as Record<string, unknown> | undefined
       if (slideTemplates && Object.keys(slideTemplates).length > 0) {
-        console.log('[Carousel] Using DB config for style:', styleId)
+        console.log('[Carousel] ✓ Using DB config with slide_templates for style:', styleId)
+        console.log('[Carousel] slide_templates keys:', Object.keys(slideTemplates))
         return dbConfig
+      } else {
+        console.log('[Carousel] ✗ DB config has empty slide_templates')
       }
+    } else {
+      console.log('[Carousel] ✗ DB config missing slide_templates')
     }
 
     // Fallback на захардкоженные конфиги
-    console.log('[Carousel] Using hardcoded config for style:', styleId)
-    return STYLE_CONFIGS[styleId] || null
+    const hardcodedConfig = STYLE_CONFIGS[styleId]
+    if (hardcodedConfig) {
+      console.log('[Carousel] ✓ Using hardcoded config for style:', styleId)
+      console.log('[Carousel] slide_templates keys:', Object.keys(hardcodedConfig.slide_templates || {}))
+      return hardcodedConfig
+    }
+
+    // Если и захардкоженного нет — используем дефолтный стиль
+    console.log('[Carousel] ⚠ Style not found in hardcoded, using DEFAULT (APPLE_GLASSMORPHISM)')
+    const defaultConfig = STYLE_CONFIGS['APPLE_GLASSMORPHISM']
+    return defaultConfig
   }
 
   // Функция получения превью стиля
@@ -416,11 +435,23 @@ function CarouselIndexInner() {
 
     try {
       // Получаем конфиг стиля (из БД или захардкоженный)
+      console.log('[Carousel] ========== GENERATION START ==========')
+      console.log('[Carousel] Selected style from store:', style)
+      console.log('[Carousel] DB styles loaded:', dbStyles.length)
+
       const styleConfig = getStyleConfig(style)
-      console.log('[Carousel] Sending to n8n:')
-      console.log('[Carousel] styleId:', style)
-      console.log('[Carousel] styleConfig:', JSON.stringify(styleConfig, null, 2))
-      console.log('[Carousel] dbStyles count:', dbStyles.length)
+
+      console.log('[Carousel] ========== STYLE CONFIG RESULT ==========')
+      console.log('[Carousel] styleConfig.id:', (styleConfig as any)?.id)
+      console.log('[Carousel] styleConfig.name:', (styleConfig as any)?.name)
+      console.log('[Carousel] Has slide_templates:', !!(styleConfig as any)?.slide_templates)
+
+      if ((styleConfig as any)?.slide_templates) {
+        const templates = (styleConfig as any).slide_templates
+        console.log('[Carousel] slide_templates.HOOK length:', templates.HOOK?.length || 0)
+        console.log('[Carousel] slide_templates.CONTENT length:', templates.CONTENT?.length || 0)
+        console.log('[Carousel] slide_templates.CTA length:', templates.CTA?.length || 0)
+      }
 
       const payload = {
         chatId: user.id,
@@ -434,7 +465,9 @@ function CarouselIndexInner() {
         vasiaCore: VASIA_CORE,
         formatConfig: FORMAT_UNIVERSAL,
       }
-      console.log('[Carousel] Full payload:', JSON.stringify(payload, null, 2))
+      console.log('[Carousel] ========== SENDING TO N8N ==========')
+      console.log('[Carousel] Payload styleId:', payload.styleId)
+      console.log('[Carousel] Payload styleConfig.id:', (payload.styleConfig as any)?.id)
 
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
         method: 'POST',
