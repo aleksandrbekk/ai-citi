@@ -227,18 +227,24 @@ function CarouselIndexInner() {
     console.log('[Carousel] DB style found:', !!dbStyle)
     console.log('[Carousel] DB config:', dbConfig ? 'present' : 'missing')
 
-    // Проверяем что у конфига есть slide_templates (главное для генерации)
+    // Проверяем что у конфига есть slide_templates С РЕАЛЬНЫМ КОНТЕНТОМ
     if (dbConfig && typeof dbConfig === 'object' && 'slide_templates' in dbConfig) {
-      const slideTemplates = dbConfig.slide_templates as Record<string, unknown> | undefined
-      if (slideTemplates && Object.keys(slideTemplates).length > 0) {
-        console.log('[Carousel] ✓ Using DB config with slide_templates for style:', styleId)
-        console.log('[Carousel] slide_templates keys:', Object.keys(slideTemplates))
-        return dbConfig
+      const slideTemplates = dbConfig.slide_templates as Record<string, string> | undefined
+      if (slideTemplates) {
+        // Проверяем что HOOK шаблон не пустой (главный индикатор что конфиг заполнен)
+        const hookTemplate = slideTemplates.HOOK || ''
+        if (hookTemplate.length > 50) {  // Реальный промпт должен быть длинным
+          console.log('[Carousel] ✓ Using DB config with valid slide_templates for style:', styleId)
+          console.log('[Carousel] HOOK template length:', hookTemplate.length)
+          return dbConfig
+        } else {
+          console.log('[Carousel] ✗ DB config has empty/short HOOK template, length:', hookTemplate.length)
+        }
       } else {
-        console.log('[Carousel] ✗ DB config has empty slide_templates')
+        console.log('[Carousel] ✗ DB config slide_templates is null/undefined')
       }
     } else {
-      console.log('[Carousel] ✗ DB config missing slide_templates')
+      console.log('[Carousel] ✗ DB config missing slide_templates key')
     }
 
     // Fallback на захардкоженные конфиги
