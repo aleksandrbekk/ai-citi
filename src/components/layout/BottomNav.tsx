@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
-import { HomeIcon } from '@/components/ui/icons'
-import { Shield } from 'lucide-react'
+import { HomeIcon, UserIcon } from '@/components/ui/icons'
+import { Shield, ShoppingBag } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { isAdmin as checkIsAdmin } from '@/config/admins'
 import { haptic } from '@/lib/haptic'
@@ -61,8 +61,8 @@ export function BottomNav() {
           </Link>
         )}
 
-        {/* Профиль — ВРЕМЕННО СКРЫТО для тестовой группы */}
-        {/* <Link
+        {/* Профиль */}
+        <Link
           to="/profile"
           onClick={() => haptic.tap()}
           className={cn(
@@ -74,10 +74,10 @@ export function BottomNav() {
         >
           <UserIcon size={22} className={location.pathname === '/profile' ? 'text-orange-500' : ''} />
           <span className="text-[10px] font-medium">Профиль</span>
-        </Link> */}
+        </Link>
 
-        {/* Магазин — ВРЕМЕННО СКРЫТО для тестовой группы */}
-        {/* <Link
+        {/* Магазин */}
+        <Link
           to="/shop"
           onClick={() => haptic.tap()}
           className={cn(
@@ -89,7 +89,7 @@ export function BottomNav() {
         >
           <ShoppingBag size={22} className={location.pathname === '/shop' ? 'text-orange-500' : ''} />
           <span className="text-[10px] font-medium">Магазин</span>
-        </Link> */}
+        </Link>
 
         {/* Админ - только для админов */}
         {isAdmin && (
