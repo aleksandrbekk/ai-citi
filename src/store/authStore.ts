@@ -80,17 +80,19 @@ export const useAuthStore = create<AuthState>()(
       debugInfo: null,
 
       login: async () => {
-        // Проверяем startParam для реферальной системы
+        // Проверяем startParam для реферальной и промо системы
         const startParam = getStartParam()
         const hasReferral = startParam && startParam.startsWith('ref_')
+        const hasPromo = startParam && !startParam.startsWith('ref_') // Промокод - любой startParam не начинающийся с ref_
+        const hasSpecialLink = hasReferral || hasPromo
         const telegramUser = getTelegramUser()
 
         // DEBUG: показываем что нашли
-        console.log('🔍 LOGIN DEBUG:', { startParam, hasReferral })
+        console.log('🔍 LOGIN DEBUG:', { startParam, hasReferral, hasPromo })
 
-        // КРИТИЧНО: Если есть реферальная ссылка - ОЧИЩАЕМ КЕШ чтобы Edge Function вызвался
-        if (hasReferral) {
-          console.log('🔥 Referral link detected - clearing cache to force Edge Function call')
+        // КРИТИЧНО: Если есть реферальная или промо ссылка - ОЧИЩАЕМ КЕШ чтобы Edge Function вызвался
+        if (hasSpecialLink) {
+          console.log('🔥 Special link detected - clearing cache to force Edge Function call')
           localStorage.removeItem('auth-storage')
         }
 
@@ -98,8 +100,8 @@ export const useAuthStore = create<AuthState>()(
         const cachedUser = get().user
         const isSameUser = cachedUser && telegramUser && cachedUser.telegram_id === telegramUser.id
 
-        // Если уже авторизован тот же пользователь И нет реферальной ссылки — обновляем только профиль
-        if (get().isAuthenticated && isSameUser && !hasReferral) {
+        // Если уже авторизован тот же пользователь И нет специальной ссылки — обновляем только профиль
+        if (get().isAuthenticated && isSameUser && !hasSpecialLink) {
           console.log('Already authenticated, refreshing profile from server...')
           try {
             const cachedUserId = cachedUser?.id
