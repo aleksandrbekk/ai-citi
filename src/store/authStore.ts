@@ -100,27 +100,36 @@ export const useAuthStore = create<AuthState>()(
         const cachedUser = get().user
         const isSameUser = cachedUser && telegramUser && cachedUser.telegram_id === telegramUser.id
 
-        // Если уже авторизован тот же пользователь И нет специальной ссылки — обновляем только профиль
+        // Если уже авторизован тот же пользователь И нет специальной ссылки — проверяем существует ли в БД
         if (get().isAuthenticated && isSameUser && !hasSpecialLink) {
-          console.log('Already authenticated, refreshing profile from server...')
+          console.log('Already authenticated, checking if user exists in DB...')
           try {
             const cachedUserId = cachedUser?.id
             if (cachedUserId && cachedUserId !== 'dev-user' && !cachedUserId.startsWith('tg-')) {
-              const { data: freshProfile } = await supabase
+              const { data: freshProfile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('user_id', cachedUserId)
                 .single()
 
-              if (freshProfile) {
+              if (profileError || !freshProfile) {
+                // Юзер удалён из БД — очищаем кэш и пересоздаём
+                console.log('🔄 User not found in DB, clearing cache to recreate...')
+                localStorage.removeItem('auth-storage')
+                set({ user: null, profile: null, isAuthenticated: false })
+                // Не возвращаемся — продолжаем к созданию юзера
+              } else {
                 console.log('Profile refreshed, coins:', freshProfile.coins)
                 set({ profile: freshProfile })
+                return
               }
             }
           } catch (e) {
-            console.log('Profile refresh failed, using cached data')
+            console.log('Profile check failed, clearing cache to recreate user')
+            localStorage.removeItem('auth-storage')
+            set({ user: null, profile: null, isAuthenticated: false })
+            // Не возвращаемся — продолжаем к созданию юзера
           }
-          return
         }
 
         // Если пользователь другой - очищаем кеш
