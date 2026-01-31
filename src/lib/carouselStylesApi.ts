@@ -1,23 +1,19 @@
 /**
- * API для управления стилями каруселей через Supabase REST API
+ * API для управления стилями каруселей через Edge Function
  *
- * Этот модуль вызывает Supabase REST API напрямую для проекта со стилями.
- * Это позволяет работать со стилями независимо от настроек окружения Vercel.
- *
- * ВАЖНО: Этот проект (syxjkircmiwpnpagznay) содержит ТОЛЬКО стили каруселей.
- * Основные данные приложения (пользователи, платежи) в другом проекте.
+ * Использует Edge Function carousel-styles для CRUD операций.
+ * Edge Function имеет service_role доступ к базе данных.
  */
 
-// URL Supabase проекта со стилями каруселей
-const SUPABASE_URL = 'https://syxjkircmiwpnpagznay.supabase.co'
-const REST_API_URL = `${SUPABASE_URL}/rest/v1/carousel_styles`
+import { getTelegramUser } from './telegram'
 
-// Anon key для чтения (публичный)
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3NjQ0MTEsImV4cCI6MjA3MzM0MDQxMX0.XUJWPrPOtsG_cynjfH38mJR2lJYThGTgEVMMu3MIw8g'
+// URL Supabase Functions
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://syxjkircmiwpnpagznay.supabase.co'
+const FUNCTIONS_URL = SUPABASE_URL.replace('.supabase.co', '.functions.supabase.co')
+const STYLES_ENDPOINT = `${FUNCTIONS_URL}/carousel-styles`
 
-// Service role key для записи (обходит RLS)
-// Безопасно использовать здесь т.к. этот проект содержит только стили каруселей
-const SUPABASE_SERVICE_KEY = import.meta.env.VITE_CAROUSEL_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5eGpraXJjbWl3cG5wYWd6bmF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Nzc2NDQxMSwiZXhwIjoyMDczMzQwNDExfQ.7ueEYBhFrxKU3_RJi_iJEDj6EQqWBy3gAXiM4YIALqs'
+// Anon key для авторизации Edge Function
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
 export interface CarouselStyleDB {
   id: string
@@ -29,10 +25,13 @@ export interface CarouselStyleDB {
   preview_color: string
   preview_image: string | null
   is_active: boolean
+  sort_order: number
   config: Record<string, unknown>
   example_images: string[]
   created_at: string
   updated_at: string
+  created_by: number | null
+  updated_by: number | null
 }
 
 export interface CarouselStyleInput {
@@ -44,33 +43,44 @@ export interface CarouselStyleInput {
   preview_color?: string
   preview_image?: string | null
   is_active?: boolean
+  sort_order?: number
   config: Record<string, unknown>
   example_images?: string[]
 }
 
 /**
- * Базовый fetch с авторизацией для Supabase REST API
- * @param endpoint - REST API endpoint
- * @param options - fetch options
- * @param useServiceKey - использовать service key для записи (по умолчанию false)
+ * Базовый fetch для Edge Function
  */
-async function supabaseFetch(
-  endpoint: string,
-  options: RequestInit = {},
-  useServiceKey = false
+async function stylesFetch(
+  endpoint: string = '',
+  options: RequestInit = {}
 ): Promise<Response> {
-  const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY
+  const user = getTelegramUser()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${key}`,
-    'apikey': key,
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    ...(user?.id ? { 'x-telegram-id': String(user.id) } : {}),
     ...(options.headers as Record<string, string> || {}),
   }
 
-  return fetch(`${REST_API_URL}${endpoint}`, {
+  return fetch(`${STYLES_ENDPOINT}${endpoint}`, {
     ...options,
     headers,
   })
+}
+
+/**
+ * Инициализация таблицы и стилей
+ */
+export async function initCarouselStyles(): Promise<{ success: boolean; message: string; needsSetup?: boolean; sql?: string }> {
+  try {
+    const response = await stylesFetch('?action=init')
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error initializing carousel styles:', error)
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' }
+  }
 }
 
 /**
@@ -78,13 +88,11 @@ async function supabaseFetch(
  */
 export async function getCarouselStyles(): Promise<CarouselStyleDB[]> {
   try {
-    const response = await supabaseFetch('?is_active=eq.true&order=created_at.asc')
-
+    const response = await stylesFetch()
     if (!response.ok) {
       console.error('Failed to fetch carousel styles:', response.status)
       return []
     }
-
     return await response.json()
   } catch (error) {
     console.error('Error fetching carousel styles:', error)
@@ -97,15 +105,11 @@ export async function getCarouselStyles(): Promise<CarouselStyleDB[]> {
  */
 export async function getAllCarouselStyles(): Promise<CarouselStyleDB[]> {
   try {
-    // Используем service key для доступа к неактивным стилям
-    const response = await supabaseFetch('?order=created_at.asc', {}, true)
-
+    const response = await stylesFetch('?all=true')
     if (!response.ok) {
       console.error('Failed to fetch all carousel styles:', response.status)
-      // Fallback: получить только активные
-      return getCarouselStyles()
+      return []
     }
-
     return await response.json()
   } catch (error) {
     console.error('Error fetching all carousel styles:', error)
@@ -118,15 +122,12 @@ export async function getAllCarouselStyles(): Promise<CarouselStyleDB[]> {
  */
 export async function getCarouselStyleById(id: string): Promise<CarouselStyleDB | null> {
   try {
-    const response = await supabaseFetch(`?id=eq.${id}`)
-
+    const response = await stylesFetch(`/${id}`)
     if (!response.ok) {
       console.error('Failed to fetch carousel style:', response.status)
       return null
     }
-
-    const data = await response.json()
-    return data?.[0] || null
+    return await response.json()
   } catch (error) {
     console.error('Error fetching carousel style:', error)
     return null
@@ -138,15 +139,10 @@ export async function getCarouselStyleById(id: string): Promise<CarouselStyleDB 
  */
 export async function getCarouselStyleByStyleId(styleId: string): Promise<CarouselStyleDB | null> {
   try {
-    const response = await supabaseFetch(`?style_id=eq.${styleId}`)
-
-    if (!response.ok) {
-      console.error('Failed to fetch carousel style by style_id:', response.status)
-      return null
-    }
-
+    const response = await stylesFetch(`?style_id=${styleId}`)
+    if (!response.ok) return null
     const data = await response.json()
-    return data?.[0] || null
+    return Array.isArray(data) ? data[0] || null : data
   } catch (error) {
     console.error('Error fetching carousel style by style_id:', error)
     return null
@@ -158,26 +154,18 @@ export async function getCarouselStyleByStyleId(styleId: string): Promise<Carous
  */
 export async function createCarouselStyle(style: CarouselStyleInput): Promise<CarouselStyleDB | null> {
   try {
-    const response = await supabaseFetch('', {
+    const response = await stylesFetch('', {
       method: 'POST',
-      headers: {
-        'Prefer': 'return=representation',
-      },
       body: JSON.stringify(style),
-    }, true) // useServiceKey = true
+    })
 
     if (!response.ok) {
-      const error = await response.text()
-      console.error('Failed to create carousel style:', response.status, error)
-      // Показываем пользователю понятное сообщение
-      if (response.status === 403 || response.status === 401) {
-        throw new Error('Недостаточно прав для создания стиля. Обратитесь к администратору.')
-      }
-      return null
+      const error = await response.json()
+      console.error('Failed to create carousel style:', error)
+      throw new Error(error.error || 'Failed to create style')
     }
 
-    const data = await response.json()
-    return data?.[0] || data
+    return await response.json()
   } catch (error) {
     console.error('Error creating carousel style:', error)
     throw error
@@ -192,25 +180,18 @@ export async function updateCarouselStyle(
   updates: Partial<CarouselStyleInput>
 ): Promise<CarouselStyleDB | null> {
   try {
-    const response = await supabaseFetch(`?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Prefer': 'return=representation',
-      },
+    const response = await stylesFetch(`/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(updates),
-    }, true) // useServiceKey = true
+    })
 
     if (!response.ok) {
-      const error = await response.text()
-      console.error('Failed to update carousel style:', response.status, error)
-      if (response.status === 403 || response.status === 401) {
-        throw new Error('Недостаточно прав для редактирования стиля. Обратитесь к администратору.')
-      }
-      return null
+      const error = await response.json()
+      console.error('Failed to update carousel style:', error)
+      throw new Error(error.error || 'Failed to update style')
     }
 
-    const data = await response.json()
-    return data?.[0] || data
+    return await response.json()
   } catch (error) {
     console.error('Error updating carousel style:', error)
     throw error
@@ -222,20 +203,14 @@ export async function updateCarouselStyle(
  */
 export async function deleteCarouselStyle(id: string): Promise<boolean> {
   try {
-    const response = await supabaseFetch(`?id=eq.${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        is_active: false,
-      }),
-    }, true) // useServiceKey = true
+    const response = await stylesFetch(`/${id}`, {
+      method: 'DELETE',
+    })
 
     if (!response.ok) {
-      const error = await response.text()
-      console.error('Failed to delete carousel style:', response.status, error)
-      if (response.status === 403 || response.status === 401) {
-        throw new Error('Недостаточно прав для удаления стиля. Обратитесь к администратору.')
-      }
-      return false
+      const error = await response.json()
+      console.error('Failed to delete carousel style:', error)
+      throw new Error(error.error || 'Failed to delete style')
     }
 
     return true
@@ -264,10 +239,40 @@ export async function duplicateCarouselStyle(
     audience: original.audience,
     preview_color: original.preview_color,
     preview_image: original.preview_image,
-    is_active: false, // Дубликат по умолчанию неактивен
+    is_active: false,
+    sort_order: (original.sort_order || 0) + 1,
     config: original.config,
     example_images: original.example_images,
   }
 
   return createCarouselStyle(duplicate)
+}
+
+/**
+ * Seed default styles (для ручной инициализации)
+ */
+export async function seedDefaultStyles(): Promise<{ success: boolean; created: number; errors: string[] }> {
+  const result = await initCarouselStyles()
+
+  if (result.needsSetup) {
+    return {
+      success: false,
+      created: 0,
+      errors: [`Таблица не существует. SQL для создания:\n${result.sql}`]
+    }
+  }
+
+  if (result.success) {
+    return {
+      success: true,
+      created: 5,
+      errors: []
+    }
+  }
+
+  return {
+    success: false,
+    created: 0,
+    errors: [result.message]
+  }
 }
