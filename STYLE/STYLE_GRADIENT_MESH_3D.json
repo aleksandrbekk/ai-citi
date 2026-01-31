@@ -1,0 +1,76 @@
+{
+  "id": "GRADIENT_MESH_3D",
+  "name": "Gradient Mesh 3D",
+  "description": "Футуристичный яркий стиль. Градиентные меши, 3D элементы, современная эстетика. Для продвинутой аудитории.",
+  "audience": "universal",
+  
+  "colors": {
+    "background_primary": "#1A1A2E",
+    "background_gradient": "mesh gradient: purple #667EEA, coral #F093FB, blue #4FACFE, pink #F5576C",
+    "accent_primary": "#F093FB",
+    "accent_secondary": "#4FACFE",
+    "accent_tertiary": "#667EEA",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "rgba(255,255,255,0.8)",
+    "card_background": "rgba(255, 255, 255, 0.1)",
+    "card_border": "rgba(255, 255, 255, 0.2)"
+  },
+  
+  "typography": {
+    "style": "modern geometric sans-serif, bold",
+    "headline": "bold sans-serif, white #FFFFFF, strong presence",
+    "body": "medium weight, white with opacity",
+    "accent_text": "gradient text (purple to pink) or white on gradient"
+  },
+  
+  "cards": {
+    "style": "dark glassmorphism with colorful glow",
+    "blur": "25px backdrop blur",
+    "border": "1px solid rgba(255,255,255,0.2)",
+    "shadow": "colorful glow, 0 8px 32px rgba(102,126,234,0.3)",
+    "border_radius": "24px"
+  },
+  
+  "person": {
+    "outfit_hook": "modern minimalist dark clothing, tech/futuristic vibe",
+    "outfit_cta": "sleek dark jacket OR modern minimalist top",
+    "lighting": "dramatic colored lighting, rim lights in purple/blue/pink",
+    "aesthetic": "futuristic editorial, cyberpunk-lite, modern fashion"
+  },
+  
+  "decorations": {
+    "elements": "flowing gradient mesh blobs, 3D geometric shapes, floating orbs",
+    "3d_objects": "glossy 3D spheres, cubes, abstract shapes with gradient materials",
+    "particles": "glowing orbs, light trails, colorful bokeh"
+  },
+  
+  "prompt_blocks": {
+    "background": "Background: dark base #1A1A2E with flowing gradient mesh. Colors: purple #667EEA, coral pink #F093FB, electric blue #4FACFE, magenta #F5576C. Organic flowing shapes blending into each other. Futuristic, vibrant, dynamic.",
+    
+    "cards_content": "Dark glassmorphism cards: rgba(255,255,255,0.1) with 25px blur. White border rgba(255,255,255,0.2). Colorful glow effect behind cards. Modern futuristic look. White text on dark glass.",
+    
+    "cards_headline": "Bold white text on gradient mesh background. OR gradient text (purple #667EEA to pink #F093FB). Strong presence. Modern geometric sans-serif. Glowing effect on text.",
+    
+    "person_hook": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: modern minimalist dark clothing, futuristic tech vibe. Pose: [POSE]. Expression: [EMOTION], confident, modern. Lighting: dramatic colored rim lighting (purple, blue, pink edges). Dynamic shadows. CRITICAL: Do NOT invent facial features.",
+    
+    "person_cta": "Generate person EXACTLY as shown in reference photo. Match all facial features precisely. Outfit: sleek dark jacket or modern minimalist top. Pose: confident gesture toward CTA. Expression: confident smile, approachable but edgy. Lighting: colorful rim lights, futuristic. CRITICAL: Do NOT invent facial features.",
+    
+    "decorations_hook": "3D elements: glossy spheres with gradient materials, floating geometric shapes (cubes, pyramids), glowing orbs. [PROPS] with futuristic/holographic treatment. Light trails and particles. Gradient mesh blobs floating.",
+    
+    "cta_card": "Dark glass card with colorful gradient glow behind it. White border. Top line (white): 'ПИШИ:'. Main line (HUGE, gradient purple-to-pink OR white with glow): '[PRODUCT_CODE]'. Floating 3D shapes and particles around. Holographic feel.",
+    
+    "viral_elements": "3D paper airplane with gradient material and glow trail. Share icons as 3D glowing objects. Floating orbs and particles. Gradient mesh background. Button with gradient border: '💾 СОХРАНИ'.",
+    
+    "style_footer": "STYLE: Photorealistic person, futuristic design elements. Vibrant gradient mesh aesthetic. Dramatic colored lighting. Modern tech editorial. 8K resolution."
+  },
+  
+  "slide_templates": {
+    "HOOK": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px generation at 1024x1365).\n\n{background}\n\nHEADLINE (TOP LEFT AREA):\n{cards_headline}\nMain text: \"{HEADLINE_1}\" (bold white or gradient)\nSub text: \"{HEADLINE_2}\" (glowing accent)\n\nPERSON:\n{person_hook}\nPosition: RIGHT 40% of frame\nFraming: chest up, DYNAMIC SCALE — 80% of frame width\nRim lighting in purple/blue/pink\n\n{decorations_hook}\n\nBOTTOM AREA:\nDark glass card with colorful glow: \"{BOTTOM_TEXT}\"\nCorner indicator: \"Листай →\" (glowing white)\n\n{style_footer}",
+    
+    "CONTENT": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nHEADLINE (TOP LEFT):\nGradient or glowing white text: \"{HEADLINE}\"\n\nMAIN CONTENT (CENTER):\n{cards_content}\n[CONTENT_LAYOUT]\n3D floating elements around cards\n\nBOTTOM:\nTransition text (glowing): \"{TRANSITION}\"\n\nNo person. Futuristic infographic with 3D elements.\n\n{style_footer}",
+    
+    "CTA": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nTOP LEFT: Gradient banner or glowing text: \"{CTA_HEADLINE}\"\n\nPERSON:\n{person_cta}\nPosition: LEFT 40% of frame\nFraming: chest up, confident futuristic pose\nColorful rim lighting\n\nMAIN CTA CARD (CENTER-RIGHT):\n{cta_card}\n\n3D shapes floating around\n\nBOTTOM:\nDark glass card: \"{BENEFIT_TEXT}\"\n\n{style_footer}",
+    
+    "VIRAL": "Instagram carousel slide, 3:4 aspect ratio (1080x1440px).\n\n{background}\n\nCENTER:\nLarge dark glass card with gradient glow\nTop line (HUGE, bold white): \"ОТПРАВЬ ЭТО\"\nBottom line (gradient purple-pink): \"{VIRAL_TARGET}\"\n\n{viral_elements}\n\n3D orbs and shapes floating. Gradient mesh in background.\n\nNo person. Futuristic, vibrant, shareable.\n\n{style_footer}"
+  }
+}

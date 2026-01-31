@@ -19,7 +19,7 @@ export async function checkWhitelist(telegramId: number): Promise<boolean> {
     .select('id')
     .eq('telegram_id', telegramId)
     .single()
-  
+
   return !!data && !error
 }
 
@@ -30,7 +30,7 @@ export async function checkIsCurator(userId: string): Promise<boolean> {
     .eq('user_id', userId)
     .eq('is_active', true)
     .single()
-  
+
   return !!data && !error
 }
 
@@ -48,7 +48,7 @@ export async function getOrCreateUser(telegramUser: {
     .from('users')
     .select('*')
     .eq('telegram_id', telegramUser.id)
-    .single()
+    .maybeSingle()
 
   return existingUser || null
 }
@@ -59,7 +59,7 @@ export async function getUserTariffs(userId: string): Promise<string[]> {
     .select('tariff_slug')
     .eq('user_id', userId)
     .eq('is_active', true)
-  
+
   if (error || !data) return []
   return data.map(t => t.tariff_slug)
 }
@@ -162,11 +162,11 @@ export async function getUserPhoto(telegramId: number): Promise<string | null> {
     .select('face_main')
     .eq('telegram_id', telegramId)
     .single()
-  
+
   if (error || !data) {
     return null
   }
-  
+
   return data.face_main
 }
 
@@ -187,12 +187,12 @@ export async function saveUserPhoto(
     }, {
       onConflict: 'telegram_id'
     })
-  
+
   if (error) {
     console.error('Error saving user photo:', error)
     return false
   }
-  
+
   return true
 }
 
@@ -209,12 +209,12 @@ export async function deleteUserPhoto(
       [type]: null,
     })
     .eq('telegram_id', telegramId)
-  
+
   if (error) {
     console.error('Error deleting user photo:', error)
     return false
   }
-  
+
   return true
 }
 
@@ -236,7 +236,7 @@ export async function getUserPhotoGallery(telegramId: number): Promise<GalleryPh
     .select('*')
     .eq('telegram_id', telegramId)
     .order('slot_index', { ascending: true })
-  
+
   if (error || !data) return []
   return data
 }
@@ -255,7 +255,7 @@ export async function savePhotoToSlot(
     }, {
       onConflict: 'telegram_id,slot_index'
     })
-  
+
   if (error) {
     console.error('Error saving photo to slot:', error)
     return false
@@ -272,7 +272,7 @@ export async function deletePhotoFromSlot(
     .delete()
     .eq('telegram_id', telegramId)
     .eq('slot_index', slotIndex)
-  
+
   if (error) {
     console.error('Error deleting photo from slot:', error)
     return false
