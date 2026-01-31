@@ -220,10 +220,19 @@ function CarouselIndexInner() {
   const getStyleConfig = (styleId: StyleId) => {
     // Сначала ищем в БД
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
-    if (dbStyle && dbStyle.config && Object.keys(dbStyle.config).length > 0) {
-      return dbStyle.config
+    const dbConfig = dbStyle?.config as Record<string, unknown> | undefined
+
+    // Проверяем что у конфига есть slide_templates (главное для генерации)
+    if (dbConfig && typeof dbConfig === 'object' && 'slide_templates' in dbConfig) {
+      const slideTemplates = dbConfig.slide_templates as Record<string, unknown> | undefined
+      if (slideTemplates && Object.keys(slideTemplates).length > 0) {
+        console.log('[Carousel] Using DB config for style:', styleId)
+        return dbConfig
+      }
     }
+
     // Fallback на захардкоженные конфиги
+    console.log('[Carousel] Using hardcoded config for style:', styleId)
     return STYLE_CONFIGS[styleId] || null
   }
 
@@ -408,21 +417,29 @@ function CarouselIndexInner() {
     try {
       // Получаем конфиг стиля (из БД или захардкоженный)
       const styleConfig = getStyleConfig(style)
+      console.log('[Carousel] Sending to n8n:')
+      console.log('[Carousel] styleId:', style)
+      console.log('[Carousel] styleConfig:', JSON.stringify(styleConfig, null, 2))
+      console.log('[Carousel] dbStyles count:', dbStyles.length)
+
+      const payload = {
+        chatId: user.id,
+        topic: topic.trim(),
+        userPhoto: userPhoto || null,
+        cta: ctaValue,
+        ctaType,
+        gender,
+        styleId: style,
+        styleConfig,
+        vasiaCore: VASIA_CORE,
+        formatConfig: FORMAT_UNIVERSAL,
+      }
+      console.log('[Carousel] Full payload:', JSON.stringify(payload, null, 2))
+
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chatId: user.id,
-          topic: topic.trim(),
-          userPhoto: userPhoto || null,
-          cta: ctaValue,
-          ctaType,
-          gender,
-          styleId: style,
-          styleConfig,
-          vasiaCore: VASIA_CORE,
-          formatConfig: FORMAT_UNIVERSAL,
-        })
+        body: JSON.stringify(payload)
       })
 
       if (!response.ok) throw new Error('Network error')
