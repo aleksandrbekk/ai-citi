@@ -12,9 +12,8 @@ import { PageLoader } from '@/components/ui/PageLoader'
 import { usePromoCode } from '@/hooks/usePromoCode'
 import { CoinRewardProvider } from '@/components/CoinReward'
 
-// Миграция localStorage v3 — очистка устаревших данных каруселей
-const MIGRATION_VERSION = 'v20260131-v3'
-const VALID_STYLE_IDS = ['APPLE_GLASSMORPHISM', 'AESTHETIC_BEIGE', 'SOFT_PINK_EDITORIAL', 'MINIMALIST_LINE_ART', 'GRADIENT_MESH_3D']
+// Миграция localStorage v4 — полная очистка carousel данных
+const MIGRATION_VERSION = 'v20260131-v4'
 
 function runLocalStorageMigration() {
   const migrationKey = 'app_migration_version'
@@ -22,37 +21,19 @@ function runLocalStorageMigration() {
 
   if (currentVersion === MIGRATION_VERSION) return
 
-  console.log('[Migration] Running localStorage cleanup...')
+  console.log('[Migration v4] Running full carousel data cleanup...')
 
   try {
-    // 1. Очищаем carousel_default_style если невалидный
-    const savedStyle = localStorage.getItem('carousel_default_style')
-    if (savedStyle && !VALID_STYLE_IDS.includes(savedStyle)) {
-      console.log('[Migration] Removing invalid carousel_default_style:', savedStyle)
-      localStorage.removeItem('carousel_default_style')
-    }
-
-    // 2. Очищаем carousel-storage (zustand) если содержит невалидный стиль
-    const carouselStorage = localStorage.getItem('carousel-storage')
-    if (carouselStorage) {
-      try {
-        const parsed = JSON.parse(carouselStorage)
-        if (parsed?.state?.style && !VALID_STYLE_IDS.includes(parsed.state.style)) {
-          console.log('[Migration] Resetting carousel-storage, invalid style:', parsed.state.style)
-          localStorage.removeItem('carousel-storage')
-        }
-      } catch {
-        // Если JSON невалидный — удаляем
-        console.log('[Migration] Removing corrupted carousel-storage')
-        localStorage.removeItem('carousel-storage')
-      }
-    }
+    // Полностью очищаем все данные каруселей — zustand создаст заново
+    localStorage.removeItem('carousel_default_style')
+    localStorage.removeItem('carousel-storage')
+    console.log('[Migration v4] Cleared carousel data')
 
     // Отмечаем миграцию как выполненную
     localStorage.setItem(migrationKey, MIGRATION_VERSION)
-    console.log('[Migration] Completed')
+    console.log('[Migration v4] Completed')
   } catch (e) {
-    console.error('[Migration] Error:', e)
+    console.error('[Migration v4] Error:', e)
   }
 }
 
