@@ -270,3 +270,81 @@ export async function duplicateCarouselStyle(
 
   return createCarouselStyle(duplicate)
 }
+
+/**
+ * Seed default styles from hardcoded STYLES_INDEX and STYLE_CONFIGS
+ * Используется для первичной инициализации таблицы carousel_styles
+ */
+export async function seedDefaultStyles(): Promise<{ success: boolean; created: number; errors: string[] }> {
+  // Динамический импорт чтобы избежать циклической зависимости
+  const { STYLES_INDEX, STYLE_CONFIGS } = await import('./carouselStyles')
+
+  const errors: string[] = []
+  let created = 0
+
+  // Локальные превью изображения
+  const localPreviews: Record<string, string> = {
+    APPLE_GLASSMORPHISM: '/styles/apple.jpg',
+    AESTHETIC_BEIGE: '/styles/beige.jpg',
+    SOFT_PINK_EDITORIAL: '/styles/pink.jpg',
+    MINIMALIST_LINE_ART: '/styles/minimal.jpg',
+    GRADIENT_MESH_3D: '/styles/gradient.jpg',
+  }
+
+  // Количество примеров для каждого стиля
+  const exampleCounts: Record<string, number> = {
+    APPLE_GLASSMORPHISM: 9,
+    AESTHETIC_BEIGE: 9,
+    SOFT_PINK_EDITORIAL: 7,
+    MINIMALIST_LINE_ART: 9,
+    GRADIENT_MESH_3D: 9,
+  }
+
+  for (const styleMeta of STYLES_INDEX) {
+    try {
+      // Проверяем, не существует ли уже такой стиль
+      const existing = await getCarouselStyleByStyleId(styleMeta.id)
+      if (existing) {
+        console.log(`Style ${styleMeta.id} already exists, skipping`)
+        continue
+      }
+
+      const config = STYLE_CONFIGS[styleMeta.id] || {}
+      const exampleCount = exampleCounts[styleMeta.id] || 9
+      const exampleImages = Array.from(
+        { length: exampleCount },
+        (_, i) => `/styles/${styleMeta.id}/example_${i + 1}.jpeg`
+      )
+
+      const styleInput: CarouselStyleInput = {
+        style_id: styleMeta.id,
+        name: styleMeta.name,
+        description: styleMeta.description,
+        emoji: styleMeta.emoji,
+        audience: styleMeta.audience as 'universal' | 'female' | 'male',
+        preview_color: styleMeta.previewColor,
+        preview_image: localPreviews[styleMeta.id] || '/styles/apple.jpg',
+        is_active: true,
+        config: config as unknown as Record<string, unknown>,
+        example_images: exampleImages,
+      }
+
+      const result = await createCarouselStyle(styleInput)
+      if (result) {
+        created++
+        console.log(`Created style: ${styleMeta.name}`)
+      } else {
+        errors.push(`Не удалось создать стиль: ${styleMeta.name}`)
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error)
+      errors.push(`Ошибка при создании ${styleMeta.name}: ${msg}`)
+    }
+  }
+
+  return {
+    success: errors.length === 0,
+    created,
+    errors,
+  }
+}

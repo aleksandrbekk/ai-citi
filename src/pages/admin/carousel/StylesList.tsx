@@ -1,22 +1,47 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download } from 'lucide-react'
 import {
   getAllCarouselStyles,
   deleteCarouselStyle,
   updateCarouselStyle,
+  seedDefaultStyles,
   type CarouselStyleDB
 } from '@/lib/carouselStylesApi'
 
 export default function CarouselStylesList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [isSeeding, setIsSeeding] = useState(false)
+  const [seedError, setSeedError] = useState<string | null>(null)
 
   // Загружаем стили из БД
   const { data: styles = [], isLoading } = useQuery({
     queryKey: ['admin-carousel-styles'],
     queryFn: getAllCarouselStyles,
   })
+
+  // Инициализация стандартных стилей
+  const handleSeedStyles = async () => {
+    setIsSeeding(true)
+    setSeedError(null)
+    try {
+      const result = await seedDefaultStyles()
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] })
+      } else if (result.errors.length > 0) {
+        setSeedError(result.errors.join('; '))
+      }
+      if (result.created > 0) {
+        queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] })
+      }
+    } catch (error) {
+      setSeedError(error instanceof Error ? error.message : 'Не удалось создать стили')
+    } finally {
+      setIsSeeding(false)
+    }
+  }
 
   // Мутация для переключения активности
   const toggleMutation = useMutation({
@@ -67,17 +92,44 @@ export default function CarouselStylesList() {
         </button>
       </div>
 
+      {/* Ошибка при инициализации */}
+      {seedError && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <strong>Ошибка:</strong> {seedError}
+          <p className="mt-2 text-xs">
+            Возможно, таблица carousel_styles не создана. Создайте её в Supabase Dashboard:
+            <br />
+            <code className="bg-red-100 px-1 rounded">
+              https://supabase.com/dashboard/project/debcwvxlvozjlqkhnauy/sql/new
+            </code>
+          </p>
+        </div>
+      )}
+
       {/* Список стилей */}
       {styles.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
           <Palette className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">Стили ещё не созданы</p>
-          <button
-            onClick={() => navigate('/admin/carousel-styles/new')}
-            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-          >
-            Создать первый стиль
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={handleSeedStyles}
+              disabled={isSeeding}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center gap-2 justify-center"
+            >
+              {isSeeding ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Создание...</>
+              ) : (
+                <><Download className="w-4 h-4" /> Загрузить 5 стандартных</>
+              )}
+            </button>
+            <button
+              onClick={() => navigate('/admin/carousel-styles/new')}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2 justify-center"
+            >
+              <Plus className="w-4 h-4" /> Создать свой стиль
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
