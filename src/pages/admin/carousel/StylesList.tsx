@@ -125,7 +125,7 @@ export default function CarouselStylesList() {
             </div>
           </div>
 
-          {/* Показываем захардкоженные стили как read-only */}
+          {/* Показываем захардкоженные стили с кнопками редактирования */}
           <div className="space-y-3 mb-6">
             {STYLES_INDEX.map((styleMeta) => (
               <div
@@ -157,6 +157,14 @@ export default function CarouselStylesList() {
                       <span className="text-blue-500">• встроенный стиль</span>
                     </div>
                   </div>
+                  {/* Кнопка редактирования */}
+                  <button
+                    onClick={() => navigate(`/admin/carousel-styles/builtin/${styleMeta.id}`)}
+                    className="p-2.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors flex-shrink-0"
+                    title="Редактировать"
+                  >
+                    <Edit className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             ))}

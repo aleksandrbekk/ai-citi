@@ -20,20 +20,23 @@ import {
 } from 'lucide-react'
 import {
   getCarouselStyleById,
+  getCarouselStyleByStyleId,
   createCarouselStyle,
   updateCarouselStyle,
   type CarouselStyleInput
 } from '@/lib/carouselStylesApi'
+import { STYLES_INDEX, STYLE_CONFIGS } from '@/lib/carouselStyles'
 
 // Cloudinary config
 const CLOUDINARY_CLOUD = 'drplvjqpz'
 const CLOUDINARY_PRESET = 'carousel_uploads'
 
 export default function StyleEditor() {
-  const { id } = useParams()
+  const { id, styleId: builtinStyleId } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isNew = id === 'new'
+  const isBuiltin = !!builtinStyleId
 
   // Секции (раскрытие/скрытие)
   const [sections, setSections] = useState({
@@ -102,11 +105,18 @@ export default function StyleEditor() {
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const exampleInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  // Load existing style
+  // Load existing style from DB
   const { data: existingStyle, isLoading } = useQuery({
     queryKey: ['carousel-style', id],
     queryFn: () => getCarouselStyleById(id!),
-    enabled: !isNew && !!id
+    enabled: !isNew && !isBuiltin && !!id
+  })
+
+  // Check if builtin style already exists in DB
+  const { data: existingBuiltinInDb } = useQuery({
+    queryKey: ['carousel-style-by-styleid', builtinStyleId],
+    queryFn: () => getCarouselStyleByStyleId(builtinStyleId!),
+    enabled: isBuiltin && !!builtinStyleId
   })
 
   // Populate form when data loads
@@ -177,6 +187,134 @@ export default function StyleEditor() {
       }
     }
   }, [existingStyle])
+
+  // Populate form from builtin style (hardcoded configs)
+  useEffect(() => {
+    if (isBuiltin && builtinStyleId) {
+      // Если стиль уже есть в БД, используем его данные
+      if (existingBuiltinInDb) {
+        setStyleId(existingBuiltinInDb.style_id || '')
+        setName(existingBuiltinInDb.name)
+        setEmoji(existingBuiltinInDb.emoji || '🎨')
+        setDescription(existingBuiltinInDb.description || '')
+        setAudience(existingBuiltinInDb.audience as 'universal' | 'female' | 'male' || 'universal')
+        setPreviewColor(existingBuiltinInDb.preview_color || '#FF5A1F')
+        setPreviewImage(existingBuiltinInDb.preview_image || '')
+        setIsActive(existingBuiltinInDb.is_active ?? true)
+        setExampleImages(existingBuiltinInDb.example_images || [])
+
+        const config = existingBuiltinInDb.config as Record<string, unknown> | null
+        if (config) {
+          const person = config.person as Record<string, string> | undefined
+          if (person) {
+            setPersonScale(person.scale || '')
+            setPersonPosition(person.position || '')
+            setPersonLighting(person.lighting || '')
+            setPersonAesthetic(person.aesthetic || '')
+          }
+          const colors = config.colors as Record<string, string> | undefined
+          if (colors) {
+            setColorBgPrimary(colors.background_primary || '#FFFFFF')
+            setColorBgSecondary(colors.background_secondary || '#F5F5F5')
+            setColorAccentPrimary(colors.accent_primary || '#FF5A1F')
+            setColorAccentSecondary(colors.accent_secondary || '#06B6D4')
+            setColorTextPrimary(colors.text_primary || '#1A1A1A')
+            setColorTextSecondary(colors.text_secondary || '#666666')
+          }
+          const typo = config.typography as Record<string, string> | undefined
+          if (typo) {
+            setTypoStyle(typo.style || '')
+            setTypoHeadline(typo.headline || '')
+            setTypoBody(typo.body || '')
+          }
+          const cards = config.cards as Record<string, string> | undefined
+          if (cards) {
+            setCardsStyle(cards.style || '')
+            setCardsBlur(cards.blur || '')
+            setCardsBorderRadius(cards.border_radius || '')
+          }
+          const decor = config.decorations as Record<string, string> | undefined
+          if (decor) {
+            setDecorElements(decor.elements || '')
+          }
+          const templates = config.slide_templates as Record<string, string> | undefined
+          if (templates) {
+            setHookTemplate(templates.HOOK || '')
+            setContentTemplate(templates.CONTENT || '')
+            setCtaTemplate(templates.CTA || '')
+            setViralTemplate(templates.VIRAL || '')
+          }
+        }
+        return
+      }
+
+      // Загружаем из hardcoded конфигов
+      const styleMeta = STYLES_INDEX.find(s => s.id === builtinStyleId)
+      const config = STYLE_CONFIGS[builtinStyleId as keyof typeof STYLE_CONFIGS]
+
+      if (styleMeta) {
+        setStyleId(styleMeta.id)
+        setName(styleMeta.name)
+        setEmoji(styleMeta.emoji)
+        setDescription(styleMeta.description)
+        setAudience(styleMeta.audience as 'universal' | 'female' | 'male')
+        setPreviewColor(styleMeta.previewColor)
+        setPreviewImage(`/styles/${styleMeta.id.toLowerCase()}.jpg`)
+        setIsActive(true)
+        // Генерируем example images
+        const exampleCount = styleMeta.id === 'SOFT_PINK_EDITORIAL' ? 7 : 9
+        setExampleImages(
+          Array.from({ length: exampleCount }, (_, i) => `/styles/${styleMeta.id}/example_${i + 1}.jpeg`)
+        )
+      }
+
+      if (config) {
+        const person = config.person as Record<string, string> | undefined
+        if (person) {
+          setPersonScale(person.scale || '')
+          setPersonPosition(person.position || '')
+          setPersonLighting(person.lighting || '')
+          setPersonAesthetic(person.aesthetic || '')
+        }
+        const colors = config.colors as Record<string, string> | undefined
+        if (colors) {
+          setColorBgPrimary(colors.background_primary || '#FFFFFF')
+          setColorBgSecondary(colors.background_secondary || '#F5F5F5')
+          setColorAccentPrimary(colors.accent_primary || '#FF5A1F')
+          setColorAccentSecondary(colors.accent_secondary || '#06B6D4')
+          setColorTextPrimary(colors.text_primary || '#1A1A1A')
+          setColorTextSecondary(colors.text_secondary || '#666666')
+        }
+        const typo = config.typography as Record<string, string> | undefined
+        if (typo) {
+          setTypoStyle(typo.style || '')
+          setTypoHeadline(typo.headline || '')
+          setTypoBody(typo.body || '')
+        }
+        const cards = config.cards as Record<string, string> | undefined
+        if (cards) {
+          setCardsStyle(cards.style || '')
+          setCardsBlur(cards.blur || '')
+          setCardsBorderRadius(cards.border_radius || '')
+        }
+        const decor = config.decorations as Record<string, string> | undefined
+        if (decor) {
+          setDecorElements(decor.elements || '')
+        }
+        const promptBlocks = config.prompt_blocks as Record<string, string> | undefined
+        if (promptBlocks) {
+          // Можно использовать prompt_blocks для формирования templates
+        }
+        const templates = config.slide_templates as Record<string, string> | undefined
+        if (templates) {
+          setHookTemplate(templates.HOOK || '')
+          setContentTemplate(templates.CONTENT || '')
+          setCtaTemplate(templates.CTA || '')
+          setViralTemplate(templates.VIRAL || '')
+        }
+      }
+    }
+  }, [isBuiltin, builtinStyleId, existingBuiltinInDb])
 
   // Upload to Cloudinary
   const uploadToCloudinary = async (file: File): Promise<string> => {
@@ -303,6 +441,13 @@ export default function StyleEditor() {
 
       if (isNew) {
         return createCarouselStyle(styleData)
+      } else if (isBuiltin) {
+        // Для встроенных стилей: обновляем если есть в БД, иначе создаём
+        if (existingBuiltinInDb) {
+          return updateCarouselStyle(existingBuiltinInDb.id, styleData)
+        } else {
+          return createCarouselStyle(styleData)
+        }
       } else {
         return updateCarouselStyle(id!, styleData)
       }

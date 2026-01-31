@@ -225,6 +225,7 @@ function AppContent() {
 
               {/* Карусели */}
               <Route path="carousel-styles" element={<CarouselStylesList />} />
+              <Route path="carousel-styles/builtin/:styleId" element={<CarouselStyleEditor />} />
               <Route path="carousel-styles/:id" element={<CarouselStyleEditor />} />
 
               {/* МЛМ Лагерь */}
