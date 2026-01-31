@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Component, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
@@ -7,6 +7,54 @@ import { getCarouselStyles } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
+
+// Error Boundary для отлова ошибок
+class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[CarouselErrorBoundary] Caught error:', error)
+    console.error('[CarouselErrorBoundary] Error info:', errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <span className="text-3xl">❌</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Ошибка загрузки</h2>
+          <p className="text-sm text-gray-500 text-center mb-4">
+            {this.state.error?.message || 'Неизвестная ошибка'}
+          </p>
+          <pre className="text-xs bg-gray-100 p-3 rounded-lg max-w-full overflow-auto mb-4">
+            {this.state.error?.stack?.slice(0, 500)}
+          </pre>
+          <button
+            onClick={() => {
+              // Очищаем localStorage и перезагружаем
+              localStorage.removeItem('carousel-storage')
+              localStorage.removeItem('carousel_default_style')
+              window.location.reload()
+            }}
+            className="px-6 py-3 bg-orange-500 text-white rounded-xl font-medium"
+          >
+            Сбросить и перезагрузить
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // Cloudinary config
 const CLOUDINARY_CLOUD = 'ds8ylsl2x'
@@ -40,9 +88,31 @@ const MessageIcon = ({ className = '' }: { className?: string }) => (
 )
 
 
+// Wrapper с Error Boundary
 export default function CarouselIndex() {
+  return (
+    <CarouselErrorBoundary>
+      <CarouselIndexInner />
+    </CarouselErrorBoundary>
+  )
+}
+
+function CarouselIndexInner() {
+  console.log('[Carousel] Component mounting...')
+
   const navigate = useNavigate()
-  const { setStatus, userPhoto, setUserPhoto, style, setStyle } = useCarouselStore()
+
+  // Отлавливаем ошибку zustand
+  let storeData
+  try {
+    storeData = useCarouselStore()
+    console.log('[Carousel] Store loaded, style:', storeData.style)
+  } catch (e) {
+    console.error('[Carousel] Store error:', e)
+    throw e
+  }
+
+  const { setStatus, userPhoto, setUserPhoto, style, setStyle } = storeData
 
   const [topic, setTopic] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
