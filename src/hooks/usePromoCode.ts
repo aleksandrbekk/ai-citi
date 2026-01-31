@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getStartParam } from '@/lib/telegram'
+import { getStartParam, clearStartParam } from '@/lib/telegram'
 import { useAuthStore } from '@/store/authStore'
 import { triggerCoinReward } from '@/components/CoinReward'
 
@@ -63,8 +63,13 @@ export function usePromoCode() {
                     // Показываем красивую анимацию начисления
                     triggerCoinReward(result.coins, result.message || 'Бонус активирован!')
 
+                    // Очищаем startParam чтобы не обрабатывать повторно
+                    clearStartParam()
+
                     console.log('✅ Promo claimed successfully:', result)
                 } else if (result.error) {
+                    // Очищаем startParam даже при ошибке (уже использован и т.д.)
+                    clearStartParam()
                     // Не показываем ошибку "уже активировали" — просто логируем
                     console.log('⚠️ Promo not claimed:', result.error)
                 }

@@ -41,12 +41,15 @@ export function getInitData(): string | null {
   return webApp?.initData || null
 }
 
+const START_PARAM_KEY = 'tg_start_param'
+
 export function getStartParam(): string | null {
   // 1. Пробуем из initDataUnsafe (работает на Android/Desktop)
   const webApp = getTelegramWebApp()
   const fromWebApp = (webApp as any)?.initDataUnsafe?.start_param
   if (fromWebApp) {
     console.log('✅ startParam from initDataUnsafe:', fromWebApp)
+    localStorage.setItem(START_PARAM_KEY, fromWebApp)
     return fromWebApp
   }
 
@@ -57,6 +60,7 @@ export function getStartParam(): string | null {
     const fromInitData = initParams.get('start_param')
     if (fromInitData) {
       console.log('✅ startParam from initData:', fromInitData)
+      localStorage.setItem(START_PARAM_KEY, fromInitData)
       return fromInitData
     }
   }
@@ -66,6 +70,7 @@ export function getStartParam(): string | null {
   const fromUrl = urlParams.get('tgWebAppStartParam')
   if (fromUrl) {
     console.log('✅ startParam from URL:', fromUrl)
+    localStorage.setItem(START_PARAM_KEY, fromUrl)
     return fromUrl
   }
 
@@ -74,11 +79,24 @@ export function getStartParam(): string | null {
   const fromHash = hashParams.get('tgWebAppStartParam')
   if (fromHash) {
     console.log('✅ startParam from hash:', fromHash)
+    localStorage.setItem(START_PARAM_KEY, fromHash)
     return fromHash
+  }
+
+  // 5. Fallback: из localStorage (если сохранили ранее)
+  const fromStorage = localStorage.getItem(START_PARAM_KEY)
+  if (fromStorage) {
+    console.log('✅ startParam from localStorage:', fromStorage)
+    return fromStorage
   }
 
   console.log('❌ startParam not found anywhere')
   return null
+}
+
+// Очистка сохранённого startParam (вызывать после успешной обработки)
+export function clearStartParam(): void {
+  localStorage.removeItem(START_PARAM_KEY)
 }
 
 // Инициализация Telegram WebApp
