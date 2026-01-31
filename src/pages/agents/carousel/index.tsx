@@ -117,9 +117,6 @@ function CarouselIndexInner() {
   const [topic, setTopic] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Защита от двойной отправки
-  const isGeneratingRef = useRef(false)
   const [showStyleModal, setShowStyleModal] = useState(false)
 
   // CTA state
@@ -388,17 +385,9 @@ function CarouselIndexInner() {
   const handleGenerate = async () => {
     if (!topic.trim()) return
 
-    // Защита от двойной отправки
-    if (isGeneratingRef.current) {
-      console.log('[Carousel] ⚠ Double submission blocked')
-      return
-    }
-    isGeneratingRef.current = true
-
     const user = getTelegramUser()
     if (!user?.id) {
       setError('Не удалось получить данные пользователя')
-      isGeneratingRef.current = false
       return
     }
 
@@ -414,7 +403,6 @@ function CarouselIndexInner() {
       if (coinBalance < GENERATION_COST) {
         setError(`Недостаточно монет. Нужно ${GENERATION_COST}, у вас ${coinBalance}`)
         setIsSubmitting(false)
-        isGeneratingRef.current = false
         return
       }
 
@@ -428,7 +416,6 @@ function CarouselIndexInner() {
           const errorMsg = spendResult?.error || 'Не удалось списать монеты'
           setError(errorMsg)
           setIsSubmitting(false)
-          isGeneratingRef.current = false
           return
         }
         // Обновляем баланс
@@ -436,7 +423,6 @@ function CarouselIndexInner() {
       } catch (err) {
         setError('Ошибка при списании монет')
         setIsSubmitting(false)
-        isGeneratingRef.current = false
         return
       }
     }
@@ -503,7 +489,6 @@ function CarouselIndexInner() {
       setError('Не удалось отправить запрос')
     } finally {
       setIsSubmitting(false)
-      isGeneratingRef.current = false
     }
   }
 
