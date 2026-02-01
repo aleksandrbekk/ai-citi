@@ -103,6 +103,10 @@ export default function CarouselContent() {
 
     try {
       const dbStyle = await getCarouselStyleByStyleId(currentStyleId)
+      console.log('=== DEBUG: Raw dbStyle from DB ===', dbStyle)
+      console.log('=== DEBUG: dbStyle.config ===', dbStyle?.config)
+      console.log('=== DEBUG: config keys ===', dbStyle?.config ? Object.keys(dbStyle.config) : 'no config')
+
       if (dbStyle?.config) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const config = dbStyle.config as any
@@ -111,7 +115,10 @@ export default function CarouselContent() {
         // Получаем промпты из БД
         contentSystemPrompt = config.content_system_prompt || ''
         stylePrompt = config.style_prompt || ''
-        console.log('Loaded style from DB:', currentStyleId, { hasContentPrompt: !!contentSystemPrompt, hasStylePrompt: !!stylePrompt })
+
+        console.log('=== DEBUG: Extracted prompts ===')
+        console.log('content_system_prompt:', contentSystemPrompt ? contentSystemPrompt.substring(0, 200) + '...' : 'EMPTY')
+        console.log('style_prompt:', stylePrompt ? stylePrompt.substring(0, 200) + '...' : 'EMPTY')
       } else {
         console.log('Style not in DB, using hardcoded:', currentStyleId)
       }
