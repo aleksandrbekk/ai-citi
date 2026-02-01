@@ -112,18 +112,12 @@ export default function CarouselContent() {
         // Получаем промпты из БД
         contentSystemPrompt = config.content_system_prompt || ''
         stylePrompt = config.style_prompt || ''
-
-        // DEBUG: Показываем что загрузили
-        const configKeys = Object.keys(config).join(', ')
-        toast.info(`Стиль: ${currentStyleId}`, { duration: 3000 })
-        toast.info(`Ключи config: ${configKeys}`, { duration: 5000 })
-        toast.info(`content_system_prompt: ${contentSystemPrompt ? contentSystemPrompt.substring(0, 100) + '...' : 'ПУСТО!'}`, { duration: 5000 })
-        toast.info(`style_prompt: ${stylePrompt ? stylePrompt.substring(0, 100) + '...' : 'ПУСТО!'}`, { duration: 5000 })
+        console.log('Loaded style from DB:', currentStyleId, { hasContentPrompt: !!contentSystemPrompt, hasStylePrompt: !!stylePrompt })
       } else {
-        toast.warning(`Стиль ${currentStyleId} НЕ найден в БД!`, { duration: 5000 })
+        console.log('Style not in DB, using hardcoded:', currentStyleId)
       }
     } catch (err) {
-      toast.error(`Ошибка загрузки стиля: ${err}`, { duration: 5000 })
+      console.warn('Failed to load style from DB, using hardcoded:', err)
     }
 
     // Подготовка данных для отправки
