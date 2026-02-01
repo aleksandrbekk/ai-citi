@@ -103,9 +103,6 @@ export default function CarouselContent() {
 
     try {
       const dbStyle = await getCarouselStyleByStyleId(currentStyleId)
-      console.log('=== DEBUG: Raw dbStyle from DB ===', dbStyle)
-      console.log('=== DEBUG: dbStyle.config ===', dbStyle?.config)
-      console.log('=== DEBUG: config keys ===', dbStyle?.config ? Object.keys(dbStyle.config) : 'no config')
 
       if (dbStyle?.config) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,14 +113,17 @@ export default function CarouselContent() {
         contentSystemPrompt = config.content_system_prompt || ''
         stylePrompt = config.style_prompt || ''
 
-        console.log('=== DEBUG: Extracted prompts ===')
-        console.log('content_system_prompt:', contentSystemPrompt ? contentSystemPrompt.substring(0, 200) + '...' : 'EMPTY')
-        console.log('style_prompt:', stylePrompt ? stylePrompt.substring(0, 200) + '...' : 'EMPTY')
+        // DEBUG: Показываем что загрузили
+        const configKeys = Object.keys(config).join(', ')
+        toast.info(`Стиль: ${currentStyleId}`, { duration: 3000 })
+        toast.info(`Ключи config: ${configKeys}`, { duration: 5000 })
+        toast.info(`content_system_prompt: ${contentSystemPrompt ? contentSystemPrompt.substring(0, 100) + '...' : 'ПУСТО!'}`, { duration: 5000 })
+        toast.info(`style_prompt: ${stylePrompt ? stylePrompt.substring(0, 100) + '...' : 'ПУСТО!'}`, { duration: 5000 })
       } else {
-        console.log('Style not in DB, using hardcoded:', currentStyleId)
+        toast.warning(`Стиль ${currentStyleId} НЕ найден в БД!`, { duration: 5000 })
       }
     } catch (err) {
-      console.warn('Failed to load style from DB, using hardcoded:', err)
+      toast.error(`Ошибка загрузки стиля: ${err}`, { duration: 5000 })
     }
 
     // Подготовка данных для отправки
