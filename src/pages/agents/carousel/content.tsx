@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { STYLE_CONFIGS, VASIA_CORE } from '@/lib/carouselStyles'
+import { getCarouselStyleByStyleId } from '@/lib/carouselStylesApi'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
@@ -94,6 +95,30 @@ export default function CarouselContent() {
     // Фото уже загружено в useEffect
     const finalUserPhoto = userPhoto
 
+    // Загружаем стиль из БД (с fallback на hardcoded)
+    const currentStyleId = style || 'APPLE_GLASSMORPHISM'
+    let styleConfig = STYLE_CONFIGS[currentStyleId as keyof typeof STYLE_CONFIGS]
+    let contentSystemPrompt = ''
+    let stylePrompt = ''
+
+    try {
+      const dbStyle = await getCarouselStyleByStyleId(currentStyleId)
+      if (dbStyle?.config) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const config = dbStyle.config as any
+        // Используем конфиг из БД (мёржим с hardcoded для fallback полей)
+        styleConfig = { ...styleConfig, ...config }
+        // Получаем промпты из БД
+        contentSystemPrompt = config.content_system_prompt || ''
+        stylePrompt = config.style_prompt || ''
+        console.log('Loaded style from DB:', currentStyleId, { hasContentPrompt: !!contentSystemPrompt, hasStylePrompt: !!stylePrompt })
+      } else {
+        console.log('Style not in DB, using hardcoded:', currentStyleId)
+      }
+    } catch (err) {
+      console.warn('Failed to load style from DB, using hardcoded:', err)
+    }
+
     // Подготовка данных для отправки
     const requestData = {
       chatId: chatId, // ОБЯЗАТЕЛЬНО число, telegram user id
@@ -101,7 +126,7 @@ export default function CarouselContent() {
       userPhoto: finalUserPhoto || '',
       mode: 'ai', // Всегда AI режим
       topic: variables.topic || '',
-      style: style || 'APPLE_GLASSMORPHISM', // Стиль дизайна
+      style: currentStyleId, // Стиль дизайна
       audience: audience || 'networkers', // Целевая аудитория
       customAudience: customAudience || '', // Своя ЦА
       gender: gender || 'male', // Пол для склонения текста (дефолт для обратной совместимости)
@@ -109,8 +134,11 @@ export default function CarouselContent() {
       cta_text: ctaText,
       cta_question: ctaQuestion,
       cta_benefits: ctaBenefits,
-      styleConfig: STYLE_CONFIGS[style || 'APPLE_GLASSMORPHISM'],
+      styleConfig: styleConfig,
       vasiaCore: VASIA_CORE,
+      // Новые поля — промпты из админки
+      contentSystemPrompt: contentSystemPrompt,
+      stylePrompt: stylePrompt,
       variables: {},
     }
 
@@ -120,10 +148,13 @@ export default function CarouselContent() {
       templateId: requestData.templateId,
       mode: requestData.mode,
       topic: requestData.topic,
+      style: requestData.style,
       cta_text: requestData.cta_text,
       hasUserPhoto: !!finalUserPhoto,
       hasSubscription,
       coinsSpent,
+      hasContentSystemPrompt: !!requestData.contentSystemPrompt,
+      hasStylePrompt: !!requestData.stylePrompt,
     })
 
     setStatus('generating')

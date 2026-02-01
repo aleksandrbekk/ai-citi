@@ -1,0 +1,283 @@
+{
+  "name": "AI CITI карусели v2 (с промптами из админки)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "carousel-v2",
+        "options": {}
+      },
+      "id": "4d43204d-cb41-4a65-b87d-c58933a57aaa",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "carousel-v2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8265353203:AAFTK0IbDcfn9laPc5h6lQ32o4rYZ3iFjq4/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"chat_id\": {{ $json.body.chatId || $json.chatId }}, \"text\": \"🎨 Генерирую карусель...\\n📝 Копирайтер: ✅\\n📊 Слайдов: 9\\n⏳ ~135 сек\"}",
+        "options": {}
+      },
+      "id": "530dfd15-8675-4ebd-8390-c31a85674200",
+      "name": "Send Start Immediate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, -96]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => {\nconst body = $json.body || $json;\nconst topic = body.topic || \"Тестовая тема\";\nconst cta = body.cta || \"МАГИЯ\";\nconst gender = body.gender || 'male';\nconst styleConfig = body.styleConfig || {};\nconst vasiaCore = body.vasiaCore || {};\n\n// ========================================\n// НОВОЕ: Используем contentSystemPrompt из админки!\n// ========================================\nlet customPrompt = body.contentSystemPrompt || '';\n\nif (customPrompt && customPrompt.trim()) {\n  // Если есть промпт из админки — используем его\n  // Подставляем переменные\n  customPrompt = customPrompt\n    .replace(/\\{topic\\}/g, topic)\n    .replace(/\\{cta\\}/g, cta)\n    .replace(/\\{gender\\}/g, gender === 'female' ? 'женский' : 'мужской');\n  \n  // Добавляем инструкции про JSON формат\n  customPrompt += '\\n\\n## ФОРМАТ ОТВЕТА — ТОЛЬКО JSON!\\n';\n  customPrompt += '- topic: тема\\n';\n  customPrompt += '- product: ' + cta + '\\n';\n  customPrompt += '- post_text: текст поста для Instagram\\n';\n  customPrompt += '- slides: массив из 9 слайдов\\n\\n';\n  customPrompt += 'Каждый слайд: id, template, human_mode (FACE/NONE), visual_task (английский, начинай с \"Instagram carousel slide, 3:4 (1024x1365).\"), content []\\n\\n';\n  customPrompt += 'ОТВЕТ: ТОЛЬКО JSON!\\n';\n  \n  return {\n    model: \"google/gemini-2.5-pro-preview\",\n    messages: [{ role: \"user\", content: customPrompt }],\n    temperature: 0.9,\n    max_tokens: 12000\n  };\n}\n\n// ========================================\n// FALLBACK: Если промпта нет — используем встроенный\n// ========================================\nconst templates = styleConfig.slide_templates || {};\nconst hookTemplate = templates.HOOK || \"\";\nconst contentTemplate = templates.CONTENT || \"\";\nconst ctaTemplate = templates.CTA || \"\";\nconst viralTemplate = templates.VIRAL || \"\";\n\nlet formulas = \"\";\nif (vasiaCore.headline_formulas) {\n  try {\n    formulas = Object.entries(vasiaCore.headline_formulas)\n      .map(function(e) { return e[0] + \": \" + e[1].formula + \" — \" + (e[1].examples || []).slice(0,2).join(\", \"); })\n      .join(\"\\n\");\n  } catch(err) {}\n}\n\nlet poses = \"\";\nif (vasiaCore.poses) {\n  try {\n    poses = Object.entries(vasiaCore.poses).slice(0,6)\n      .map(function(e) { return e[0] + \": \" + e[1].prompt; })\n      .join(\"\\n\");\n  } catch(err) {}\n}\n\nlet emotions = \"\";\nif (vasiaCore.emotions) {\n  try {\n    emotions = Object.entries(vasiaCore.emotions)\n      .map(function(e) { return e[0] + \": \" + e[1].prompt; })\n      .join(\"\\n\");\n  } catch(err) {}\n}\n\nconst styleName = styleConfig.name || \"Default\";\n\nvar lines = [];\n\nlines.push(\"# VASIA 7.0 — ГЕНЕРАТОР КАРУСЕЛЕЙ\");\nlines.push(\"\");\nlines.push(\"## ЗАДАНИЕ\");\nlines.push(\"Тема: \" + topic);\nlines.push(\"CTA код: \" + cta);\nlines.push(\"Визуальный стиль: \" + styleName);\nlines.push(\"\");\n\nlines.push(\"## ПРИНЦИПЫ ТЕКСТА\");\nlines.push(\"- Читатель должен подумать: 'Это же про меня!'\");\nlines.push(\"- Короткие предложения (5-7 слов)\");\nlines.push(\"- Разговорный стиль, как в переписке\");\nlines.push(\"- Конкретика: цифры, примеры, ситуации\");\nlines.push(\"\");\n\nlines.push(\"## ЭМОЦИОНАЛЬНАЯ ДУГА (9 слайдов)\");\nlines.push(\"1. HOOK (FACE) — Захват внимания\");\nlines.push(\"2-7. CONTENT — Боль → Решение → Результат\");\nlines.push(\"8. CTA (FACE) — Призыв к действию\");\nlines.push(\"9. VIRAL — Поделись\");\nlines.push(\"\");\n\nlines.push(\"## ФОРМУЛЫ ЗАГОЛОВКОВ\");\nlines.push(formulas);\nlines.push(\"\");\n\nlines.push(\"## ПОЗЫ\");\nlines.push(poses);\nlines.push(\"\");\n\nlines.push(\"## ЭМОЦИИ\");\nlines.push(emotions);\nlines.push(\"\");\n\nlines.push(\"## ШАБЛОНЫ VISUAL_TASK\");\nlines.push(\"### HOOK:\");\nlines.push(hookTemplate);\nlines.push(\"### CONTENT:\");\nlines.push(contentTemplate);\nlines.push(\"### CTA:\");\nlines.push(ctaTemplate);\nlines.push(\"### VIRAL:\");\nlines.push(viralTemplate);\nlines.push(\"\");\n\nlines.push(\"## ПОЛ АВТОРА: \" + (gender === 'female' ? 'ЖЕНСКИЙ' : 'МУЖСКОЙ'));\nlines.push(gender === 'female' ? \"Используй: сама, прошла, поняла\" : \"Используй: сам, прошёл, понял\");\nlines.push(\"\");\n\nlines.push(\"## ФОРМАТ — ТОЛЬКО JSON!\");\nlines.push(\"- topic: тема\");\nlines.push(\"- product: \" + cta);\nlines.push(\"- post_text: текст поста для Instagram\");\nlines.push(\"- slides: 9 слайдов\");\nlines.push(\"\");\nlines.push(\"Слайд: id, template, human_mode (FACE/NONE), visual_task (английский), content []\");\nlines.push(\"ОТВЕТ: ТОЛЬКО JSON!\");\n\nvar prompt = lines.join(\"\\n\");\n\nreturn {\n  model: \"google/gemini-2.5-pro-preview\",\n  messages: [{ role: \"user\", content: prompt }],\n  temperature: 0.9,\n  max_tokens: 12000\n};\n})()) }}",
+        "options": {
+          "timeout": 240000
+        }
+      },
+      "id": "c2ab48f1-418b-44cd-8958-cab7fc448ca0",
+      "name": "Copywriter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, 96]
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Webhook').item.json;\nconst body = webhookData.body || webhookData;\nconst aiResponse = $json;\n\nlet carousel = {};\ntry {\n  let text = '';\n  if (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n    const content = aiResponse.choices[0].message.content;\n    text = typeof content === 'string' ? content : (content && content[0] && content[0].text ? content[0].text : '');\n  } else if (aiResponse.candidates && aiResponse.candidates[0]) {\n    text = aiResponse.candidates[0].content.parts[0].text;\n  }\n\n  text = (text || '').trim();\n  var cb = String.fromCharCode(96);\n  if (text.indexOf(cb + cb + cb + 'json') >= 0) text = text.split(cb + cb + cb + 'json').pop();\n  if (text.indexOf(cb + cb + cb) >= 0) text = text.split(cb + cb + cb)[0];\n  text = text.trim();\n  carousel = JSON.parse(text);\n\n  if (carousel.slides && Array.isArray(carousel.slides)) {\n    carousel.slides = carousel.slides.map(function(s) {\n      var c = s.content;\n      if (Array.isArray(c) && c.length > 0 && typeof c[0] === 'object' && c[0].value !== undefined) {\n        c = c.map(function(x) { return x.value || x; });\n      }\n      if (!Array.isArray(c)) c = [];\n      return { id: s.id, template: s.template, human_mode: s.human_mode || 'NONE', visual_task: s.visual_task || '', content: c };\n    });\n  }\n} catch (e) {\n  carousel = {\n    topic: body.topic || \"Тема\",\n    product: body.cta || \"МАГИЯ\",\n    post_text: \"Листай карусель\",\n    slides: [{\n      id: 1,\n      template: \"HOOK_PERSON\",\n      human_mode: \"FACE\",\n      visual_task: \"Instagram slide. White background. Person in center.\",\n      content: [\"Тест\", \"Листай\"]\n    }]\n  };\n}\n\nreturn {\n  json: {\n    chatId: body.chatId,\n    topic: carousel.topic || body.topic,\n    product: carousel.product || body.cta,\n    post_text: carousel.post_text,\n    slides: carousel.slides || [],\n    totalSlides: (carousel.slides || []).length,\n    userPhoto: body.userPhoto,\n    styleConfig: body.styleConfig,\n    stylePrompt: body.stylePrompt || '',\n    copywriterSuccess: true\n  }\n};\n"
+      },
+      "id": "fd89fd36-4c94-461b-9eb1-c8c3aa763d19",
+      "name": "Parse Copywriter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 96]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8265353203:AAFTK0IbDcfn9laPc5h6lQ32o4rYZ3iFjq4/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"chat_id\": {{ $json.chatId }}, \"text\": \"🎨 Генерирую карусель...\\n📝 Копирайтер: ✅\\n📊 Слайдов: {{ $json.totalSlides }}\\n⏳ ~{{ $json.totalSlides * 15 }} сек\"}",
+        "options": {}
+      },
+      "id": "af04c3ca-2a3f-4308-bb63-7f8adad6cf40",
+      "name": "Send Start",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [672, 96]
+    },
+    {
+      "parameters": {
+        "jsCode": "const parseData = $('Parse Copywriter').first().json;\nconst webhookData = $('Webhook').first().json.body;\nconst slides = parseData.slides || [];\n\nreturn slides.map(slide => ({\n  json: {\n    slideId: slide.id,\n    template: slide.template,\n    humanMode: slide.human_mode,\n    visualTask: slide.visual_task,\n    content: slide.content,\n    userPhoto: webhookData.userPhoto,\n    chatId: webhookData.chatId,\n    stylePrompt: parseData.stylePrompt || ''\n  }\n}));"
+      },
+      "id": "4aa97233-e4cb-4092-8deb-cef735622e37",
+      "name": "Split Slides",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [896, 96]
+    },
+    {
+      "parameters": {
+        "jsCode": "const slides = $('Split Slides').all();\nconst parseData = $('Parse Copywriter').first().json;\nconst results = [];\n\nlet userPhoto = slides[0]?.json?.userPhoto || '';\n\nif (userPhoto && userPhoto.includes('cloudinary.com')) {\n  userPhoto = userPhoto.replace('/upload/', '/upload/f_jpg,q_auto,w_768/');\n}\n\nlet photoBase64 = null;\nif (userPhoto) {\n  try {\n    const response = await this.helpers.httpRequest({\n      method: 'GET',\n      url: userPhoto,\n      encoding: 'arraybuffer',\n      returnFullResponse: true\n    });\n    photoBase64 = Buffer.from(response.body).toString('base64');\n  } catch (e) {\n    console.error('Error fetching image:', e.message);\n  }\n}\n\n// ========================================\n// НОВОЕ: Используем stylePrompt из админки!\n// ========================================\nconst stylePrompt = slides[0]?.json?.stylePrompt || '';\n\nconst faceSuffix = ' [INSTRUCTION: Person must be clearly visible from chest up. Use reference image for character appearance. All visible text on slide must be in Russian language.]';\n\nfor (let i = 0; i < slides.length; i++) {\n  const slide = slides[i].json;\n  const chatId = slide.chatId;\n\n  let visualTask = slide.visualTask;\n  \n  // Если есть stylePrompt из админки — добавляем его\n  if (stylePrompt && stylePrompt.trim()) {\n    visualTask = visualTask + '\\n\\n[STYLE GUIDELINES FROM ADMIN:]\\n' + stylePrompt;\n  }\n  \n  visualTask += ' [INSTRUCTION: All text shown on the image must be in Russian/Cyrillic only. Do NOT render any English text on the slide.]';\n\n  const messageContent = [];\n\n  if (slide.humanMode === 'FACE' && photoBase64) {\n    messageContent.push({\n      type: \"image_url\",\n      image_url: { url: \"data:image/jpeg;base64,\" + photoBase64 }\n    });\n    messageContent.push({ type: \"text\", text: visualTask + faceSuffix });\n  } else {\n    messageContent.push({ type: \"text\", text: visualTask });\n  }\n\n  const requestBody = {\n    model: \"google/gemini-2.5-flash-preview-05-20\",\n    modalities: [\"image\", \"text\"],\n    messages: [{\n      role: \"user\",\n      content: messageContent\n    }],\n    image_config: {\n      aspect_ratio: \"4:5\",\n      image_size: \"1K\"\n    },\n    max_tokens: 4096\n  };\n\n  results.push({\n    json: {\n      chatId,\n      topic: parseData.topic,\n      slideId: slide.slideId,\n      template: slide.template,\n      totalSlides: parseData.totalSlides,\n      requestBody\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "id": "fed209f5-f6b5-428b-924c-98bd44795daf",
+      "name": "Prepare Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 96]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "585347d8-73c4-41e0-9c72-023e56cd6d40",
+      "name": "Gemini Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1344, 96]
+    },
+    {
+      "parameters": {
+        "jsCode": "const geminiItems = $('Gemini Image').all();\nconst promptItems = $('Prepare Prompt').all();\nconst results = [];\n\nfor (let i = 0; i < geminiItems.length; i++) {\n  const response = geminiItems[i].json;\n  const prev = promptItems[i].json;\n\n  let imageBase64 = null;\n\n  try {\n    if (response.choices && response.choices[0] && response.choices[0].message) {\n      const msg = response.choices[0].message;\n      if (msg.images && msg.images[0] && msg.images[0].image_url && msg.images[0].image_url.url) {\n        const imageUrl = msg.images[0].image_url.url;\n        if (imageUrl.startsWith('data:image/')) {\n          imageBase64 = imageUrl.replace(/^data:image\\/\\w+;base64,/, '');\n        }\n      }\n      if (!imageBase64 && Array.isArray(msg.content)) {\n        for (const part of msg.content) {\n          if (part.image_url && part.image_url.url && part.image_url.url.startsWith('data:image/')) {\n            imageBase64 = part.image_url.url.replace(/^data:image\\/\\w+;base64,/, '');\n            break;\n          }\n        }\n      }\n    }\n    if (!imageBase64 && response.candidates && response.candidates[0]) {\n      const parts = response.candidates[0].content.parts;\n      for (const part of parts) {\n        if (part.inlineData && part.inlineData.data) {\n          imageBase64 = part.inlineData.data;\n          break;\n        }\n      }\n    }\n  } catch (e) {\n    console.error('Error extracting image:', e.message);\n  }\n\n  if (imageBase64) {\n    results.push({\n      json: {\n        chatId: prev.chatId,\n        topic: prev.topic,\n        slideId: prev.slideId,\n        template: prev.template,\n        totalSlides: prev.totalSlides,\n        imageBase64,\n        hasImage: true\n      }\n    });\n  }\n}\n\nreturn results;\n"
+      },
+      "id": "c54a9c3e-83c8-40b4-87fe-3ec712f18f2c",
+      "name": "Extract Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1568, 96]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/ds8ylsl2x/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "value": "={{ 'data:image/png;base64,' + $json.imageBase64 }}"
+            },
+            {
+              "name": "upload_preset",
+              "value": "carousel_unsigned"
+            },
+            {
+              "name": "folder",
+              "value": "user_carousels"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "96f2e590-aae1-4423-9b40-79684c2a8676",
+      "name": "Cloudinary Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1792, 96]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cloudinaryItems = $('Cloudinary Upload').all();\nconst extractItems = $('Extract Image').all();\n\nconst imageUrls = [];\nconst publicIds = [];\nlet chatId = null;\nlet topic = null;\n\nfor (let i = 0; i < cloudinaryItems.length; i++) {\n  const cloudinary = cloudinaryItems[i].json;\n  const extract = extractItems[i].json;\n  \n  if (!chatId) chatId = extract.chatId;\n  if (!topic) topic = extract.topic;\n  \n  if (cloudinary.secure_url) {\n    imageUrls.push(cloudinary.secure_url);\n  }\n  if (cloudinary.public_id) {\n    publicIds.push(cloudinary.public_id);\n  }\n}\n\nreturn [{\n  json: {\n    chatId,\n    topic,\n    imageUrls,\n    publicIds,\n    totalSlides: imageUrls.length\n  }\n}];"
+      },
+      "id": "c39f482b-ad29-442d-9cee-d6f4f3325d15",
+      "name": "Collect URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2016, 96]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8265353203:AAFTK0IbDcfn9laPc5h6lQ32o4rYZ3iFjq4/sendMediaGroup",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": {{ $json.chatId }},\n  \"media\": {{ JSON.stringify($json.imageUrls.map((url, i) => ({ type: \"photo\", media: url }))) }}\n}",
+        "options": {}
+      },
+      "id": "307b6a95-3796-45c1-9d26-338bd561bfe9",
+      "name": "Send Photo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2240, 96]
+    },
+    {
+      "parameters": {
+        "jsCode": "const collectData = $('Collect URLs').first().json;\nconst publicIds = collectData.publicIds || [];\n\nif (publicIds.length === 0) {\n  return [{ json: { deleted: 0, message: 'No images to delete' } }];\n}\n\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'DELETE',\n    url: 'https://api.cloudinary.com/v1_1/ds8ylsl2x/resources/image/upload',\n    auth: {\n      username: '329318552456676',\n      password: '1W-H9NYn1vOxwshd7S6iug3JcWk'\n    },\n    headers: {\n      'Content-Type': 'application/x-www-form-urlencoded'\n    },\n    body: 'prefix=user_carousels/'\n  });\n  \n  const deletedCount = response.deleted ? Object.keys(response.deleted).length : 0;\n  \n  return [{\n    json: {\n      deleted: deletedCount,\n      response\n    }\n  }];\n} catch (error) {\n  return [{\n    json: {\n      deleted: 0,\n      error: error.message,\n      publicIds\n    }\n  }];\n}\n"
+      },
+      "id": "ae3bf92c-1fcf-4b40-8144-540fc4f4f8ff",
+      "name": "Cleanup Cloudinary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2464, 96]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8265353203:AAFTK0IbDcfn9laPc5h6lQ32o4rYZ3iFjq4/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"chat_id\": {{ $json.chatId }}, \"text\": \"❌ Ошибка генерации:\\n{{ $json.error || 'Неизвестная ошибка' }}\"}",
+        "options": {}
+      },
+      "id": "aeae6e54-a168-461a-86a0-2dc188918c39",
+      "name": "Send Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [0, 320]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "Send Start Immediate", "type": "main", "index": 0 },
+          { "node": "Copywriter", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Copywriter": {
+      "main": [
+        [{ "node": "Parse Copywriter", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse Copywriter": {
+      "main": [
+        [{ "node": "Send Start", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Start": {
+      "main": [
+        [{ "node": "Split Slides", "type": "main", "index": 0 }]
+      ]
+    },
+    "Split Slides": {
+      "main": [
+        [{ "node": "Prepare Prompt", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prepare Prompt": {
+      "main": [
+        [{ "node": "Gemini Image", "type": "main", "index": 0 }]
+      ]
+    },
+    "Gemini Image": {
+      "main": [
+        [{ "node": "Extract Image", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extract Image": {
+      "main": [
+        [{ "node": "Cloudinary Upload", "type": "main", "index": 0 }]
+      ]
+    },
+    "Cloudinary Upload": {
+      "main": [
+        [{ "node": "Collect URLs", "type": "main", "index": 0 }]
+      ]
+    },
+    "Collect URLs": {
+      "main": [
+        [{ "node": "Send Photo", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Photo": {
+      "main": [
+        [{ "node": "Cleanup Cloudinary", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
