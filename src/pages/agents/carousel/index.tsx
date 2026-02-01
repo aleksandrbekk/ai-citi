@@ -185,13 +185,13 @@ function CarouselIndexInner() {
   // Используем стили из БД, если есть. Иначе — fallback на захардкоженные STYLES_INDEX
   const mergedStylesIndex = dbStyles.length > 0
     ? dbStyles.map(s => ({
-        id: s.style_id as StyleId,
-        name: s.name,
-        emoji: s.emoji,
-        audience: s.audience as 'universal' | 'female',
-        previewColor: s.preview_color,
-        description: s.description || ''
-      }))
+      id: s.style_id as StyleId,
+      name: s.name,
+      emoji: s.emoji,
+      audience: s.audience as 'universal' | 'female',
+      previewColor: s.preview_color,
+      description: s.description || ''
+    }))
     : STYLES_INDEX
 
   // Локальные превью для fallback (когда БД пустая)
@@ -227,24 +227,32 @@ function CarouselIndexInner() {
     console.log('[Carousel] DB style found:', !!dbStyle)
     console.log('[Carousel] DB config:', dbConfig ? 'present' : 'missing')
 
-    // Проверяем что у конфига есть slide_templates С РЕАЛЬНЫМ КОНТЕНТОМ
-    if (dbConfig && typeof dbConfig === 'object' && 'slide_templates' in dbConfig) {
-      const slideTemplates = dbConfig.slide_templates as Record<string, string> | undefined
-      if (slideTemplates) {
-        // Проверяем что HOOK шаблон не пустой (главный индикатор что конфиг заполнен)
-        const hookTemplate = slideTemplates.HOOK || ''
-        if (hookTemplate.length > 50) {  // Реальный промпт должен быть длинным
-          console.log('[Carousel] ✓ Using DB config with valid slide_templates for style:', styleId)
-          console.log('[Carousel] HOOK template length:', hookTemplate.length)
-          return dbConfig
-        } else {
-          console.log('[Carousel] ✗ DB config has empty/short HOOK template, length:', hookTemplate.length)
-        }
-      } else {
-        console.log('[Carousel] ✗ DB config slide_templates is null/undefined')
+    // НОВАЯ ЛОГИКА: Проверяем style_prompt ИЛИ content_system_prompt (админские промпты)
+    if (dbConfig && typeof dbConfig === 'object') {
+      const stylePrompt = dbConfig.style_prompt as string | undefined
+      const contentSystemPrompt = dbConfig.content_system_prompt as string | undefined
+
+      // Если есть хотя бы один промпт из админки с реальным контентом
+      if ((stylePrompt && stylePrompt.length > 20) || (contentSystemPrompt && contentSystemPrompt.length > 20)) {
+        console.log('[Carousel] ✓ Using DB config with admin prompts for style:', styleId)
+        console.log('[Carousel] style_prompt length:', stylePrompt?.length || 0)
+        console.log('[Carousel] content_system_prompt length:', contentSystemPrompt?.length || 0)
+        return dbConfig
       }
-    } else {
-      console.log('[Carousel] ✗ DB config missing slide_templates key')
+
+      // LEGACY: Проверяем старую структуру slide_templates для обратной совместимости
+      if ('slide_templates' in dbConfig) {
+        const slideTemplates = dbConfig.slide_templates as Record<string, string> | undefined
+        if (slideTemplates) {
+          const hookTemplate = slideTemplates.HOOK || ''
+          if (hookTemplate.length > 50) {
+            console.log('[Carousel] ✓ Using DB config with legacy slide_templates for style:', styleId)
+            return dbConfig
+          }
+        }
+      }
+
+      console.log('[Carousel] ✗ DB config has no valid prompts')
     }
 
     // Fallback на захардкоженные конфиги
@@ -452,14 +460,8 @@ function CarouselIndexInner() {
       console.log('[Carousel] ========== STYLE CONFIG RESULT ==========')
       console.log('[Carousel] styleConfig.id:', (styleConfig as any)?.id)
       console.log('[Carousel] styleConfig.name:', (styleConfig as any)?.name)
-      console.log('[Carousel] Has slide_templates:', !!(styleConfig as any)?.slide_templates)
-
-      if ((styleConfig as any)?.slide_templates) {
-        const templates = (styleConfig as any).slide_templates
-        console.log('[Carousel] slide_templates.HOOK length:', templates.HOOK?.length || 0)
-        console.log('[Carousel] slide_templates.CONTENT length:', templates.CONTENT?.length || 0)
-        console.log('[Carousel] slide_templates.CTA length:', templates.CTA?.length || 0)
-      }
+      console.log('[Carousel] Has style_prompt:', !!(styleConfig as any)?.style_prompt)
+      console.log('[Carousel] Has content_system_prompt:', !!(styleConfig as any)?.content_system_prompt)
 
       const payload = {
         chatId: user.id,

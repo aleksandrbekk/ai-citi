@@ -27,9 +27,9 @@ import {
 } from '@/lib/carouselStylesApi'
 import { STYLES_INDEX, STYLE_CONFIGS } from '@/lib/carouselStyles'
 
-// Cloudinary config
-const CLOUDINARY_CLOUD = 'drplvjqpz'
-const CLOUDINARY_PRESET = 'carousel_uploads'
+// Cloudinary config (same as PhotoUploader)
+const CLOUDINARY_CLOUD = 'ds8ylsl2x'
+const CLOUDINARY_PRESET = 'carousel_unsigned'
 
 export default function StyleEditor() {
   const { id, styleId: builtinStyleId } = useParams()
@@ -96,10 +96,73 @@ export default function StyleEditor() {
   const [decorElements, setDecorElements] = useState('subtle glow effects')
 
   // Slide Templates (промпты для n8n)
-  const [hookTemplate, setHookTemplate] = useState('')
-  const [contentTemplate, setContentTemplate] = useState('')
-  const [ctaTemplate, setCtaTemplate] = useState('')
-  const [viralTemplate, setViralTemplate] = useState('')
+  const DEFAULT_STYLE_PROMPT = `ВИЗУАЛЬНЫЙ СТИЛЬ:
+Чистый минималистичный дизайн в стиле Apple. Стеклянные карточки с blur эффектом.
+
+ЦВЕТА:
+- Фон: светлый градиент от белого к голубоватому
+- Акцент: оранжевый #FF5A1F
+- Текст: тёмно-серый #1A1A1A
+
+ТИПОГРАФИКА:
+- Заголовки: жирный современный sans-serif
+- Текст: средний вес, хорошая читаемость
+
+ЧЕЛОВЕК НА ФОТО:
+- Масштаб: 85% ширины кадра
+- Позиция: справа или слева 40% кадра
+- Освещение: студийное, мягкие тени
+- Эстетика: чистый, профессиональный, современный 2026
+
+ДЕКОРАЦИИ:
+- Мягкие glow эффекты
+- Стеклянные карточки с закруглёнными углами 24px
+- Тонкие белые бордеры`
+  const [stylePrompt, setStylePrompt] = useState(DEFAULT_STYLE_PROMPT)
+
+  // Content System Prompt (универсальный промпт для генерации текста)
+  const DEFAULT_CONTENT_PROMPT = `Ты — топовый русскоязычный копирайтер и эксперт по вирусному контенту.
+
+ТЕМА: {topic}
+
+ТВОЯ ЗАДАЧА:
+1. ИССЛЕДУЙ тему — найди актуальные факты и инсайты через поиск
+2. ВЫДЕЛИ 3-5 неочевидных инсайтов которые большинство НЕ знает
+3. СОЗДАЙ контент для 9 слайдов карусели
+
+СТРУКТУРА КАРУСЕЛИ:
+• Слайд 1 — HOOK: Захват внимания за 1 секунду (заголовок 3-7 слов)
+• Слайд 2 — PROBLEM: Боль/проблема которую узнает аудитория
+• Слайд 3 — INSIGHT: Почему так происходит + факт/статистика
+• Слайды 4-6 — SOLUTION: Три конкретных шага/принципа решения
+• Слайд 7 — SUMMARY: Чеклист/резюме в 3-5 пунктов
+• Слайд 8 — CTA: Призыв к действию с выгодой
+• Слайд 9 — VIRAL: Мотивация поделиться
+
+ПРАВИЛА КОПИРАЙТИНГА:
+• Максимум 25 слов на слайд
+• Одна мысль = один слайд
+• Цифры и факты вместо абстракций
+• Открытый цикл между слайдами (интрига → разрешение)
+• Чередуй: боль → решение → доказательство
+
+ФОРМУЛЫ ХУКОВ (выбери подходящую):
+- "Не делай X пока не прочитаешь это"
+- "Почему X не работает (и что делать)"
+- "X секретов которые Y скрывают"
+- "Знакомая ситуация?"
+- "ТОП-N ошибок в X"
+- "А ты знал что...?"
+
+КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО:
+❌ Общие фразы ("важно понимать", "многие люди")
+❌ Вода и очевидности
+❌ Длинные предложения (больше 12 слов)
+❌ Контент НЕ связанный с темой пользователя
+❌ Абстрактные советы без практики
+
+Ответ в формате JSON с полями для каждого слайда.`
+  const [contentSystemPrompt, setContentSystemPrompt] = useState(DEFAULT_CONTENT_PROMPT)
 
   // Refs for file inputs
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -176,13 +239,16 @@ export default function StyleEditor() {
           setDecorElements(decor.elements || '')
         }
 
-        // Slide templates
-        const templates = config.slide_templates as Record<string, string> | undefined
-        if (templates) {
-          setHookTemplate(templates.HOOK || '')
-          setContentTemplate(templates.CONTENT || '')
-          setCtaTemplate(templates.CTA || '')
-          setViralTemplate(templates.VIRAL || '')
+        // Style prompt (единый промпт стиля)
+        const stylePromptValue = config.style_prompt as string | undefined
+        if (stylePromptValue) {
+          setStylePrompt(stylePromptValue)
+        }
+
+        // Content system prompt
+        const contentPrompt = config.content_system_prompt as string | undefined
+        if (contentPrompt) {
+          setContentSystemPrompt(contentPrompt)
         }
       }
     }
@@ -237,12 +303,14 @@ export default function StyleEditor() {
           if (decor) {
             setDecorElements(decor.elements || '')
           }
-          const templates = config.slide_templates as Record<string, string> | undefined
-          if (templates) {
-            setHookTemplate(templates.HOOK || '')
-            setContentTemplate(templates.CONTENT || '')
-            setCtaTemplate(templates.CTA || '')
-            setViralTemplate(templates.VIRAL || '')
+          // Style prompt (единый промпт стиля)
+          const stylePromptValue = config.style_prompt as string | undefined
+          if (stylePromptValue) {
+            setStylePrompt(stylePromptValue)
+          }
+          const contentPrompt = config.content_system_prompt as string | undefined
+          if (contentPrompt) {
+            setContentSystemPrompt(contentPrompt)
           }
         }
         return
@@ -301,16 +369,10 @@ export default function StyleEditor() {
         if (decor) {
           setDecorElements(decor.elements || '')
         }
-        const promptBlocks = config.prompt_blocks as Record<string, string> | undefined
-        if (promptBlocks) {
-          // Можно использовать prompt_blocks для формирования templates
-        }
-        const templates = config.slide_templates as Record<string, string> | undefined
-        if (templates) {
-          setHookTemplate(templates.HOOK || '')
-          setContentTemplate(templates.CONTENT || '')
-          setCtaTemplate(templates.CTA || '')
-          setViralTemplate(templates.VIRAL || '')
+        // Style prompt
+        const stylePromptValue = (config as any).style_prompt as string | undefined
+        if (stylePromptValue) {
+          setStylePrompt(stylePromptValue)
         }
       }
     }
@@ -430,12 +492,8 @@ export default function StyleEditor() {
             elements: decorElements
           },
           prompt_blocks: {},
-          slide_templates: {
-            HOOK: hookTemplate,
-            CONTENT: contentTemplate,
-            CTA: ctaTemplate,
-            VIRAL: viralTemplate
-          }
+          style_prompt: stylePrompt,
+          content_system_prompt: contentSystemPrompt
         }
       }
 
@@ -489,11 +547,10 @@ export default function StyleEditor() {
             {/* Active toggle */}
             <button
               onClick={() => setIsActive(!isActive)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-green-50 text-green-600'
-                  : 'bg-gray-100 text-gray-400'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${isActive
+                ? 'bg-green-50 text-green-600'
+                : 'bg-gray-100 text-gray-400'
+                }`}
             >
               {isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               <span className="text-sm">{isActive ? 'Активен' : 'Скрыт'}</span>
@@ -871,58 +928,59 @@ export default function StyleEditor() {
           onToggle={() => toggleSection('templates')}
           highlight
         >
-          <p className="text-sm text-gray-600 mb-4">
-            Эти промпты отправляются в n8n при генерации карусели. Используйте плейсхолдеры: {'{headline}'}, {'{body}'}, {'{background}'} и др.
-          </p>
-
-          {/* HOOK */}
-          <div className="mb-6">
-            <label className="block font-medium text-orange-600 mb-2">🎣 HOOK (первый слайд)</label>
+          {/* CONTENT SYSTEM PROMPT — главный промпт для генерации текста */}
+          <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block font-bold text-amber-700">
+                ⚙️ Системный промпт (генерация текста)
+              </label>
+              <button
+                type="button"
+                onClick={() => setContentSystemPrompt(DEFAULT_CONTENT_PROMPT)}
+                className="text-xs text-amber-600 hover:text-amber-800 underline"
+              >
+                Сбросить к дефолту
+              </button>
+            </div>
+            <p className="text-xs text-amber-600 mb-3">
+              Универсальный промпт для AI. Используйте <code className="bg-amber-100 px-1 rounded">{'{topic}'}</code> для подстановки темы пользователя.
+            </p>
             <textarea
-              value={hookTemplate}
-              onChange={(e) => setHookTemplate(e.target.value)}
-              rows={6}
-              placeholder="Промпт для первого слайда (зацепка)..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
+              value={contentSystemPrompt}
+              onChange={(e) => setContentSystemPrompt(e.target.value)}
+              rows={16}
+              placeholder="Универсальный промпт для AI генерации контента..."
+              className="w-full px-3 py-2 border border-amber-300 rounded-lg font-mono text-sm resize-y bg-white"
             />
           </div>
 
-          {/* CONTENT */}
+          {/* Единый промпт визуального стиля */}
           <div className="mb-6">
-            <label className="block font-medium text-blue-600 mb-2">📝 CONTENT (контентные слайды)</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-medium text-purple-600 flex items-center gap-2">
+                🎨 Промпт визуального стиля
+              </label>
+              <button
+                type="button"
+                onClick={() => setStylePrompt(DEFAULT_STYLE_PROMPT)}
+                className="text-xs px-2 py-1 bg-purple-50 text-purple-600 rounded hover:bg-purple-100"
+              >
+                Сбросить к стандартному
+              </button>
+            </div>
+            <p className="text-xs text-purple-600 mb-3">
+              Полное описание визуального стиля карусели. Опишите цвета, типографику, позицию персоны, декорации и т.д.
+            </p>
             <textarea
-              value={contentTemplate}
-              onChange={(e) => setContentTemplate(e.target.value)}
-              rows={6}
-              placeholder="Промпт для контентных слайдов..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
-            />
-          </div>
-
-          {/* CTA */}
-          <div className="mb-6">
-            <label className="block font-medium text-green-600 mb-2">📢 CTA (призыв к действию)</label>
-            <textarea
-              value={ctaTemplate}
-              onChange={(e) => setCtaTemplate(e.target.value)}
-              rows={6}
-              placeholder="Промпт для слайда с призывом..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
-            />
-          </div>
-
-          {/* VIRAL */}
-          <div>
-            <label className="block font-medium text-purple-600 mb-2">🚀 VIRAL (вирусный слайд)</label>
-            <textarea
-              value={viralTemplate}
-              onChange={(e) => setViralTemplate(e.target.value)}
-              rows={6}
-              placeholder="Промпт для вирального слайда (поделись)..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm resize-y"
+              value={stylePrompt}
+              onChange={(e) => setStylePrompt(e.target.value)}
+              rows={14}
+              placeholder="Опишите визуальный стиль карусели..."
+              className="w-full px-3 py-2 border border-purple-300 rounded-lg font-mono text-sm resize-y bg-white"
             />
           </div>
         </Section>
+
 
         {/* Save button at bottom */}
         <button

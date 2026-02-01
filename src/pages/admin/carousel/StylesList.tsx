@@ -145,9 +145,8 @@ export default function CarouselStylesList() {
                       <span className="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">
                         Активен
                       </span>
-                      <span className={`px-2 py-0.5 text-xs rounded-full ${
-                        styleMeta.audience === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${styleMeta.audience === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
                         {styleMeta.audience === 'female' ? '👩 Женский' : '👥 Универс.'}
                       </span>
                     </div>
@@ -229,9 +228,8 @@ function StyleCard({
 
   return (
     <div
-      className={`bg-white border rounded-xl p-4 transition-all ${
-        style.is_active ? 'border-gray-200 shadow-sm' : 'border-gray-100 opacity-60'
-      }`}
+      className={`bg-white border rounded-xl p-4 transition-all ${style.is_active ? 'border-gray-200 shadow-sm' : 'border-gray-100 opacity-60'
+        }`}
     >
       <div className="flex items-center gap-4">
         {/* Превью/Аватар */}
@@ -239,8 +237,12 @@ function StyleCard({
           className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 overflow-hidden"
           style={{ backgroundColor: style.preview_color + '20' }}
         >
-          {style.preview_image ? (
-            <img src={style.preview_image} alt={style.name} className="w-full h-full object-cover" />
+          {(style.preview_image || style.example_images?.[0]) ? (
+            <img
+              src={style.preview_image || style.example_images?.[0]}
+              alt={style.name}
+              className="w-full h-full object-cover"
+            />
           ) : (
             style.emoji || '🎨'
           )}
@@ -255,13 +257,12 @@ function StyleCard({
                 Скрыт
               </span>
             )}
-            <span className={`px-2 py-0.5 text-xs rounded-full ${
-              style.audience === 'female' ? 'bg-pink-100 text-pink-600' :
-              style.audience === 'male' ? 'bg-blue-100 text-blue-600' :
-              'bg-gray-100 text-gray-600'
-            }`}>
+            <span className={`px-2 py-0.5 text-xs rounded-full ${style.audience === 'female' ? 'bg-pink-100 text-pink-600' :
+                style.audience === 'male' ? 'bg-blue-100 text-blue-600' :
+                  'bg-gray-100 text-gray-600'
+              }`}>
               {style.audience === 'female' ? '👩 Женский' :
-               style.audience === 'male' ? '👨 Мужской' : '👥 Универс.'}
+                style.audience === 'male' ? '👨 Мужской' : '👥 Универс.'}
             </span>
           </div>
           <p className="text-sm text-gray-500 truncate">{style.description}</p>
@@ -280,11 +281,10 @@ function StyleCard({
           <button
             onClick={onToggle}
             disabled={isToggling}
-            className={`p-2.5 rounded-lg transition-colors ${
-              style.is_active
+            className={`p-2.5 rounded-lg transition-colors ${style.is_active
                 ? 'bg-green-50 text-green-600 hover:bg-green-100'
                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-            }`}
+              }`}
             title={style.is_active ? 'Отключить' : 'Включить'}
           >
             {style.is_active ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
