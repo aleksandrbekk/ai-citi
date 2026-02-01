@@ -132,10 +132,12 @@ function CarouselIndexInner() {
   // Tips modal state
   const [showTipsModal, setShowTipsModal] = useState(false)
 
-  // Gender state (загружаем из localStorage)
-  const [gender, setGender] = useState<'male' | 'female'>(() => {
+  // Gender state (загружаем из localStorage, null если не выбран)
+  const [gender, setGender] = useState<'male' | 'female' | null>(() => {
     const saved = localStorage.getItem(SAVED_GENDER_KEY)
-    return (saved === 'female') ? 'female' : 'male'
+    if (saved === 'female') return 'female'
+    if (saved === 'male') return 'male'
+    return null // Не выбран — требуем выбор
   })
 
   // Сохраняем пол при изменении
@@ -384,6 +386,10 @@ function CarouselIndexInner() {
   const handleCreate = () => {
     if (!topic.trim()) {
       setError('Введите тему карусели')
+      return
+    }
+    if (!gender) {
+      setError('Выберите пол (♂ или ♀)')
       return
     }
     setError(null)
@@ -758,25 +764,27 @@ function CarouselIndexInner() {
             </div>
           </button>
 
-          {/* Gender - Compact Toggle */}
-          <div className="flex bg-gray-100/80 backdrop-blur rounded-xl p-1">
+          {/* Gender - Обязательный выбор */}
+          <div className={`flex rounded-xl p-1 ${!gender ? 'bg-red-50 ring-2 ring-red-200' : 'bg-gray-100/80 backdrop-blur'}`}>
             <button
               onClick={() => handleGenderChange('male')}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${gender === 'male'
-                ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-gray-400'
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1 ${gender === 'male'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-400 hover:text-gray-600'
                 }`}
             >
-              ♂
+              {gender === 'male' && <CheckIcon size={12} />}
+              👨
             </button>
             <button
               onClick={() => handleGenderChange('female')}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${gender === 'female'
-                ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-gray-400'
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1 ${gender === 'female'
+                ? 'bg-white text-pink-600 shadow-sm'
+                : 'text-gray-400 hover:text-gray-600'
                 }`}
             >
-              ♀
+              {gender === 'female' && <CheckIcon size={12} />}
+              👩
             </button>
           </div>
         </div>
