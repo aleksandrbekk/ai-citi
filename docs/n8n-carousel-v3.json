@@ -20,7 +20,7 @@
         "url": "https://api.telegram.org/bot8265353203:AAFTK0IbDcfn9laPc5h6lQ32o4rYZ3iFjq4/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": {{ $json.body.chatId || $json.chatId }}, \"text\": \"🎨 Генерирую карусель...\\n📝 Копирайтер: ⏳\\n📊 Слайдов: 9\\n⏳ ~135 сек\"}",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $json.body?.chatId || $json.chatId, text: '🎨 Генерирую карусель...\\n📝 Копирайтер: ⏳\\n📊 Слайдов: 9\\n\\n🔍 DEBUG:\\ncontentSystemPrompt: ' + (($json.body?.contentSystemPrompt || $json.contentSystemPrompt || '').length || 0) + ' символов\\nstylePrompt: ' + (($json.body?.stylePrompt || $json.stylePrompt || '').length || 0) + ' символов' }) }}",
         "options": {}
       },
       "id": "530dfd15-8675-4ebd-8390-c31a85674200",
