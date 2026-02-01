@@ -120,49 +120,7 @@ export default function StyleEditor() {
 - Тонкие белые бордеры`
   const [stylePrompt, setStylePrompt] = useState(DEFAULT_STYLE_PROMPT)
 
-  // Content System Prompt (универсальный промпт для генерации текста)
-  const DEFAULT_CONTENT_PROMPT = `Ты — топовый русскоязычный копирайтер и эксперт по вирусному контенту.
-
-ТЕМА: {topic}
-
-ТВОЯ ЗАДАЧА:
-1. ИССЛЕДУЙ тему — найди актуальные факты и инсайты через поиск
-2. ВЫДЕЛИ 3-5 неочевидных инсайтов которые большинство НЕ знает
-3. СОЗДАЙ контент для 9 слайдов карусели
-
-СТРУКТУРА КАРУСЕЛИ:
-• Слайд 1 — HOOK: Захват внимания за 1 секунду (заголовок 3-7 слов)
-• Слайд 2 — PROBLEM: Боль/проблема которую узнает аудитория
-• Слайд 3 — INSIGHT: Почему так происходит + факт/статистика
-• Слайды 4-6 — SOLUTION: Три конкретных шага/принципа решения
-• Слайд 7 — SUMMARY: Чеклист/резюме в 3-5 пунктов
-• Слайд 8 — CTA: Призыв к действию с выгодой
-• Слайд 9 — VIRAL: Мотивация поделиться
-
-ПРАВИЛА КОПИРАЙТИНГА:
-• Максимум 25 слов на слайд
-• Одна мысль = один слайд
-• Цифры и факты вместо абстракций
-• Открытый цикл между слайдами (интрига → разрешение)
-• Чередуй: боль → решение → доказательство
-
-ФОРМУЛЫ ХУКОВ (выбери подходящую):
-- "Не делай X пока не прочитаешь это"
-- "Почему X не работает (и что делать)"
-- "X секретов которые Y скрывают"
-- "Знакомая ситуация?"
-- "ТОП-N ошибок в X"
-- "А ты знал что...?"
-
-КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО:
-❌ Общие фразы ("важно понимать", "многие люди")
-❌ Вода и очевидности
-❌ Длинные предложения (больше 12 слов)
-❌ Контент НЕ связанный с темой пользователя
-❌ Абстрактные советы без практики
-
-Ответ в формате JSON с полями для каждого слайда.`
-  const [contentSystemPrompt, setContentSystemPrompt] = useState(DEFAULT_CONTENT_PROMPT)
+  // Content System Prompt теперь глобальный — редактируется на странице /admin/carousel-settings
 
   // Refs for file inputs
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -245,11 +203,7 @@ export default function StyleEditor() {
           setStylePrompt(stylePromptValue)
         }
 
-        // Content system prompt
-        const contentPrompt = config.content_system_prompt as string | undefined
-        if (contentPrompt) {
-          setContentSystemPrompt(contentPrompt)
-        }
+        // content_system_prompt убран — теперь глобальный
       }
     }
   }, [existingStyle])
@@ -308,10 +262,7 @@ export default function StyleEditor() {
           if (stylePromptValue) {
             setStylePrompt(stylePromptValue)
           }
-          const contentPrompt = config.content_system_prompt as string | undefined
-          if (contentPrompt) {
-            setContentSystemPrompt(contentPrompt)
-          }
+          // content_system_prompt убран — теперь глобальный
         }
         return
       }
@@ -492,8 +443,8 @@ export default function StyleEditor() {
             elements: decorElements
           },
           prompt_blocks: {},
-          style_prompt: stylePrompt,
-          content_system_prompt: contentSystemPrompt
+          style_prompt: stylePrompt
+          // content_system_prompt убран — теперь глобальный в carousel_settings
         }
       }
 
@@ -928,30 +879,15 @@ export default function StyleEditor() {
           onToggle={() => toggleSection('templates')}
           highlight
         >
-          {/* CONTENT SYSTEM PROMPT — главный промпт для генерации текста */}
-          <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-            <div className="flex items-center justify-between mb-3">
-              <label className="block font-bold text-amber-700">
-                ⚙️ Системный промпт (генерация текста)
-              </label>
-              <button
-                type="button"
-                onClick={() => setContentSystemPrompt(DEFAULT_CONTENT_PROMPT)}
-                className="text-xs text-amber-600 hover:text-amber-800 underline"
-              >
-                Сбросить к дефолту
-              </button>
-            </div>
-            <p className="text-xs text-amber-600 mb-3">
-              Универсальный промпт для AI. Используйте <code className="bg-amber-100 px-1 rounded">{'{topic}'}</code> для подстановки темы пользователя.
+          {/* Подсказка о глобальном промпте */}
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>💡 Системный промпт</strong> (генерация текста) теперь глобальный для всех стилей.
+              <br />
+              <a href="/admin/carousel-settings" className="text-blue-600 underline hover:text-blue-800">
+                Редактировать глобальный промпт →
+              </a>
             </p>
-            <textarea
-              value={contentSystemPrompt}
-              onChange={(e) => setContentSystemPrompt(e.target.value)}
-              rows={16}
-              placeholder="Универсальный промпт для AI генерации контента..."
-              className="w-full px-3 py-2 border border-amber-300 rounded-lg font-mono text-sm resize-y bg-white"
-            />
           </div>
 
           {/* Единый промпт визуального стиля */}
