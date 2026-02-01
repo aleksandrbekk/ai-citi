@@ -11,6 +11,7 @@
 // URL Supabase проекта AI CITI (debcwvxlvozjlqkhnauy)
 const SUPABASE_URL = 'https://debcwvxlvozjlqkhnauy.supabase.co'
 const REST_API_URL = `${SUPABASE_URL}/rest/v1/carousel_styles`
+const SETTINGS_API_URL = `${SUPABASE_URL}/rest/v1/carousel_settings`
 
 // Anon key для чтения (публичный)
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlYmN3dnhsdm96amxxa2huYXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NDk5NTksImV4cCI6MjA4MTQyNTk1OX0.PYX-O9CbKiNuVsR8CtidbvgTcPWqwUeuHcWq6uY2BG4'
@@ -276,6 +277,126 @@ export async function duplicateCarouselStyle(
  * Seed default styles from hardcoded STYLES_INDEX and STYLE_CONFIGS
  * Используется для первичной инициализации таблицы carousel_styles
  */
+// ========== ГЛОБАЛЬНЫЕ НАСТРОЙКИ КАРУСЕЛЕЙ ==========
+
+export interface CarouselSettings {
+  id: string
+  global_system_prompt: string
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Fetch для таблицы carousel_settings
+ */
+async function settingsFetch(
+  endpoint: string,
+  options: RequestInit = {},
+  useServiceKey = false
+): Promise<Response> {
+  const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Authorization': `Bearer ${key}`,
+    'apikey': key,
+    ...(options.headers as Record<string, string> || {}),
+  }
+
+  return fetch(`${SETTINGS_API_URL}${endpoint}`, {
+    ...options,
+    headers,
+  })
+}
+
+/**
+ * Получить глобальные настройки каруселей
+ */
+export async function getCarouselSettings(): Promise<CarouselSettings | null> {
+  try {
+    const response = await settingsFetch('?limit=1')
+
+    if (!response.ok) {
+      console.error('Failed to fetch carousel settings:', response.status)
+      return null
+    }
+
+    const data = await response.json()
+    return data?.[0] || null
+  } catch (error) {
+    console.error('Error fetching carousel settings:', error)
+    return null
+  }
+}
+
+/**
+ * Получить глобальный системный промпт
+ */
+export async function getGlobalSystemPrompt(): Promise<string> {
+  const settings = await getCarouselSettings()
+  return settings?.global_system_prompt || ''
+}
+
+/**
+ * Обновить глобальные настройки (upsert)
+ */
+export async function updateCarouselSettings(
+  globalSystemPrompt: string
+): Promise<CarouselSettings | null> {
+  try {
+    // Сначала проверяем, есть ли уже запись
+    const existing = await getCarouselSettings()
+
+    if (existing) {
+      // UPDATE существующей записи
+      const response = await settingsFetch(`?id=eq.${existing.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          global_system_prompt: globalSystemPrompt,
+          updated_at: new Date().toISOString(),
+        }),
+      }, true)
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('Failed to update carousel settings:', response.status, error)
+        throw new Error('Не удалось сохранить настройки')
+      }
+
+      const data = await response.json()
+      return data?.[0] || data
+    } else {
+      // INSERT новой записи
+      const response = await settingsFetch('', {
+        method: 'POST',
+        headers: {
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          global_system_prompt: globalSystemPrompt,
+        }),
+      }, true)
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('Failed to create carousel settings:', response.status, error)
+        throw new Error('Не удалось создать настройки')
+      }
+
+      const data = await response.json()
+      return data?.[0] || data
+    }
+  } catch (error) {
+    console.error('Error updating carousel settings:', error)
+    throw error
+  }
+}
+
+// ========== SEED СТИЛЕЙ ==========
+
 export async function seedDefaultStyles(): Promise<{ success: boolean; created: number; errors: string[] }> {
   // Динамический импорт чтобы избежать циклической зависимости
   const { STYLES_INDEX, STYLE_CONFIGS } = await import('./carouselStyles')

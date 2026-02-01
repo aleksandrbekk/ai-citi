@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle, Settings } from 'lucide-react'
 import {
   getAllCarouselStyles,
   deleteCarouselStyle,
@@ -84,13 +84,22 @@ export default function CarouselStylesList() {
             {styles.length} стилей • {styles.filter(s => s.is_active).length} активных
           </p>
         </div>
-        <button
-          onClick={() => navigate('/admin/carousel-styles/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Добавить стиль
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/admin/carousel-settings')}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+            Глобальный промпт
+          </button>
+          <button
+            onClick={() => navigate('/admin/carousel-styles/new')}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Добавить стиль
+          </button>
+        </div>
       </div>
 
       {/* Ошибка при инициализации */}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
 import { STYLE_CONFIGS, VASIA_CORE } from '@/lib/carouselStyles'
-import { getCarouselStyleByStyleId } from '@/lib/carouselStylesApi'
+import { getCarouselStyleByStyleId, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
@@ -89,7 +89,6 @@ export default function CarouselContent() {
     // Загружаем стиль из БД (с fallback на hardcoded)
     const currentStyleId = style || 'APPLE_GLASSMORPHISM'
     let styleConfig = STYLE_CONFIGS[currentStyleId as keyof typeof STYLE_CONFIGS]
-    let contentSystemPrompt = ''
     let stylePrompt = ''
 
     try {
@@ -100,16 +99,19 @@ export default function CarouselContent() {
         const config = dbStyle.config as any
         // Используем конфиг из БД (мёржим с hardcoded для fallback полей)
         styleConfig = { ...styleConfig, ...config }
-        // Получаем промпты из БД
-        contentSystemPrompt = config.content_system_prompt || ''
+        // Получаем визуальный промпт из БД (индивидуальный для каждого стиля)
         stylePrompt = config.style_prompt || ''
-        console.log('Loaded style from DB:', currentStyleId, { hasContentPrompt: !!contentSystemPrompt, hasStylePrompt: !!stylePrompt })
+        console.log('Loaded style from DB:', currentStyleId, { hasStylePrompt: !!stylePrompt })
       } else {
         console.log('Style not in DB, using hardcoded:', currentStyleId)
       }
     } catch (err) {
       console.warn('Failed to load style from DB, using hardcoded:', err)
     }
+
+    // Получаем глобальный системный промпт (один на все стили)
+    const globalSystemPrompt = await getGlobalSystemPrompt()
+    console.log('Global system prompt length:', globalSystemPrompt.length)
 
     // Подготовка данных для отправки
     const requestData = {
@@ -128,8 +130,9 @@ export default function CarouselContent() {
       cta_benefits: ctaBenefits,
       styleConfig: styleConfig,
       vasiaCore: VASIA_CORE,
-      // Новые поля — промпты из админки
-      contentSystemPrompt: contentSystemPrompt,
+      // Глобальный промпт для Копирайтера (один на все стили)
+      globalSystemPrompt: globalSystemPrompt,
+      // Визуальный промпт (индивидуальный для каждого стиля)
       stylePrompt: stylePrompt,
       variables: {},
     }
@@ -145,7 +148,7 @@ export default function CarouselContent() {
       hasUserPhoto: !!finalUserPhoto,
       hasSubscription,
       coinsSpent,
-      hasContentSystemPrompt: !!requestData.contentSystemPrompt,
+      globalSystemPromptLength: requestData.globalSystemPrompt.length,
       hasStylePrompt: !!requestData.stylePrompt,
     })
 

@@ -114,6 +114,7 @@ const AdminQuizImageEditor = lazy(() => import('./pages/admin/quizzes/QuizImageE
 const AiAnalytics = lazy(() => import('./pages/admin/AiAnalytics'))
 const CarouselStylesList = lazy(() => import('./pages/admin/carousel/StylesList'))
 const CarouselStyleEditor = lazy(() => import('./pages/admin/carousel/StyleEditor'))
+const CarouselSettingsPage = lazy(() => import('./pages/admin/carousel/CarouselSettings'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -256,6 +257,7 @@ function AppContent() {
               <Route path="carousel-styles" element={<CarouselStylesList />} />
               <Route path="carousel-styles/builtin/:styleId" element={<CarouselStyleEditor />} />
               <Route path="carousel-styles/:id" element={<CarouselStyleEditor />} />
+              <Route path="carousel-settings" element={<CarouselSettingsPage />} />
 
               {/* МЛМ Лагерь */}
               <Route path="mlm" element={<MlmDashboard />} />

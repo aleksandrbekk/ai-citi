@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
-import { getCarouselStyles } from '@/lib/carouselStylesApi'
+import { getCarouselStyles, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -451,11 +451,14 @@ function CarouselIndexInner() {
 
       const styleConfig = getStyleConfig(style)
 
+      // Получаем глобальный системный промпт (для Копирайтера)
+      const globalSystemPrompt = await getGlobalSystemPrompt()
+      console.log('[Carousel] Global system prompt length:', globalSystemPrompt.length)
+
       console.log('[Carousel] ========== STYLE CONFIG RESULT ==========')
       console.log('[Carousel] styleConfig.id:', (styleConfig as any)?.id)
       console.log('[Carousel] styleConfig.name:', (styleConfig as any)?.name)
       console.log('[Carousel] Has style_prompt:', !!(styleConfig as any)?.style_prompt)
-      console.log('[Carousel] Has content_system_prompt:', !!(styleConfig as any)?.content_system_prompt)
 
       const payload = {
         chatId: user.id,
@@ -466,12 +469,14 @@ function CarouselIndexInner() {
         gender,
         styleId: style,
         styleConfig,
+        // Глобальный промпт для Копирайтера (один на все стили)
+        globalSystemPrompt,
         vasiaCore: VASIA_CORE,
         formatConfig: FORMAT_UNIVERSAL,
       }
       console.log('[Carousel] ========== SENDING TO N8N ==========')
       console.log('[Carousel] Payload styleId:', payload.styleId)
-      console.log('[Carousel] Payload styleConfig.id:', (payload.styleConfig as any)?.id)
+      console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
 
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
         method: 'POST',
