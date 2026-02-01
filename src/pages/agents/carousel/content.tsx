@@ -60,37 +60,28 @@ export default function CarouselContent() {
       return
     }
 
-    // Проверяем доступ: подписка ИЛИ 30 монет
-    let coinsSpent = 0
-
-    if (hasSubscription) {
-      // Есть подписка — генерация бесплатная
-      console.log('User has subscription, free generation')
-    } else {
-      // Нет подписки — проверяем монеты
-      if (coinBalance < 30) {
-        toast.error('Для генерации нужна подписка или 30 монет')
-        navigate('/shop')
-        return
-      }
-
-      // Списываем 30 монет с метаданными о стиле
-      const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`, {
-        style: style,
-        audience: audience,
-        topic: variables.topic
-      })
-      if (!spendResult.success) {
-        toast.error(spendResult.error === 'Not enough coins'
-          ? 'Недостаточно монет для генерации!'
-          : 'Ошибка при списании монет. Попробуйте позже.')
-        return
-      }
-
-      // Обновляем локальный баланс
-      setCoinBalance(spendResult.new_balance || 0)
-      coinsSpent = 30
+    // Списываем 30 монет за генерацию
+    if (coinBalance < 30) {
+      toast.error('Для генерации нужно 30 нейронов')
+      navigate('/shop')
+      return
     }
+
+    const spendResult = await spendCoinsForGeneration(chatId, 30, `Генерация карусели: ${variables.topic}`, {
+      style: style,
+      audience: audience,
+      topic: variables.topic
+    })
+    if (!spendResult.success) {
+      toast.error(spendResult.error === 'Not enough coins'
+        ? 'Недостаточно нейронов для генерации!'
+        : 'Ошибка при списании нейронов. Попробуйте позже.')
+      return
+    }
+
+    // Обновляем локальный баланс
+    setCoinBalance(spendResult.new_balance || 0)
+    const coinsSpent = 30
 
     // Фото уже загружено в useEffect
     const finalUserPhoto = userPhoto
@@ -261,37 +252,31 @@ export default function CarouselContent() {
           <p className="text-xs text-gray-400 mt-2">Перечислите через запятую</p>
         </div>
 
-        {/* Баланс / Подписка - улучшенный дизайн */}
+        {/* Баланс нейронов */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-2">
             <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
-            {hasSubscription ? (
-              <span className="font-bold text-green-600">Подписка активна ✓</span>
-            ) : (
-              <span className="font-bold text-orange-600">
-                {isLoading ? '...' : coinBalance} нейронов
-              </span>
-            )}
+            <span className="font-bold text-orange-600">
+              {isLoading ? '...' : coinBalance} нейронов
+            </span>
           </div>
-          {!hasSubscription && (
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <span className="text-sm">-30</span>
-              <img src="/neirocoin.png" alt="" className="w-4 h-4 object-contain opacity-70" />
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <span className="text-sm">-30</span>
+            <img src="/neirocoin.png" alt="" className="w-4 h-4 object-contain opacity-70" />
+          </div>
         </div>
 
         <button
           onClick={handleGenerate}
-          disabled={(!hasSubscription && coinBalance < 30) || isLoading || !variables.topic?.trim()}
+          disabled={coinBalance < 30 || isLoading || !variables.topic?.trim()}
           className="w-full py-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white rounded-2xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/30 active:scale-[0.98] transition-transform hover:shadow-2xl flex items-center justify-center gap-2"
         >
           <span>
-            {!hasSubscription && coinBalance < 30 && !isLoading
+            {coinBalance < 30 && !isLoading
               ? 'Недостаточно нейронов'
               : 'Сгенерировать за 30'}
           </span>
-          {(!hasSubscription || coinBalance >= 30) && !isLoading && (
+          {coinBalance >= 30 && !isLoading && (
             <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
           )}
         </button>
