@@ -395,6 +395,58 @@ export async function updateCarouselSettings(
   }
 }
 
+/**
+ * Удалить content_system_prompt из всех стилей
+ * (глобальный промпт теперь хранится отдельно в carousel_settings)
+ */
+export async function removeContentSystemPromptFromAllStyles(): Promise<{ success: boolean; updated: number; errors: string[] }> {
+  const errors: string[] = []
+  let updated = 0
+
+  try {
+    const allStyles = await getAllCarouselStyles()
+
+    for (const style of allStyles) {
+      // Проверяем, есть ли content_system_prompt в config
+      if (style.config && 'content_system_prompt' in style.config) {
+        // Создаём новый config без content_system_prompt
+        const { content_system_prompt, ...cleanConfig } = style.config as Record<string, unknown>
+
+        console.log(`Removing content_system_prompt from style: ${style.name}`)
+
+        try {
+          const result = await updateCarouselStyle(style.id, {
+            config: cleanConfig,
+          })
+
+          if (result) {
+            updated++
+            console.log(`✓ Cleaned style: ${style.name}`)
+          } else {
+            errors.push(`Failed to update style: ${style.name}`)
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          errors.push(`Error updating ${style.name}: ${msg}`)
+        }
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      updated,
+      errors,
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error)
+    return {
+      success: false,
+      updated: 0,
+      errors: [msg],
+    }
+  }
+}
+
 // ========== SEED СТИЛЕЙ ==========
 
 export async function seedDefaultStyles(): Promise<{ success: boolean; created: number; errors: string[] }> {
