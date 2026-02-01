@@ -402,37 +402,31 @@ function CarouselIndexInner() {
     setIsSubmitting(true)
     setError(null)
 
-    // Проверяем доступ: подписка ИЛИ монеты
-    const isFreeGeneration = hasSubscription
-    const costToCharge = isFreeGeneration ? 0 : GENERATION_COST
-
-    if (!isFreeGeneration && coinBalance < GENERATION_COST) {
+    // Проверяем баланс монет (всегда списываем 30)
+    if (coinBalance < GENERATION_COST) {
       setError(`Недостаточно монет. Нужно ${GENERATION_COST}, у вас ${coinBalance}`)
       setIsSubmitting(false)
       return
     }
 
-    // Записываем генерацию в статистику (для всех пользователей)
+    // Списываем монеты за генерацию
     try {
-      const spendResult = await spendCoinsForGeneration(user.id, costToCharge, 'Генерация карусели', {
+      const spendResult = await spendCoinsForGeneration(user.id, GENERATION_COST, 'Генерация карусели', {
         style: style,
         topic: topic.trim(),
-        free_generation: isFreeGeneration,
-        subscription: isFreeGeneration ? 'premium' : null
+        subscription: hasSubscription ? 'premium' : null
       })
 
       if (!spendResult || spendResult.success !== true) {
-        const errorMsg = spendResult?.error || 'Не удалось записать генерацию'
+        const errorMsg = spendResult?.error || 'Не удалось списать монеты'
         setError(errorMsg)
         setIsSubmitting(false)
         return
       }
-      // Обновляем баланс (если списали монеты)
-      if (!isFreeGeneration) {
-        refetchBalance()
-      }
+      // Обновляем баланс
+      refetchBalance()
     } catch (err) {
-      setError('Ошибка при записи генерации')
+      setError('Ошибка при списании монет')
       setIsSubmitting(false)
       return
     }
@@ -619,13 +613,13 @@ function CarouselIndexInner() {
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
-            disabled={isSubmitting || (!hasSubscription && coinBalance < GENERATION_COST)}
+            disabled={isSubmitting || coinBalance < GENERATION_COST}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-pink-500/30 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer"
           >
             {isSubmitting ? (
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
-            ) : hasSubscription ? (
-              <span>✨ Сгенерировать бесплатно</span>
+            ) : coinBalance < GENERATION_COST ? (
+              <span>Недостаточно нейронов</span>
             ) : (
               <>
                 <span>Сгенерировать за {GENERATION_COST}</span>
