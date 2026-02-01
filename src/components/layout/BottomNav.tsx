@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
 import { HomeIcon, UserIcon } from '@/components/ui/icons'
-import { Shield, ShoppingBag } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { isAdmin as checkIsAdmin } from '@/config/admins'
 import { haptic } from '@/lib/haptic'
@@ -76,20 +76,7 @@ export function BottomNav() {
           <span className="text-[10px] font-medium">Профиль</span>
         </Link>
 
-        {/* Магазин */}
-        <Link
-          to="/shop"
-          onClick={() => haptic.tap()}
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
-            location.pathname === '/shop'
-              ? "text-orange-500"
-              : "text-gray-400 hover:text-gray-600"
-          )}
-        >
-          <ShoppingBag size={22} className={location.pathname === '/shop' ? 'text-orange-500' : ''} />
-          <span className="text-[10px] font-medium">Магазин</span>
-        </Link>
+        {/* Магазин — скрыт */}
 
         {/* Админ - только для админов */}
         {isAdmin && (
