@@ -746,12 +746,16 @@ function CarouselIndexInner() {
           </div>
           <textarea
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="Например: ТОП 5 ответов на возражение «Ваши бады дорогие!» 😄"
-            className="w-full min-h-[100px] px-4 py-3 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 resize-none text-sm leading-relaxed"
+            onChange={(e) => setTopic(e.target.value.slice(0, 5000))}
+            placeholder="Например: ТОП 5 ответов на возражение «Ваши бады дорогие!» 😄
+
+Можно добавить подробности: контекст, примеры, пожелания по стилю текста..."
+            maxLength={5000}
+            className="w-full min-h-[120px] px-4 py-3 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 resize-y text-sm leading-relaxed"
           />
-          <div className="flex justify-end mt-1">
-            <span className="text-xs text-gray-400">{topic.length} / 500</span>
+          <div className="flex justify-between items-center mt-1">
+            <span className="text-[10px] text-gray-400">Можно писать подробно — AI всё учтёт</span>
+            <span className={`text-xs ${topic.length > 4500 ? 'text-orange-500' : 'text-gray-400'}`}>{topic.length} / 5000</span>
           </div>
         </div>
 
