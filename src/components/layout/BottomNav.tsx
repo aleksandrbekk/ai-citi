@@ -1,16 +1,17 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store/uiStore'
-import { HomeIcon, UserIcon } from '@/components/ui/icons'
+import { HomeIcon, UserIcon, ShopIcon } from '@/components/ui/icons'
 import { Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { isAdmin as checkIsAdmin } from '@/config/admins'
+import { isAdmin as checkIsAdmin, canSeeFullMenu as checkCanSeeFullMenu } from '@/config/admins'
 import { haptic } from '@/lib/haptic'
 
 export function BottomNav() {
   const location = useLocation()
   const isKeyboardOpen = useUIStore((s) => s.isKeyboardOpen)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [canSeeFullMenu, setCanSeeFullMenu] = useState(false)
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp
@@ -28,6 +29,9 @@ export function BottomNav() {
     if (checkIsAdmin(telegramId)) {
       setIsAdmin(true)
     }
+    if (checkCanSeeFullMenu(telegramId)) {
+      setCanSeeFullMenu(true)
+    }
   }, [])
 
   // Скрываем навигацию на страницах где она мешает
@@ -44,8 +48,8 @@ export function BottomNav() {
     <nav className={`fixed bottom-0 left-0 right-0 z-50 nav-glass transition-transform duration-200 safe-bottom ${isKeyboardOpen ? 'translate-y-full' : 'translate-y-0'
       }`}>
       <div className="flex items-center justify-around h-16 px-2">
-        {/* Главная — только для админов */}
-        {isAdmin && (
+        {/* Главная — для админов и тестеров */}
+        {canSeeFullMenu && (
           <Link
             to="/"
             onClick={() => haptic.tap()}
@@ -61,8 +65,25 @@ export function BottomNav() {
           </Link>
         )}
 
-        {/* Профиль — только для админов */}
-        {isAdmin && (
+        {/* Магазин — для админов и тестеров */}
+        {canSeeFullMenu && (
+          <Link
+            to="/shop"
+            onClick={() => haptic.tap()}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
+              location.pathname === '/shop'
+                ? "text-orange-500"
+                : "text-gray-400 hover:text-gray-600"
+            )}
+          >
+            <ShopIcon size={22} className={location.pathname === '/shop' ? 'text-orange-500' : ''} />
+            <span className="text-[10px] font-medium">Магазин</span>
+          </Link>
+        )}
+
+        {/* Профиль — для админов и тестеров */}
+        {canSeeFullMenu && (
           <Link
             to="/profile"
             onClick={() => haptic.tap()}
@@ -78,9 +99,7 @@ export function BottomNav() {
           </Link>
         )}
 
-        {/* Магазин — скрыт */}
-
-        {/* Админ - только для админов */}
+        {/* Админ - ТОЛЬКО для админов */}
         {isAdmin && (
           <Link
             to="/admin"
