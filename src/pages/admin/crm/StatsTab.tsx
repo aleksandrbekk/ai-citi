@@ -56,11 +56,13 @@ interface CarouselStatsByUser {
   coins_refunded: number
 }
 
-// Типы пакетов монет
+// Типы пакетов монет (актуальные из Shop.tsx)
 const COIN_PACKAGES = [
-  { id: '100_coins', name: '100 монет', coins: 100 },
-  { id: '500_coins', name: '500 монет', coins: 500 },
-  { id: '1000_coins', name: '1000 монет', coins: 1000 },
+  { id: 'light', name: 'Light (30 нейронов)', coins: 30, price: 290 },
+  { id: 'starter', name: 'Starter (100 нейронов)', coins: 100, price: 890 },
+  { id: 'standard', name: 'Standard (300 нейронов)', coins: 300, price: 2490 },
+  { id: 'pro', name: 'PRO (500 нейронов)', coins: 500, price: 3990 },
+  { id: 'business', name: 'Business (1000 нейронов)', coins: 1000, price: 7500 },
 ]
 
 // Стили каруселей (актуальные из carouselStyles.ts)
