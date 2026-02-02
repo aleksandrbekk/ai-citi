@@ -91,9 +91,9 @@ export default function Referrals() {
             <div className="bg-white/15 backdrop-blur rounded-xl p-3">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-white/70" />
-                <span className="text-white/70 text-xs">От покупок</span>
+                <span className="text-white/70 text-xs">От трат партнёров</span>
               </div>
-              <p className="text-2xl font-bold">{stats?.total_partner_purchased || 0}</p>
+              <p className="text-2xl font-bold">{stats?.total_partner_spent || 0}</p>
             </div>
           </div>
         </div>
@@ -151,8 +151,8 @@ export default function Referrals() {
                 1
               </div>
               <div>
-                <p className="font-medium text-gray-900">Друг регистрируется</p>
-                <p className="text-sm text-gray-500">Ты получаешь <span className="font-semibold text-orange-500">+1 нейрон</span></p>
+                <p className="font-medium text-gray-900">Отправь ссылку другу</p>
+                <p className="text-sm text-gray-500">Он регистрируется по твоей реферальной ссылке</p>
               </div>
             </div>
 
@@ -161,8 +161,8 @@ export default function Referrals() {
                 2
               </div>
               <div>
-                <p className="font-medium text-gray-900">Друг покупает нейроны</p>
-                <p className="text-sm text-gray-500">Ты получаешь <span className="font-semibold text-cyan-500">20% от покупки</span></p>
+                <p className="font-medium text-gray-900">Друг создаёт карусели</p>
+                <p className="text-sm text-gray-500">Он тратит нейроны на генерацию контента</p>
               </div>
             </div>
 
@@ -171,8 +171,8 @@ export default function Referrals() {
                 3
               </div>
               <div>
-                <p className="font-medium text-gray-900">Друг тратит нейроны</p>
-                <p className="text-sm text-gray-500">Ты получаешь <span className="font-semibold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">20% от трат</span></p>
+                <p className="font-medium text-gray-900">Ты получаешь бонус</p>
+                <p className="text-sm text-gray-500"><span className="font-semibold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">10% от каждой карусели</span> партнёра — твои!</p>
               </div>
             </div>
           </div>
@@ -268,14 +268,14 @@ function ReferralOnboarding({ onComplete }: { onComplete: () => void }) {
       message: 'Привет! Здесь ты можешь зарабатывать нейроны, приглашая друзей!',
     },
     {
-      emoji: '🎁',
-      title: 'Бонус за регистрацию',
-      message: 'За каждого друга, который зарегистрируется по твоей ссылке — ты получишь 1 нейрон',
+      emoji: '🎯',
+      title: 'Как это работает',
+      message: 'Отправляешь ссылку другу → он создаёт карусели → ты получаешь бонус',
     },
     {
       emoji: '💰',
       title: 'Пассивный доход',
-      message: '20% от всех покупок и трат друга — тоже твои! Это работает вечно 🚀',
+      message: '10% от каждой карусели твоего партнёра — твои! Это работает вечно 🚀',
     },
   ]
 
