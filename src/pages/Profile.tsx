@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTelegramUser } from '@/lib/telegram'
-import { getCoinBalance, getUserTariffInfo, getGiftCoinBalance, type UserTariffInfo } from '@/lib/supabase'
+import { getCoinBalance, getUserTariffInfo, getGiftCoinBalance, cancelSubscription, type UserTariffInfo } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
@@ -99,8 +99,26 @@ export default function Profile() {
   }
 
   const handleUpgrade = () => {
-    toast.info('Тарифы скоро будут доступны')
+    navigate('/shop')
   }
+
+  const handleCancelSubscription = async () => {
+    if (!telegramUser?.id) return
+
+    const result = await cancelSubscription(telegramUser.id)
+    if (result.ok) {
+      toast.success(result.message || 'Подписка отменена')
+      // Обновляем данные о тарифе
+      const tariff = await getUserTariffInfo(telegramUser.id)
+      setTariffInfo(tariff)
+    } else {
+      toast.error(result.error || 'Ошибка отмены подписки')
+    }
+  }
+
+  // Проверяем, является ли тариф платной подпиской
+  const isPaidSubscription = tariffInfo &&
+    ['STARTER', 'PRO', 'BUSINESS'].includes(tariffInfo.tariff_slug.toUpperCase())
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white pb-24">
@@ -149,6 +167,9 @@ export default function Profile() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         onLogout={logout}
+        hasActiveSubscription={!!isPaidSubscription}
+        subscriptionPlan={tariffInfo?.tariff_slug.toUpperCase()}
+        onCancelSubscription={handleCancelSubscription}
       />
 
       {/* Promo Code Modal */}

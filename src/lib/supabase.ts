@@ -134,6 +134,23 @@ export async function getUserTariffInfo(telegramId: number): Promise<UserTariffI
   }
 }
 
+// Отмена подписки
+export async function cancelSubscription(telegramId: number): Promise<{ ok: boolean; message?: string; error?: string }> {
+  try {
+    const response = await fetch(
+      'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-cancel-subscription',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegramId })
+      }
+    )
+    return await response.json()
+  } catch (error) {
+    return { ok: false, error: 'Ошибка сети' }
+  }
+}
+
 // Проверка доступа к модулю
 export function canAccessModule(moduleTariff: string, userTariffs: string[]): boolean {
   // platinum даёт доступ ко всему

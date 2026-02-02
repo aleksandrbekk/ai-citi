@@ -1,18 +1,43 @@
-import { X, LogOut, Bell, Moon, Globe, ChevronRight } from 'lucide-react'
+import { X, LogOut, Bell, Moon, Globe, ChevronRight, CreditCard, Loader2 } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
+import { useState } from 'react'
 
 interface SettingsDrawerProps {
   isOpen: boolean
   onClose: () => void
   onLogout: () => void
+  hasActiveSubscription?: boolean
+  subscriptionPlan?: string
+  onCancelSubscription?: () => Promise<void>
 }
 
 export function SettingsDrawer({
   isOpen,
   onClose,
-  onLogout
+  onLogout,
+  hasActiveSubscription,
+  subscriptionPlan,
+  onCancelSubscription
 }: SettingsDrawerProps) {
+  const [isCancelling, setIsCancelling] = useState(false)
+
   if (!isOpen) return null
+
+  const handleCancelSubscription = async () => {
+    if (!onCancelSubscription) return
+
+    const confirmed = window.confirm(
+      `Отменить подписку ${subscriptionPlan}? Доступ сохранится до конца оплаченного периода.`
+    )
+    if (!confirmed) return
+
+    setIsCancelling(true)
+    try {
+      await onCancelSubscription()
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   const settings = [
     {
@@ -88,6 +113,40 @@ export function SettingsDrawer({
             Настройки скоро будут доступны
           </p>
         </div>
+
+        {/* Subscription Management */}
+        {hasActiveSubscription && (
+          <div className="px-6 py-4 border-t border-gray-100">
+            <div className="bg-orange-50 rounded-xl p-4 mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Подписка {subscriptionPlan}</p>
+                  <p className="text-sm text-gray-500">Активна, автопродление включено</p>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                haptic.tap()
+                handleCancelSubscription()
+              }}
+              disabled={isCancelling}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Отмена...
+                </>
+              ) : (
+                'Отменить подписку'
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Logout Button */}
         <div className="px-6 pb-8 pt-4 border-t border-gray-100">
