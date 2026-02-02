@@ -7,6 +7,7 @@ import { getCarouselStyles, getGlobalSystemPrompt } from '@/lib/carouselStylesAp
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
+import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
 
 // Error Boundary для отлова ошибок
 class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -503,6 +504,9 @@ function CarouselIndexInner() {
 
   const currentStyleMeta = mergedStylesIndex.find(s => s.id === style)
 
+  // Онбординг
+  const { showOnboarding, completeOnboarding } = useCarouselOnboarding()
+
   // ========== CTA PAGE ==========
   if (showCtaPage) {
     return (
@@ -729,6 +733,7 @@ function CarouselIndexInner() {
           {/* Photo - Compact */}
           <button
             onClick={() => setShowPhotoModal(true)}
+            data-onboarding="photo"
             className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
           >
             {userPhoto ? (
@@ -751,6 +756,7 @@ function CarouselIndexInner() {
           {/* Style - Compact */}
           <button
             onClick={() => setShowStyleModal(true)}
+            data-onboarding="style"
             className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-purple-200 transition-all active:scale-[0.98] cursor-pointer"
           >
             <img
@@ -765,7 +771,10 @@ function CarouselIndexInner() {
           </button>
 
           {/* Gender - Обязательный выбор */}
-          <div className={`flex rounded-xl p-1 ${!gender ? 'bg-red-50 ring-2 ring-red-200' : 'bg-gray-100/80 backdrop-blur'}`}>
+          <div
+            data-onboarding="gender"
+            className={`flex rounded-xl p-1 ${!gender ? 'bg-red-50 ring-2 ring-red-200' : 'bg-gray-100/80 backdrop-blur'}`}
+          >
             <button
               onClick={() => handleGenderChange('male')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1 ${gender === 'male'
@@ -833,6 +842,11 @@ function CarouselIndexInner() {
       {/* Tips Modal */}
       {showTipsModal && (
         <TipsModal onClose={() => setShowTipsModal(false)} />
+      )}
+
+      {/* Onboarding Coach Marks */}
+      {showOnboarding && (
+        <OnboardingCoachMarks onComplete={completeOnboarding} />
       )}
     </div>
   )
