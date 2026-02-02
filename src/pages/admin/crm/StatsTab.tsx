@@ -267,7 +267,7 @@ export default function StatsTab() {
             <ProgressBar
               key={pkg.id}
               label={pkg.name}
-              value={byPackage[pkg.id] || 0}
+              value={byPackage[`${pkg.coins}_coins`] || 0}
               total={purchaseStats.total}
               color="bg-yellow-500"
             />
