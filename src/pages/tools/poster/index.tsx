@@ -129,17 +129,17 @@ export default function PosterDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white p-4 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">НЕЙРОПОСТЕР</h1>
+        <h1 className="text-2xl font-bold text-gray-900">НЕЙРОПОСТЕР</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/tools/poster/calendar')}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors border border-gray-200"
             title="Календарь"
           >
-            <Calendar className="w-5 h-5 text-white" />
+            <Calendar className="w-5 h-5 text-gray-700" />
           </button>
           <button
             onClick={() => navigate('/tools/poster/create')}
@@ -153,30 +153,30 @@ export default function PosterDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 text-center">
+        <div className="bg-white rounded-xl p-4 text-center border border-gray-200 shadow-sm">
           <div className="text-2xl font-bold text-orange-500">{drafts.length}</div>
-          <div className="text-xs text-zinc-400">Черновики</div>
+          <div className="text-xs text-gray-500">Черновики</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-blue-500">{scheduled.length}</div>
-          <div className="text-xs text-zinc-400">Запланировано</div>
+        <div className="bg-white rounded-xl p-4 text-center border border-gray-200 shadow-sm">
+          <div className="text-2xl font-bold text-cyan-500">{scheduled.length}</div>
+          <div className="text-xs text-gray-500">Запланировано</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 text-center">
+        <div className="bg-white rounded-xl p-4 text-center border border-gray-200 shadow-sm">
           <div className="text-2xl font-bold text-green-500">{published.length}</div>
-          <div className="text-xs text-zinc-400">Опубликовано</div>
+          <div className="text-xs text-gray-500">Опубликовано</div>
         </div>
       </div>
 
       {/* Posts List */}
       {isLoading ? (
-        <div className="text-center py-8 text-zinc-400">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500">Загрузка...</div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
-            <Calendar className="w-10 h-10 text-zinc-600" />
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <Calendar className="w-10 h-10 text-gray-400" />
           </div>
-          <h2 className="text-xl font-semibold mb-2">Нет постов</h2>
-          <p className="text-zinc-400 mb-6">Создайте первый пост для Instagram</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Нет постов</h2>
+          <p className="text-gray-500 mb-6">Создайте первый пост для Instagram</p>
           <button
             onClick={() => navigate('/tools/poster/create')}
             className="flex items-center gap-2 px-4 py-2 bg-orange-500 rounded-xl text-white font-medium hover:bg-orange-600 transition-colors"
@@ -188,14 +188,14 @@ export default function PosterDashboard() {
       ) : (
         <div className="space-y-3">
           {posts.map(post => (
-            <div key={post.id} className="bg-zinc-900 rounded-xl p-4 flex gap-4 relative">
+            <div key={post.id} className="bg-white rounded-xl p-4 flex gap-4 relative border border-gray-200 shadow-sm">
               {/* Action Buttons */}
               <div className="absolute top-2 right-2 flex gap-1">
                 {post.status !== 'published' && (
                   <button
                     onClick={() => handlePublishNow(post.id)}
                     disabled={publishMutation.isPending}
-                    className="p-2 rounded-full bg-green-500/20 hover:bg-green-500/40 text-green-400 disabled:opacity-50"
+                    className="p-2 rounded-full bg-green-100 hover:bg-green-200 text-green-600 disabled:opacity-50"
                     title="Опубликовать сейчас"
                   >
                     <Send size={16} />
@@ -203,57 +203,57 @@ export default function PosterDashboard() {
                 )}
                 <button
                   onClick={(e) => handleEdit(post.id, e)}
-                  className="p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                  className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                 >
-                  <Edit size={16} className="text-white" />
+                  <Edit size={16} className="text-gray-600" />
                 </button>
                 <button
                   onClick={(e) => handleDelete(post.id, e)}
-                  className="p-2 bg-black/50 rounded-full hover:bg-red-500/70 transition-colors"
+                  className="p-2 bg-gray-100 rounded-full hover:bg-red-100 transition-colors"
                 >
-                  <Trash2 size={16} className="text-white" />
+                  <Trash2 size={16} className="text-gray-600 hover:text-red-500" />
                 </button>
               </div>
-              
+
               {/* Thumbnail */}
-              <div className="w-16 h-16 bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                 {post.post_media?.[0]?.public_url ? (
-                  <img 
-                    src={post.post_media[0].public_url} 
-                    alt="" 
+                  <img
+                    src={post.post_media[0].public_url}
+                    alt=""
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Image className="w-6 h-6 text-zinc-600" />
+                    <Image className="w-6 h-6 text-gray-400" />
                   </div>
                 )}
               </div>
-              
+
               {/* Info */}
               <div className="flex-1 min-w-0 pr-20">
-                <p className="text-sm text-white truncate">
+                <p className="text-sm text-gray-900 truncate">
                   {post.caption || 'Без текста'}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`text-xs px-2 py-0.5 rounded ${
-                    post.status === 'draft' ? 'bg-orange-500/20 text-orange-400' :
-                    post.status === 'scheduled' ? 'bg-blue-500/20 text-blue-400' :
-                    post.status === 'published' ? 'bg-green-500/20 text-green-400' :
-                    'bg-red-500/20 text-red-400'
+                    post.status === 'draft' ? 'bg-orange-100 text-orange-600' :
+                    post.status === 'scheduled' ? 'bg-cyan-100 text-cyan-600' :
+                    post.status === 'published' ? 'bg-green-100 text-green-600' :
+                    'bg-red-100 text-red-600'
                   }`}>
                     {post.status === 'draft' ? 'Черновик' :
                      post.status === 'scheduled' ? 'Запланирован' :
                      post.status === 'published' ? 'Опубликован' : 'Ошибка'}
                   </span>
                   {post.post_media?.length > 1 && (
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-gray-500">
                       {post.post_media.length} фото
                     </span>
                   )}
                 </div>
                 {post.scheduled_at && (
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     {formatDateMSK(post.scheduled_at)} МСК
                   </p>
                 )}

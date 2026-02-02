@@ -88,9 +88,9 @@ export default function PosterCalendar() {
       case 'scheduled':
         return 'bg-orange-500'
       case 'draft':
-        return 'bg-zinc-500'
+        return 'bg-gray-400'
       default:
-        return 'bg-zinc-500'
+        return 'bg-gray-400'
     }
   }
 
@@ -113,7 +113,7 @@ export default function PosterCalendar() {
   const selectedPosts = selectedDate ? getPostsForDate(selectedDate) : []
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white p-4 pb-24">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={() => navigate('/tools/poster')} className="p-2">
@@ -126,7 +126,7 @@ export default function PosterCalendar() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={handlePrevMonth}
-          className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -135,7 +135,7 @@ export default function PosterCalendar() {
         </h2>
         <button
           onClick={handleNextMonth}
-          className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -143,13 +143,13 @@ export default function PosterCalendar() {
 
       {/* Calendar Grid */}
       {isLoading ? (
-        <div className="text-center py-8 text-zinc-400">Загрузка...</div>
+        <div className="text-center py-8 text-gray-500">Загрузка...</div>
       ) : (
         <>
           {/* Weekday Headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day, index) => (
-              <div key={index} className="text-center text-xs text-zinc-400 font-medium py-2">
+              <div key={index} className="text-center text-xs text-gray-500 font-medium py-2">
                 {day}
               </div>
             ))}
@@ -169,9 +169,9 @@ export default function PosterCalendar() {
                   onClick={() => handleDayClick(day)}
                   className={`
                     aspect-square p-2 rounded-lg transition-colors relative
-                    ${isCurrentMonth ? 'hover:bg-zinc-800' : 'opacity-30'}
+                    ${isCurrentMonth ? 'hover:bg-gray-100' : 'opacity-30'}
                     ${isToday ? 'ring-2 ring-orange-500' : ''}
-                    ${isSelected ? 'bg-orange-500/20' : 'bg-zinc-900'}
+                    ${isSelected ? 'bg-orange-500/20' : 'bg-white border border-gray-200'}
                   `}
                 >
                   <div className="text-sm font-medium mb-1">
@@ -187,7 +187,7 @@ export default function PosterCalendar() {
                         />
                       ))}
                       {dayPosts.length > 3 && (
-                        <div className="text-xs text-zinc-400">+{dayPosts.length - 3}</div>
+                        <div className="text-xs text-gray-500">+{dayPosts.length - 3}</div>
                       )}
                     </div>
                   )}
@@ -197,7 +197,7 @@ export default function PosterCalendar() {
           </div>
 
           {/* Legend */}
-          <div className="flex gap-4 justify-center mt-6 text-xs text-zinc-400">
+          <div className="flex gap-4 justify-center mt-6 text-xs text-gray-500">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
               <span>Опубликован</span>
@@ -207,20 +207,20 @@ export default function PosterCalendar() {
               <span>Запланирован</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-zinc-500"></div>
+              <div className="w-2 h-2 rounded-full bg-gray-400"></div>
               <span>Черновик</span>
             </div>
           </div>
 
           {/* Selected Date Posts */}
           {selectedDate && selectedPosts.length > 0 && (
-            <div className="mt-6 bg-zinc-900 rounded-xl p-4">
+            <div className="mt-6 bg-white border border-gray-200 rounded-xl p-4">
               <h3 className="text-lg font-semibold mb-4">
                 Посты на {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
               </h3>
               <div className="space-y-3">
                 {selectedPosts.map(post => (
-                  <div key={post.id} className="bg-zinc-800 rounded-lg p-3">
+                  <div key={post.id} className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-xs px-2 py-0.5 rounded ${
                         post.status === 'draft' ? 'bg-orange-500/20 text-orange-400' :
@@ -233,11 +233,11 @@ export default function PosterCalendar() {
                          post.status === 'published' ? 'Опубликован' : 'Ошибка'}
                       </span>
                     </div>
-                    <p className="text-sm text-white mb-1">
+                    <p className="text-sm text-gray-900 mb-1">
                       {post.caption || 'Без текста'}
                     </p>
                     {post.scheduled_at && (
-                      <p className="text-xs text-zinc-400">
+                      <p className="text-xs text-gray-500">
                         {format(new Date(post.scheduled_at), 'HH:mm', { locale: ru })}
                       </p>
                     )}
@@ -248,7 +248,7 @@ export default function PosterCalendar() {
           )}
 
           {selectedDate && selectedPosts.length === 0 && (
-            <div className="mt-6 text-center text-zinc-400">
+            <div className="mt-6 text-center text-gray-500">
               Нет постов на {format(selectedDate, 'd MMMM yyyy', { locale: ru })}
             </div>
           )}

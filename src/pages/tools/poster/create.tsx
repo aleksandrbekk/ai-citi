@@ -100,7 +100,7 @@ export default function PosterCreate() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white p-4">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={() => navigate(-1)} className="p-2">
@@ -118,7 +118,7 @@ export default function PosterCreate() {
 
       {/* Media Upload */}
       <div className="mb-6">
-        <label className="block text-sm text-zinc-400 mb-2">
+        <label className="block text-sm text-gray-500 mb-2">
           Медиа ({mediaFiles.length}/10)
         </label>
         
@@ -134,11 +134,11 @@ export default function PosterCreate() {
                 />
                 <button
                   onClick={() => removeFile(index)}
-                  className="absolute top-1 right-1 bg-black/70 rounded-full p-1"
+                  className="absolute top-1 right-1 bg-gray-800/70 rounded-full p-1"
                 >
                   <X className="w-4 h-4" />
                 </button>
-                <span className="absolute bottom-1 left-1 bg-black/70 text-xs px-2 py-0.5 rounded">
+                <span className="absolute bottom-1 left-1 bg-gray-800/70 text-xs px-2 py-0.5 rounded">
                   {index + 1}
                 </span>
               </div>
@@ -148,9 +148,9 @@ export default function PosterCreate() {
 
         {/* Upload Zone */}
         {mediaFiles.length < 10 && (
-          <div className="border-2 border-dashed border-zinc-700 rounded-xl p-6 text-center">
-            <Upload className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
-            <p className="text-zinc-400 text-sm mb-2">Перетащи фото сюда</p>
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
+            <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm mb-2">Перетащи фото сюда</p>
             <input 
               type="file" 
               accept="image/*" 
@@ -160,7 +160,7 @@ export default function PosterCreate() {
               onChange={handleFileSelect}
             />
             <label htmlFor="media-upload">
-              <span className="inline-block px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-sm">
+              <span className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm">
                 Выбрать файлы
               </span>
             </label>
@@ -170,15 +170,15 @@ export default function PosterCreate() {
 
       {/* Caption */}
       <div className="mb-6">
-        <label className="block text-sm text-zinc-400 mb-2">Текст поста</label>
+        <label className="block text-sm text-gray-500 mb-2">Текст поста</label>
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           placeholder="Напишите текст поста..."
-          className="w-full h-32 bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white resize-none focus:outline-none focus:border-orange-500"
+          className="w-full h-32 bg-white border border-gray-200 border border-gray-200 rounded-xl p-4 text-gray-900 resize-none focus:outline-none focus:border-orange-500"
           maxLength={2200}
         />
-        <div className="text-right text-sm text-zinc-500 mt-1">
+        <div className="text-right text-sm text-gray-500 mt-1">
           {caption.length}/2200
         </div>
       </div>
@@ -186,22 +186,22 @@ export default function PosterCreate() {
       {/* Schedule */}
       <div className="mb-6">
         <div className="space-y-2">
-          <label className="text-sm text-zinc-400">Когда опубликовать</label>
+          <label className="text-sm text-gray-500">Когда опубликовать</label>
           <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setShowDatePicker(true)}
-              className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
+              className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-gray-100 border border-gray-200 text-gray-900 hover:bg-gray-200 transition-colors"
             >
-              <Calendar className="w-5 h-5 text-zinc-400" />
+              <Calendar className="w-5 h-5 text-gray-500" />
               {scheduledDate ? new Date(scheduledDate + 'T00:00:00').toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Выбрать дату'}
             </button>
             <button
               type="button"
               onClick={() => setShowTimePicker(true)}
-              className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
+              className="flex-1 flex items-center gap-2 py-3 px-4 rounded-xl bg-gray-100 border border-gray-200 text-gray-900 hover:bg-gray-200 transition-colors"
             >
-              <Clock className="w-5 h-5 text-zinc-400" />
+              <Clock className="w-5 h-5 text-gray-500" />
               {scheduledTime ? `${scheduledTime} МСК` : 'Выбрать время'}
             </button>
           </div>
@@ -210,11 +210,11 @@ export default function PosterCreate() {
 
       {/* Date Picker Modal */}
       {showDatePicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="w-full max-w-sm bg-zinc-900 rounded-2xl p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+          <div className="w-full max-w-sm bg-white border border-gray-200 rounded-2xl p-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-white">Выберите дату</h3>
-              <button onClick={() => setShowDatePicker(false)} className="text-zinc-400 hover:text-white">
+              <h3 className="text-lg font-semibold text-gray-900">Выберите дату</h3>
+              <button onClick={() => setShowDatePicker(false)} className="text-gray-500 hover:text-gray-900">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -225,7 +225,7 @@ export default function PosterCreate() {
                 setScheduledDate(e.target.value)
                 setShowDatePicker(false)
               }}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+              className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500"
               autoFocus
             />
           </div>
@@ -234,11 +234,11 @@ export default function PosterCreate() {
 
       {/* Time Picker Modal */}
       {showTimePicker && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center">
-          <div className="bg-zinc-900 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-zinc-700">
-              <h3 className="text-white font-semibold">Выберите время</h3>
-              <button onClick={() => setShowTimePicker(false)} className="text-zinc-400 hover:text-white">
+        <div className="fixed inset-0 bg-gray-900/50 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white border border-gray-200 w-full sm:w-96 sm:rounded-2xl rounded-t-2xl max-h-[70vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-gray-900 font-semibold">Выберите время</h3>
+              <button onClick={() => setShowTimePicker(false)} className="text-gray-500 hover:text-gray-900">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -262,9 +262,9 @@ export default function PosterCreate() {
                         setShowTimePicker(false)
                       }}
                       className={`py-2 px-1 rounded-lg text-sm font-medium transition-colors ${
-                        isSelected 
-                          ? 'bg-orange-500 text-white' 
-                          : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                        isSelected
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
                       {time}
@@ -282,7 +282,7 @@ export default function PosterCreate() {
         <button
           onClick={handleSaveDraft}
           disabled={isLoading || mediaFiles.length === 0}
-          className="flex-1 py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 py-3 rounded-xl bg-gray-100 border border-gray-200 text-gray-900 font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Черновик'}
         </button>

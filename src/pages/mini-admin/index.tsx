@@ -469,15 +469,15 @@ export default function MiniAdmin() {
   // Нет доступа
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white flex flex-col items-center justify-center p-4">
         <Shield className="w-16 h-16 text-red-500 mb-4" />
-        <h1 className="text-xl font-bold text-white mb-2">Доступ запрещён</h1>
-        <p className="text-zinc-400 text-center mb-6">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Доступ запрещён</h1>
+        <p className="text-gray-500 text-center mb-6">
           У вас нет прав для просмотра этой страницы
         </p>
         <button
           onClick={() => navigate('/profile')}
-          className="px-6 py-3 bg-zinc-800 text-white rounded-lg"
+          className="px-6 py-3 bg-gray-100 text-gray-900 rounded-lg"
         >
           Вернуться в профиль
         </button>
@@ -493,17 +493,17 @@ export default function MiniAdmin() {
   ]
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24 pt-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white pb-24 pt-4">
       {/* Tabs */}
-      <div className="bg-black border-b border-zinc-800">
+      <div className="bg-white border-b border-gray-200">
         <div className="flex overflow-x-auto px-4 py-3 gap-2">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${activeTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400'
+                  ? 'bg-blue-600 text-gray-900'
+                  : 'bg-gray-100 text-gray-500'
                 }`}
             >
               <tab.icon size={16} />
@@ -518,7 +518,7 @@ export default function MiniAdmin() {
         {activeTab === 'users' && (
           <div className="space-y-4">
             {/* Форма добавления пользователя */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
+            <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4 space-y-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <UserPlus size={18} />
                 Добавить пользователя
@@ -530,7 +530,7 @@ export default function MiniAdmin() {
                   placeholder="Telegram ID"
                   value={newUserId}
                   onChange={(e) => setNewUserId(e.target.value.replace(/\D/g, ''))}
-                  className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                  className="flex-1 px-4 py-2 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                 />
                 <button
                   type="button"
@@ -546,7 +546,7 @@ export default function MiniAdmin() {
                       addUser.mutate(parseInt(newUserId))
                     }
                   }}
-                  className="px-4 py-2 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center gap-2 select-none touch-manipulation"
+                  className="px-4 py-2 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-gray-900 rounded-lg flex items-center gap-2 select-none touch-manipulation"
                 >
                   <Plus size={18} />
                 </button>
@@ -561,7 +561,7 @@ export default function MiniAdmin() {
                 placeholder="Поиск по ID, username..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500"
+                className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-gray-200 rounded-lg text-gray-900 placeholder-zinc-500"
               />
             </div>
 
@@ -579,7 +579,7 @@ export default function MiniAdmin() {
                       key={user.id}
                       className={`p-4 rounded-lg border ${online
                           ? 'bg-green-500/10 border-green-500/30'
-                          : 'bg-zinc-900 border-zinc-800'
+                          : 'bg-zinc-900 border-gray-200'
                         }`}
                     >
                       <div className="flex items-center justify-between">
@@ -639,12 +639,12 @@ export default function MiniAdmin() {
           <div className="space-y-4">
             {/* Статистика: заголовок + выбор месяца */}
             <div className="flex items-center justify-between">
-              <span className="text-zinc-400">Статистика за:</span>
+              <span className="text-gray-500">Статистика за:</span>
               <div className="relative">
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="appearance-none bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 pr-10 text-white cursor-pointer"
+                  className="appearance-none bg-gray-100 border border-zinc-700 rounded-lg px-4 py-2 pr-10 text-gray-900 cursor-pointer"
                 >
                   {getMonthOptions().map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -656,19 +656,19 @@ export default function MiniAdmin() {
 
             {/* Статистика по валютам */}
             <div className="grid grid-cols-4 gap-2">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">RUB</div>
-                <div className="text-xl font-bold text-white">{formatAmount(paymentStats.RUB)}</div>
+                <div className="text-xl font-bold text-gray-900">{formatAmount(paymentStats.RUB)}</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">USD</div>
                 <div className="text-xl font-bold text-yellow-400">{formatAmount(paymentStats.USD)}</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">USDT</div>
                 <div className="text-xl font-bold text-green-400">{formatAmount(paymentStats.USDT)}</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">EUR</div>
                 <div className="text-xl font-bold text-yellow-400">{formatAmount(paymentStats.EUR)}</div>
               </div>
@@ -676,15 +676,15 @@ export default function MiniAdmin() {
 
             {/* Статистика: активных, оплат, ср. чек */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">Активных</div>
-                <div className="text-2xl font-bold text-white">{premiumClients.length}</div>
+                <div className="text-2xl font-bold text-gray-900">{premiumClients.length}</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">Оплат</div>
                 <div className="text-2xl font-bold text-green-400">{paymentStats.totalPayments}</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+              <div className="bg-zinc-900 border border-gray-200 rounded-xl p-3">
                 <div className="text-xs text-zinc-500 mb-1">Ср. чек</div>
                 <div className="text-2xl font-bold text-green-400">{formatAmount(paymentStats.avgCheck)}</div>
               </div>
@@ -699,13 +699,13 @@ export default function MiniAdmin() {
                   placeholder="Поиск..."
                   value={premiumSearch}
                   onChange={(e) => setPremiumSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500"
+                  className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-gray-200 rounded-xl text-gray-900 placeholder-zinc-500"
                 />
               </div>
               <select
                 value={filterPlan}
                 onChange={(e) => setFilterPlan(e.target.value)}
-                className="px-3 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-sm"
+                className="px-3 py-3 bg-zinc-900 border border-gray-200 rounded-xl text-gray-900 text-sm"
               >
                 <option value="all">Все</option>
                 <option value="basic">Basic</option>
@@ -717,7 +717,7 @@ export default function MiniAdmin() {
                 onClick={() => setShowAddClientModal(true)}
                 className="w-12 h-12 bg-emerald-500 hover:bg-emerald-600 rounded-xl flex items-center justify-center"
               >
-                <Plus size={24} className="text-white" />
+                <Plus size={24} className="text-gray-900" />
               </button>
             </div>
 
@@ -735,7 +735,7 @@ export default function MiniAdmin() {
                   <div
                     key={client.id}
                     onClick={() => setSelectedClient(client)}
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 cursor-pointer hover:border-zinc-600 transition-colors"
+                    className="bg-zinc-900 border border-gray-200 rounded-xl p-4 cursor-pointer hover:border-zinc-600 transition-colors"
                   >
                     {/* Заголовок: аватар, имя, тариф */}
                     <div className="flex items-center gap-3 mb-3">
@@ -746,22 +746,22 @@ export default function MiniAdmin() {
                         <div className="font-medium truncate">{displayName}</div>
                         <div className="text-sm text-zinc-500">{client.telegram_id}</div>
                       </div>
-                      <span className="px-3 py-1 bg-zinc-800 border border-zinc-700 rounded-lg text-xs font-medium">
+                      <span className="px-3 py-1 bg-gray-100 border border-zinc-700 rounded-lg text-xs font-medium">
                         {client.plan.toUpperCase()}
                       </span>
                     </div>
 
                     {/* Инфо: осталось, истекает */}
                     <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="bg-zinc-800/50 rounded-lg p-2">
+                      <div className="bg-gray-100/50 rounded-lg p-2">
                         <div className="text-xs text-zinc-500">Осталось</div>
                         <div className={`text-lg font-bold ${daysRemaining && daysRemaining > 0 ? 'text-green-400' : 'text-red-400'}`}>
                           {daysRemaining !== null ? `${daysRemaining} дн.` : '—'}
                         </div>
                       </div>
-                      <div className="bg-zinc-800/50 rounded-lg p-2">
+                      <div className="bg-gray-100/50 rounded-lg p-2">
                         <div className="text-xs text-zinc-500">Истекает</div>
-                        <div className="text-lg font-bold text-white">{expiresDate}</div>
+                        <div className="text-lg font-bold text-gray-900">{expiresDate}</div>
                       </div>
                     </div>
 
@@ -769,33 +769,33 @@ export default function MiniAdmin() {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm mb-3">
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Оплачено</span>
-                        <span className="text-white">{formatAmount(clientStats.total_paid)} ₽</span>
+                        <span className="text-gray-900">{formatAmount(clientStats.total_paid)} ₽</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Платежей</span>
-                        <span className="text-white">{clientStats.payments_count}</span>
+                        <span className="text-gray-900">{clientStats.payments_count}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Источник</span>
-                        <span className="text-white">{clientStats.source || client.source || '—'}</span>
+                        <span className="text-gray-900">{clientStats.source || client.source || '—'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Начало</span>
-                        <span className="text-white">{startDate}</span>
+                        <span className="text-gray-900">{startDate}</span>
                       </div>
                     </div>
 
                     {/* Теги */}
                     <div className="flex items-center gap-2 mb-2">
                       {(clientStats.source || client.source) && (
-                        <span className="px-2 py-1 bg-zinc-800 rounded-lg text-xs text-zinc-400">
+                        <span className="px-2 py-1 bg-gray-100 rounded-lg text-xs text-gray-500">
                           💳 {clientStats.source || client.source}
                         </span>
                       )}
                     </div>
 
                     {/* Нажмите для деталей */}
-                    <div className="flex items-center justify-center text-zinc-500 text-sm pt-2 border-t border-zinc-800">
+                    <div className="flex items-center justify-center text-zinc-500 text-sm pt-2 border-t border-gray-200">
                       Нажмите для деталей <ChevronRight size={16} />
                     </div>
                   </div>
@@ -815,27 +815,27 @@ export default function MiniAdmin() {
                 <div className="bg-zinc-900 rounded-t-2xl w-full max-w-lg p-4 space-y-4 animate-slide-up">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-semibold">Добавить клиента</h3>
-                    <button onClick={() => setShowAddClientModal(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
+                    <button onClick={() => setShowAddClientModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
                       <X size={20} />
                     </button>
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-1 block">Telegram ID</label>
+                    <label className="text-sm text-gray-500 mb-1 block">Telegram ID</label>
                     <input
                       type="text"
                       inputMode="numeric"
                       placeholder="123456789"
                       value={newClientId}
                       onChange={(e) => setNewClientId(e.target.value.replace(/\D/g, ''))}
-                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                     />
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-1 block">Тариф</label>
+                    <label className="text-sm text-gray-500 mb-1 block">Тариф</label>
                     <select
                       value={newClientPlan}
                       onChange={(e) => setNewClientPlan(e.target.value)}
-                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                     >
                       <option value="basic">Basic</option>
                       <option value="classic">Classic</option>
@@ -852,7 +852,7 @@ export default function MiniAdmin() {
                         setShowAddClientModal(false)
                       }
                     }}
-                    className="w-full py-4 bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium"
+                    className="w-full py-4 bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-gray-900 rounded-lg font-medium"
                   >
                     {addClient.isPending ? 'Добавление...' : 'Добавить'}
                   </button>
@@ -865,7 +865,7 @@ export default function MiniAdmin() {
               <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center">
                 <div className="bg-zinc-900 rounded-t-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
                   {/* Заголовок */}
-                  <div className="sticky top-0 bg-zinc-900 p-4 border-b border-zinc-800 flex items-center justify-between">
+                  <div className="sticky top-0 bg-zinc-900 p-4 border-b border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center text-lg">
                         {usersMap.get(selectedClient.telegram_id)?.first_name?.[0] || '?'}
@@ -879,7 +879,7 @@ export default function MiniAdmin() {
                         <div className="text-sm text-zinc-500">{selectedClient.telegram_id}</div>
                       </div>
                     </div>
-                    <button onClick={() => setSelectedClient(null)} className="p-2 hover:bg-zinc-800 rounded-lg">
+                    <button onClick={() => setSelectedClient(null)} className="p-2 hover:bg-gray-100 rounded-lg">
                       <X size={20} />
                     </button>
                   </div>
@@ -890,27 +890,27 @@ export default function MiniAdmin() {
                       const stats = getClientStats(selectedClient.telegram_id)
                       return (
                         <div className="space-y-3">
-                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                          <div className="flex justify-between py-2 border-b border-gray-200">
                             <span className="text-zinc-500">Всего оплачено</span>
                             <span className="font-medium">{formatAmount(stats.total_paid)} ₽</span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                          <div className="flex justify-between py-2 border-b border-gray-200">
                             <span className="text-zinc-500">Платежей</span>
                             <span className="font-medium">{stats.payments_count}</span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                          <div className="flex justify-between py-2 border-b border-gray-200">
                             <span className="text-zinc-500">Источник</span>
                             <span className="font-medium">{stats.source || selectedClient.source || '—'}</span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                          <div className="flex justify-between py-2 border-b border-gray-200">
                             <span className="text-zinc-500">Последний платёж</span>
                             <span className="font-medium">{stats.last_payment_at ? formatDate(stats.last_payment_at) : '—'}</span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                          <div className="flex justify-between py-2 border-b border-gray-200">
                             <span className="text-zinc-500">Метод оплаты</span>
                             <span className="font-medium">💳 {stats.payment_method || selectedClient.payment_method || 'Карта'}</span>
                           </div>
-                          <div className="flex justify-between py-2 border-b border-zinc-800">
+                          <div className="flex justify-between py-2 border-b border-gray-200">
                             <span className="text-zinc-500">Клиент с</span>
                             <span className="font-medium">{formatDate(selectedClient.created_at)}</span>
                           </div>
@@ -934,7 +934,7 @@ export default function MiniAdmin() {
                             setSelectedClient(null)
                           }
                         }}
-                        className="w-full py-4 bg-zinc-800 hover:bg-red-500/20 rounded-xl font-medium text-zinc-400 hover:text-red-400"
+                        className="w-full py-4 bg-gray-100 hover:bg-red-500/20 rounded-xl font-medium text-gray-500 hover:text-red-400"
                       >
                         Удалить клиента
                       </button>
@@ -950,7 +950,7 @@ export default function MiniAdmin() {
                 <div className="bg-zinc-900 rounded-t-2xl w-full max-w-lg p-4 space-y-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-semibold">Добавить платёж</h3>
-                    <button onClick={() => setShowAddPaymentModal(false)} className="p-2 hover:bg-zinc-800 rounded-lg">
+                    <button onClick={() => setShowAddPaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
                       <X size={20} />
                     </button>
                   </div>
@@ -960,22 +960,22 @@ export default function MiniAdmin() {
                       : selectedClient.telegram_id}
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-1 block">Сумма</label>
+                    <label className="text-sm text-gray-500 mb-1 block">Сумма</label>
                     <input
                       type="text"
                       inputMode="numeric"
                       placeholder="1000"
                       value={newPaymentAmount}
                       onChange={(e) => setNewPaymentAmount(e.target.value.replace(/\D/g, ''))}
-                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                     />
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-1 block">Валюта</label>
+                    <label className="text-sm text-gray-500 mb-1 block">Валюта</label>
                     <select
                       value={newPaymentCurrency}
                       onChange={(e) => setNewPaymentCurrency(e.target.value)}
-                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                     >
                       <option value="RUB">RUB (₽)</option>
                       <option value="USD">USD ($)</option>
@@ -984,11 +984,11 @@ export default function MiniAdmin() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-1 block">Источник</label>
+                    <label className="text-sm text-gray-500 mb-1 block">Источник</label>
                     <select
                       value={newPaymentSource}
                       onChange={(e) => setNewPaymentSource(e.target.value)}
-                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                     >
                       <option value="manual">Вручную</option>
                       <option value="lava.top">lava.top</option>
@@ -998,11 +998,11 @@ export default function MiniAdmin() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm text-zinc-400 mb-1 block">Метод оплаты</label>
+                    <label className="text-sm text-gray-500 mb-1 block">Метод оплаты</label>
                     <select
                       value={newPaymentMethod}
                       onChange={(e) => setNewPaymentMethod(e.target.value)}
-                      className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                     >
                       <option value="card">Карта</option>
                       <option value="crypto">Крипто</option>
@@ -1024,7 +1024,7 @@ export default function MiniAdmin() {
                         })
                       }
                     }}
-                    className="w-full py-4 bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium"
+                    className="w-full py-4 bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-gray-900 rounded-lg font-medium"
                   >
                     {addPayment.isPending ? 'Добавление...' : 'Добавить платёж'}
                   </button>
@@ -1038,28 +1038,28 @@ export default function MiniAdmin() {
         {activeTab === 'add-student' && (
           <div className="space-y-6">
             {/* Форма добавления */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
+            <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4 space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
                 <GraduationCap size={18} />
                 Добавить ученика
               </h3>
               <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Telegram ID</label>
+                <label className="text-sm text-gray-500 mb-1 block">Telegram ID</label>
                 <input
                   type="text"
                   inputMode="numeric"
                   placeholder="123456789"
                   value={newStudentId}
                   onChange={(e) => setNewStudentId(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                  className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                 />
               </div>
               <div>
-                <label className="text-sm text-zinc-400 mb-1 block">Тариф</label>
+                <label className="text-sm text-gray-500 mb-1 block">Тариф</label>
                 <select
                   value={newStudentTariff}
                   onChange={(e) => setNewStudentTariff(e.target.value)}
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                  className="w-full px-4 py-3 bg-gray-100 border border-zinc-700 rounded-lg text-gray-900"
                 >
                   <option value="standard">Standard</option>
                   <option value="platinum">Platinum</option>
@@ -1079,7 +1079,7 @@ export default function MiniAdmin() {
                     addStudent.mutate({ telegram_id: parseInt(newStudentId), tariff: newStudentTariff })
                   }
                 }}
-                className="w-full py-4 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2 select-none touch-manipulation"
+                className="w-full py-4 bg-blue-600 active:bg-blue-800 disabled:opacity-50 text-gray-900 rounded-lg flex items-center justify-center gap-2 select-none touch-manipulation"
               >
                 <Plus size={18} />
                 {addStudent.isPending ? 'Добавление...' : 'Добавить'}
@@ -1097,7 +1097,7 @@ export default function MiniAdmin() {
                   return (
                     <div
                       key={student.id}
-                      className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-lg"
+                      className="flex items-center justify-between p-4 bg-zinc-900 border border-gray-200 rounded-lg"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -1141,32 +1141,32 @@ export default function MiniAdmin() {
         {activeTab === 'analytics' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-3xl font-bold text-white">{users.length}</div>
+              <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4">
+                <div className="text-3xl font-bold text-gray-900">{users.length}</div>
                 <div className="text-sm text-zinc-500">Всего пользователей</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4">
                 <div className="text-3xl font-bold text-green-400">
                   {users.filter((u: User) => isOnline(u.last_active_at)).length}
                 </div>
                 <div className="text-sm text-zinc-500">Сейчас онлайн</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4">
                 <div className="text-3xl font-bold text-yellow-400">{premiumClients.length}</div>
                 <div className="text-sm text-zinc-500">Платных клиентов</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4">
                 <div className="text-3xl font-bold text-blue-400">{students.length}</div>
                 <div className="text-sm text-zinc-500">Учеников школы</div>
               </div>
             </div>
 
             {/* Активность за 24ч */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div className="bg-zinc-900 border border-gray-200 rounded-lg p-4">
               <h3 className="font-semibold mb-3">За последние 24 часа</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Активных пользователей</span>
+                  <span className="text-gray-500">Активных пользователей</span>
                   <span className="font-medium">
                     {users.filter((u: User) => {
                       if (!u.last_active_at) return false
@@ -1175,7 +1175,7 @@ export default function MiniAdmin() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Новых регистраций</span>
+                  <span className="text-gray-500">Новых регистраций</span>
                   <span className="font-medium text-green-400">
                     {users.filter((u: User) => {
                       return Date.now() - new Date(u.created_at).getTime() < 86400000

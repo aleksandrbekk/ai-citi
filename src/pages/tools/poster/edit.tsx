@@ -120,14 +120,14 @@ export default function PosterEdit() {
 
   if (isLoadingPost) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pb-32">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white p-4 pb-32">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={() => navigate(-1)} className="p-2">
@@ -145,7 +145,7 @@ export default function PosterEdit() {
 
       {/* Media Upload */}
       <div className="mb-6">
-        <label className="block text-sm text-zinc-400 mb-2">
+        <label className="block text-sm text-gray-500 mb-2">
           Медиа ({(existingMedia.length + mediaFiles.length)}/10)
         </label>
         
@@ -159,7 +159,7 @@ export default function PosterEdit() {
                   alt={`Existing ${index + 1}`}
                   className="w-full h-full object-cover rounded-lg"
                 />
-                <span className="absolute bottom-1 left-1 bg-black/70 text-xs px-2 py-0.5 rounded">
+                <span className="absolute bottom-1 left-1 bg-white/70 text-xs px-2 py-0.5 rounded">
                   {index + 1}
                 </span>
               </div>
@@ -179,11 +179,11 @@ export default function PosterEdit() {
                 />
                 <button
                   onClick={() => removeFile(index)}
-                  className="absolute top-1 right-1 bg-black/70 rounded-full p-1"
+                  className="absolute top-1 right-1 bg-white/70 rounded-full p-1"
                 >
                   <X className="w-4 h-4" />
                 </button>
-                <span className="absolute bottom-1 left-1 bg-black/70 text-xs px-2 py-0.5 rounded">
+                <span className="absolute bottom-1 left-1 bg-white/70 text-xs px-2 py-0.5 rounded">
                   {existingMedia.length + index + 1}
                 </span>
               </div>
@@ -193,9 +193,9 @@ export default function PosterEdit() {
 
         {/* Upload Zone */}
         {(existingMedia.length + mediaFiles.length) < 10 && (
-          <div className="border-2 border-dashed border-zinc-700 rounded-xl p-6 text-center">
-            <Upload className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
-            <p className="text-zinc-400 text-sm mb-2">Добавить фото</p>
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
+            <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm mb-2">Добавить фото</p>
             <input 
               type="file" 
               accept="image/*" 
@@ -205,7 +205,7 @@ export default function PosterEdit() {
               onChange={handleFileSelect}
             />
             <label htmlFor="media-upload">
-              <span className="inline-block px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg cursor-pointer text-sm">
+              <span className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer text-sm">
                 Выбрать файлы
               </span>
             </label>
@@ -215,50 +215,50 @@ export default function PosterEdit() {
 
       {/* Caption */}
       <div className="mb-6">
-        <label className="block text-sm text-zinc-400 mb-2">Текст поста</label>
+        <label className="block text-sm text-gray-500 mb-2">Текст поста</label>
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           placeholder="Напишите текст поста..."
-          className="w-full h-32 bg-zinc-900 border border-zinc-700 rounded-xl p-4 text-white resize-none focus:outline-none focus:border-orange-500"
+          className="w-full h-32 bg-white border border-gray-200 rounded-xl p-4 text-gray-900 resize-none focus:outline-none focus:border-orange-500"
           maxLength={2200}
         />
-        <div className="text-right text-sm text-zinc-500 mt-1">
+        <div className="text-right text-sm text-gray-500 mt-1">
           {caption.length}/2200
         </div>
       </div>
 
       {/* Schedule */}
       <div className="mb-6">
-        <label className="block text-sm text-zinc-400 mb-2">Когда опубликовать</label>
+        <label className="block text-sm text-gray-500 mb-2">Когда опубликовать</label>
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-zinc-400" />
+          <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-gray-500" />
             <input 
               type="date" 
               value={scheduledDate}
               onChange={(e) => setScheduledDate(e.target.value)}
-              className="bg-transparent text-white focus:outline-none flex-1"
+              className="bg-transparent text-gray-900 focus:outline-none flex-1"
             />
           </div>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-3 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-zinc-400" />
+          <div className="bg-white border border-gray-200 rounded-xl p-3 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-gray-500" />
             <input 
               type="time" 
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
-              className="bg-transparent text-white focus:outline-none flex-1"
+              className="bg-transparent text-gray-900 focus:outline-none flex-1"
             />
           </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-black border-t border-zinc-800">
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-white border-t border-gray-200">
         <div className="flex gap-3">
           <Button 
             variant="outline" 
-            className="flex-1 border-zinc-700 text-white hover:bg-zinc-800"
+            className="flex-1 border-gray-200 text-gray-900 hover:bg-gray-100"
             onClick={handleSaveDraft}
             disabled={isLoading}
           >
