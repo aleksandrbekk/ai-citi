@@ -9,25 +9,18 @@ const corsHeaders = {
 const LAVA_API_URL = 'https://gate.lava.top/api/v3/invoice'
 const LAVA_API_KEY = Deno.env.get('LAVA_API_KEY') || ''
 
-// Offer ID для каждого пакета монет (создаются в Lava.top)
-const OFFER_IDS: Record<string, string> = {
-  light: Deno.env.get('LAVA_OFFER_COINS_LIGHT') || '',
-  starter: Deno.env.get('LAVA_OFFER_COINS_STARTER') || '',
-  standard: Deno.env.get('LAVA_OFFER_COINS_STANDARD') || '',
-  pro: Deno.env.get('LAVA_OFFER_COINS_PRO') || '',
-  business: Deno.env.get('LAVA_OFFER_COINS_BUSINESS') || '',
+// Offer ID для подписок (создаются в Lava.top с periodicity: MONTHLY)
+const SUBSCRIPTION_OFFER_IDS: Record<string, string> = {
+  starter: Deno.env.get('LAVA_OFFER_SUB_STARTER') || '',
+  pro: Deno.env.get('LAVA_OFFER_SUB_PRO') || '',
+  business: Deno.env.get('LAVA_OFFER_SUB_BUSINESS') || '',
 }
 
-// Fallback на единый оффер (для обратной совместимости)
-const FALLBACK_OFFER_ID = Deno.env.get('LAVA_OFFER_ID') || ''
-
-// Конфигурация пакетов монет
-const PACKAGES: Record<string, { coins: number; price: number }> = {
-  light: { coins: 30, price: 290 },
-  starter: { coins: 100, price: 890 },
-  standard: { coins: 300, price: 2490 },
-  pro: { coins: 500, price: 3990 },
-  business: { coins: 1000, price: 7500 },
+// Конфигурация подписок
+const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number; name: string }> = {
+  starter: { neurons: 150, amount: 499, name: 'STARTER' },
+  pro: { neurons: 500, amount: 1499, name: 'PRO' },
+  business: { neurons: 2000, amount: 4999, name: 'BUSINESS' },
 }
 
 serve(async (req) => {
@@ -37,16 +30,22 @@ serve(async (req) => {
   }
 
   try {
-    const { telegramId, email, currency = 'RUB', packageId = 'starter' } = await req.json()
+    const { telegramId, email, planId } = await req.json()
 
-    console.log('=== Creating Lava.top Invoice ===')
+    console.log('=== Creating Lava.top Subscription Invoice ===')
     console.log('telegramId:', telegramId)
-    console.log('packageId:', packageId)
-    console.log('currency:', currency)
+    console.log('planId:', planId)
 
     if (!telegramId) {
       return new Response(
         JSON.stringify({ ok: false, error: 'telegramId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!planId || planId === 'free') {
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Invalid plan. Choose starter, pro, or business' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -59,41 +58,38 @@ serve(async (req) => {
       )
     }
 
-    // Получаем конфигурацию пакета
-    const pkg = PACKAGES[packageId]
-    if (!pkg) {
+    // Получаем конфигурацию подписки
+    const sub = SUBSCRIPTIONS[planId]
+    if (!sub) {
       return new Response(
-        JSON.stringify({ ok: false, error: `Invalid packageId: ${packageId}` }),
+        JSON.stringify({ ok: false, error: `Invalid planId: ${planId}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Получаем offer ID для конкретного пакета или используем fallback
-    let offerId = OFFER_IDS[packageId]
+    // Получаем offer ID для подписки
+    const offerId = SUBSCRIPTION_OFFER_IDS[planId]
     if (!offerId) {
-      console.log(`No specific offer for ${packageId}, using fallback`)
-      offerId = FALLBACK_OFFER_ID
-    }
-
-    if (!offerId) {
-      console.error('No offer ID configured for package:', packageId)
+      console.error('No subscription offer ID configured for plan:', planId)
       return new Response(
-        JSON.stringify({ ok: false, error: 'Product not configured' }),
+        JSON.stringify({ ok: false, error: `Subscription ${planId.toUpperCase()} not configured. Contact support.` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Создаём инвойс через Lava.top API
+    // Создаём инвойс для рекуррентного платежа
     const invoiceData = {
       email: email || 'noreply@ai-citi.app',
       offerId: offerId,
       currency: 'RUB',
-      periodicity: 'ONE_TIME',
+      periodicity: 'MONTHLY', // КЛЮЧЕВОЕ: рекуррентный платёж
       buyerLanguage: 'RU',
-      successUrl: 'https://aiciti.pro/payment-success',
+      successUrl: 'https://aiciti.pro/subscription-success',
       clientUtm: {
         utm_content: String(telegramId),
-        utm_campaign: packageId // Передаём ID пакета для webhook
+        utm_campaign: `sub_${planId}`, // Prefix sub_ для различения в webhook
+        utm_term: String(sub.neurons), // Передаём количество нейронов
+        utm_medium: String(sub.amount) // Передаём сумму
       }
     }
 
@@ -126,17 +122,18 @@ serve(async (req) => {
         ok: true,
         paymentUrl: result.paymentUrl || result.url || result.link,
         invoiceId: result.id || result.contractId,
-        package: {
-          id: packageId,
-          coins: pkg.coins,
-          price: pkg.price
+        subscription: {
+          plan: planId,
+          name: sub.name,
+          amount: sub.amount,
+          neuronsPerMonth: sub.neurons
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Invoice creation error:', error)
+    console.error('Subscription invoice creation error:', error)
     return new Response(
       JSON.stringify({ ok: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

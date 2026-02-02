@@ -832,6 +832,77 @@ export async function getCoinTransactions(
 /**
  * Получить статистику транзакций
  */
+// ===========================================
+// ПОДПИСКИ
+// ===========================================
+
+export interface UserSubscription {
+  id: string
+  plan: 'starter' | 'pro' | 'business'
+  status: 'active' | 'cancelled' | 'expired' | 'pending'
+  started_at: string
+  expires_at: string
+  next_charge_at: string | null
+  amount_rub: number
+  neurons_per_month: number
+  lava_contract_id: string | null
+}
+
+/**
+ * Проверить есть ли активная подписка
+ */
+export async function hasActiveSubscription(telegramId: number): Promise<boolean> {
+  const { data, error } = await supabase.rpc('has_active_subscription', {
+    p_telegram_id: telegramId
+  })
+
+  if (error) {
+    console.error('Error checking subscription:', error)
+    return false
+  }
+
+  return data === true
+}
+
+/**
+ * Получить информацию об активной подписке
+ */
+export async function getActiveSubscription(telegramId: number): Promise<UserSubscription | null> {
+  const { data, error } = await supabase.rpc('get_active_subscription', {
+    p_telegram_id: telegramId
+  })
+
+  if (error) {
+    console.error('Error getting subscription:', error)
+    return null
+  }
+
+  // rpc возвращает массив, берём первый элемент
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    return null
+  }
+
+  return Array.isArray(data) ? data[0] : data
+}
+
+/**
+ * Получить все подписки пользователя (история)
+ */
+export async function getUserSubscriptions(telegramId: number): Promise<UserSubscription[]> {
+  const { data, error } = await supabase
+    .from('user_subscriptions')
+    .select('*')
+    .eq('telegram_id', telegramId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error getting user subscriptions:', error)
+    return []
+  }
+
+  return data || []
+}
+
 export async function getTransactionStats(telegramId: number): Promise<TransactionStats> {
   // Получаем user_id
   const { data: user } = await supabase

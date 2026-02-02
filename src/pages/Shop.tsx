@@ -266,8 +266,57 @@ export function Shop() {
     }
   }
 
-  const handleBuySubscription = (_id: string) => {
-    toast.info('Подписки скоро будут доступны!')
+  const handleBuySubscription = async (planId: string) => {
+    haptic.action()
+
+    // FREE план — просто информируем
+    if (planId === 'free') {
+      toast.info('Вы уже используете бесплатный тариф')
+      return
+    }
+
+    if (!telegramUser?.id) {
+      haptic.error()
+      toast.error('Не удалось определить пользователя')
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      const response = await fetch(
+        'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-subscription',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            telegramId: telegramUser.id,
+            planId,
+          })
+        }
+      )
+
+      const result = await response.json()
+
+      if (!result.ok || !result.paymentUrl) {
+        throw new Error(result.error || 'Не удалось создать подписку')
+      }
+
+      // Открываем страницу оплаты
+      const tg = window.Telegram?.WebApp
+      if (tg?.openLink) {
+        tg.openLink(result.paymentUrl)
+      } else {
+        window.open(result.paymentUrl, '_blank')
+      }
+
+    } catch (error: unknown) {
+      console.error('Subscription error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Попробуйте позже'
+      toast.error('Ошибка: ' + errorMessage)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   // Временно скрыто
