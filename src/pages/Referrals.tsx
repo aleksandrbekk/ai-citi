@@ -95,32 +95,41 @@ export default function Referrals() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-5">
-        {/* Hero Stats Card */}
-        <div className="bg-gradient-to-br from-orange-400 via-orange-500 to-cyan-500 rounded-3xl p-5 text-white shadow-xl shadow-orange-500/25">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
-              <Gift className="w-6 h-6" />
+        {/* Hero Stats Card - Светлый glassmorphism стиль */}
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-5 shadow-xl shadow-orange-500/10 border border-orange-100">
+          {/* Заработано */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+              <Gift className="w-7 h-7 text-white" />
             </div>
             <div>
-              <p className="text-white/80 text-sm">Всего заработано</p>
-              <p className="text-3xl font-bold">{stats?.total_coins_earned || 0} <span className="text-lg">нейронов</span></p>
+              <p className="text-gray-500 text-sm font-medium">Всего заработано</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-4xl font-bold text-gray-900">{stats?.total_coins_earned || 0}</p>
+                <span className="text-lg text-orange-500 font-semibold">нейронов</span>
+              </div>
             </div>
           </div>
 
+          {/* Статистика - одинаковые карточки */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/15 backdrop-blur rounded-xl p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Users className="w-4 h-4 text-white/70" />
-                <span className="text-white/70 text-xs">Партнёров</span>
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-4 border border-orange-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-gray-600 text-sm font-medium">Партнёров</span>
               </div>
-              <p className="text-2xl font-bold">{stats?.total_referrals || 0}</p>
+              <p className="text-3xl font-bold text-gray-900">{stats?.total_referrals || 0}</p>
             </div>
-            <div className="bg-white/15 backdrop-blur rounded-xl p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-white/70" />
-                <span className="text-white/70 text-xs">От трат партнёров</span>
+            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 rounded-2xl p-4 border border-cyan-100">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-gray-600 text-sm font-medium">От трат</span>
               </div>
-              <p className="text-2xl font-bold">{stats?.total_partner_spent || 0}</p>
+              <p className="text-3xl font-bold text-gray-900">{stats?.total_partner_spent || 0}</p>
             </div>
           </div>
         </div>
@@ -165,59 +174,69 @@ export default function Referrals() {
           </div>
         </div>
 
-        {/* How It Works */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        {/* How It Works - Компактный горизонтальный дизайн */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-cyan-500" />
             Как это работает
           </h3>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          <div className="flex items-start justify-between gap-2">
+            {/* Шаг 1 */}
+            <div className="flex-1 text-center">
+              <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-orange-500/25 mb-2">
                 1
               </div>
-              <p className="font-medium text-gray-900">Отправь ссылку</p>
+              <p className="text-xs font-medium text-gray-700 leading-tight">Отправь<br/>ссылку</p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            {/* Стрелка */}
+            <div className="flex items-center pt-3 text-gray-300">→</div>
+
+            {/* Шаг 2 */}
+            <div className="flex-1 text-center">
+              <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-cyan-500/25 mb-2">
                 2
               </div>
-              <p className="font-medium text-gray-900">Друг генерирует контент</p>
+              <p className="text-xs font-medium text-gray-700 leading-tight">Друг<br/>покупает</p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            {/* Стрелка */}
+            <div className="flex items-center pt-3 text-gray-300">→</div>
+
+            {/* Шаг 3 */}
+            <div className="flex-1 text-center">
+              <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-orange-500 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-orange-500/25 mb-2">
                 3
               </div>
-              <p className="font-medium text-gray-900">Ты получаешь <span className="font-bold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">10% за каждую генерацию</span></p>
+              <p className="text-xs font-bold text-orange-500 leading-tight">Ты<br/>+10%</p>
             </div>
           </div>
         </div>
 
-        {/* Partners List */}
+        {/* Partners List - Улучшенный дизайн с заметной кнопкой отправки */}
         {stats && stats.referrals && stats.referrals.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
                 <Users className="w-5 h-5 text-orange-500" />
                 Твои партнёры
               </h3>
-              <span className="text-sm text-gray-500">{stats.referrals.length} чел.</span>
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{stats.referrals.length} чел.</span>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-50">
               {stats.referrals.map((ref) => (
                 <div
                   key={ref.telegram_id}
-                  className="flex items-center gap-3 p-4"
+                  className="p-4 hover:bg-gray-50/50 transition-colors"
                 >
+                  {/* Верхняя строка: аватар + имя + стрелка */}
                   <button
                     onClick={() => navigate(`/referral/${ref.telegram_id}`)}
-                    className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity cursor-pointer"
+                    className="flex items-center gap-3 w-full mb-3 cursor-pointer"
                   >
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md">
                       {ref.first_name?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
@@ -228,26 +247,20 @@ export default function Referrals() {
                         <p className="text-sm text-gray-500">@{ref.username}</p>
                       )}
                     </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
                   </button>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openSendModal(ref)
-                      }}
-                      className="p-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors cursor-pointer"
-                      aria-label="Отправить нейроны"
-                    >
-                      <Send className="w-4 h-4 text-orange-500" />
-                    </button>
-                    <button
-                      onClick={() => navigate(`/referral/${ref.telegram_id}`)}
-                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                      aria-label="Подробнее"
-                    >
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
-                    </button>
-                  </div>
+
+                  {/* Кнопка отправки нейронов — заметная */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      openSendModal(ref)
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-orange-50 to-cyan-50 border border-orange-200/50 hover:border-orange-300 hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                  >
+                    <Send className="w-4 h-4 text-orange-500" />
+                    <span className="font-semibold text-orange-600 text-sm">Отправить нейроны</span>
+                  </button>
                 </div>
               ))}
             </div>
