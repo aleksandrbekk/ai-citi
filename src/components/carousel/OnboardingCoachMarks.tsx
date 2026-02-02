@@ -5,8 +5,8 @@ import { X, ChevronRight, Sparkles } from 'lucide-react'
 const ONBOARDING_COMPLETED_KEY = 'carousel_onboarding_completed'
 
 // Персонаж-дизайнер
-const MASCOT_IMAGE = '/images/neurochik.png'
-const MASCOT_NAME = 'Нейрочик'
+const MASCOT_IMAGE = '/carousel-icon.png'
+const MASCOT_NAME = 'Дизайнер'
 
 interface OnboardingStep {
   id: string
@@ -20,7 +20,7 @@ interface OnboardingStep {
 const STEPS: OnboardingStep[] = [
   {
     id: 'welcome',
-    message: 'Привет! Я твой AI-дизайнер! Покажу как создать крутую карусель за минуту 🚀',
+    message: 'Привет! Я помогу тебе создать крутую карусель за минуту 🚀',
     emoji: '👋',
     targetSelector: '',
     position: 'bottom',
