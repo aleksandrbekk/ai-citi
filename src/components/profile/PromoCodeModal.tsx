@@ -1,5 +1,5 @@
 import { X, Ticket, Check, AlertCircle, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { haptic } from '@/lib/haptic'
 import { redeemPromoCode } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
@@ -19,8 +19,16 @@ export function PromoCodeModal({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<{ message: string; coins: number } | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const telegramUser = getTelegramUser()
+
+  // Автофокус на input при открытии
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100)
+    }
+  }, [isOpen])
 
   const handleSubmit = async () => {
     if (!code.trim() || !telegramUser?.id) return
@@ -95,17 +103,30 @@ export function PromoCodeModal({
 
         {/* Input */}
         <div className="mb-4">
+          <label htmlFor="promo-code" className="sr-only">
+            Промокод
+          </label>
           <input
+            ref={inputRef}
+            id="promo-code"
             type="text"
             value={code}
             onChange={(e) => {
               setCode(e.target.value.toUpperCase())
               setError(null)
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && code.trim() && !isLoading && !success) {
+                handleSubmit()
+              }
+            }}
             placeholder="ВВЕДИТЕ КОД"
+            autoComplete="off"
+            autoCapitalize="characters"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center font-mono font-bold text-lg tracking-wider placeholder:text-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all"
             disabled={isLoading || !!success}
             maxLength={20}
+            aria-describedby="promo-hint"
           />
         </div>
 
@@ -150,7 +171,7 @@ export function PromoCodeModal({
         </button>
 
         {/* Hint */}
-        <p className="text-xs text-gray-400 text-center mt-4">
+        <p id="promo-hint" className="text-xs text-gray-400 text-center mt-4">
           Промокод можно использовать только один раз
         </p>
       </div>

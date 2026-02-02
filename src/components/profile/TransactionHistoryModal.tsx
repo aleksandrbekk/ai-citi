@@ -123,6 +123,7 @@ export function TransactionHistoryModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Закрыть"
             className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5 text-gray-600" />
