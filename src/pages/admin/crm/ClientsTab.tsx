@@ -53,7 +53,7 @@ export function ClientsTab() {
 
   // Форма нового клиента
   const [newClientTelegramId, setNewClientTelegramId] = useState('')
-  const [newClientPlan, setNewClientPlan] = useState('BASIC')
+  const [newClientPlan, setNewClientPlan] = useState('FREE')
 
   // Загрузка клиентов
   const { data: clients, isLoading } = useQuery({
@@ -345,10 +345,10 @@ export function ClientsTab() {
           className="px-2 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm"
         >
           <option value="all">Все</option>
-          <option value="BASIC">BASIC</option>
-          <option value="STARTER">STARTER</option>
-          <option value="PRO">PRO</option>
-          <option value="ELITE">ELITE</option>
+          <option value="FREE">FREE</option>
+          <option value="STARTER">STARTER (499₽/мес)</option>
+          <option value="PRO">PRO (1499₽/мес)</option>
+          <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
         </select>
         <button
           onClick={() => setShowAddClientModal(true)}
@@ -479,10 +479,10 @@ export function ClientsTab() {
                   onChange={(e) => setNewClientPlan(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900"
                 >
-                  <option value="BASIC">BASIC</option>
-                  <option value="STARTER">STARTER</option>
-                  <option value="PRO">PRO</option>
-                  <option value="ELITE">ELITE</option>
+                  <option value="FREE">FREE (бесплатно)</option>
+                  <option value="STARTER">STARTER (499₽/мес)</option>
+                  <option value="PRO">PRO (1499₽/мес)</option>
+                  <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
                 </select>
               </div>
 
@@ -554,10 +554,10 @@ export function ClientsTab() {
                       onChange={(e) => setEditPlan(e.target.value)}
                       className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900"
                     >
-                      <option value="BASIC">BASIC</option>
-                      <option value="STARTER">STARTER</option>
-                      <option value="PRO">PRO</option>
-                      <option value="ELITE">ELITE</option>
+                      <option value="FREE">FREE (бесплатно)</option>
+                      <option value="STARTER">STARTER (499₽/мес)</option>
+                      <option value="PRO">PRO (1499₽/мес)</option>
+                      <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
                     </select>
                   </div>
 
