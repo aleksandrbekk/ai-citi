@@ -173,34 +173,25 @@ export default function Referrals() {
           </h3>
 
           <div className="space-y-3">
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 1
               </div>
-              <div>
-                <p className="font-medium text-gray-900">Отправь ссылку другу</p>
-                <p className="text-sm text-gray-500">Он регистрируется по ней</p>
-              </div>
+              <p className="font-medium text-gray-900">Отправь ссылку</p>
             </div>
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 2
               </div>
-              <div>
-                <p className="font-medium text-gray-900">Друг тратит нейроны</p>
-                <p className="text-sm text-gray-500">На любые инструменты</p>
-              </div>
+              <p className="font-medium text-gray-900">Друг генерирует контент</p>
             </div>
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 3
               </div>
-              <div>
-                <p className="font-medium text-gray-900">Ты получаешь 10%</p>
-                <p className="text-sm text-gray-500"><span className="font-semibold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">От каждой его траты</span></p>
-              </div>
+              <p className="font-medium text-gray-900">Ты получаешь <span className="font-bold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">10% за каждую генерацию</span></p>
             </div>
           </div>
         </div>
