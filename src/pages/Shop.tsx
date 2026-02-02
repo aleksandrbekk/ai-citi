@@ -3,35 +3,108 @@ import { toast } from 'sonner'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { haptic } from '@/lib/haptic'
-import { Coins, Crown, Star, User } from 'lucide-react'
+import { Coins, Star, User } from 'lucide-react'
 // import { Palette } from 'lucide-react' // Временно скрыто
 
-// Ссылка на продукт в Lava.top
-const LAVA_PRODUCT_URL = 'https://app.lava.top/products/bcc55515-b779-47cd-83aa-5306575e6d95'
+// Типы для пакетов
+interface CoinPackage {
+  id: string
+  name: string
+  coins: number
+  bonus: number
+  generations: number
+  priceRub: number
+  priceUsd: number
+  savings: number
+  popular?: boolean
+  available: boolean
+}
 
-// Пакеты монет
-const coinPackages = [
+// Пакеты монет (нейронов) — 5 уровней
+const coinPackages: CoinPackage[] = [
   {
-    id: 'premium',
-    name: '100 монет',
-    coins: 100,
-    priceLabel: '$10',
-    icon: Crown,
-    color: 'from-yellow-400 to-amber-500',
-    shadow: 'shadow-amber-500/30',
+    id: 'starter',
+    name: 'Стартовый',
+    coins: 30,
+    bonus: 0,
+    generations: 1,
+    priceRub: 299,
+    priceUsd: 3,
+    savings: 0,
     available: true,
-    lavaUrl: LAVA_PRODUCT_URL,
+  },
+  {
+    id: 'basic',
+    name: 'Базовый',
+    coins: 100,
+    bonus: 0,
+    generations: 3,
+    priceRub: 799,
+    priceUsd: 8,
+    savings: 11,
+    available: true,
+  },
+  {
+    id: 'standard',
+    name: 'Стандартный',
+    coins: 300,
+    bonus: 30,
+    generations: 10,
+    priceRub: 1999,
+    priceUsd: 20,
+    savings: 22,
+    available: true,
+  },
+  {
+    id: 'pro',
+    name: 'PRO',
+    coins: 500,
+    bonus: 50,
+    generations: 17,
+    priceRub: 2999,
+    priceUsd: 30,
+    savings: 33,
+    popular: true,
+    available: true,
+  },
+  {
+    id: 'business',
+    name: 'Бизнес',
+    coins: 1000,
+    bonus: 150,
+    generations: 33,
+    priceRub: 4999,
+    priceUsd: 50,
+    savings: 44,
+    available: true,
   },
 ]
 
+// Типы для подписок
+interface SubscriptionPackage {
+  id: string
+  name: string
+  priceRub: number
+  priceLabel: string
+  neuronsPerMonth: number
+  generationsPerMonth: number
+  features: string[]
+  color: string
+  bgColor: string
+  borderColor: string
+  popular?: boolean
+}
+
 // Пакеты подписок (4 тарифа)
-const subscriptionPackages = [
+const subscriptionPackages: SubscriptionPackage[] = [
   {
-    id: 'basic',
-    name: 'BASIC',
-    price: 'Бесплатно',
-    priceLabel: '0 ₽',
-    features: ['Базовый доступ', 'Стандартные шаблоны', '10 запросов/день'],
+    id: 'free',
+    name: 'FREE',
+    priceRub: 0,
+    priceLabel: 'Бесплатно',
+    neuronsPerMonth: 30,
+    generationsPerMonth: 1,
+    features: ['1 бесплатная генерация', 'Базовые стили карусели', 'Стандартная очередь'],
     color: 'from-gray-400 to-gray-500',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
@@ -39,9 +112,11 @@ const subscriptionPackages = [
   {
     id: 'starter',
     name: 'STARTER',
-    price: '299 ₽/мес',
-    priceLabel: '299 ₽',
-    features: ['Расширенный доступ', 'Все шаблоны', '50 запросов/день', 'Приоритет поддержка'],
+    priceRub: 499,
+    priceLabel: '499 ₽/мес',
+    neuronsPerMonth: 150,
+    generationsPerMonth: 5,
+    features: ['5 генераций в месяц', 'Все стили карусели', 'Приоритет очереди', 'Сохранение настроек'],
     color: 'from-cyan-400 to-cyan-500',
     bgColor: 'bg-cyan-50',
     borderColor: 'border-cyan-300',
@@ -49,20 +124,24 @@ const subscriptionPackages = [
   {
     id: 'pro',
     name: 'PRO',
-    price: '799 ₽/мес',
-    priceLabel: '799 ₽',
-    features: ['Расширенный доступ', 'Все шаблоны', '200 запросов/день', 'Приоритет генерации', 'Экспорт данных'],
+    priceRub: 1499,
+    priceLabel: '1,499 ₽/мес',
+    neuronsPerMonth: 500,
+    generationsPerMonth: 17,
+    features: ['17 генераций в месяц', 'Все стили карусели', 'Приоритет генерации', 'Сохранение настроек', 'Экспорт в высоком качестве'],
     color: 'from-orange-400 to-orange-500',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-400',
     popular: true,
   },
   {
-    id: 'elite',
-    name: 'ELITE',
-    price: '9,999 ₽/мес',
-    priceLabel: '9,999 ₽',
-    features: ['Максимальный доступ', 'Все функции', 'Безлимит запросов', 'Персональный менеджер', 'Безлимит API', 'Приоритет разработка'],
+    id: 'business',
+    name: 'BUSINESS',
+    priceRub: 4999,
+    priceLabel: '4,999 ₽/мес',
+    neuronsPerMonth: 2000,
+    generationsPerMonth: 67,
+    features: ['Безлимит генераций', 'API доступ', 'Персональный менеджер', 'White-label возможности', 'Приоритетная разработка'],
     color: 'from-amber-400 to-amber-500',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-400',
@@ -123,7 +202,7 @@ export function Shop() {
   const [currency, setCurrency] = useState<'RUB' | 'USD' | 'EUR'>('RUB')
 
 
-  const handleBuy = async (pkg: typeof coinPackages[0]) => {
+  const handleBuy = async (pkg: CoinPackage) => {
     haptic.action() // Вибрация при покупке
     console.log('handleBuy called', { telegramUser, pkg })
 
@@ -143,13 +222,26 @@ export function Shop() {
     setIsProcessing(true)
 
     try {
+      // Определяем сумму в зависимости от валюты
+      const amount = currency === 'RUB'
+        ? pkg.priceRub
+        : currency === 'USD'
+          ? pkg.priceUsd
+          : Math.round(pkg.priceUsd * 0.92) // EUR
+
       // Вызываем наш бэкенд для создания инвойса с UTM
       const response = await fetch(
         'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-invoice',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ telegramId: telegramUser.id, currency })
+          body: JSON.stringify({
+            telegramId: telegramUser.id,
+            currency,
+            packageId: pkg.id,
+            amount,
+            coins: pkg.coins + pkg.bonus,
+          })
         }
       )
 
@@ -199,8 +291,8 @@ export function Shop() {
           <button
             onClick={() => setActiveTab('coins')}
             className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'coins'
-                ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
               }`}
           >
             <Coins className="w-4 h-4 inline mr-1" />
@@ -209,8 +301,8 @@ export function Shop() {
           <button
             onClick={() => setActiveTab('subscription')}
             className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'subscription'
-                ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
-                : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
               }`}
           >
             <Star className="w-4 h-4 inline mr-1" />
@@ -281,8 +373,8 @@ export function Shop() {
                   key={cur}
                   onClick={() => setCurrency(cur)}
                   className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${currency === cur
-                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
-                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                     }`}
                 >
                   {cur === 'RUB' ? '₽ Рубли' : cur === 'USD' ? '$ Доллары' : '€ Евро'}
@@ -293,29 +385,68 @@ export function Shop() {
             {/* Пакеты монет */}
             <div className="space-y-3">
               {coinPackages.map((pkg) => {
-                const Icon = pkg.icon
+                const displayPrice = currency === 'RUB'
+                  ? `${pkg.priceRub.toLocaleString('ru-RU')} ₽`
+                  : currency === 'USD'
+                    ? `$${pkg.priceUsd}`
+                    : `€${Math.round(pkg.priceUsd * 0.92)}`
+
                 return (
                   <button
                     key={pkg.id}
                     onClick={() => handleBuy(pkg)}
                     disabled={isProcessing}
-                    className="w-full bg-white border-2 border-gray-200 rounded-2xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:border-orange-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer"
+                    className={`relative w-full bg-white border-2 rounded-2xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer ${pkg.popular
+                      ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
+                      : 'border-gray-200 hover:border-orange-300'
+                      }`}
                   >
+                    {/* Popular Badge */}
+                    {pkg.popular && (
+                      <div className="absolute -top-2.5 left-4 z-10">
+                        <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
+                          ПОПУЛЯРНЫЙ
+                        </span>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
-                          <Icon className="w-6 h-6 text-white" />
+                        {/* Icon */}
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${pkg.popular
+                          ? 'bg-gradient-to-br from-orange-400 to-orange-500'
+                          : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                          }`}>
+                          <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain" />
                         </div>
+
+                        {/* Info */}
                         <div>
-                          <p className="text-base font-bold text-gray-900">{pkg.name}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {isProcessing ? 'Создаём платёж...' : 'Пополнение баланса'}
+                          <div className="flex items-center gap-2">
+                            <p className="text-base font-bold text-gray-900">{pkg.name}</p>
+                            {pkg.savings > 0 && (
+                              <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">
+                                -{pkg.savings}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-sm text-gray-700 font-medium">{pkg.coins} нейронов</span>
+                            {pkg.bonus > 0 && (
+                              <span className="text-xs text-orange-500 font-semibold">+{pkg.bonus} бонус</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {isProcessing ? 'Создаём платёж...' : `~${pkg.generations} карусел${pkg.generations === 1 ? 'ь' : pkg.generations < 5 ? 'и' : 'ей'}`}
                           </p>
                         </div>
                       </div>
+
+                      {/* Price */}
                       <div className="text-right">
-                        <p className="text-xl font-bold text-gray-900">$10</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{pkg.coins} монет</p>
+                        <p className={`text-xl font-bold ${pkg.popular ? 'text-orange-500' : 'text-gray-900'}`}>
+                          {displayPrice}
+                        </p>
                       </div>
                     </div>
                   </button>
@@ -327,51 +458,62 @@ export function Shop() {
 
         {activeTab === 'subscription' && (
           <>
-            <p className="text-sm text-gray-600 text-center mb-6">Ежемесячная подписка</p>
-            <div className="grid grid-cols-1 gap-6">
+            <div className="text-center mb-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Выберите тариф</h2>
+              <p className="text-sm text-gray-500">Ежемесячная подписка с нейронами</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
               {subscriptionPackages.map((pkg) => (
                 <button
                   key={pkg.id}
                   onClick={() => handleBuySubscription(pkg.id)}
-                  className={`relative w-full bg-white border-2 ${pkg.borderColor} rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-xl hover:border-opacity-100 active:scale-[0.99] cursor-pointer ${pkg.popular
-                      ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
-                      : 'hover:border-opacity-60'
+                  className={`relative w-full bg-white border-2 ${pkg.borderColor} rounded-2xl p-5 text-left transition-all duration-300 hover:shadow-xl active:scale-[0.99] cursor-pointer ${pkg.popular
+                    ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
+                    : 'hover:border-opacity-60'
                     }`}
                 >
                   {pkg.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
                         ХИТ
                       </span>
                     </div>
                   )}
 
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
-                        <Star className="w-8 h-8 text-white" />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
+                        <Star className="w-7 h-7 text-white" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-2xl mb-1">{pkg.name}</p>
-                        <p className="text-base font-semibold text-gray-700">{pkg.price}</p>
+                        <p className="font-bold text-gray-900 text-xl">{pkg.name}</p>
+                        <p className="text-base font-semibold text-gray-700">{pkg.priceLabel}</p>
                       </div>
+                    </div>
+                    {/* Neurons Badge */}
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 justify-end">
+                        <img src="/neirocoin.png" alt="Нейро" className="w-5 h-5 object-contain" />
+                        <span className="text-lg font-bold text-gray-900">{pkg.neuronsPerMonth}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">~{pkg.generationsPerMonth} карусел/мес</p>
                     </div>
                   </div>
 
                   {/* Features */}
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 mb-4">
                     {pkg.features.map((feature, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${pkg.popular
-                            ? 'bg-orange-500'
-                            : pkg.id === 'elite'
-                              ? 'bg-amber-500'
-                              : pkg.id === 'starter'
-                                ? 'bg-cyan-500'
-                                : 'bg-gray-400'
+                      <div key={i} className="flex items-start gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${pkg.popular
+                          ? 'bg-orange-500'
+                          : pkg.id === 'business'
+                            ? 'bg-amber-500'
+                            : pkg.id === 'starter'
+                              ? 'bg-cyan-500'
+                              : 'bg-gray-400'
                           }`} />
-                        <span className="text-sm text-gray-700 leading-relaxed flex-1">{feature}</span>
+                        <span className="text-sm text-gray-600 leading-relaxed flex-1">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -382,16 +524,16 @@ export function Shop() {
                       e.stopPropagation()
                       handleBuySubscription(pkg.id)
                     }}
-                    className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${pkg.popular
-                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/40 hover:scale-[1.02]'
-                        : pkg.id === 'elite'
-                          ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-lg hover:shadow-amber-500/40 hover:scale-[1.02]'
-                          : pkg.id === 'starter'
-                            ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02]'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${pkg.popular
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/40 hover:scale-[1.02]'
+                      : pkg.id === 'business'
+                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-lg hover:shadow-amber-500/40 hover:scale-[1.02]'
+                        : pkg.id === 'starter'
+                          ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02]'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                   >
-                    {pkg.id === 'basic' ? 'Начать бесплатно' : 'Выбрать план'}
+                    {pkg.id === 'free' ? 'Начать бесплатно' : 'Оформить подписку'}
                   </button>
                 </button>
               ))}
