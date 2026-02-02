@@ -11,71 +11,72 @@ interface CoinPackage {
   id: string
   name: string
   coins: number
-  bonus: number
   generations: number
   priceRub: number
   priceUsd: number
+  pricePerCoin: number
   savings: number
   popular?: boolean
   available: boolean
 }
 
 // Пакеты монет (нейронов) — 5 уровней
+// Себестоимость: $1.4/генерация ≈ 130₽, минимум 7.5₽/монета
 const coinPackages: CoinPackage[] = [
   {
-    id: 'starter',
-    name: 'Стартовый',
+    id: 'light',
+    name: 'Light',
     coins: 30,
-    bonus: 0,
     generations: 1,
-    priceRub: 299,
+    priceRub: 290,
     priceUsd: 3,
+    pricePerCoin: 9.67,
     savings: 0,
     available: true,
   },
   {
-    id: 'basic',
-    name: 'Базовый',
+    id: 'starter',
+    name: 'Starter',
     coins: 100,
-    bonus: 0,
     generations: 3,
-    priceRub: 799,
-    priceUsd: 8,
-    savings: 11,
+    priceRub: 890,
+    priceUsd: 10,
+    pricePerCoin: 8.90,
+    savings: 8,
     available: true,
   },
   {
     id: 'standard',
-    name: 'Стандартный',
+    name: 'Standard',
     coins: 300,
-    bonus: 30,
     generations: 10,
-    priceRub: 1999,
-    priceUsd: 20,
-    savings: 22,
+    priceRub: 2490,
+    priceUsd: 28,
+    pricePerCoin: 8.30,
+    savings: 14,
     available: true,
   },
   {
     id: 'pro',
     name: 'PRO',
     coins: 500,
-    bonus: 50,
     generations: 17,
-    priceRub: 2999,
-    priceUsd: 30,
-    savings: 33,
+    priceRub: 3990,
+    priceUsd: 45,
+    pricePerCoin: 7.98,
+    savings: 17,
     popular: true,
     available: true,
   },
   {
     id: 'business',
-    name: 'Бизнес',
+    name: 'Business',
     coins: 1000,
-    bonus: 150,
     generations: 33,
-    priceRub: 4999,
-    priceUsd: 50,
-    savings: 44,
+    priceRub: 7500,
+    priceUsd: 85,
+    pricePerCoin: 7.50,
+    savings: 22,
     available: true,
   },
 ]
@@ -240,7 +241,7 @@ export function Shop() {
             currency,
             packageId: pkg.id,
             amount,
-            coins: pkg.coins + pkg.bonus,
+            coins: pkg.coins,
           })
         }
       )
@@ -432,9 +433,7 @@ export function Shop() {
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="text-sm text-gray-700 font-medium">{pkg.coins} нейронов</span>
-                            {pkg.bonus > 0 && (
-                              <span className="text-xs text-orange-500 font-semibold">+{pkg.bonus} бонус</span>
-                            )}
+                            <span className="text-xs text-gray-400">• {pkg.pricePerCoin}₽/шт</span>
                           </div>
                           <p className="text-xs text-gray-400 mt-0.5">
                             {isProcessing ? 'Создаём платёж...' : `~${pkg.generations} карусел${pkg.generations === 1 ? 'ь' : pkg.generations < 5 ? 'и' : 'ей'}`}
