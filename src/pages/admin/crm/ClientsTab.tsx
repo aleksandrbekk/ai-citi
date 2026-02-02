@@ -194,7 +194,7 @@ export function ClientsTab() {
       queryClient.invalidateQueries({ queryKey: ['premium-clients'] })
       setShowAddClientModal(false)
       setNewClientTelegramId('')
-      setNewClientPlan('BASIC')
+      setNewClientPlan('FREE')
     }
   })
 

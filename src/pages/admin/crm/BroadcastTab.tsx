@@ -74,28 +74,28 @@ export function BroadcastTab() {
       filter: (c) => new Date(c.expires_at) <= now
     },
     {
-      id: 'basic',
-      label: 'Тариф BASIC',
-      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'BASIC').length || 0,
-      filter: (c) => c.plan?.toUpperCase() === 'BASIC'
-    },
-    {
-      id: 'pro',
-      label: 'Тариф PRO',
-      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
-      filter: (c) => c.plan?.toUpperCase() === 'PRO'
+      id: 'free',
+      label: 'Тариф FREE',
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'FREE' || c.plan?.toUpperCase() === 'BASIC').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'FREE' || c.plan?.toUpperCase() === 'BASIC'
     },
     {
       id: 'starter',
-      label: 'Тариф STARTER',
+      label: 'Тариф STARTER (499₽)',
       count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'STARTER').length || 0,
       filter: (c) => c.plan?.toUpperCase() === 'STARTER'
     },
     {
-      id: 'elite',
-      label: 'Тариф ELITE',
-      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'ELITE').length || 0,
-      filter: (c) => c.plan?.toUpperCase() === 'ELITE'
+      id: 'pro',
+      label: 'Тариф PRO (1499₽)',
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'PRO'
+    },
+    {
+      id: 'business',
+      label: 'Тариф BUSINESS (4999₽)',
+      count: premiumClients?.filter(c => c.plan?.toUpperCase() === 'BUSINESS' || c.plan?.toUpperCase() === 'ELITE').length || 0,
+      filter: (c) => c.plan?.toUpperCase() === 'BUSINESS' || c.plan?.toUpperCase() === 'ELITE'
     },
   ]
 
