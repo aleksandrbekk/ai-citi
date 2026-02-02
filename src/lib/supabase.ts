@@ -776,3 +776,110 @@ export async function spendCoinsSmart(
   }
 }
 
+// ===========================================
+// ИСТОРИЯ ТРАНЗАКЦИЙ
+// ===========================================
+
+export interface CoinTransaction {
+  id: string
+  amount: number
+  balance_after: number
+  type: 'generation' | 'purchase' | 'subscription' | 'referral' | 'bonus' | 'promo' | 'gift'
+  description: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+export interface TransactionStats {
+  total_earned: number
+  total_spent: number
+  total_transactions: number
+  generations_count: number
+}
+
+/**
+ * Получить историю транзакций пользователя
+ */
+export async function getCoinTransactions(
+  telegramId: number,
+  limit: number = 50,
+  offset: number = 0
+): Promise<CoinTransaction[]> {
+  // Сначала получаем user_id по telegram_id
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('coin_transactions')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) {
+    console.error('Error fetching transactions:', error)
+    return []
+  }
+
+  return data || []
+}
+
+/**
+ * Получить статистику транзакций
+ */
+export async function getTransactionStats(telegramId: number): Promise<TransactionStats> {
+  // Получаем user_id
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (!user) {
+    return {
+      total_earned: 0,
+      total_spent: 0,
+      total_transactions: 0,
+      generations_count: 0
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('coin_transactions')
+    .select('amount, type')
+    .eq('user_id', user.id)
+
+  if (error || !data) {
+    return {
+      total_earned: 0,
+      total_spent: 0,
+      total_transactions: 0,
+      generations_count: 0
+    }
+  }
+
+  const stats = data.reduce((acc, tx) => {
+    if (tx.amount > 0) {
+      acc.total_earned += tx.amount
+    } else {
+      acc.total_spent += Math.abs(tx.amount)
+    }
+    if (tx.type === 'generation') {
+      acc.generations_count += 1
+    }
+    acc.total_transactions += 1
+    return acc
+  }, {
+    total_earned: 0,
+    total_spent: 0,
+    total_transactions: 0,
+    generations_count: 0
+  })
+
+  return stats
+}

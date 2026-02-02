@@ -11,7 +11,8 @@ import {
   QuickActions,
   QRCodeModal,
   SettingsDrawer,
-  PromoCodeModal
+  PromoCodeModal,
+  TransactionHistoryModal
 } from '@/components/profile'
 
 export default function Profile() {
@@ -30,6 +31,7 @@ export default function Profile() {
   const [showSettings, setShowSettings] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
   const [showPromoCode, setShowPromoCode] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   const { stats, referralLink, referralCode } = useReferrals()
 
@@ -89,7 +91,7 @@ export default function Profile() {
   const handlePartners = () => navigate('/referrals')
 
   const handleHistory = () => {
-    toast.info('История транзакций скоро будет доступна')
+    setShowHistory(true)
   }
 
   const handlePromoCode = () => {
@@ -154,6 +156,12 @@ export default function Profile() {
         isOpen={showPromoCode}
         onClose={() => setShowPromoCode(false)}
         onSuccess={handlePromoSuccess}
+      />
+
+      {/* Transaction History Modal */}
+      <TransactionHistoryModal
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
       />
     </div>
   )
