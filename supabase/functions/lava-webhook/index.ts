@@ -111,6 +111,12 @@ serve(async (req) => {
         console.log('Subscription cancelled:', cancelResult)
       }
 
+      // Обновляем plan в premium_clients на FREE (подписка отменена, но доступ до expires_at)
+      await supabase
+        .from('premium_clients')
+        .update({ plan: 'FREE' })
+        .eq('telegram_id', telegramId)
+
       return new Response(
         JSON.stringify({ ok: true, action: 'subscription_cancelled', result: cancelResult }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -166,6 +172,27 @@ serve(async (req) => {
       }
 
       console.log('Subscription extended:', extendResult)
+
+      // Обновляем expires_at в premium_clients
+      const newExpiresAt = new Date()
+      newExpiresAt.setDate(newExpiresAt.getDate() + 30)
+      await supabase
+        .from('premium_clients')
+        .update({ expires_at: newExpiresAt.toISOString() })
+        .eq('telegram_id', telegramId)
+
+      // Добавляем платёж
+      const subAmount = extendResult?.amount_rub || 499
+      await supabase
+        .from('payments')
+        .insert({
+          telegram_id: telegramId,
+          amount: subAmount,
+          currency: 'RUB',
+          source: 'lava.top',
+          payment_method: 'subscription_recurring',
+          paid_at: new Date().toISOString()
+        })
 
       // Реферальный бонус за продление
       const neuronsAdded = extendResult?.neurons_added || 0
@@ -226,6 +253,43 @@ serve(async (req) => {
       }
 
       console.log('Subscription created:', createResult)
+
+      // Добавляем/обновляем в premium_clients для админки
+      const planUpper = planId.toUpperCase()
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 30)
+
+      // Получаем данные пользователя
+      const { data: userData } = await supabase
+        .from('users')
+        .select('username, first_name')
+        .eq('telegram_id', telegramId)
+        .single()
+
+      // Upsert в premium_clients
+      await supabase
+        .from('premium_clients')
+        .upsert({
+          telegram_id: telegramId,
+          plan: planUpper,
+          expires_at: expiresAt.toISOString(),
+          username: userData?.username || null,
+          first_name: userData?.first_name || null,
+          source: 'lava.top',
+          payment_method: 'subscription'
+        }, { onConflict: 'telegram_id' })
+
+      // Добавляем платёж
+      await supabase
+        .from('payments')
+        .insert({
+          telegram_id: telegramId,
+          amount: subConfig.amount,
+          currency: 'RUB',
+          source: 'lava.top',
+          payment_method: 'subscription',
+          paid_at: new Date().toISOString()
+        })
 
       // Реферальный бонус
       await supabase.rpc('pay_referral_purchase_bonus', {
