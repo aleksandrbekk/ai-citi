@@ -10,17 +10,29 @@ import {
   Share2,
   ChevronRight,
   Sparkles,
-  X
+  X,
+  Send
 } from 'lucide-react'
 import { useReferrals } from '@/hooks/useReferrals'
+import { SendCoinsModal } from '@/components/referrals/SendCoinsModal'
+import { haptic } from '@/lib/haptic'
 
 // Ключ для localStorage
 const REFERRAL_ONBOARDING_KEY = 'referral_onboarding_completed'
 
+interface Partner {
+  telegram_id: number
+  username: string | null
+  first_name: string | null
+  created_at: string
+}
+
 export default function Referrals() {
   const navigate = useNavigate()
-  const { stats, referralLink, referralCode, handleCopyLink, isCopied, isLoading } = useReferrals()
+  const { stats, referralLink, referralCode, handleCopyLink, isCopied, isLoading, refetch } = useReferrals()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showSendModal, setShowSendModal] = useState(false)
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null)
 
   // Проверяем нужен ли онбординг
   useEffect(() => {
@@ -34,6 +46,21 @@ export default function Referrals() {
   const completeOnboarding = () => {
     setShowOnboarding(false)
     localStorage.setItem(REFERRAL_ONBOARDING_KEY, 'true')
+  }
+
+  // Открытие модалки отправки нейронов
+  const openSendModal = (partner: Partner) => {
+    setSelectedPartner(partner)
+    setShowSendModal(true)
+    haptic.tap()
+  }
+
+  // Обработка успешной отправки
+  const handleSendSuccess = () => {
+    setShowSendModal(false)
+    setSelectedPartner(null)
+    // Обновляем статистику
+    refetch()
   }
 
   // Шаринг через Telegram
@@ -191,29 +218,46 @@ export default function Referrals() {
 
             <div className="divide-y divide-gray-100">
               {stats.referrals.map((ref) => (
-                <button
+                <div
                   key={ref.telegram_id}
-                  onClick={() => navigate(`/referral/${ref.telegram_id}`)}
-                  className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="flex items-center gap-3 p-4"
                 >
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                    {ref.first_name?.[0]?.toUpperCase() || '?'}
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="font-semibold text-gray-900 truncate">
-                      {ref.first_name || ref.username || `ID: ${ref.telegram_id}`}
-                    </p>
-                    {ref.username && (
-                      <p className="text-sm text-gray-500">@{ref.username}</p>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => navigate(`/referral/${ref.telegram_id}`)}
+                    className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity cursor-pointer"
+                  >
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {ref.first_name?.[0]?.toUpperCase() || '?'}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {ref.first_name || ref.username || `ID: ${ref.telegram_id}`}
+                      </p>
+                      {ref.username && (
+                        <p className="text-sm text-gray-500">@{ref.username}</p>
+                      )}
+                    </div>
+                  </button>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs text-gray-400">
-                      {new Date(ref.created_at).toLocaleDateString('ru-RU')}
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-gray-300" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openSendModal(ref)
+                      }}
+                      className="p-2 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors cursor-pointer"
+                      aria-label="Отправить нейроны"
+                    >
+                      <Send className="w-4 h-4 text-orange-500" />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/referral/${ref.telegram_id}`)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      aria-label="Подробнее"
+                    >
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </button>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -251,6 +295,17 @@ export default function Referrals() {
       {showOnboarding && (
         <ReferralOnboarding onComplete={completeOnboarding} />
       )}
+
+      {/* Send Coins Modal */}
+      <SendCoinsModal
+        isOpen={showSendModal}
+        onClose={() => {
+          setShowSendModal(false)
+          setSelectedPartner(null)
+        }}
+        onSuccess={handleSendSuccess}
+        partner={selectedPartner}
+      />
     </div>
   )
 }
