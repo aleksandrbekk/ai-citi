@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Users
 } from 'lucide-react'
+import LiveGenerationFeed from '@/components/admin/LiveGenerationFeed'
 
 interface CoinTransaction {
   id: string
@@ -213,6 +214,9 @@ export default function StatsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Live-лента генераций */}
+      <LiveGenerationFeed />
+
       {/* Основные метрики */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard
