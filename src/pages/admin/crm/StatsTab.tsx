@@ -17,6 +17,8 @@ import LiveGenerationFeed from '@/components/admin/LiveGenerationFeed'
 interface CoinTransaction {
   id: string
   user_id: string
+  telegram_id: number | null
+  username: string | null
   amount: number
   balance_after: number
   type: string
@@ -316,7 +318,7 @@ export default function StatsTab() {
                   {new Date(purchase.created_at).toLocaleDateString('ru-RU')}
                 </span>
                 <span className="text-gray-500 text-xs ml-2">
-                  {purchase.user_id?.slice(0, 8)}...
+                  {purchase.username ? `@${purchase.username}` : purchase.telegram_id ? `ID ${purchase.telegram_id}` : purchase.user_id?.slice(0, 8)}
                 </span>
               </div>
               <span className="text-green-600 font-medium">+{purchase.amount} монет</span>
