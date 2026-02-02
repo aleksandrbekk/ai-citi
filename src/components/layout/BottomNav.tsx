@@ -61,20 +61,22 @@ export function BottomNav() {
           </Link>
         )}
 
-        {/* Профиль */}
-        <Link
-          to="/profile"
-          onClick={() => haptic.tap()}
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
-            location.pathname === '/profile'
-              ? "text-orange-500"
-              : "text-gray-400 hover:text-gray-600"
-          )}
-        >
-          <UserIcon size={22} className={location.pathname === '/profile' ? 'text-orange-500' : ''} />
-          <span className="text-[10px] font-medium">Профиль</span>
-        </Link>
+        {/* Профиль — только для админов */}
+        {isAdmin && (
+          <Link
+            to="/profile"
+            onClick={() => haptic.tap()}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-colors",
+              location.pathname === '/profile'
+                ? "text-orange-500"
+                : "text-gray-400 hover:text-gray-600"
+            )}
+          >
+            <UserIcon size={22} className={location.pathname === '/profile' ? 'text-orange-500' : ''} />
+            <span className="text-[10px] font-medium">Профиль</span>
+          </Link>
+        )}
 
         {/* Магазин — скрыт */}
 
