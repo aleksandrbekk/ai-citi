@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Settings, Save, Loader2, AlertCircle, CheckCircle, Trash2 } from 'lucide-react'
-import { getCarouselSettings, updateCarouselSettings, removeContentSystemPromptFromAllStyles } from '@/lib/carouselStylesApi'
+import { Settings, Save, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import { getCarouselSettings, updateCarouselSettings } from '@/lib/carouselStylesApi'
 
 export default function CarouselSettingsPage() {
   const queryClient = useQueryClient()
   const [globalPrompt, setGlobalPrompt] = useState('')
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [cleanupStatus, setCleanupStatus] = useState<'idle' | 'cleaning' | 'done' | 'error'>('idle')
-  const [cleanupResult, setCleanupResult] = useState<string | null>(null)
 
   // Загружаем настройки
   const { data: settings, isLoading } = useQuery({
@@ -40,38 +38,6 @@ export default function CarouselSettingsPage() {
 
   const handleSave = () => {
     saveMutation.mutate()
-  }
-
-  // Очистка content_system_prompt из всех стилей
-  const handleCleanupStyles = async () => {
-    if (!confirm('Удалить content_system_prompt из всех стилей? Это действие нельзя отменить.')) {
-      return
-    }
-
-    setCleanupStatus('cleaning')
-    setCleanupResult(null)
-
-    try {
-      const result = await removeContentSystemPromptFromAllStyles()
-
-      if (result.success) {
-        setCleanupStatus('done')
-        setCleanupResult(`Очищено стилей: ${result.updated}`)
-        queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] })
-      } else {
-        setCleanupStatus('error')
-        setCleanupResult(result.errors.join(', '))
-      }
-
-      setTimeout(() => {
-        setCleanupStatus('idle')
-        setCleanupResult(null)
-      }, 5000)
-    } catch (error) {
-      setCleanupStatus('error')
-      setCleanupResult(error instanceof Error ? error.message : 'Неизвестная ошибка')
-      setTimeout(() => setCleanupStatus('idle'), 5000)
-    }
   }
 
   if (isLoading) {
@@ -145,34 +111,6 @@ export default function CarouselSettingsPage() {
         <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
           <span>{globalPrompt.length.toLocaleString()} символов</span>
           <span>Последнее обновление: {settings?.updated_at ? new Date(settings.updated_at).toLocaleString('ru') : 'Никогда'}</span>
-        </div>
-      </div>
-
-      {/* Очистка старых промптов из стилей */}
-      <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-        <h3 className="font-semibold text-amber-800 mb-2">Миграция: удаление content_system_prompt из стилей</h3>
-        <p className="text-sm text-amber-700 mb-3">
-          Если вы перенесли системный промпт в глобальные настройки, удалите старые промпты из конфигов стилей чтобы избежать конфликтов.
-        </p>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleCleanupStyles}
-            disabled={cleanupStatus === 'cleaning'}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50"
-          >
-            {cleanupStatus === 'cleaning' ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Очистка...</>
-            ) : cleanupStatus === 'done' ? (
-              <><CheckCircle className="w-4 h-4" /> Готово!</>
-            ) : (
-              <><Trash2 className="w-4 h-4" /> Очистить стили</>
-            )}
-          </button>
-          {cleanupResult && (
-            <span className={`text-sm ${cleanupStatus === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-              {cleanupResult}
-            </span>
-          )}
         </div>
       </div>
 
