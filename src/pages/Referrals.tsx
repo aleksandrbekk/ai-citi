@@ -325,7 +325,7 @@ function ReferralOnboarding({ onComplete }: { onComplete: () => void }) {
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-orange-400 rounded-full blur-lg opacity-50 animate-pulse" />
             <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-500 p-0.5 shadow-xl">
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
-                <img src="/carousel-icon.png" alt="" className="w-full h-full object-cover" />
+                <img src="/images/neurochik.png" alt="AI помощник" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
                 <Sparkles className="w-2.5 h-2.5 text-white" />

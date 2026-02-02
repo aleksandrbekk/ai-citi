@@ -4,9 +4,8 @@ import { X, ChevronRight, Sparkles } from 'lucide-react'
 // Ключ для localStorage
 const ONBOARDING_COMPLETED_KEY = 'carousel_onboarding_completed'
 
-// Персонаж-дизайнер
-const MASCOT_IMAGE = '/carousel-icon.png'
-const MASCOT_NAME = 'Дизайнер'
+// Персонаж-помощник
+const MASCOT_IMAGE = '/images/neurochik.png'
 
 interface OnboardingStep {
   id: string
@@ -217,7 +216,7 @@ export function OnboardingCoachMarks({ onComplete }: OnboardingCoachMarksProps) 
               <div className="w-full h-full rounded-full bg-white overflow-hidden">
                 <img
                   src={MASCOT_IMAGE}
-                  alt={MASCOT_NAME}
+                  alt="AI помощник"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     // Fallback если картинка не загрузилась
@@ -244,7 +243,6 @@ export function OnboardingCoachMarks({ onComplete }: OnboardingCoachMarksProps) 
               <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-cyan-50 to-orange-50 border-b border-gray-100">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{step.emoji}</span>
-                  <span className="font-bold text-gray-900 text-sm">{MASCOT_NAME}</span>
                   <span className="px-1.5 py-0.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white text-[10px] font-bold rounded-full">AI</span>
                 </div>
                 <button
