@@ -557,6 +557,11 @@ function CarouselIndexInner() {
             </div>
           </div>
 
+          {/* Пояснение */}
+          <p className="text-xs text-gray-500 text-center mb-3">
+            Выбери <span className="font-medium">одно</span>: продажа (кодовое слово) или охват (призыв)
+          </p>
+
           {/* Segment Control - Glass */}
           <div className="flex bg-gray-100/80 backdrop-blur-xl rounded-2xl p-1 mb-5">
             <button
@@ -567,6 +572,7 @@ function CarouselIndexInner() {
                 }`}
             >
               🛍️ Продажа
+              <span className="block text-[10px] font-normal opacity-70">ПИШИ: слово</span>
             </button>
             <button
               onClick={() => setCtaType('ENGAGEMENT')}
@@ -576,6 +582,7 @@ function CarouselIndexInner() {
                 }`}
             >
               📈 Охват
+              <span className="block text-[10px] font-normal opacity-70">Подпишись и т.д.</span>
             </button>
           </div>
 
@@ -604,7 +611,9 @@ function CarouselIndexInner() {
                   placeholder="ХОЧУ"
                   className="w-full px-4 py-3.5 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 tracking-wider"
                 />
-                <p className="text-xs text-gray-400 mt-2">Примеры: СТАРТ, ХОЧУ, VIP, МАГИЯ</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Примеры: СТАРТ, ХОЧУ, VIP • <span className="text-orange-500">Если пусто — будет «МАГИЯ»</span>
+                </p>
               </div>
             </>
           ) : (
