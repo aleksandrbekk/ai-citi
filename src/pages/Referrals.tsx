@@ -152,7 +152,7 @@ export default function Referrals() {
               </div>
               <div>
                 <p className="font-medium text-gray-900">Отправь ссылку другу</p>
-                <p className="text-sm text-gray-500">Он регистрируется по твоей реферальной ссылке</p>
+                <p className="text-sm text-gray-500">Он регистрируется по ней</p>
               </div>
             </div>
 
@@ -161,8 +161,8 @@ export default function Referrals() {
                 2
               </div>
               <div>
-                <p className="font-medium text-gray-900">Друг создаёт карусели</p>
-                <p className="text-sm text-gray-500">Он тратит нейроны на генерацию контента</p>
+                <p className="font-medium text-gray-900">Друг тратит нейроны</p>
+                <p className="text-sm text-gray-500">На любые инструменты</p>
               </div>
             </div>
 
@@ -171,8 +171,8 @@ export default function Referrals() {
                 3
               </div>
               <div>
-                <p className="font-medium text-gray-900">Ты получаешь бонус</p>
-                <p className="text-sm text-gray-500"><span className="font-semibold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">10% от каждой карусели</span> партнёра — твои!</p>
+                <p className="font-medium text-gray-900">Ты получаешь 10%</p>
+                <p className="text-sm text-gray-500"><span className="font-semibold bg-gradient-to-r from-orange-500 to-cyan-500 bg-clip-text text-transparent">От каждой его траты</span></p>
               </div>
             </div>
           </div>
@@ -265,17 +265,17 @@ function ReferralOnboarding({ onComplete }: { onComplete: () => void }) {
     {
       emoji: '👋',
       title: 'Партнёрка',
-      message: 'Привет! Здесь ты можешь зарабатывать нейроны, приглашая друзей!',
+      message: 'Приглашай друзей и зарабатывай нейроны!',
     },
     {
       emoji: '🎯',
-      title: 'Как это работает',
-      message: 'Отправляешь ссылку другу → он создаёт карусели → ты получаешь бонус',
+      title: 'Просто',
+      message: 'Отправь ссылку → друг тратит нейроны → ты получаешь 10%',
     },
     {
       emoji: '💰',
-      title: 'Пассивный доход',
-      message: '10% от каждой карусели твоего партнёра — твои! Это работает вечно 🚀',
+      title: 'Навсегда',
+      message: '10% от каждой траты партнёра — твои! 🚀',
     },
   ]
 
