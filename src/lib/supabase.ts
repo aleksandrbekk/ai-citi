@@ -652,3 +652,127 @@ export async function duplicateCarouselStyle(
   return createCarouselStyle(duplicate)
 }
 
+// ===========================================
+// GIFT COINS (Подарочные монеты)
+// ===========================================
+
+export interface GiftCoinsBalance {
+  coins: number
+  gift_coins: number
+  total: number
+}
+
+export interface RedeemPromoResult {
+  success: boolean
+  coins_added?: number
+  error?: string
+}
+
+/**
+ * Получить полный баланс (монеты + подарочные)
+ */
+export async function getFullCoinBalance(telegramId: number): Promise<GiftCoinsBalance> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('coins, gift_coins')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (error || !data) {
+    return { coins: 0, gift_coins: 0, total: 0 }
+  }
+
+  return {
+    coins: data.coins || 0,
+    gift_coins: data.gift_coins || 0,
+    total: (data.coins || 0) + (data.gift_coins || 0)
+  }
+}
+
+/**
+ * Получить только баланс подарочных монет
+ */
+export async function getGiftCoinBalance(telegramId: number): Promise<number> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('gift_coins')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (error || !data) {
+    return 0
+  }
+
+  return data.gift_coins || 0
+}
+
+/**
+ * Активировать промокод
+ */
+export async function redeemPromoCode(
+  telegramId: number,
+  code: string
+): Promise<RedeemPromoResult> {
+  try {
+    const { data, error } = await supabase
+      .rpc('redeem_promo_code', {
+        p_telegram_id: telegramId,
+        p_code: code.toUpperCase().trim()
+      })
+
+    if (error) {
+      // Парсим ошибки от функции
+      if (error.message.includes('не найден') || error.message.includes('not found')) {
+        return { success: false, error: 'Промокод не найден' }
+      }
+      if (error.message.includes('истёк') || error.message.includes('expired')) {
+        return { success: false, error: 'Промокод истёк' }
+      }
+      if (error.message.includes('уже использовали') || error.message.includes('already used')) {
+        return { success: false, error: 'Вы уже использовали этот промокод' }
+      }
+      if (error.message.includes('лимит') || error.message.includes('limit')) {
+        return { success: false, error: 'Лимит использования промокода исчерпан' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    return {
+      success: true,
+      coins_added: data?.coins_added || 0
+    }
+  } catch (err) {
+    return { success: false, error: 'Ошибка соединения' }
+  }
+}
+
+/**
+ * Списать монеты (сначала подарочные, потом обычные)
+ * Использует функцию spend_coins_smart из базы данных
+ */
+export async function spendCoinsSmart(
+  telegramId: number,
+  amount: number,
+  description: string = 'Генерация карусели'
+): Promise<SpendCoinsResult> {
+  try {
+    const { data, error } = await supabase
+      .rpc('spend_coins_smart', {
+        p_telegram_id: telegramId,
+        p_amount: amount,
+        p_description: description
+      })
+
+    if (error) {
+      if (error.message.includes('Недостаточно') || error.message.includes('insufficient')) {
+        return { success: false, error: 'Недостаточно монет' }
+      }
+      return { success: false, error: error.message }
+    }
+
+    return data as SpendCoinsResult
+  } catch (err) {
+    return { success: false, error: 'Ошибка соединения' }
+  }
+}
+

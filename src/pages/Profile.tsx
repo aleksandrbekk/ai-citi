@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTelegramUser } from '@/lib/telegram'
-import { getCoinBalance, getUserTariffInfo, type UserTariffInfo } from '@/lib/supabase'
+import { getCoinBalance, getUserTariffInfo, getGiftCoinBalance, type UserTariffInfo } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
@@ -10,7 +10,8 @@ import {
   BalanceCard,
   QuickActions,
   QRCodeModal,
-  SettingsDrawer
+  SettingsDrawer,
+  PromoCodeModal
 } from '@/components/profile'
 
 export default function Profile() {
@@ -21,29 +22,39 @@ export default function Profile() {
   const photoUrl = telegramUser?.photo_url
 
   const [coinBalance, setCoinBalance] = useState<number>(0)
+  const [giftCoinBalance, setGiftCoinBalance] = useState<number>(0)
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [tariffInfo, setTariffInfo] = useState<UserTariffInfo | null>(null)
 
   // Modals
   const [showSettings, setShowSettings] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
+  const [showPromoCode, setShowPromoCode] = useState(false)
 
   const { stats, referralLink, referralCode } = useReferrals()
 
   useEffect(() => {
     const loadData = async () => {
       if (telegramUser?.id) {
-        const [balance, tariff] = await Promise.all([
+        const [balance, giftBalance, tariff] = await Promise.all([
           getCoinBalance(telegramUser.id),
+          getGiftCoinBalance(telegramUser.id),
           getUserTariffInfo(telegramUser.id)
         ])
         setCoinBalance(balance)
+        setGiftCoinBalance(giftBalance)
         setTariffInfo(tariff)
       }
       setIsLoadingCoins(false)
     }
     loadData()
   }, [telegramUser?.id])
+
+  // Обновление баланса после активации промокода
+  const handlePromoSuccess = (coinsAdded: number) => {
+    setGiftCoinBalance(prev => prev + coinsAdded)
+    toast.success(`Получено ${coinsAdded} подарочных монет!`)
+  }
 
   // Форматирование даты окончания тарифа
   const formatTariffExpiry = (expiresAt: string | null) => {
@@ -82,7 +93,7 @@ export default function Profile() {
   }
 
   const handlePromoCode = () => {
-    toast.info('Промокоды скоро будут доступны')
+    setShowPromoCode(true)
   }
 
   const handleUpgrade = () => {
@@ -106,7 +117,7 @@ export default function Profile() {
         {/* Balance Card */}
         <BalanceCard
           balance={coinBalance}
-          giftCoins={0}
+          giftCoins={giftCoinBalance}
           spent={0}
           earned={stats?.total_coins_earned || 0}
           isLoading={isLoadingCoins}
@@ -136,6 +147,13 @@ export default function Profile() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         onLogout={logout}
+      />
+
+      {/* Promo Code Modal */}
+      <PromoCodeModal
+        isOpen={showPromoCode}
+        onClose={() => setShowPromoCode(false)}
+        onSuccess={handlePromoSuccess}
       />
     </div>
   )
