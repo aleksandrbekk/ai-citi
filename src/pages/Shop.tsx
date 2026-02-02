@@ -13,15 +13,16 @@ interface CoinPackage {
   coins: number
   generations: number
   priceRub: number
-  priceUsd: number
+  oldPriceRub: number // Перечёркнутая "старая" цена
   pricePerCoin: number
   savings: number
   popular?: boolean
   available: boolean
+  maxPerUser: number // Лимит покупок на человека
 }
 
 // Пакеты монет (нейронов) — 5 уровней
-// Себестоимость: $1.4/генерация ≈ 130₽, минимум 7.5₽/монета
+// Со скидками (перечёркнутые цены)
 const coinPackages: CoinPackage[] = [
   {
     id: 'light',
@@ -29,10 +30,11 @@ const coinPackages: CoinPackage[] = [
     coins: 30,
     generations: 1,
     priceRub: 290,
-    priceUsd: 3,
+    oldPriceRub: 490,
     pricePerCoin: 9.67,
-    savings: 0,
+    savings: 41,
     available: true,
+    maxPerUser: 10,
   },
   {
     id: 'starter',
@@ -40,10 +42,11 @@ const coinPackages: CoinPackage[] = [
     coins: 100,
     generations: 3,
     priceRub: 890,
-    priceUsd: 10,
+    oldPriceRub: 1490,
     pricePerCoin: 8.90,
-    savings: 8,
+    savings: 40,
     available: true,
+    maxPerUser: 10,
   },
   {
     id: 'standard',
@@ -51,10 +54,11 @@ const coinPackages: CoinPackage[] = [
     coins: 300,
     generations: 10,
     priceRub: 2490,
-    priceUsd: 28,
+    oldPriceRub: 3990,
     pricePerCoin: 8.30,
-    savings: 14,
+    savings: 38,
     available: true,
+    maxPerUser: 10,
   },
   {
     id: 'pro',
@@ -62,11 +66,12 @@ const coinPackages: CoinPackage[] = [
     coins: 500,
     generations: 17,
     priceRub: 3990,
-    priceUsd: 45,
+    oldPriceRub: 5990,
     pricePerCoin: 7.98,
-    savings: 17,
+    savings: 33,
     popular: true,
     available: true,
+    maxPerUser: 10,
   },
   {
     id: 'business',
@@ -74,10 +79,11 @@ const coinPackages: CoinPackage[] = [
     coins: 1000,
     generations: 33,
     priceRub: 7500,
-    priceUsd: 85,
+    oldPriceRub: 11990,
     pricePerCoin: 7.50,
-    savings: 22,
+    savings: 37,
     available: true,
+    maxPerUser: 10,
   },
 ]
 
@@ -200,7 +206,6 @@ export function Shop() {
   }, [telegramUser?.id])
 
   const [isProcessing, setIsProcessing] = useState(false)
-  const [currency, setCurrency] = useState<'RUB' | 'USD' | 'EUR'>('RUB')
 
 
   const handleBuy = async (pkg: CoinPackage) => {
@@ -223,14 +228,7 @@ export function Shop() {
     setIsProcessing(true)
 
     try {
-      // Определяем сумму в зависимости от валюты
-      const amount = currency === 'RUB'
-        ? pkg.priceRub
-        : currency === 'USD'
-          ? pkg.priceUsd
-          : Math.round(pkg.priceUsd * 0.92) // EUR
-
-      // Вызываем наш бэкенд для создания инвойса с UTM
+      // Вызываем бэкенд для создания инвойса (только RUB)
       const response = await fetch(
         'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-invoice',
         {
@@ -238,9 +236,9 @@ export function Shop() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             telegramId: telegramUser.id,
-            currency,
+            currency: 'RUB',
             packageId: pkg.id,
-            amount,
+            amount: pkg.priceRub,
             coins: pkg.coins,
           })
         }
@@ -364,93 +362,72 @@ export function Shop() {
             {/* Заголовок пакетов */}
             <div className="pt-2">
               <h2 className="text-lg font-bold text-gray-900 mb-1">Пополнить баланс</h2>
-              <p className="text-xs text-gray-500 mb-4">Выберите валюту для оплаты</p>
-            </div>
-
-            {/* Выбор валюты */}
-            <div className="flex gap-2 mb-4">
-              {(['RUB', 'USD', 'EUR'] as const).map((cur) => (
-                <button
-                  key={cur}
-                  onClick={() => setCurrency(cur)}
-                  className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 cursor-pointer ${currency === cur
-                    ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                    }`}
-                >
-                  {cur === 'RUB' ? '₽ Рубли' : cur === 'USD' ? '$ Доллары' : '€ Евро'}
-                </button>
-              ))}
+              <p className="text-xs text-gray-500 mb-4">Выберите пакет нейронов</p>
             </div>
 
             {/* Пакеты монет */}
             <div className="space-y-3">
-              {coinPackages.map((pkg) => {
-                const displayPrice = currency === 'RUB'
-                  ? `${pkg.priceRub.toLocaleString('ru-RU')} ₽`
-                  : currency === 'USD'
-                    ? `$${pkg.priceUsd}`
-                    : `€${Math.round(pkg.priceUsd * 0.92)}`
+              {coinPackages.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  onClick={() => handleBuy(pkg)}
+                  disabled={isProcessing}
+                  className={`relative w-full bg-white border-2 rounded-2xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer ${pkg.popular
+                    ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
+                    : 'border-gray-200 hover:border-orange-300'
+                    }`}
+                >
+                  {/* Popular Badge */}
+                  {pkg.popular && (
+                    <div className="absolute -top-2.5 left-4 z-10">
+                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
+                        ПОПУЛЯРНЫЙ
+                      </span>
+                    </div>
+                  )}
 
-                return (
-                  <button
-                    key={pkg.id}
-                    onClick={() => handleBuy(pkg)}
-                    disabled={isProcessing}
-                    className={`relative w-full bg-white border-2 rounded-2xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer ${pkg.popular
-                      ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
-                      : 'border-gray-200 hover:border-orange-300'
-                      }`}
-                  >
-                    {/* Popular Badge */}
-                    {pkg.popular && (
-                      <div className="absolute -top-2.5 left-4 z-10">
-                        <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md">
-                          ПОПУЛЯРНЫЙ
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {/* Icon */}
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${pkg.popular
-                          ? 'bg-gradient-to-br from-orange-400 to-orange-500'
-                          : 'bg-gradient-to-br from-gray-100 to-gray-200'
-                          }`}>
-                          <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain" />
-                        </div>
-
-                        {/* Info */}
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-base font-bold text-gray-900">{pkg.name}</p>
-                            {pkg.savings > 0 && (
-                              <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">
-                                -{pkg.savings}%
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-sm text-gray-700 font-medium">{pkg.coins} нейронов</span>
-                            <span className="text-xs text-gray-400">• {pkg.pricePerCoin}₽/шт</span>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {isProcessing ? 'Создаём платёж...' : `~${pkg.generations} карусел${pkg.generations === 1 ? 'ь' : pkg.generations < 5 ? 'и' : 'ей'}`}
-                          </p>
-                        </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Icon */}
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${pkg.popular
+                        ? 'bg-gradient-to-br from-orange-400 to-orange-500'
+                        : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                        }`}>
+                        <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain" />
                       </div>
 
-                      {/* Price */}
-                      <div className="text-right">
-                        <p className={`text-xl font-bold ${pkg.popular ? 'text-orange-500' : 'text-gray-900'}`}>
-                          {displayPrice}
+                      {/* Info */}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-base font-bold text-gray-900">{pkg.name}</p>
+                          {pkg.savings > 0 && (
+                            <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">
+                              -{pkg.savings}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-sm text-gray-700 font-medium">{pkg.coins} нейронов</span>
+                          <span className="text-xs text-gray-400">• {pkg.pricePerCoin}₽/шт</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {isProcessing ? 'Создаём платёж...' : `~${pkg.generations} карусел${pkg.generations === 1 ? 'ь' : pkg.generations < 5 ? 'и' : 'ей'}`}
                         </p>
                       </div>
                     </div>
-                  </button>
-                )
-              })}
+
+                    {/* Price с перечёркнутой старой ценой */}
+                    <div className="text-right">
+                      <p className="text-sm text-gray-400 line-through">
+                        {pkg.oldPriceRub.toLocaleString('ru-RU')} ₽
+                      </p>
+                      <p className={`text-xl font-bold ${pkg.popular ? 'text-orange-500' : 'text-gray-900'}`}>
+                        {pkg.priceRub.toLocaleString('ru-RU')} ₽
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </>
         )}
