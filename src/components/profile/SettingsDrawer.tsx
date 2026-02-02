@@ -72,7 +72,7 @@ export function SettingsDrawer({
       />
 
       {/* Drawer */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 safe-bottom">
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-10 h-1 bg-gray-300 rounded-full" />
@@ -149,7 +149,7 @@ export function SettingsDrawer({
         )}
 
         {/* Logout Button */}
-        <div className="px-6 pb-8 pt-4 border-t border-gray-100">
+        <div className="px-6 pb-12 pt-4 border-t border-gray-100">
           <button
             onClick={() => {
               haptic.tap()
