@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getCarouselStyles } from '@/lib/carouselStylesApi'
-import { Send, Sparkles, Clock, ExternalLink, Palette } from 'lucide-react'
+import { Send, Sparkles, Clock, ExternalLink, Palette, CheckCircle2 } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 import type { StyleId } from '@/lib/carouselStyles'
 
@@ -184,6 +184,23 @@ export default function CarouselGenerating() {
             <div className="flex items-center justify-center gap-2 mt-3 text-white/80 text-sm">
               <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
               <span>AI генерирует 9 слайдов специально для вас</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Успокаивающий блок — можно закрыть */}
+        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-4 mb-4 border border-emerald-100">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
+              <CheckCircle2 className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-emerald-800 text-base">
+                Можно закрыть приложение
+              </p>
+              <p className="text-emerald-600 text-sm">
+                Карусель придёт в Telegram автоматически через 1-2 минуты
+              </p>
             </div>
           </div>
         </div>
