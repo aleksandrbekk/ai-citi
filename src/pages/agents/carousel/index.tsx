@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
-import { getCarouselStyles, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
+import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -188,17 +188,51 @@ function CarouselIndexInner() {
     staleTime: 5 * 60 * 1000, // 5 минут
   })
 
-  // Используем стили из БД, если есть. Иначе — fallback на захардкоженные STYLES_INDEX
-  const mergedStylesIndex = dbStyles.length > 0
-    ? dbStyles.map(s => ({
-      id: s.style_id as StyleId,
-      name: s.name,
-      emoji: s.emoji,
-      audience: s.audience as 'universal' | 'female',
-      previewColor: s.preview_color,
-      description: s.description || ''
-    }))
-    : STYLES_INDEX
+  // Загружаем купленные стили пользователя
+  const { data: userPurchasedStyleIds = [] } = useQuery({
+    queryKey: ['user-purchased-styles', telegramUser?.id],
+    queryFn: async () => {
+      if (!telegramUser?.id) return []
+      const purchases = await getUserPurchasedStyles(telegramUser.id)
+      return purchases.map(p => p.style_id)
+    },
+    enabled: !!telegramUser?.id,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  // ID базовых стилей (hardcoded)
+  const baseStyleIds = STYLES_INDEX.map(s => s.id)
+
+  // Формируем список доступных стилей:
+  // 1. Базовые стили (STYLES_INDEX) — всегда доступны
+  // 2. Купленные стили из БД (если они не в базовых)
+  const mergedStylesIndex = (() => {
+    // Начинаем с базовых стилей
+    const result = [...STYLES_INDEX]
+
+    // Добавляем купленные стили из БД, которых нет в базовых
+    if (userPurchasedStyleIds.length > 0 && dbStyles.length > 0) {
+      const purchasedFromDb = dbStyles.filter(s =>
+        userPurchasedStyleIds.includes(s.style_id) &&
+        !baseStyleIds.includes(s.style_id as StyleId)
+      )
+
+      for (const dbStyle of purchasedFromDb) {
+        result.push({
+          id: dbStyle.style_id as StyleId,
+          name: dbStyle.name,
+          emoji: dbStyle.emoji,
+          audience: dbStyle.audience as 'universal' | 'female',
+          previewColor: dbStyle.preview_color,
+          description: dbStyle.description || ''
+        })
+      }
+
+      console.log('[Carousel] Added purchased styles:', purchasedFromDb.map(s => s.style_id))
+    }
+
+    return result
+  })()
 
   // Локальные превью для fallback (когда БД пустая)
   const LOCAL_STYLE_PREVIEWS: Record<StyleId, string> = {
@@ -223,7 +257,8 @@ function CarouselIndexInner() {
   }
 
   // Функция получения конфига стиля (сначала БД, потом захардкоженные)
-  const getStyleConfig = (styleId: StyleId) => {
+  // Принимает string для поддержки купленных стилей с произвольными ID
+  const getStyleConfig = (styleId: string) => {
     console.log('[Carousel] getStyleConfig called for:', styleId)
 
     // Сначала ищем в БД
@@ -261,8 +296,8 @@ function CarouselIndexInner() {
       console.log('[Carousel] ✗ DB config has no valid prompts')
     }
 
-    // Fallback на захардкоженные конфиги
-    const hardcodedConfig = STYLE_CONFIGS[styleId]
+    // Fallback на захардкоженные конфиги (только для базовых стилей)
+    const hardcodedConfig = STYLE_CONFIGS[styleId as StyleId]
     if (hardcodedConfig) {
       console.log('[Carousel] ✓ Using hardcoded config for style:', styleId)
       console.log('[Carousel] slide_templates keys:', Object.keys(hardcodedConfig.slide_templates || {}))
@@ -276,21 +311,23 @@ function CarouselIndexInner() {
   }
 
   // Функция получения превью стиля
-  const getStylePreview = (styleId: StyleId) => {
+  // Принимает string для поддержки купленных стилей с произвольными ID
+  const getStylePreview = (styleId: string) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
     if (dbStyle?.preview_image) return dbStyle.preview_image
-    // Fallback на локальные превью
-    return LOCAL_STYLE_PREVIEWS[styleId] || '/styles/apple.jpg'
+    // Fallback на локальные превью (только для базовых стилей)
+    return LOCAL_STYLE_PREVIEWS[styleId as StyleId] || '/styles/apple.jpg'
   }
 
   // Функция получения примеров стиля
-  const getStyleExamples = (styleId: StyleId) => {
+  // Принимает string для поддержки купленных стилей с произвольными ID
+  const getStyleExamples = (styleId: string) => {
     const dbStyle = dbStyles.find(s => s.style_id === styleId)
     if (dbStyle?.example_images && dbStyle.example_images.length > 0) {
       return dbStyle.example_images
     }
-    // Fallback на локальные примеры
-    return getLocalExamples(styleId)
+    // Fallback на локальные примеры (только для базовых стилей)
+    return getLocalExamples(styleId as StyleId)
   }
 
   // Загружаем сохранённый стиль с валидацией (только один раз)

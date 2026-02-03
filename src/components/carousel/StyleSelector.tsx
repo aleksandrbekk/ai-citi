@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Settings } from 'lucide-react'
-import { type StyleId, type StyleMeta } from '@/lib/carouselStyles'
+import { STYLES_INDEX, type StyleId, type StyleMeta } from '@/lib/carouselStyles'
 import { getStylesByBundles } from '@/lib/styleBundles'
 import { useCarouselStore } from '@/store/carouselStore'
 import { CheckIcon } from '@/components/ui/icons'
@@ -9,6 +9,9 @@ import { getUserPurchasedStyles, getCarouselStyles, type CarouselStyleDB } from 
 
 // Ключ для localStorage
 const HIDDEN_STYLES_KEY = 'carousel_hidden_styles'
+
+// ID базовых стилей (hardcoded)
+const BASE_STYLE_IDS = STYLES_INDEX.map(s => s.id)
 
 // Получить скрытые стили из localStorage
 function getHiddenStyles(): string[] {
@@ -34,6 +37,9 @@ export function StyleSelector() {
 
   const telegramUser = getTelegramUser()
 
+  // Базовые стили из бандлов (мемоизируем)
+  const baseStyles = useMemo(() => getStylesByBundles(enabledBundles), [enabledBundles])
+
   // Загружаем купленные стили
   useEffect(() => {
     const loadPurchasedStyles = async () => {
@@ -47,13 +53,28 @@ export function StyleSelector() {
         const purchases = await getUserPurchasedStyles(telegramUser.id)
         const purchasedIds = purchases.map(p => p.style_id)
 
+        console.log('[StyleSelector] User purchased style IDs:', purchasedIds)
+
         if (purchasedIds.length > 0) {
           // Получаем полные данные купленных стилей из БД
           const allDbStyles = await getCarouselStyles()
+
+          console.log('[StyleSelector] All DB styles:', allDbStyles.map(s => s.style_id))
+
+          // Фильтруем только по purchasedIds, БЕЗ проверки is_free
+          // Если пользователь купил стиль, он должен отображаться независимо от is_free
           const boughtStyles = allDbStyles.filter(s =>
-            purchasedIds.includes(s.style_id) && !s.is_free
+            purchasedIds.includes(s.style_id)
           )
-          setPurchasedStyles(boughtStyles)
+
+          // Исключаем базовые стили (hardcoded), чтобы не было дубликатов
+          const uniqueBoughtStyles = boughtStyles.filter(s =>
+            !BASE_STYLE_IDS.includes(s.style_id as StyleId)
+          )
+
+          console.log('[StyleSelector] Unique bought styles (not in base):', uniqueBoughtStyles.map(s => s.style_id))
+
+          setPurchasedStyles(uniqueBoughtStyles)
         }
       } catch (error) {
         console.error('Error loading purchased styles:', error)
@@ -64,9 +85,6 @@ export function StyleSelector() {
 
     loadPurchasedStyles()
   }, [telegramUser?.id])
-
-  // Базовые стили из бандлов
-  const baseStyles = getStylesByBundles(enabledBundles)
 
   // Все доступные стили (базовые + купленные)
   const allAvailableStyles: StyleMeta[] = [
