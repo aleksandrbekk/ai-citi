@@ -377,6 +377,21 @@ export async function getCoinBalance(telegramId: number): Promise<number> {
 }
 
 /**
+ * Получить статистику трат и заработка пользователя
+ */
+export async function getUserSpendStats(telegramId: number): Promise<{ total_spent: number; total_earned: number }> {
+  const { data, error } = await supabase
+    .rpc('get_user_spend_stats', { p_telegram_id: telegramId })
+
+  if (error) {
+    console.error('Error getting user spend stats:', error)
+    return { total_spent: 0, total_earned: 0 }
+  }
+
+  return data || { total_spent: 0, total_earned: 0 }
+}
+
+/**
  * Списать монеты за генерацию
  */
 export async function spendCoinsForGeneration(

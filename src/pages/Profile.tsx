@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTelegramUser } from '@/lib/telegram'
-import { getCoinBalance, getUserTariffInfo, getGiftCoinBalance, cancelSubscription, type UserTariffInfo } from '@/lib/supabase'
+import { getCoinBalance, getUserTariffInfo, getGiftCoinBalance, getUserSpendStats, cancelSubscription, type UserTariffInfo } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ export default function Profile() {
 
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [giftCoinBalance, setGiftCoinBalance] = useState<number>(0)
+  const [spendStats, setSpendStats] = useState<{ total_spent: number; total_earned: number }>({ total_spent: 0, total_earned: 0 })
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [tariffInfo, setTariffInfo] = useState<UserTariffInfo | null>(null)
 
@@ -38,14 +39,16 @@ export default function Profile() {
   useEffect(() => {
     const loadData = async () => {
       if (telegramUser?.id) {
-        const [balance, giftBalance, tariff] = await Promise.all([
+        const [balance, giftBalance, tariff, spendStatsData] = await Promise.all([
           getCoinBalance(telegramUser.id),
           getGiftCoinBalance(telegramUser.id),
-          getUserTariffInfo(telegramUser.id)
+          getUserTariffInfo(telegramUser.id),
+          getUserSpendStats(telegramUser.id)
         ])
         setCoinBalance(balance)
         setGiftCoinBalance(giftBalance)
         setTariffInfo(tariff)
+        setSpendStats(spendStatsData)
       }
       setIsLoadingCoins(false)
     }
@@ -138,8 +141,8 @@ export default function Profile() {
         <BalanceCard
           balance={coinBalance}
           giftCoins={giftCoinBalance}
-          spent={0}
-          earned={stats?.total_coins_earned || 0}
+          spent={spendStats.total_spent}
+          earned={stats?.total_coins_earned || spendStats.total_earned}
           isLoading={isLoadingCoins}
         />
 
