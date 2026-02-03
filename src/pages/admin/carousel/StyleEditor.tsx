@@ -16,7 +16,9 @@ import {
   User,
   Type,
   Layers,
-  Sparkles
+  Sparkles,
+  ShoppingBag,
+  Coins
 } from 'lucide-react'
 import {
   getCarouselStyleById,
@@ -48,7 +50,8 @@ export default function StyleEditor() {
     typography: false,
     cards: false,
     decorations: false,
-    templates: true
+    templates: true,
+    shop: true
   })
 
   // Basic info
@@ -59,6 +62,11 @@ export default function StyleEditor() {
   const [audience, setAudience] = useState<'universal' | 'female' | 'male'>('universal')
   const [previewColor, setPreviewColor] = useState('#FF5A1F')
   const [isActive, setIsActive] = useState(true)
+
+  // Shop settings
+  const [isInShop, setIsInShop] = useState(false)
+  const [priceNeurons, setPriceNeurons] = useState(100)
+  const [isFree, setIsFree] = useState(true)
 
   // Avatar/Preview image
   const [previewImage, setPreviewImage] = useState('')
@@ -153,6 +161,11 @@ export default function StyleEditor() {
       setIsActive(existingStyle.is_active ?? true)
       setExampleImages(existingStyle.example_images || [])
 
+      // Shop settings
+      setIsInShop(existingStyle.is_in_shop ?? false)
+      setPriceNeurons(existingStyle.price_neurons ?? 100)
+      setIsFree(existingStyle.is_free ?? true)
+
       const config = existingStyle.config as Record<string, unknown> | null
       if (config) {
         // Person
@@ -222,6 +235,11 @@ export default function StyleEditor() {
         setPreviewImage(existingBuiltinInDb.preview_image || '')
         setIsActive(existingBuiltinInDb.is_active ?? true)
         setExampleImages(existingBuiltinInDb.example_images || [])
+
+        // Shop settings
+        setIsInShop(existingBuiltinInDb.is_in_shop ?? false)
+        setPriceNeurons(existingBuiltinInDb.price_neurons ?? 100)
+        setIsFree(existingBuiltinInDb.is_free ?? true)
 
         const config = existingBuiltinInDb.config as Record<string, unknown> | null
         if (config) {
@@ -410,6 +428,10 @@ export default function StyleEditor() {
         preview_image: previewImage,
         is_active: isActive,
         example_images: exampleImages.filter(Boolean),
+        // Shop settings
+        is_in_shop: isInShop,
+        price_neurons: priceNeurons,
+        is_free: isFree,
         config: {
           id: generatedStyleId,
           name,
@@ -914,6 +936,91 @@ export default function StyleEditor() {
               placeholder="Опишите визуальный стиль карусели..."
               className="w-full px-3 py-2 border border-purple-300 rounded-lg font-mono text-sm resize-y bg-white"
             />
+          </div>
+        </Section>
+
+        {/* Магазин стилей */}
+        <Section
+          title="🛒 Магазин (AI SHOP)"
+          icon={<ShoppingBag className="w-4 h-4 text-green-500" />}
+          isOpen={sections.shop}
+          onToggle={() => toggleSection('shop')}
+          highlight
+        >
+          <div className="space-y-4">
+            {/* Показывать в магазине */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Показывать в магазине</p>
+                <p className="text-sm text-gray-500">Стиль будет доступен для покупки</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsInShop(!isInShop)}
+                className={`relative w-14 h-8 rounded-full transition-colors ${
+                  isInShop ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              >
+                <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                  isInShop ? 'left-7' : 'left-1'
+                }`} />
+              </button>
+            </div>
+
+            {/* Бесплатный стиль */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Бесплатный стиль</p>
+                <p className="text-sm text-gray-500">Доступен всем пользователям</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFree(!isFree)}
+                className={`relative w-14 h-8 rounded-full transition-colors ${
+                  isFree ? 'bg-cyan-500' : 'bg-gray-300'
+                }`}
+              >
+                <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                  isFree ? 'left-7' : 'left-1'
+                }`} />
+              </button>
+            </div>
+
+            {/* Цена в нейронах */}
+            {!isFree && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <label className="block font-medium text-gray-900 mb-2">
+                  <Coins className="w-4 h-4 inline mr-2 text-orange-500" />
+                  Цена в нейронах
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={1}
+                    value={priceNeurons}
+                    onChange={(e) => setPriceNeurons(Math.max(1, parseInt(e.target.value) || 0))}
+                    className="w-32 px-3 py-2 border border-orange-300 rounded-lg text-lg font-bold text-center"
+                  />
+                  <span className="text-gray-600">нейронов</span>
+                </div>
+                <p className="text-sm text-orange-600 mt-2">
+                  ≈ {Math.ceil(priceNeurons / 30)} карусель(и) по стоимости
+                </p>
+              </div>
+            )}
+
+            {/* Статус */}
+            <div className={`p-4 rounded-lg ${isInShop ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
+              <p className="font-medium">
+                {isInShop ? '✅ Стиль в магазине' : '⏸ Стиль скрыт из магазина'}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                {isFree
+                  ? '🆓 Бесплатно для всех пользователей'
+                  : `💰 ${priceNeurons} нейронов для покупки`
+                }
+              </p>
+            </div>
           </div>
         </Section>
 

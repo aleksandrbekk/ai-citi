@@ -107,8 +107,8 @@ export default function ReferralDetail() {
                 <span className="text-white text-xl">✨</span>
               </div>
               <div>
-                <p className="text-sm text-gray-600">За траты (20% монет)</p>
-                <p className="text-xs text-gray-500">{earnings?.spending ? 'Бонус от трат партнёра' : 'Партнёр ещё не тратил'}</p>
+                <p className="text-sm text-gray-600">За генерации (10%)</p>
+                <p className="text-xs text-gray-500">{earnings?.spending ? 'Бонус от генераций партнёра' : 'Партнёр ещё не генерировал'}</p>
               </div>
             </div>
             <p className="text-2xl font-bold text-purple-600">{earnings?.spending ? `+${earnings.spending}` : '0'}</p>

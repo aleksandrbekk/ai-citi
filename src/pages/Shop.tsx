@@ -3,8 +3,14 @@ import { toast } from 'sonner'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { haptic } from '@/lib/haptic'
-import { Coins, Star, User } from 'lucide-react'
-// import { Palette } from 'lucide-react' // Временно скрыто
+import { Star, User, Palette, Coins } from 'lucide-react'
+import {
+  getShopStyles,
+  getUserPurchasedStyles,
+  purchaseStyle,
+  type ShopStyle,
+  type PurchasedStyle
+} from '@/lib/carouselStylesApi'
 
 // Типы для пакетов
 interface CoinPackage {
@@ -194,18 +200,94 @@ export function Shop() {
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [activeTab, setActiveTab] = useState<'coins' | 'subscription' | 'styles'>('coins')
 
+  // Стили магазина
+  const [shopStyles, setShopStyles] = useState<ShopStyle[]>([])
+  const [purchasedStyles, setPurchasedStyles] = useState<PurchasedStyle[]>([])
+  const [_isLoadingStyles, setIsLoadingStyles] = useState(true)
+
   useEffect(() => {
     const loadData = async () => {
       if (telegramUser?.id) {
         const balance = await getCoinBalance(telegramUser.id)
         setCoinBalance(balance)
+
+        // Загружаем стили
+        const [styles, purchased] = await Promise.all([
+          getShopStyles(),
+          getUserPurchasedStyles(telegramUser.id)
+        ])
+        setShopStyles(styles)
+        setPurchasedStyles(purchased)
       }
       setIsLoadingCoins(false)
+      setIsLoadingStyles(false)
     }
     loadData()
   }, [telegramUser?.id])
 
   const [isProcessing, setIsProcessing] = useState(false)
+
+  // Проверка владения стилем
+  const ownsStyle = (styleId: string) => {
+    const style = shopStyles.find(s => s.style_id === styleId)
+    if (style?.is_free) return true
+    return purchasedStyles.some(p => p.style_id === styleId)
+  }
+
+  // Покупка стиля (временно не используется - вкладка скрыта)
+  // @ts-ignore - временно не используется
+  const _handleBuyStyle = async (style: ShopStyle) => {
+    haptic.action()
+
+    if (!telegramUser?.id) {
+      haptic.error()
+      toast.error('Не удалось определить пользователя')
+      return
+    }
+
+    if (ownsStyle(style.style_id)) {
+      toast.info('Этот стиль уже у вас!')
+      return
+    }
+
+    if (coinBalance < style.price_neurons) {
+      haptic.warning()
+      toast.error(`Недостаточно нейронов. Нужно: ${style.price_neurons}, у вас: ${coinBalance}`)
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      const result = await purchaseStyle(telegramUser.id, style.style_id, style.price_neurons)
+
+      if (result.success) {
+        haptic.success()
+        toast.success(`🎨 Стиль "${style.name}" куплен!`)
+
+        // Обновляем баланс и список купленных
+        if (result.newBalance !== undefined) {
+          setCoinBalance(result.newBalance)
+        }
+        setPurchasedStyles([...purchasedStyles, {
+          id: crypto.randomUUID(),
+          telegram_id: telegramUser.id,
+          style_id: style.style_id,
+          price_paid: style.price_neurons,
+          purchased_at: new Date().toISOString()
+        }])
+      } else {
+        haptic.error()
+        toast.error(result.error || 'Ошибка при покупке')
+      }
+    } catch (error) {
+      console.error('Purchase error:', error)
+      haptic.error()
+      toast.error('Ошибка при покупке стиля')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
 
   const handleBuy = async (pkg: CoinPackage) => {
@@ -356,19 +438,16 @@ export function Shop() {
             <Star className="w-4 h-4 inline mr-1" />
             ПОДПИСКА
           </button>
-          {/* Временно скрыто
           <button
             onClick={() => setActiveTab('styles')}
-            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all ${
-              activeTab === 'styles'
-                ? 'bg-white text-orange-500 shadow-sm'
-                : 'text-gray-500'
-            }`}
+            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'styles'
+              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+              }`}
           >
             <Palette className="w-4 h-4 inline mr-1" />
             СТИЛИ
           </button>
-          */}
         </div>
       </div>
 

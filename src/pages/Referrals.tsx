@@ -6,7 +6,6 @@ import {
   Check,
   Users,
   TrendingUp,
-  Gift,
   Share2,
   ChevronRight,
   Sparkles,
@@ -100,7 +99,7 @@ export default function Referrals() {
           {/* Заработано */}
           <div className="flex items-center gap-4 mb-5">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <Gift className="w-7 h-7 text-white" />
+              <img src="/neirocoin.png" alt="Нейроны" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <p className="text-gray-500 text-sm font-medium">Всего заработано</p>
@@ -127,7 +126,7 @@ export default function Referrals() {
                 <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center">
                   <TrendingUp className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-gray-600 text-sm font-medium">От трат</span>
+                <span className="text-gray-600 text-sm font-medium">От генераций</span>
               </div>
               <p className="text-3xl font-bold text-gray-900">{stats?.total_partner_spent || 0}</p>
             </div>
@@ -198,7 +197,7 @@ export default function Referrals() {
               <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-cyan-500/25 mb-2">
                 2
               </div>
-              <p className="text-xs font-medium text-gray-700 leading-tight">Друг<br/>покупает</p>
+              <p className="text-xs font-medium text-gray-700 leading-tight">Друг<br/>генерирует</p>
             </div>
 
             {/* Стрелка */}
@@ -209,9 +208,14 @@ export default function Referrals() {
               <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-orange-500 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-orange-500/25 mb-2">
                 3
               </div>
-              <p className="text-xs font-bold text-orange-500 leading-tight">Ты<br/>+10%</p>
+              <p className="text-xs font-bold text-orange-500 leading-tight">Тебе<br/>10%</p>
             </div>
           </div>
+
+          {/* Пояснение */}
+          <p className="text-center text-xs text-gray-500 mt-3 bg-gray-50 rounded-lg py-2 px-3">
+            Получай <span className="font-semibold text-orange-500">10%</span> от каждой генерации партнёра
+          </p>
         </div>
 
         {/* Partners List - Улучшенный дизайн с заметной кнопкой отправки */}
@@ -329,12 +333,12 @@ function ReferralOnboarding({ onComplete }: { onComplete: () => void }) {
     {
       emoji: '🎯',
       title: 'Просто',
-      message: 'Отправь ссылку → друг тратит нейроны → ты получаешь 10%',
+      message: 'Отправь ссылку → друг генерирует → ты получаешь 10%',
     },
     {
       emoji: '💰',
       title: 'Навсегда',
-      message: '10% от каждой траты партнёра — твои! 🚀',
+      message: '10% от каждой генерации партнёра — твои! 🚀',
     },
   ]
 

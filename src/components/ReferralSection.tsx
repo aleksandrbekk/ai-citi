@@ -37,7 +37,7 @@ export function ReferralSection() {
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">Пригласи друга</h3>
-            <p className="text-xs text-gray-500">Получай 20% от каждой траты!</p>
+            <p className="text-xs text-gray-500">Получай 10% от каждой генерации!</p>
           </div>
         </div>
 
@@ -74,7 +74,7 @@ export function ReferralSection() {
         </div>
 
         <p className="text-xs text-gray-500 mt-3">
-          +6 монет за каждого друга, +20% от покупок и трат
+          10% от каждой генерации партнёра
         </p>
 
         {/* Показываем код для отладки */}

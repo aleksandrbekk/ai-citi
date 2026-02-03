@@ -33,6 +33,10 @@ export interface CarouselStyleDB {
   example_images: string[]
   created_at: string
   updated_at: string
+  // Shop fields
+  is_in_shop?: boolean
+  price_neurons?: number
+  is_free?: boolean
 }
 
 export interface CarouselStyleInput {
@@ -46,6 +50,10 @@ export interface CarouselStyleInput {
   is_active?: boolean
   config: Record<string, unknown>
   example_images?: string[]
+  // Shop fields
+  is_in_shop?: boolean
+  price_neurons?: number
+  is_free?: boolean
 }
 
 /**
@@ -520,5 +528,246 @@ export async function seedDefaultStyles(): Promise<{ success: boolean; created: 
     success: errors.length === 0,
     created,
     errors,
+  }
+}
+
+// ============================================
+// МАГАЗИН СТИЛЕЙ (AI SHOP)
+// ============================================
+
+const PURCHASED_STYLES_URL = `${SUPABASE_URL}/rest/v1/user_purchased_styles`
+const RPC_URL = `${SUPABASE_URL}/rest/v1/rpc`
+
+export interface ShopStyle {
+  id: string
+  style_id: string
+  name: string
+  description: string | null
+  emoji: string
+  preview_color: string
+  preview_image: string | null
+  price_neurons: number
+  is_free: boolean
+  is_in_shop: boolean
+  example_images: string[]
+}
+
+export interface PurchasedStyle {
+  id: string
+  telegram_id: number
+  style_id: string
+  price_paid: number
+  purchased_at: string
+}
+
+/**
+ * Получить стили доступные в магазине
+ */
+export async function getShopStyles(): Promise<ShopStyle[]> {
+  try {
+    const response = await supabaseFetch(
+      '?is_active=eq.true&is_in_shop=eq.true&select=id,style_id,name,description,emoji,preview_color,preview_image,price_neurons,is_free,is_in_shop,example_images&order=sort_order.asc'
+    )
+
+    if (!response.ok) {
+      console.error('Failed to fetch shop styles:', response.status)
+      return []
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching shop styles:', error)
+    return []
+  }
+}
+
+/**
+ * Получить купленные стили пользователя
+ */
+export async function getUserPurchasedStyles(telegramId: number): Promise<PurchasedStyle[]> {
+  try {
+    const response = await fetch(
+      `${PURCHASED_STYLES_URL}?telegram_id=eq.${telegramId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      console.error('Failed to fetch purchased styles:', response.status)
+      return []
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching purchased styles:', error)
+    return []
+  }
+}
+
+/**
+ * Проверить, владеет ли пользователь стилем
+ */
+export async function userOwnsStyle(telegramId: number, styleId: string): Promise<boolean> {
+  try {
+    // Сначала проверим, бесплатный ли стиль
+    const styleResponse = await supabaseFetch(`?style_id=eq.${styleId}&select=is_free`)
+    if (styleResponse.ok) {
+      const styles = await styleResponse.json()
+      if (styles.length > 0 && styles[0].is_free) {
+        return true
+      }
+    }
+
+    // Проверяем покупку
+    const response = await fetch(
+      `${PURCHASED_STYLES_URL}?telegram_id=eq.${telegramId}&style_id=eq.${styleId}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+      }
+    )
+
+    if (!response.ok) return false
+
+    const purchases = await response.json()
+    return purchases.length > 0
+  } catch (error) {
+    console.error('Error checking style ownership:', error)
+    return false
+  }
+}
+
+/**
+ * Купить стиль за нейроны
+ */
+export async function purchaseStyle(
+  telegramId: number,
+  styleId: string,
+  price: number
+): Promise<{ success: boolean; error?: string; newBalance?: number }> {
+  try {
+    const response = await fetch(
+      `${RPC_URL}/purchase_style`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'apikey': SUPABASE_SERVICE_KEY,
+        },
+        body: JSON.stringify({
+          p_telegram_id: telegramId,
+          p_style_id: styleId,
+          p_price: price,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('Purchase failed:', error)
+      return { success: false, error: 'Ошибка сервера' }
+    }
+
+    const result = await response.json()
+
+    if (!result.success) {
+      const errorMessages: Record<string, string> = {
+        already_owned: 'Этот стиль уже куплен',
+        user_not_found: 'Пользователь не найден',
+        insufficient_balance: `Недостаточно нейронов. Нужно: ${result.price}, у вас: ${result.balance}`,
+      }
+      return {
+        success: false,
+        error: errorMessages[result.error] || result.error,
+      }
+    }
+
+    return {
+      success: true,
+      newBalance: result.new_balance,
+    }
+  } catch (error) {
+    console.error('Error purchasing style:', error)
+    return { success: false, error: 'Ошибка при покупке' }
+  }
+}
+
+/**
+ * Обновить настройки магазина для стиля (админ)
+ */
+export async function updateStyleShopSettings(
+  styleId: string,
+  settings: {
+    is_in_shop?: boolean
+    price_neurons?: number
+    is_free?: boolean
+  }
+): Promise<boolean> {
+  try {
+    const response = await supabaseFetch(
+      `?style_id=eq.${styleId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(settings),
+        headers: {
+          'Prefer': 'return=minimal',
+        },
+      },
+      true // useServiceKey
+    )
+
+    return response.ok
+  } catch (error) {
+    console.error('Error updating style shop settings:', error)
+    return false
+  }
+}
+
+/**
+ * Получить доступные стили пользователя (бесплатные + купленные)
+ */
+export async function getUserAvailableStyles(telegramId: number): Promise<string[]> {
+  try {
+    // Получаем все активные стили
+    const stylesResponse = await supabaseFetch('?is_active=eq.true&select=style_id,is_free')
+    if (!stylesResponse.ok) return []
+    const allStyles = await stylesResponse.json()
+
+    // Получаем купленные
+    const purchasedResponse = await fetch(
+      `${PURCHASED_STYLES_URL}?telegram_id=eq.${telegramId}&select=style_id`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+      }
+    )
+
+    const purchasedStyles = purchasedResponse.ok
+      ? (await purchasedResponse.json()).map((p: { style_id: string }) => p.style_id)
+      : []
+
+    // Объединяем: бесплатные + купленные
+    const availableIds = allStyles
+      .filter((s: { style_id: string; is_free: boolean }) =>
+        s.is_free || purchasedStyles.includes(s.style_id)
+      )
+      .map((s: { style_id: string }) => s.style_id)
+
+    return availableIds
+  } catch (error) {
+    console.error('Error getting user available styles:', error)
+    return []
   }
 }
