@@ -1,4 +1,4 @@
-import { ShoppingCart, Users, History, QrCode } from 'lucide-react'
+import { Plus, Users, Clock, QrCode } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 
 interface QuickActionsProps {
@@ -16,91 +16,72 @@ export function QuickActions({
   onHistory,
   onQRCode
 }: QuickActionsProps) {
-  const actions = [
-    {
-      id: 'buy',
-      icon: ShoppingCart,
-      label: 'Купить нейроны',
-      subtitle: 'Пополнить баланс',
-      color: 'orange',
-      onClick: onBuyCoins
-    },
-    {
-      id: 'partners',
-      icon: Users,
-      label: 'Партнёры',
-      subtitle: `${referralsCount} приглашённых`,
-      color: 'cyan',
-      onClick: onPartners
-    },
-    {
-      id: 'history',
-      icon: History,
-      label: 'История',
-      subtitle: 'Транзакции',
-      color: 'gray',
-      onClick: onHistory
-    }
-  ]
-
-  const getColorClasses = (color: string) => {
-    switch (color) {
-      case 'orange':
-        return {
-          border: 'border-orange-200 hover:border-orange-400',
-          icon: 'from-orange-400 to-orange-500 shadow-orange-500/20',
-          shadow: 'hover:shadow-orange-500/10'
-        }
-      case 'cyan':
-        return {
-          border: 'border-cyan-200 hover:border-cyan-400',
-          icon: 'from-cyan-400 to-cyan-500 shadow-cyan-500/20',
-          shadow: 'hover:shadow-cyan-500/10'
-        }
-      default:
-        return {
-          border: 'border-gray-200 hover:border-gray-300',
-          icon: 'from-gray-400 to-gray-500 shadow-gray-500/20',
-          shadow: 'hover:shadow-gray-500/10'
-        }
-    }
-  }
-
   return (
     <div className="space-y-3">
-      {/* Main Actions Grid - 3 columns */}
-      <div className="grid grid-cols-3 gap-3">
-        {actions.map(action => {
-          const colors = getColorClasses(action.color)
-          return (
-            <button
-              key={action.id}
-              onClick={() => {
-                haptic.tap()
-                action.onClick()
-              }}
-              className={`group bg-white rounded-2xl p-3 flex flex-col items-center text-center border-2 ${colors.border} hover:shadow-lg ${colors.shadow} transition-all duration-200 cursor-pointer active:scale-[0.98]`}
-            >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colors.icon} flex items-center justify-center mb-2 shadow-md group-hover:scale-105 transition-transform duration-200`}>
-                <action.icon className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-semibold text-gray-900 leading-tight">{action.label}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">{action.subtitle}</p>
-            </button>
-          )
-        })}
+      {/* Главная CTA — Купить нейроны */}
+      <button
+        onClick={() => {
+          haptic.tap()
+          onBuyCoins()
+        }}
+        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+            <Plus className="w-6 h-6" />
+          </div>
+          <span className="text-lg font-semibold">Купить нейроны</span>
+        </div>
+        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+          <span className="text-sm">→</span>
+        </div>
+      </button>
+
+      {/* Вторичные действия */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Партнёры */}
+        <button
+          onClick={() => {
+            haptic.tap()
+            onPartners()
+          }}
+          className="bg-white rounded-2xl p-4 flex flex-col items-start border border-gray-100 hover:border-cyan-200 hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98]"
+        >
+          <div className="w-11 h-11 bg-gradient-to-br from-cyan-400 to-cyan-500 rounded-xl flex items-center justify-center mb-3 shadow-md shadow-cyan-500/20">
+            <Users className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-base font-semibold text-gray-900">Партнёры</span>
+          {referralsCount > 0 && (
+            <span className="text-sm text-gray-500 mt-0.5">{referralsCount} чел.</span>
+          )}
+        </button>
+
+        {/* История */}
+        <button
+          onClick={() => {
+            haptic.tap()
+            onHistory()
+          }}
+          className="bg-white rounded-2xl p-4 flex flex-col items-start border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98]"
+        >
+          <div className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
+            <Clock className="w-5 h-5 text-gray-600" />
+          </div>
+          <span className="text-base font-semibold text-gray-900">История</span>
+          <span className="text-sm text-gray-500 mt-0.5">Транзакции</span>
+        </button>
       </div>
 
-      {/* QR Code Button */}
+      {/* QR код */}
       <button
         onClick={() => {
           haptic.tap()
           onQRCode()
         }}
-        className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:border-orange-300 hover:bg-orange-50/50 transition-all duration-200 cursor-pointer active:scale-[0.99]"
+        className="w-full bg-gray-50 hover:bg-gray-100 rounded-2xl p-4 flex items-center justify-center gap-3 border border-gray-100 transition-all duration-200 cursor-pointer active:scale-[0.99]"
       >
-        <QrCode className="w-5 h-5 text-orange-500" />
-        QR-код для приглашения
+        <QrCode className="w-5 h-5 text-gray-600" />
+        <span className="text-base font-medium text-gray-700">Пригласить по QR-коду</span>
       </button>
     </div>
   )
