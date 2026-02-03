@@ -163,6 +163,31 @@ export async function getCarouselStyleByStyleId(styleId: string): Promise<Carous
 }
 
 /**
+ * Получить стили по списку style_id (без фильтрации по is_active)
+ * Используется для загрузки купленных стилей пользователя
+ */
+export async function getCarouselStylesByIds(styleIds: string[]): Promise<CarouselStyleDB[]> {
+  if (styleIds.length === 0) return []
+
+  try {
+    // Формируем запрос с фильтром по списку style_id
+    // Используем in.(id1,id2,id3) синтаксис PostgREST
+    const idsParam = styleIds.join(',')
+    const response = await supabaseFetch(`?style_id=in.(${idsParam})`)
+
+    if (!response.ok) {
+      console.error('Failed to fetch carousel styles by IDs:', response.status)
+      return []
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching carousel styles by IDs:', error)
+    return []
+  }
+}
+
+/**
  * Создать новый стиль (требует админ-доступ)
  */
 export async function createCarouselStyle(style: CarouselStyleInput): Promise<CarouselStyleDB | null> {

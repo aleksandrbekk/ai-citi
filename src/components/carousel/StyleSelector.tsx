@@ -5,7 +5,7 @@ import { getStylesByBundles } from '@/lib/styleBundles'
 import { useCarouselStore } from '@/store/carouselStore'
 import { CheckIcon } from '@/components/ui/icons'
 import { getTelegramUser } from '@/lib/telegram'
-import { getUserPurchasedStyles, getCarouselStyles, type CarouselStyleDB } from '@/lib/carouselStylesApi'
+import { getUserPurchasedStyles, getCarouselStylesByIds, type CarouselStyleDB } from '@/lib/carouselStylesApi'
 
 // Ключ для localStorage
 const HIDDEN_STYLES_KEY = 'carousel_hidden_styles'
@@ -56,16 +56,10 @@ export function StyleSelector() {
         console.log('[StyleSelector] User purchased style IDs:', purchasedIds)
 
         if (purchasedIds.length > 0) {
-          // Получаем полные данные купленных стилей из БД
-          const allDbStyles = await getCarouselStyles()
+          // Получаем полные данные купленных стилей напрямую по ID (без фильтрации по is_active)
+          const boughtStyles = await getCarouselStylesByIds(purchasedIds)
 
-          console.log('[StyleSelector] All DB styles:', allDbStyles.map(s => s.style_id))
-
-          // Фильтруем только по purchasedIds, БЕЗ проверки is_free
-          // Если пользователь купил стиль, он должен отображаться независимо от is_free
-          const boughtStyles = allDbStyles.filter(s =>
-            purchasedIds.includes(s.style_id)
-          )
+          console.log('[StyleSelector] Loaded purchased styles from DB:', boughtStyles.map(s => s.style_id))
 
           // Исключаем базовые стили (hardcoded), чтобы не было дубликатов
           const uniqueBoughtStyles = boughtStyles.filter(s =>

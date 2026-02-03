@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
-import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles } from '@/lib/carouselStylesApi'
+import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles, getCarouselStylesByIds } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
@@ -188,7 +188,7 @@ function CarouselIndexInner() {
     staleTime: 5 * 60 * 1000, // 5 минут
   })
 
-  // Загружаем купленные стили пользователя
+  // Загружаем купленные стили пользователя (список ID)
   const { data: userPurchasedStyleIds = [] } = useQuery({
     queryKey: ['user-purchased-styles', telegramUser?.id],
     queryFn: async () => {
@@ -203,32 +203,43 @@ function CarouselIndexInner() {
   // ID базовых стилей (hardcoded)
   const baseStyleIds = STYLES_INDEX.map(s => s.id)
 
+  // Фильтруем только не-базовые купленные стили для отдельного запроса
+  const nonBasePurchasedIds = userPurchasedStyleIds.filter(
+    id => !baseStyleIds.includes(id as StyleId)
+  )
+
+  // Загружаем полные данные купленных стилей напрямую по ID (без фильтрации по is_active)
+  const { data: purchasedStylesData = [] } = useQuery({
+    queryKey: ['purchased-styles-data', nonBasePurchasedIds],
+    queryFn: async () => {
+      if (nonBasePurchasedIds.length === 0) return []
+      return await getCarouselStylesByIds(nonBasePurchasedIds)
+    },
+    enabled: nonBasePurchasedIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+  })
+
   // Формируем список доступных стилей:
   // 1. Базовые стили (STYLES_INDEX) — всегда доступны
-  // 2. Купленные стили из БД (если они не в базовых)
+  // 2. Купленные стили из БД (загруженные напрямую по ID)
   const mergedStylesIndex = (() => {
     // Начинаем с базовых стилей
     const result = [...STYLES_INDEX]
 
-    // Добавляем купленные стили из БД, которых нет в базовых
-    if (userPurchasedStyleIds.length > 0 && dbStyles.length > 0) {
-      const purchasedFromDb = dbStyles.filter(s =>
-        userPurchasedStyleIds.includes(s.style_id) &&
-        !baseStyleIds.includes(s.style_id as StyleId)
-      )
+    // Добавляем купленные стили из БД
+    for (const dbStyle of purchasedStylesData) {
+      result.push({
+        id: dbStyle.style_id as StyleId,
+        name: dbStyle.name,
+        emoji: dbStyle.emoji,
+        audience: dbStyle.audience as 'universal' | 'female',
+        previewColor: dbStyle.preview_color,
+        description: dbStyle.description || ''
+      })
+    }
 
-      for (const dbStyle of purchasedFromDb) {
-        result.push({
-          id: dbStyle.style_id as StyleId,
-          name: dbStyle.name,
-          emoji: dbStyle.emoji,
-          audience: dbStyle.audience as 'universal' | 'female',
-          previewColor: dbStyle.preview_color,
-          description: dbStyle.description || ''
-        })
-      }
-
-      console.log('[Carousel] Added purchased styles:', purchasedFromDb.map(s => s.style_id))
+    if (purchasedStylesData.length > 0) {
+      console.log('[Carousel] Added purchased styles:', purchasedStylesData.map(s => s.style_id))
     }
 
     return result
@@ -256,13 +267,16 @@ function CarouselIndexInner() {
     return Array.from({ length: count }, (_, i) => `/styles/${styleId}/example_${i + 1}.jpeg`)
   }
 
+  // Объединяем все стили из БД (активные + купленные) для поиска конфигов
+  const allDbStyles = [...dbStyles, ...purchasedStylesData]
+
   // Функция получения конфига стиля (сначала БД, потом захардкоженные)
   // Принимает string для поддержки купленных стилей с произвольными ID
   const getStyleConfig = (styleId: string) => {
     console.log('[Carousel] getStyleConfig called for:', styleId)
 
-    // Сначала ищем в БД
-    const dbStyle = dbStyles.find(s => s.style_id === styleId)
+    // Сначала ищем в БД (активные + купленные)
+    const dbStyle = allDbStyles.find(s => s.style_id === styleId)
     const dbConfig = dbStyle?.config as Record<string, unknown> | undefined
 
     console.log('[Carousel] DB style found:', !!dbStyle)
@@ -313,7 +327,7 @@ function CarouselIndexInner() {
   // Функция получения превью стиля
   // Принимает string для поддержки купленных стилей с произвольными ID
   const getStylePreview = (styleId: string) => {
-    const dbStyle = dbStyles.find(s => s.style_id === styleId)
+    const dbStyle = allDbStyles.find(s => s.style_id === styleId)
     if (dbStyle?.preview_image) return dbStyle.preview_image
     // Fallback на локальные превью (только для базовых стилей)
     return LOCAL_STYLE_PREVIEWS[styleId as StyleId] || '/styles/apple.jpg'
@@ -322,7 +336,7 @@ function CarouselIndexInner() {
   // Функция получения примеров стиля
   // Принимает string для поддержки купленных стилей с произвольными ID
   const getStyleExamples = (styleId: string) => {
-    const dbStyle = dbStyles.find(s => s.style_id === styleId)
+    const dbStyle = allDbStyles.find(s => s.style_id === styleId)
     if (dbStyle?.example_images && dbStyle.example_images.length > 0) {
       return dbStyle.example_images
     }
