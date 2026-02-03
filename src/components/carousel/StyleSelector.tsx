@@ -85,6 +85,21 @@ export function StyleSelector() {
   // Фильтруем по скрытым
   const visibleStyles = allAvailableStyles.filter(s => !hiddenStyles.includes(s.id))
 
+  // Валидация: если текущий выбранный стиль не существует в доступных, сбрасываем на первый
+  useEffect(() => {
+    if (!isLoading && allAvailableStyles.length > 0) {
+      const styleExists = allAvailableStyles.some(s => s.id === style)
+      if (!styleExists) {
+        // Текущий стиль недоступен - выбираем первый видимый или первый доступный
+        const firstVisible = visibleStyles[0] || allAvailableStyles[0]
+        if (firstVisible) {
+          console.log(`Style "${style}" not found, resetting to "${firstVisible.id}"`)
+          setStyle(firstVisible.id as StyleId)
+        }
+      }
+    }
+  }, [isLoading, allAvailableStyles, style, visibleStyles, setStyle])
+
   const toggleStyleVisibility = (styleId: string) => {
     const newHidden = hiddenStyles.includes(styleId)
       ? hiddenStyles.filter(id => id !== styleId)
