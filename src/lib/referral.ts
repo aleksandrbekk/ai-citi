@@ -12,6 +12,7 @@ export interface ReferralStats {
     telegram_id: number
     username: string | null
     first_name: string | null
+    avatar_url: string | null
     created_at: string
   }>
 }

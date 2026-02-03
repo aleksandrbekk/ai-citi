@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Sparkles,
   X,
-  Send
+  Send,
+  User
 } from 'lucide-react'
 import { useReferrals } from '@/hooks/useReferrals'
 import { SendCoinsModal } from '@/components/referrals/SendCoinsModal'
@@ -23,6 +24,7 @@ interface Partner {
   telegram_id: number
   username: string | null
   first_name: string | null
+  avatar_url: string | null
   created_at: string
 }
 
@@ -98,9 +100,7 @@ export default function Referrals() {
         <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-5 shadow-xl shadow-orange-500/10 border border-orange-100">
           {/* Заработано */}
           <div className="flex items-center gap-4 mb-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <img src="/neirocoin.png" alt="Нейроны" className="w-8 h-8 object-contain" />
-            </div>
+            <img src="/neirocoin.png" alt="Нейроны" className="w-14 h-14 object-contain drop-shadow-lg" />
             <div>
               <p className="text-gray-500 text-sm font-medium">Всего заработано</p>
               <div className="flex items-baseline gap-2">
@@ -240,8 +240,16 @@ export default function Referrals() {
                     onClick={() => navigate(`/referral/${ref.telegram_id}`)}
                     className="flex items-center gap-3 w-full mb-3 cursor-pointer"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md">
-                      {ref.first_name?.[0]?.toUpperCase() || '?'}
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-cyan-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-md overflow-hidden">
+                      {ref.avatar_url ? (
+                        <img
+                          src={ref.avatar_url}
+                          alt={ref.first_name || 'Партнёр'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-6 h-6 text-white" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="font-semibold text-gray-900 truncate">
