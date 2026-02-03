@@ -26,6 +26,7 @@ import {
   type CarouselStyleInput
 } from '@/lib/carouselStylesApi'
 import { STYLES_INDEX } from '@/lib/carouselStyles'
+import { getTelegramUser } from '@/lib/telegram'
 
 // Cloudinary config (same as PhotoUploader)
 const CLOUDINARY_CLOUD = 'ds8ylsl2x'
@@ -272,6 +273,10 @@ export default function StyleEditor() {
     mutationFn: async () => {
       const generatedStyleId = styleId || name.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '')
 
+      // Получаем telegram_id админа для created_by / updated_by
+      const telegramUser = getTelegramUser()
+      const adminTelegramId = telegramUser?.id
+
       const styleData: CarouselStyleInput = {
         style_id: generatedStyleId,
         name,
@@ -286,6 +291,8 @@ export default function StyleEditor() {
         is_in_shop: isInShop,
         price_neurons: priceNeurons,
         is_free: isFree,
+        // Creator tracking (для комиссии 50% при продаже)
+        updated_by: adminTelegramId,
         // УПРОЩЁННЫЙ CONFIG: только style_prompt
         // Все детали (цвета, типографика, персонаж и т.д.) описываются внутри style_prompt
         config: {
@@ -296,12 +303,15 @@ export default function StyleEditor() {
       }
 
       if (isNew) {
+        // При создании нового стиля - записываем создателя
+        styleData.created_by = adminTelegramId
         return createCarouselStyle(styleData)
       } else if (isBuiltin) {
         // Для встроенных стилей: обновляем если есть в БД, иначе создаём
         if (existingBuiltinInDb) {
           return updateCarouselStyle(existingBuiltinInDb.id, styleData)
         } else {
+          styleData.created_by = adminTelegramId
           return createCarouselStyle(styleData)
         }
       } else {

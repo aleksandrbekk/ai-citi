@@ -54,6 +54,9 @@ export interface CarouselStyleInput {
   is_in_shop?: boolean
   price_neurons?: number
   is_free?: boolean
+  // Creator tracking (для комиссии 50% при продаже)
+  created_by?: number  // telegram_id создателя
+  updated_by?: number  // telegram_id последнего редактора
 }
 
 /**
