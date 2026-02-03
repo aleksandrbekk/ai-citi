@@ -346,9 +346,8 @@ export function ClientsTab() {
         >
           <option value="all">Все</option>
           <option value="FREE">FREE</option>
-          <option value="STARTER">STARTER (499₽/мес)</option>
-          <option value="PRO">PRO (1499₽/мес)</option>
-          <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
+          <option value="PRO">PRO (2900₽/мес)</option>
+          <option value="BUSINESS">BUSINESS (9900₽/мес)</option>
         </select>
         <button
           onClick={() => setShowAddClientModal(true)}
@@ -480,9 +479,8 @@ export function ClientsTab() {
                   className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900"
                 >
                   <option value="FREE">FREE (бесплатно)</option>
-                  <option value="STARTER">STARTER (499₽/мес)</option>
-                  <option value="PRO">PRO (1499₽/мес)</option>
-                  <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
+                  <option value="PRO">PRO (2900₽/мес)</option>
+                  <option value="BUSINESS">BUSINESS (9900₽/мес)</option>
                 </select>
               </div>
 

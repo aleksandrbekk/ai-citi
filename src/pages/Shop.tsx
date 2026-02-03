@@ -102,7 +102,7 @@ interface SubscriptionPackage {
   popular?: boolean
 }
 
-// Пакеты подписок (4 тарифа)
+// Пакеты подписок (3 тарифа: FREE, PRO, BUSINESS)
 const subscriptionPackages: SubscriptionPackage[] = [
   {
     id: 'free',
@@ -117,22 +117,10 @@ const subscriptionPackages: SubscriptionPackage[] = [
     borderColor: 'border-gray-200',
   },
   {
-    id: 'starter',
-    name: 'STARTER',
-    priceRub: 499,
-    priceLabel: '499 ₽/мес',
-    neuronsPerMonth: 150,
-    generationsPerMonth: 5,
-    features: ['5 генераций в месяц', 'Все стили карусели', 'Приоритет очереди', 'Сохранение настроек'],
-    color: 'from-cyan-400 to-cyan-500',
-    bgColor: 'bg-cyan-50',
-    borderColor: 'border-cyan-300',
-  },
-  {
     id: 'pro',
     name: 'PRO',
-    priceRub: 1499,
-    priceLabel: '1,499 ₽/мес',
+    priceRub: 2900,
+    priceLabel: '2 900 ₽/мес',
     neuronsPerMonth: 500,
     generationsPerMonth: 17,
     features: ['17 генераций в месяц', 'Все стили карусели', 'Приоритет генерации', 'Сохранение настроек', 'Экспорт в высоком качестве'],
@@ -144,8 +132,8 @@ const subscriptionPackages: SubscriptionPackage[] = [
   {
     id: 'business',
     name: 'BUSINESS',
-    priceRub: 4999,
-    priceLabel: '4,999 ₽/мес',
+    priceRub: 9900,
+    priceLabel: '9 900 ₽/мес',
     neuronsPerMonth: 2000,
     generationsPerMonth: 67,
     features: ['Безлимит генераций', 'API доступ', 'Персональный менеджер', 'White-label возможности', 'Приоритетная разработка'],

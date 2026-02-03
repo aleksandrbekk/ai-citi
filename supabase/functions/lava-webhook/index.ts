@@ -15,11 +15,10 @@ const PACKAGES: Record<string, { coins: number; price: number }> = {
   business: { coins: 1000, price: 7500 },
 }
 
-// Конфигурация подписок
+// Конфигурация подписок (только PRO и BUSINESS)
 const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number }> = {
-  starter: { neurons: 150, amount: 499 },
-  pro: { neurons: 500, amount: 1499 },
-  business: { neurons: 2000, amount: 4999 },
+  pro: { neurons: 500, amount: 2900 },
+  business: { neurons: 2000, amount: 9900 },
 }
 
 serve(async (req) => {

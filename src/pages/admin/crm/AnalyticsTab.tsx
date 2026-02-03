@@ -99,10 +99,9 @@ export default function AnalyticsTab() {
     avgLTV: clients?.length ? Math.round((clients.reduce((sum, c) => sum + (c.total_paid_usd || 0), 0)) / clients.length) : 0
   }
 
-  // По тарифам (актуальные из Shop.tsx)
+  // По тарифам (актуальные: FREE, PRO, BUSINESS)
   const byPlan = {
-    free: clients?.filter(c => c.plan?.toUpperCase() === 'FREE' || c.plan?.toUpperCase() === 'BASIC').length || 0,
-    starter: clients?.filter(c => c.plan?.toUpperCase() === 'STARTER').length || 0,
+    free: clients?.filter(c => c.plan?.toUpperCase() === 'FREE' || c.plan?.toUpperCase() === 'BASIC' || c.plan?.toUpperCase() === 'STARTER').length || 0,
     pro: clients?.filter(c => c.plan?.toUpperCase() === 'PRO').length || 0,
     business: clients?.filter(c => c.plan?.toUpperCase() === 'BUSINESS' || c.plan?.toUpperCase() === 'ELITE').length || 0
   }
@@ -189,9 +188,8 @@ export default function AnalyticsTab() {
             <BarChart3 size={16} /> По тарифам
           </h3>
           <ProgressBar label="FREE" value={byPlan.free} total={stats.total} color="bg-gray-400" />
-          <ProgressBar label="STARTER (499₽)" value={byPlan.starter} total={stats.total} color="bg-cyan-500" />
-          <ProgressBar label="PRO (1499₽)" value={byPlan.pro} total={stats.total} color="bg-orange-500" />
-          <ProgressBar label="BUSINESS (4999₽)" value={byPlan.business} total={stats.total} color="bg-amber-500" />
+          <ProgressBar label="PRO (2900₽)" value={byPlan.pro} total={stats.total} color="bg-orange-500" />
+          <ProgressBar label="BUSINESS (9900₽)" value={byPlan.business} total={stats.total} color="bg-amber-500" />
         </div>
 
         {/* По источникам */}

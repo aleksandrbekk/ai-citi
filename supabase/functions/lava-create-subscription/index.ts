@@ -11,16 +11,14 @@ const LAVA_API_KEY = Deno.env.get('LAVA_API_KEY') || ''
 
 // Offer ID для подписок (создаются в Lava.top с periodicity: MONTHLY)
 const SUBSCRIPTION_OFFER_IDS: Record<string, string> = {
-  starter: Deno.env.get('LAVA_OFFER_SUB_STARTER') || '',
   pro: Deno.env.get('LAVA_OFFER_SUB_PRO') || '',
   business: Deno.env.get('LAVA_OFFER_SUB_BUSINESS') || '',
 }
 
-// Конфигурация подписок
+// Конфигурация подписок (только PRO и BUSINESS)
 const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number; name: string }> = {
-  starter: { neurons: 150, amount: 499, name: 'STARTER' },
-  pro: { neurons: 500, amount: 1499, name: 'PRO' },
-  business: { neurons: 2000, amount: 4999, name: 'BUSINESS' },
+  pro: { neurons: 500, amount: 2900, name: 'PRO' },
+  business: { neurons: 2000, amount: 9900, name: 'BUSINESS' },
 }
 
 serve(async (req) => {

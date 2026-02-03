@@ -102,7 +102,7 @@ export default function Profile() {
 
   // Проверяем, является ли тариф платной подпиской
   const isPaidSubscription = tariffInfo &&
-    ['STARTER', 'PRO', 'BUSINESS'].includes(tariffInfo.tariff_slug.toUpperCase())
+    ['PRO', 'BUSINESS'].includes(tariffInfo.tariff_slug.toUpperCase())
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white pb-24">
