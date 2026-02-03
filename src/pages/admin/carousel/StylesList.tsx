@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle, Settings } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle, Settings, X } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   getAllCarouselStyles,
   deleteCarouselStyle,
@@ -16,6 +17,7 @@ export default function CarouselStylesList() {
   const queryClient = useQueryClient()
   const [isSeeding, setIsSeeding] = useState(false)
   const [seedError, setSeedError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<CarouselStyleDB | null>(null)
 
   // Загружаем стили из БД
   const { data: styles = [], isLoading } = useQuery({
@@ -54,12 +56,24 @@ export default function CarouselStylesList() {
   // Мутация для удаления
   const deleteMutation = useMutation({
     mutationFn: deleteCarouselStyle,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-carousel-styles'] })
+      toast.success('Стиль удалён')
+      setDeleteTarget(null)
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Ошибка удаления')
+      setDeleteTarget(null)
+    },
   })
 
   const handleDelete = (style: CarouselStyleDB) => {
-    if (confirm(`Удалить стиль "${style.name}"? Это действие нельзя отменить.`)) {
-      deleteMutation.mutate(style.id)
+    setDeleteTarget(style)
+  }
+
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget.id)
     }
   }
 
@@ -216,6 +230,46 @@ export default function CarouselStylesList() {
           Изменения сразу применяются к генерации каруселей.
         </p>
       </div>
+
+      {/* Модальное окно подтверждения удаления */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Удалить стиль?</h3>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Вы уверены, что хотите удалить стиль <strong>"{deleteTarget.name}"</strong>?
+              Это действие нельзя отменить.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+              >
+                Отмена
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleteMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Удаление...</>
+                ) : (
+                  <><Trash2 className="w-4 h-4" /> Удалить</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
