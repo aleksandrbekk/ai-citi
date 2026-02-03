@@ -4,13 +4,7 @@ import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { haptic } from '@/lib/haptic'
 import { Star, User, Palette, Coins } from 'lucide-react'
-import {
-  getShopStyles,
-  getUserPurchasedStyles,
-  purchaseStyle,
-  type ShopStyle,
-  type PurchasedStyle
-} from '@/lib/carouselStylesApi'
+import { StylesTab } from '@/components/shop/StylesTab'
 
 // Типы для пакетов
 interface CoinPackage {
@@ -200,95 +194,18 @@ export function Shop() {
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [activeTab, setActiveTab] = useState<'coins' | 'subscription' | 'styles'>('coins')
 
-  // Стили магазина
-  const [shopStyles, setShopStyles] = useState<ShopStyle[]>([])
-  const [purchasedStyles, setPurchasedStyles] = useState<PurchasedStyle[]>([])
-  const [_isLoadingStyles, setIsLoadingStyles] = useState(true)
-
   useEffect(() => {
     const loadData = async () => {
       if (telegramUser?.id) {
         const balance = await getCoinBalance(telegramUser.id)
         setCoinBalance(balance)
-
-        // Загружаем стили
-        const [styles, purchased] = await Promise.all([
-          getShopStyles(),
-          getUserPurchasedStyles(telegramUser.id)
-        ])
-        setShopStyles(styles)
-        setPurchasedStyles(purchased)
       }
       setIsLoadingCoins(false)
-      setIsLoadingStyles(false)
     }
     loadData()
   }, [telegramUser?.id])
 
   const [isProcessing, setIsProcessing] = useState(false)
-
-  // Проверка владения стилем
-  const ownsStyle = (styleId: string) => {
-    const style = shopStyles.find(s => s.style_id === styleId)
-    if (style?.is_free) return true
-    return purchasedStyles.some(p => p.style_id === styleId)
-  }
-
-  // Покупка стиля (временно не используется - вкладка скрыта)
-  // @ts-ignore - временно не используется
-  const _handleBuyStyle = async (style: ShopStyle) => {
-    haptic.action()
-
-    if (!telegramUser?.id) {
-      haptic.error()
-      toast.error('Не удалось определить пользователя')
-      return
-    }
-
-    if (ownsStyle(style.style_id)) {
-      toast.info('Этот стиль уже у вас!')
-      return
-    }
-
-    if (coinBalance < style.price_neurons) {
-      haptic.warning()
-      toast.error(`Недостаточно нейронов. Нужно: ${style.price_neurons}, у вас: ${coinBalance}`)
-      return
-    }
-
-    setIsProcessing(true)
-
-    try {
-      const result = await purchaseStyle(telegramUser.id, style.style_id, style.price_neurons)
-
-      if (result.success) {
-        haptic.success()
-        toast.success(`🎨 Стиль "${style.name}" куплен!`)
-
-        // Обновляем баланс и список купленных
-        if (result.newBalance !== undefined) {
-          setCoinBalance(result.newBalance)
-        }
-        setPurchasedStyles([...purchasedStyles, {
-          id: crypto.randomUUID(),
-          telegram_id: telegramUser.id,
-          style_id: style.style_id,
-          price_paid: style.price_neurons,
-          purchased_at: new Date().toISOString()
-        }])
-      } else {
-        haptic.error()
-        toast.error(result.error || 'Ошибка при покупке')
-      }
-    } catch (error) {
-      console.error('Purchase error:', error)
-      haptic.error()
-      toast.error('Ошибка при покупке стиля')
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
 
   const handleBuy = async (pkg: CoinPackage) => {
     haptic.action() // Вибрация при покупке
@@ -645,42 +562,13 @@ export function Shop() {
           </>
         )}
 
-        {/* Временно скрыто
         {activeTab === 'styles' && (
-          <>
-            <p className="text-xs text-gray-500 text-center">Персонализируй своих помощников</p>
-            <div className="grid grid-cols-2 gap-3">
-              {stylePackages.map((style) => (
-                <button
-                  key={style.id}
-                  onClick={() => handleBuyStyle(style.id)}
-                  className={`bg-white border-2 rounded-2xl p-3 text-center transition-all hover:shadow-lg active:scale-[0.98] opacity-60 ${
-                    style.premium ? 'border-amber-400 col-span-2' : 'border-gray-200'
-                  }`}
-                >
-                  {style.premium && (
-                    <div className="flex justify-center mb-2">
-                      <span className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full">
-                        VIP
-                      </span>
-                    </div>
-                  )}
-                  <div className={`mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br ${style.color} p-2 mb-3 ${style.premium ? 'w-24 h-24' : ''}`}>
-                    <img
-                      src={style.image}
-                      alt={style.name}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <p className="font-semibold text-gray-900 text-sm">{style.name}</p>
-                  <p className="text-xs text-gray-500 mb-1">{style.description}</p>
-                  <p className="text-xs text-gray-400">Скоро</p>
-                </button>
-              ))}
-            </div>
-          </>
+          <StylesTab
+            telegramId={telegramUser?.id}
+            coinBalance={coinBalance}
+            onBalanceChange={setCoinBalance}
+          />
         )}
-        */}
       </div>
 
       {/* Footer info */}
