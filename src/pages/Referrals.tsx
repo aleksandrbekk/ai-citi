@@ -110,23 +110,19 @@ export default function Referrals() {
             </div>
           </div>
 
-          {/* Статистика - одинаковые карточки */}
+          {/* Статистика - минималистичные карточки */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-4 border border-orange-100">
+            <div className="bg-gray-50/80 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-gray-600 text-sm font-medium">Партнёров</span>
+                <Users className="w-5 h-5 text-orange-500" />
+                <span className="text-gray-500 text-sm">Партнёров</span>
               </div>
               <p className="text-3xl font-bold text-gray-900">{stats?.total_referrals || 0}</p>
             </div>
-            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 rounded-2xl p-4 border border-cyan-100">
+            <div className="bg-gray-50/80 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-gray-600 text-sm font-medium">От генераций</span>
+                <TrendingUp className="w-5 h-5 text-orange-500" />
+                <span className="text-gray-500 text-sm">От генераций</span>
               </div>
               <p className="text-3xl font-bold text-gray-900">{stats?.total_partner_spent || 0}</p>
             </div>
@@ -173,49 +169,51 @@ export default function Referrals() {
           </div>
         </div>
 
-        {/* How It Works - Компактный горизонтальный дизайн */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-cyan-500" />
+        {/* How It Works - Элегантный timeline дизайн */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+          <h3 className="font-bold text-gray-900 mb-5 text-center">
             Как это работает
           </h3>
 
-          <div className="flex items-start justify-between gap-2">
-            {/* Шаг 1 */}
-            <div className="flex-1 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-orange-500/25 mb-2">
-                1
+          {/* Timeline */}
+          <div className="relative">
+            {/* Линия прогресса */}
+            <div className="absolute top-4 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-orange-200 via-orange-400 to-orange-500" />
+
+            <div className="flex justify-between relative">
+              {/* Шаг 1 */}
+              <div className="flex flex-col items-center w-1/3">
+                <div className="w-8 h-8 rounded-full bg-orange-100 border-2 border-orange-400 flex items-center justify-center text-orange-600 font-bold text-sm z-10">
+                  1
+                </div>
+                <p className="text-xs text-gray-600 mt-2 text-center leading-snug">Отправь<br/>ссылку</p>
               </div>
-              <p className="text-xs font-medium text-gray-700 leading-tight">Отправь<br/>ссылку</p>
-            </div>
 
-            {/* Стрелка */}
-            <div className="flex items-center pt-3 text-gray-300">→</div>
-
-            {/* Шаг 2 */}
-            <div className="flex-1 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-cyan-500/25 mb-2">
-                2
+              {/* Шаг 2 */}
+              <div className="flex flex-col items-center w-1/3">
+                <div className="w-8 h-8 rounded-full bg-orange-400 border-2 border-orange-400 flex items-center justify-center text-white font-bold text-sm z-10">
+                  2
+                </div>
+                <p className="text-xs text-gray-600 mt-2 text-center leading-snug">Друг<br/>генерирует</p>
               </div>
-              <p className="text-xs font-medium text-gray-700 leading-tight">Друг<br/>генерирует</p>
-            </div>
 
-            {/* Стрелка */}
-            <div className="flex items-center pt-3 text-gray-300">→</div>
-
-            {/* Шаг 3 */}
-            <div className="flex-1 text-center">
-              <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-orange-500 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-lg shadow-orange-500/25 mb-2">
-                3
+              {/* Шаг 3 */}
+              <div className="flex flex-col items-center w-1/3">
+                <div className="w-8 h-8 rounded-full bg-orange-500 border-2 border-orange-500 flex items-center justify-center text-white font-bold text-sm z-10 shadow-md shadow-orange-500/30">
+                  3
+                </div>
+                <p className="text-xs font-semibold text-orange-500 mt-2 text-center leading-snug">Тебе<br/>10%</p>
               </div>
-              <p className="text-xs font-bold text-orange-500 leading-tight">Тебе<br/>10%</p>
             </div>
           </div>
 
           {/* Пояснение */}
-          <p className="text-center text-xs text-gray-500 mt-3 bg-gray-50 rounded-lg py-2 px-3">
-            Получай <span className="font-semibold text-orange-500">10%</span> от каждой генерации партнёра
-          </p>
+          <div className="mt-5 text-center">
+            <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 bg-orange-50 px-4 py-2 rounded-full">
+              <span className="text-lg">💰</span>
+              <span className="font-medium text-orange-500">10%</span> от каждой генерации партнёра
+            </span>
+          </div>
         </div>
 
         {/* Partners List - Улучшенный дизайн с заметной кнопкой отправки */}
