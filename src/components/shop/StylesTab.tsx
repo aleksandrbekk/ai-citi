@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Palette, Check } from 'lucide-react'
+import { Palette, Check, X, ShoppingBag } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 import {
   getShopStyles,
@@ -21,6 +21,8 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
   const [purchasedStyles, setPurchasedStyles] = useState<PurchasedStyle[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
+  // Модалка подтверждения
+  const [confirmModal, setConfirmModal] = useState<ShopStyle | null>(null)
 
   useEffect(() => {
     const loadStyles = async () => {
@@ -43,7 +45,8 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
     return purchasedStyles.some(p => p.style_id === styleId)
   }
 
-  const handleBuyStyle = async (style: ShopStyle) => {
+  // Открыть модалку подтверждения
+  const handleBuyClick = (style: ShopStyle) => {
     haptic.action()
 
     if (!telegramId) {
@@ -63,14 +66,22 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
       return
     }
 
+    // Показываем модалку подтверждения
+    setConfirmModal(style)
+  }
+
+  // Подтвердить покупку
+  const confirmPurchase = async () => {
+    if (!confirmModal || !telegramId) return
+
     setIsProcessing(true)
 
     try {
-      const result = await purchaseStyle(telegramId, style.style_id, style.price_neurons)
+      const result = await purchaseStyle(telegramId, confirmModal.style_id, confirmModal.price_neurons)
 
       if (result.success) {
         haptic.success()
-        toast.success(`🎨 Стиль "${style.name}" куплен!`)
+        toast.success(`🎨 Стиль "${confirmModal.name}" куплен!`)
 
         if (result.newBalance !== undefined) {
           onBalanceChange(result.newBalance)
@@ -78,8 +89,8 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
         setPurchasedStyles([...purchasedStyles, {
           id: crypto.randomUUID(),
           telegram_id: telegramId,
-          style_id: style.style_id,
-          price_paid: style.price_neurons,
+          style_id: confirmModal.style_id,
+          price_paid: confirmModal.price_neurons,
           purchased_at: new Date().toISOString()
         }])
       } else {
@@ -92,6 +103,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
       toast.error('Ошибка при покупке стиля')
     } finally {
       setIsProcessing(false)
+      setConfirmModal(null)
     }
   }
 
@@ -126,7 +138,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
           return (
             <button
               key={style.style_id}
-              onClick={() => !owned && handleBuyStyle(style)}
+              onClick={() => !owned && handleBuyClick(style)}
               disabled={isProcessing || owned}
               className={`relative w-full bg-white border-2 rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer ${
                 owned
@@ -218,6 +230,99 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
           💡 Купленные стили появятся в выборе при создании карусели
         </p>
       </div>
+
+      {/* Модалка подтверждения покупки */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="relative bg-gradient-to-r from-orange-400 to-orange-500 p-6 text-center">
+              <button
+                onClick={() => setConfirmModal(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-white/20 flex items-center justify-center">
+                <ShoppingBag className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Подтвердите покупку</h3>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {/* Стиль */}
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{ backgroundColor: confirmModal.preview_color + '20' }}
+                >
+                  {confirmModal.preview_image ? (
+                    <img
+                      src={confirmModal.preview_image}
+                      alt={confirmModal.name}
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    confirmModal.emoji
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-900">{confirmModal.name}</p>
+                  <p className="text-sm text-gray-500 truncate">{confirmModal.description}</p>
+                </div>
+              </div>
+
+              {/* Детали */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600">Вы получите</span>
+                  <span className="font-semibold text-gray-900">Стиль "{confirmModal.name}"</span>
+                </div>
+                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-gray-600">Спишется с баланса</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-orange-500 text-lg">{confirmModal.price_neurons}</span>
+                    <img src="/neirocoin.png" alt="нейро" className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-gray-600">Баланс после покупки</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-gray-900">{coinBalance - confirmModal.price_neurons}</span>
+                    <img src="/neirocoin.png" alt="нейро" className="w-4 h-4 opacity-70" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-4 pt-0 space-y-2">
+              <button
+                onClick={confirmPurchase}
+                disabled={isProcessing}
+                className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-70"
+              >
+                {isProcessing ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Покупка...
+                  </span>
+                ) : (
+                  'Подтвердить покупку'
+                )}
+              </button>
+              <button
+                onClick={() => setConfirmModal(null)}
+                disabled={isProcessing}
+                className="w-full py-3 text-gray-500 font-medium hover:text-gray-700 transition-colors"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
