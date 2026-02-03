@@ -7,6 +7,7 @@ interface ProfileHeaderProps {
   tariffName: string
   tariffExpiry: string
   isFreeTariff: boolean
+  isLoading?: boolean
   onSettingsClick: () => void
   onUpgradeClick: () => void
 }
@@ -17,6 +18,7 @@ export function ProfileHeader({
   tariffName,
   tariffExpiry,
   isFreeTariff,
+  isLoading = false,
   onSettingsClick,
   onUpgradeClick
 }: ProfileHeaderProps) {
@@ -61,18 +63,31 @@ export function ProfileHeader({
           <h1 className="text-2xl font-bold text-gray-900 truncate">
             {firstName}
           </h1>
+
+          {/* Tariff Badge with Loading State */}
           <div className="mt-1 flex items-center gap-1.5">
-            <Crown className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-medium text-amber-600">
-              {tariffName}
-            </span>
-            <span className="text-xs text-gray-400">
-              {tariffExpiry}
-            </span>
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+                <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                <Crown className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-amber-600">
+                  {tariffName}
+                </span>
+                {tariffExpiry && (
+                  <span className="text-xs text-gray-400">
+                    {tariffExpiry}
+                  </span>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Upgrade Button */}
-          {isFreeTariff && (
+          {/* Upgrade Button - only show when loaded and free */}
+          {!isLoading && isFreeTariff && (
             <button
               onClick={() => {
                 haptic.tap()

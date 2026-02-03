@@ -11,7 +11,6 @@ import {
   QuickActions,
   QRCodeModal,
   SettingsDrawer,
-  PromoCodeModal,
   TransactionHistoryModal
 } from '@/components/profile'
 
@@ -25,13 +24,12 @@ export default function Profile() {
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [giftCoinBalance, setGiftCoinBalance] = useState<number>(0)
   const [spendStats, setSpendStats] = useState<{ total_spent: number; total_earned: number }>({ total_spent: 0, total_earned: 0 })
-  const [isLoadingCoins, setIsLoadingCoins] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
   const [tariffInfo, setTariffInfo] = useState<UserTariffInfo | null>(null)
 
   // Modals
   const [showSettings, setShowSettings] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
-  const [showPromoCode, setShowPromoCode] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
   const { stats, referralLink, referralCode } = useReferrals()
@@ -50,20 +48,14 @@ export default function Profile() {
         setTariffInfo(tariff)
         setSpendStats(spendStatsData)
       }
-      setIsLoadingCoins(false)
+      setIsLoading(false)
     }
     loadData()
   }, [telegramUser?.id])
 
-  // Обновление баланса после активации промокода
-  const handlePromoSuccess = (coinsAdded: number) => {
-    setGiftCoinBalance(prev => prev + coinsAdded)
-    toast.success(`Получено ${coinsAdded} подарочных монет!`)
-  }
-
   // Форматирование даты окончания тарифа
   const formatTariffExpiry = (expiresAt: string | null) => {
-    if (!expiresAt) return 'Бессрочно'
+    if (!expiresAt) return ''
     const date = new Date(expiresAt)
     return `до ${date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })}`
   }
@@ -92,18 +84,8 @@ export default function Profile() {
   // Handlers
   const handleBuyCoins = () => navigate('/shop')
   const handlePartners = () => navigate('/referrals')
-
-  const handleHistory = () => {
-    setShowHistory(true)
-  }
-
-  const handlePromoCode = () => {
-    setShowPromoCode(true)
-  }
-
-  const handleUpgrade = () => {
-    navigate('/shop')
-  }
+  const handleHistory = () => setShowHistory(true)
+  const handleUpgrade = () => navigate('/shop')
 
   const handleCancelSubscription = async () => {
     if (!telegramUser?.id) return
@@ -111,7 +93,6 @@ export default function Profile() {
     const result = await cancelSubscription(telegramUser.id)
     if (result.ok) {
       toast.success(result.message || 'Подписка отменена')
-      // Обновляем данные о тарифе
       const tariff = await getUserTariffInfo(telegramUser.id)
       setTariffInfo(tariff)
     } else {
@@ -132,6 +113,7 @@ export default function Profile() {
         tariffName={currentTariffName}
         tariffExpiry={tariffExpiry}
         isFreeTariff={isFreeTariff}
+        isLoading={isLoading}
         onSettingsClick={() => setShowSettings(true)}
         onUpgradeClick={handleUpgrade}
       />
@@ -143,7 +125,7 @@ export default function Profile() {
           giftCoins={giftCoinBalance}
           spent={spendStats.total_spent}
           earned={stats?.total_coins_earned || spendStats.total_earned}
-          isLoading={isLoadingCoins}
+          isLoading={isLoading}
         />
 
         {/* Quick Actions */}
@@ -152,7 +134,6 @@ export default function Profile() {
           onBuyCoins={handleBuyCoins}
           onPartners={handlePartners}
           onHistory={handleHistory}
-          onPromoCode={handlePromoCode}
           onQRCode={() => setShowQRCode(true)}
         />
       </div>
@@ -173,13 +154,6 @@ export default function Profile() {
         hasActiveSubscription={!!isPaidSubscription}
         subscriptionPlan={tariffInfo?.tariff_slug.toUpperCase()}
         onCancelSubscription={handleCancelSubscription}
-      />
-
-      {/* Promo Code Modal */}
-      <PromoCodeModal
-        isOpen={showPromoCode}
-        onClose={() => setShowPromoCode(false)}
-        onSuccess={handlePromoSuccess}
       />
 
       {/* Transaction History Modal */}
