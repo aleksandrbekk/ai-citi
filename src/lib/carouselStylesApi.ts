@@ -227,15 +227,12 @@ export async function updateCarouselStyle(
 }
 
 /**
- * Удалить стиль (мягкое удаление - деактивация)
+ * Удалить стиль (полное удаление из БД)
  */
 export async function deleteCarouselStyle(id: string): Promise<boolean> {
   try {
     const response = await supabaseFetch(`?id=eq.${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        is_active: false,
-      }),
+      method: 'DELETE',
     }, true) // useServiceKey = true
 
     if (!response.ok) {
