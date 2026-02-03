@@ -1,18 +1,33 @@
-// НОВЫЙ COPYWRITER BODY - использует styleConfig из входящих данных
-// Заменяет hardcoded "Агент Вася v5.2" на динамический стиль
+// COPYWRITER BODY v2 - поддержка stylePrompt для новых стилей
+// Приоритет: 1) body.stylePrompt (новые стили) 2) prompt_blocks (старые) 3) fallback
 
 const body = $json.body || $json;
 const topic = body.topic || "Тестовая тема";
 const cta = body.cta || "МАГИЯ";
 
-// НОВОЕ: получаем styleConfig из входящих данных
+// Получаем данные из входящего запроса
 const styleConfig = body.styleConfig || null;
 const vasiaCore = body.vasiaCore || null;
 const formatConfig = body.formatConfig || null;
 
-// Если styleConfig передан - используем его, иначе fallback на дефолт
+// НОВОЕ: stylePrompt приходит отдельным полем для новых стилей (CINEMATICOVERLOAD и др.)
+const incomingStylePrompt = body.stylePrompt || (styleConfig && styleConfig.style_prompt) || null;
+
+// Определяем визуальный промпт с приоритетом:
+// 1. Новые стили: используем готовый stylePrompt (один промпт на весь стиль)
+// 2. Старые стили: строим из prompt_blocks
+// 3. Fallback: Apple Glassmorphism
 let stylePrompt = '';
-if (styleConfig && styleConfig.prompt_blocks) {
+
+if (incomingStylePrompt) {
+    // НОВЫЕ СТИЛИ: используем готовый промпт как есть
+    stylePrompt = `
+## ВИЗУАЛЬНЫЙ СТИЛЬ (из style_prompt)
+
+${incomingStylePrompt}
+`;
+} else if (styleConfig && styleConfig.prompt_blocks) {
+    // СТАРЫЕ СТИЛИ: строим из prompt_blocks
     const pb = styleConfig.prompt_blocks;
     stylePrompt = `
 ## ВИЗУАЛЬНЫЙ СТИЛЬ: ${styleConfig.name}
@@ -47,7 +62,7 @@ ${JSON.stringify(styleConfig.decorations, null, 2)}
 - style_footer: ${pb.style_footer}
 `;
 } else {
-    // Fallback - Apple Glassmorphism (дефолт)
+    // FALLBACK - Apple Glassmorphism (дефолт)
     stylePrompt = `
 ## ВИЗУАЛЬНЫЙ СТИЛЬ: Apple Glassmorphism (дефолт)
 
