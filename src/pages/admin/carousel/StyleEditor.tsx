@@ -13,8 +13,6 @@ import {
   EyeOff,
   Image,
   Palette,
-  User,
-  Type,
   Layers,
   Sparkles,
   ShoppingBag,
@@ -27,7 +25,7 @@ import {
   updateCarouselStyle,
   type CarouselStyleInput
 } from '@/lib/carouselStylesApi'
-import { STYLES_INDEX, STYLE_CONFIGS } from '@/lib/carouselStyles'
+import { STYLES_INDEX } from '@/lib/carouselStyles'
 
 // Cloudinary config (same as PhotoUploader)
 const CLOUDINARY_CLOUD = 'ds8ylsl2x'
@@ -41,15 +39,12 @@ export default function StyleEditor() {
   const isBuiltin = !!builtinStyleId
 
   // Секции (раскрытие/скрытие)
+  // УПРОЩЕНО: убраны лишние секции (colors, typography, person, cards, decorations)
+  // Всё визуальное описание должно быть в style_prompt
   const [sections, setSections] = useState({
     basic: true,
     avatar: true,
     examples: true,
-    person: false,
-    colors: false,
-    typography: false,
-    cards: false,
-    decorations: false,
     templates: true,
     shop: true
   })
@@ -76,32 +71,8 @@ export default function StyleEditor() {
   const [exampleImages, setExampleImages] = useState<string[]>([])
   const [uploadingExample, setUploadingExample] = useState<number | null>(null)
 
-  // Person settings
-  const [personScale, setPersonScale] = useState('85% of frame width')
-  const [personPosition, setPersonPosition] = useState('RIGHT or LEFT 40% of frame')
-  const [personLighting, setPersonLighting] = useState('studio lighting, soft shadows')
-  const [personAesthetic, setPersonAesthetic] = useState('clean, professional, modern 2026')
-
-  // Colors
-  const [colorBgPrimary, setColorBgPrimary] = useState('#FFFFFF')
-  const [colorBgSecondary, setColorBgSecondary] = useState('#F5F5F5')
-  const [colorAccentPrimary, setColorAccentPrimary] = useState('#FF5A1F')
-  const [colorAccentSecondary, setColorAccentSecondary] = useState('#06B6D4')
-  const [colorTextPrimary, setColorTextPrimary] = useState('#1A1A1A')
-  const [colorTextSecondary, setColorTextSecondary] = useState('#666666')
-
-  // Typography
-  const [typoStyle, setTypoStyle] = useState('bold modern sans-serif')
-  const [typoHeadline, setTypoHeadline] = useState('bold, black')
-  const [typoBody, setTypoBody] = useState('medium weight')
-
-  // Cards
-  const [cardsStyle, setCardsStyle] = useState('glassmorphism')
-  const [cardsBlur, setCardsBlur] = useState('20px backdrop blur')
-  const [cardsBorderRadius, setCardsBorderRadius] = useState('24px')
-
-  // Decorations
-  const [decorElements, setDecorElements] = useState('subtle glow effects')
+  // УБРАНЫ: person, colors, typography, cards, decorations
+  // Все визуальные настройки должны быть описаны в style_prompt
 
   // Slide Templates (промпты для n8n)
   const DEFAULT_STYLE_PROMPT = `ВИЗУАЛЬНЫЙ СТИЛЬ:
@@ -168,55 +139,11 @@ export default function StyleEditor() {
 
       const config = existingStyle.config as Record<string, unknown> | null
       if (config) {
-        // Person
-        const person = config.person as Record<string, string> | undefined
-        if (person) {
-          setPersonScale(person.scale || '')
-          setPersonPosition(person.position || '')
-          setPersonLighting(person.lighting || '')
-          setPersonAesthetic(person.aesthetic || '')
-        }
-
-        // Colors
-        const colors = config.colors as Record<string, string> | undefined
-        if (colors) {
-          setColorBgPrimary(colors.background_primary || '#FFFFFF')
-          setColorBgSecondary(colors.background_secondary || '#F5F5F5')
-          setColorAccentPrimary(colors.accent_primary || '#FF5A1F')
-          setColorAccentSecondary(colors.accent_secondary || '#06B6D4')
-          setColorTextPrimary(colors.text_primary || '#1A1A1A')
-          setColorTextSecondary(colors.text_secondary || '#666666')
-        }
-
-        // Typography
-        const typo = config.typography as Record<string, string> | undefined
-        if (typo) {
-          setTypoStyle(typo.style || '')
-          setTypoHeadline(typo.headline || '')
-          setTypoBody(typo.body || '')
-        }
-
-        // Cards
-        const cards = config.cards as Record<string, string> | undefined
-        if (cards) {
-          setCardsStyle(cards.style || '')
-          setCardsBlur(cards.blur || '')
-          setCardsBorderRadius(cards.border_radius || '')
-        }
-
-        // Decorations
-        const decor = config.decorations as Record<string, string> | undefined
-        if (decor) {
-          setDecorElements(decor.elements || '')
-        }
-
-        // Style prompt (единый промпт стиля)
+        // Style prompt (единый промпт стиля) — ЕДИНСТВЕННОЕ важное поле
         const stylePromptValue = config.style_prompt as string | undefined
         if (stylePromptValue) {
           setStylePrompt(stylePromptValue)
         }
-
-        // content_system_prompt убран — теперь глобальный
       }
     }
   }, [existingStyle])
@@ -243,51 +170,16 @@ export default function StyleEditor() {
 
         const config = existingBuiltinInDb.config as Record<string, unknown> | null
         if (config) {
-          const person = config.person as Record<string, string> | undefined
-          if (person) {
-            setPersonScale(person.scale || '')
-            setPersonPosition(person.position || '')
-            setPersonLighting(person.lighting || '')
-            setPersonAesthetic(person.aesthetic || '')
-          }
-          const colors = config.colors as Record<string, string> | undefined
-          if (colors) {
-            setColorBgPrimary(colors.background_primary || '#FFFFFF')
-            setColorBgSecondary(colors.background_secondary || '#F5F5F5')
-            setColorAccentPrimary(colors.accent_primary || '#FF5A1F')
-            setColorAccentSecondary(colors.accent_secondary || '#06B6D4')
-            setColorTextPrimary(colors.text_primary || '#1A1A1A')
-            setColorTextSecondary(colors.text_secondary || '#666666')
-          }
-          const typo = config.typography as Record<string, string> | undefined
-          if (typo) {
-            setTypoStyle(typo.style || '')
-            setTypoHeadline(typo.headline || '')
-            setTypoBody(typo.body || '')
-          }
-          const cards = config.cards as Record<string, string> | undefined
-          if (cards) {
-            setCardsStyle(cards.style || '')
-            setCardsBlur(cards.blur || '')
-            setCardsBorderRadius(cards.border_radius || '')
-          }
-          const decor = config.decorations as Record<string, string> | undefined
-          if (decor) {
-            setDecorElements(decor.elements || '')
-          }
-          // Style prompt (единый промпт стиля)
           const stylePromptValue = config.style_prompt as string | undefined
           if (stylePromptValue) {
             setStylePrompt(stylePromptValue)
           }
-          // content_system_prompt убран — теперь глобальный
         }
         return
       }
 
-      // Загружаем из hardcoded конфигов
+      // Загружаем из hardcoded конфигов (только meta для UI)
       const styleMeta = STYLES_INDEX.find(s => s.id === builtinStyleId)
-      const config = STYLE_CONFIGS[builtinStyleId as keyof typeof STYLE_CONFIGS]
 
       if (styleMeta) {
         setStyleId(styleMeta.id)
@@ -303,46 +195,6 @@ export default function StyleEditor() {
         setExampleImages(
           Array.from({ length: exampleCount }, (_, i) => `/styles/${styleMeta.id}/example_${i + 1}.jpeg`)
         )
-      }
-
-      if (config) {
-        const person = config.person as Record<string, string> | undefined
-        if (person) {
-          setPersonScale(person.scale || '')
-          setPersonPosition(person.position || '')
-          setPersonLighting(person.lighting || '')
-          setPersonAesthetic(person.aesthetic || '')
-        }
-        const colors = config.colors as Record<string, string> | undefined
-        if (colors) {
-          setColorBgPrimary(colors.background_primary || '#FFFFFF')
-          setColorBgSecondary(colors.background_secondary || '#F5F5F5')
-          setColorAccentPrimary(colors.accent_primary || '#FF5A1F')
-          setColorAccentSecondary(colors.accent_secondary || '#06B6D4')
-          setColorTextPrimary(colors.text_primary || '#1A1A1A')
-          setColorTextSecondary(colors.text_secondary || '#666666')
-        }
-        const typo = config.typography as Record<string, string> | undefined
-        if (typo) {
-          setTypoStyle(typo.style || '')
-          setTypoHeadline(typo.headline || '')
-          setTypoBody(typo.body || '')
-        }
-        const cards = config.cards as Record<string, string> | undefined
-        if (cards) {
-          setCardsStyle(cards.style || '')
-          setCardsBlur(cards.blur || '')
-          setCardsBorderRadius(cards.border_radius || '')
-        }
-        const decor = config.decorations as Record<string, string> | undefined
-        if (decor) {
-          setDecorElements(decor.elements || '')
-        }
-        // Style prompt
-        const stylePromptValue = (config as any).style_prompt as string | undefined
-        if (stylePromptValue) {
-          setStylePrompt(stylePromptValue)
-        }
       }
     }
   }, [isBuiltin, builtinStyleId, existingBuiltinInDb])
@@ -414,6 +266,8 @@ export default function StyleEditor() {
   }
 
   // Save mutation
+  // УПРОЩЕНО: в config сохраняется только style_prompt
+  // Всё визуальное описание должно быть в одном промпте
   const saveMutation = useMutation({
     mutationFn: async () => {
       const generatedStyleId = styleId || name.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '')
@@ -432,41 +286,12 @@ export default function StyleEditor() {
         is_in_shop: isInShop,
         price_neurons: priceNeurons,
         is_free: isFree,
+        // УПРОЩЁННЫЙ CONFIG: только style_prompt
+        // Все детали (цвета, типографика, персонаж и т.д.) описываются внутри style_prompt
         config: {
           id: generatedStyleId,
           name,
-          description,
-          audience,
-          colors: {
-            background_primary: colorBgPrimary,
-            background_secondary: colorBgSecondary,
-            accent_primary: colorAccentPrimary,
-            accent_secondary: colorAccentSecondary,
-            text_primary: colorTextPrimary,
-            text_secondary: colorTextSecondary
-          },
-          typography: {
-            style: typoStyle,
-            headline: typoHeadline,
-            body: typoBody
-          },
-          cards: {
-            style: cardsStyle,
-            blur: cardsBlur,
-            border_radius: cardsBorderRadius
-          },
-          person: {
-            scale: personScale,
-            position: personPosition,
-            lighting: personLighting,
-            aesthetic: personAesthetic
-          },
-          decorations: {
-            elements: decorElements
-          },
-          prompt_blocks: {},
           style_prompt: stylePrompt
-          // content_system_prompt убран — теперь глобальный в carousel_settings
         }
       }
 
@@ -724,175 +549,6 @@ export default function StyleEditor() {
           </div>
         </Section>
 
-        {/* SECTION: Person Settings */}
-        <Section
-          title="Настройки персонажа"
-          icon={<User className="w-4 h-4" />}
-          isOpen={sections.person}
-          onToggle={() => toggleSection('person')}
-        >
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Масштаб (scale)</label>
-              <input
-                type="text"
-                value={personScale}
-                onChange={(e) => setPersonScale(e.target.value)}
-                placeholder="85% of frame width"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Позиция (position)</label>
-              <input
-                type="text"
-                value={personPosition}
-                onChange={(e) => setPersonPosition(e.target.value)}
-                placeholder="RIGHT or LEFT 40% of frame"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Освещение (lighting)</label>
-              <input
-                type="text"
-                value={personLighting}
-                onChange={(e) => setPersonLighting(e.target.value)}
-                placeholder="studio lighting, soft shadows"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Эстетика (aesthetic)</label>
-              <input
-                type="text"
-                value={personAesthetic}
-                onChange={(e) => setPersonAesthetic(e.target.value)}
-                placeholder="clean, professional, modern 2026"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* SECTION: Colors */}
-        <Section
-          title="Цвета"
-          icon={<Palette className="w-4 h-4" />}
-          isOpen={sections.colors}
-          onToggle={() => toggleSection('colors')}
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <ColorInput label="Фон основной" value={colorBgPrimary} onChange={setColorBgPrimary} />
-            <ColorInput label="Фон вторичный" value={colorBgSecondary} onChange={setColorBgSecondary} />
-            <ColorInput label="Акцент основной" value={colorAccentPrimary} onChange={setColorAccentPrimary} />
-            <ColorInput label="Акцент вторичный" value={colorAccentSecondary} onChange={setColorAccentSecondary} />
-            <ColorInput label="Текст основной" value={colorTextPrimary} onChange={setColorTextPrimary} />
-            <ColorInput label="Текст вторичный" value={colorTextSecondary} onChange={setColorTextSecondary} />
-          </div>
-        </Section>
-
-        {/* SECTION: Typography */}
-        <Section
-          title="Типографика"
-          icon={<Type className="w-4 h-4" />}
-          isOpen={sections.typography}
-          onToggle={() => toggleSection('typography')}
-        >
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Стиль</label>
-              <input
-                type="text"
-                value={typoStyle}
-                onChange={(e) => setTypoStyle(e.target.value)}
-                placeholder="bold modern sans-serif"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Заголовки</label>
-              <input
-                type="text"
-                value={typoHeadline}
-                onChange={(e) => setTypoHeadline(e.target.value)}
-                placeholder="bold, black"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Основной текст</label>
-              <input
-                type="text"
-                value={typoBody}
-                onChange={(e) => setTypoBody(e.target.value)}
-                placeholder="medium weight"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* SECTION: Cards */}
-        <Section
-          title="Стиль карточек"
-          icon={<Layers className="w-4 h-4" />}
-          isOpen={sections.cards}
-          onToggle={() => toggleSection('cards')}
-        >
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Стиль</label>
-              <input
-                type="text"
-                value={cardsStyle}
-                onChange={(e) => setCardsStyle(e.target.value)}
-                placeholder="glassmorphism"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Blur</label>
-              <input
-                type="text"
-                value={cardsBlur}
-                onChange={(e) => setCardsBlur(e.target.value)}
-                placeholder="20px backdrop blur"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Border Radius</label>
-              <input
-                type="text"
-                value={cardsBorderRadius}
-                onChange={(e) => setCardsBorderRadius(e.target.value)}
-                placeholder="24px"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-            </div>
-          </div>
-        </Section>
-
-        {/* SECTION: Decorations */}
-        <Section
-          title="Декорации"
-          icon={<Sparkles className="w-4 h-4" />}
-          isOpen={sections.decorations}
-          onToggle={() => toggleSection('decorations')}
-        >
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Элементы декора</label>
-            <input
-              type="text"
-              value={decorElements}
-              onChange={(e) => setDecorElements(e.target.value)}
-              placeholder="subtle glow effects, floating particles"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-            />
-          </div>
-        </Section>
-
         {/* SECTION: Slide Templates (MAIN PROMPTS) */}
         <Section
           title="Промпты слайдов (для n8n)"
@@ -1074,37 +730,6 @@ function Section({
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-// Color Input Component
-function ColorInput({
-  label,
-  value,
-  onChange
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <div className="flex gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-10 h-10 border border-gray-200 rounded cursor-pointer"
-        />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 px-2 py-1 border border-gray-200 rounded font-mono text-xs"
-        />
-      </div>
     </div>
   )
 }
