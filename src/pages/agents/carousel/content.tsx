@@ -101,7 +101,12 @@ export default function CarouselContent() {
         styleConfig = { ...styleConfig, ...config }
         // Получаем визуальный промпт из БД (индивидуальный для каждого стиля)
         stylePrompt = config.style_prompt || ''
-        console.log('Loaded style from DB:', currentStyleId, { hasStylePrompt: !!stylePrompt })
+        console.log('Loaded style from DB:', currentStyleId, {
+          hasStylePrompt: !!stylePrompt,
+          stylePromptLength: stylePrompt.length,
+          stylePromptPreview: stylePrompt.substring(0, 100),
+          configKeys: Object.keys(config)
+        })
       } else {
         console.log('Style not in DB, using hardcoded:', currentStyleId)
       }
@@ -149,7 +154,8 @@ export default function CarouselContent() {
       hasSubscription,
       coinsSpent,
       globalSystemPromptLength: requestData.globalSystemPrompt.length,
-      hasStylePrompt: !!requestData.stylePrompt,
+      stylePromptLength: requestData.stylePrompt.length,
+      stylePromptPreview: requestData.stylePrompt.substring(0, 200),
     })
 
     setStatus('generating')
