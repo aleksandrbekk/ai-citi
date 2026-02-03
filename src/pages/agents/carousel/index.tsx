@@ -344,18 +344,23 @@ function CarouselIndexInner() {
     return getLocalExamples(styleId as StyleId)
   }
 
-  // Загружаем сохранённый стиль с валидацией (только один раз)
-  const styleValidatedRef = useRef(false)
+  // Загружаем сохранённый стиль с валидацией
+  // Важно: НЕ используем ref для "только один раз", т.к. purchasedStylesData загружается асинхронно
+  const lastValidatedStylesCount = useRef(0)
   useEffect(() => {
-    // Выполняем валидацию только один раз
-    if (styleValidatedRef.current) return
+    // Пропускаем если стилей нет
     if (mergedStylesIndex.length === 0) return
 
-    styleValidatedRef.current = true
-    console.log('[Carousel] Validating style, current:', style)
+    // Пропускаем если уже валидировали с этим количеством стилей
+    // (чтобы не сбрасывать стиль каждый раз при ререндере)
+    if (lastValidatedStylesCount.current === mergedStylesIndex.length) return
+    lastValidatedStylesCount.current = mergedStylesIndex.length
 
-    const savedStyle = localStorage.getItem(SAVED_STYLE_KEY) as StyleId | null
-    const validStyleIds = mergedStylesIndex.map(s => s.id)
+    console.log('[Carousel] Validating style, current:', style, 'total styles:', mergedStylesIndex.length)
+
+    const savedStyle = localStorage.getItem(SAVED_STYLE_KEY)
+    // Явно типизируем как string[] для поддержки купленных стилей
+    const validStyleIds: string[] = mergedStylesIndex.map(s => s.id)
 
     // Проверяем сохранённый стиль из localStorage
     if (savedStyle && validStyleIds.includes(savedStyle)) {
@@ -372,7 +377,7 @@ function CarouselIndexInner() {
       return
     }
 
-    // Сбрасываем на дефолтный
+    // Сбрасываем на дефолтный ТОЛЬКО если текущий стиль недоступен
     const defaultStyle = mergedStylesIndex[0].id
     console.log('[Carousel] Resetting to default style:', defaultStyle)
     setStyle(defaultStyle)
@@ -937,7 +942,7 @@ function CarouselIndexInner() {
 // ========== STYLE MODAL ==========
 
 interface StyleMeta {
-  id: StyleId
+  id: string // Поддерживаем произвольные ID для купленных стилей
   name: string
   emoji: string
   audience: 'universal' | 'female'
@@ -946,17 +951,16 @@ interface StyleMeta {
 }
 
 interface StyleModalProps {
-  currentStyle: StyleId
-  onSelect: (id: StyleId) => void
+  currentStyle: string // Поддерживаем произвольные ID
+  onSelect: (id: string) => void
   stylesIndex: StyleMeta[]
-  getExamples: (styleId: StyleId) => string[]
+  getExamples: (styleId: string) => string[]
 }
 
 function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleModalProps) {
-  const [selectedStyle, setSelectedStyle] = useState<StyleId>(currentStyle)
+  const [selectedStyle, setSelectedStyle] = useState<string>(currentStyle)
   const [saveAsDefault, setSaveAsDefault] = useState(true)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
-  const [hasError, setHasError] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Swipe state
@@ -977,7 +981,7 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
   useEffect(() => {
     if (!activeStylesIndex?.length) return
 
-    const preloadImages = (styleId: StyleId) => {
+    const preloadImages = (styleId: string) => {
       const images = getExamples(styleId)
       images.slice(0, 3).forEach(src => {
         const img = new Image()
@@ -1046,14 +1050,12 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
   }
 
   // Handle image error - more resilient
+  // НЕ блокируем весь UI из-за одной картинки
   const handleImageError = (src: string) => {
     console.warn('Failed to load image:', src)
     // Mark as "loaded" to hide skeleton even on error
     setLoadedImages(prev => new Set(prev).add(src))
-    // Only set error if first image fails
-    if (examples.indexOf(src) === 0) {
-      setHasError(true)
-    }
+    // НЕ устанавливаем hasError - пусть UI работает даже без картинок
   }
 
   // Handle confirm selection
@@ -1069,8 +1071,8 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
     }
   }
 
-  // Error boundary fallback
-  if (hasError || !activeStylesIndex?.length) {
+  // Error boundary fallback - только если нет стилей вообще
+  if (!activeStylesIndex?.length) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white p-6">
         <div className="text-center">

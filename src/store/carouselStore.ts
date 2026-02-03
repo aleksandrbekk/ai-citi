@@ -7,14 +7,14 @@ export type TemplateId = 'mistakes' | 'myths' | 'checklist' | 'before-after' | '
 
 export type AudiencePreset = 'networkers' | 'experts' | 'moms' | 'freelancers' | 'custom'
 
-// Re-export StyleId for components
+// Re-export StyleId for components (базовые стили)
 export type { StyleId }
 
 // Re-export BundleId for components
 export type { BundleId }
 
-// Legacy alias (deprecated, use StyleId)
-export type StylePreset = StyleId
+// StylePreset теперь string для поддержки купленных стилей с произвольными ID
+export type StylePreset = string
 
 export type CarouselStatus = 'idle' | 'generating' | 'completed' | 'error'
 
