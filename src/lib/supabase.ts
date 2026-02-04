@@ -936,14 +936,12 @@ export async function getUserSubscriptions(telegramId: number): Promise<UserSubs
 }
 
 export async function getTransactionStats(telegramId: number): Promise<TransactionStats> {
-  // Получаем user_id
-  const { data: user } = await supabase
-    .from('users')
-    .select('id')
-    .eq('telegram_id', telegramId)
-    .single()
+  const { data, error } = await supabase.rpc('get_user_transaction_stats', {
+    p_telegram_id: telegramId
+  })
 
-  if (!user) {
+  if (error) {
+    console.error('Error fetching transaction stats:', error)
     return {
       total_earned: 0,
       total_spent: 0,
@@ -952,37 +950,10 @@ export async function getTransactionStats(telegramId: number): Promise<Transacti
     }
   }
 
-  const { data, error } = await supabase
-    .from('coin_transactions')
-    .select('amount, type')
-    .eq('user_id', user.id)
-
-  if (error || !data) {
-    return {
-      total_earned: 0,
-      total_spent: 0,
-      total_transactions: 0,
-      generations_count: 0
-    }
-  }
-
-  const stats = data.reduce((acc, tx) => {
-    if (tx.amount > 0) {
-      acc.total_earned += tx.amount
-    } else {
-      acc.total_spent += Math.abs(tx.amount)
-    }
-    if (tx.type === 'generation') {
-      acc.generations_count += 1
-    }
-    acc.total_transactions += 1
-    return acc
-  }, {
+  return (data as TransactionStats) || {
     total_earned: 0,
     total_spent: 0,
     total_transactions: 0,
     generations_count: 0
-  })
-
-  return stats
+  }
 }
