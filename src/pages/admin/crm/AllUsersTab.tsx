@@ -1,10 +1,10 @@
+
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
 import {
-  Search, Trash2, CreditCard, X, Coins, Calendar, Globe, User as UserIcon,
-  Send, ChevronRight, Star, Palette, ArrowUpCircle, ArrowDownCircle,
-  Crown, Clock, Zap, ShoppingBag, Plus, Minus
+  Search, Filter, MoreVertical, X, Sparkles, AlertCircle, ChevronDown, Check, CreditCard, Ban, Undo, Calendar, ShoppingBag, Send, Gift, Loader2,
+  Coins, Globe, User, ChevronRight, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -241,7 +241,7 @@ export function AllUsersTab() {
 
   const handleDelete = (user: User) => {
     const name = user.first_name || user.username || user.telegram_id
-    if (confirm(`Удалить пользователя "${name}" из базы?`)) {
+    if (confirm(`Удалить пользователя "${name}" из базы ? `)) {
       deleteUser.mutate(user.id)
     }
   }
@@ -347,10 +347,10 @@ export function AllUsersTab() {
     const diffDays = Math.floor(diffMs / 86400000)
 
     if (diffMins < 1) return 'Сейчас онлайн'
-    if (diffMins < 60) return `${diffMins} мин. назад`
-    if (diffHours < 24) return `${diffHours} ч. назад`
+    if (diffMins < 60) return `${diffMins} мин.назад`
+    if (diffHours < 24) return `${diffHours} ч.назад`
     if (diffDays === 1) return 'Вчера'
-    if (diffDays < 7) return `${diffDays} дн. назад`
+    if (diffDays < 7) return `${diffDays} дн.назад`
     return formatDate(dateStr)
   }
 
@@ -436,8 +436,8 @@ export function AllUsersTab() {
               <div
                 key={user.id}
                 onClick={() => handleOpenUserCard(user)}
-                className={`bg-white border border-gray-200 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors ${online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
-                  }`}
+                className={`bg - white border border - gray - 200 rounded - xl p - 3 cursor - pointer hover: bg - gray - 50 transition - colors ${online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
+                  } `}
               >
                 <div className="flex items-center justify-between gap-2">
                   {/* Аватар и имя */}
@@ -460,7 +460,7 @@ export function AllUsersTab() {
                         {isPremium && <CreditCard size={12} className="text-orange-500 flex-shrink-0" />}
                       </div>
                       <div className="text-xs text-gray-500 truncate">
-                        {user.username ? `@${user.username}` : user.telegram_id}
+                        {user.username ? `@${user.username} ` : user.telegram_id}
                       </div>
                     </div>
                   </div>
@@ -471,8 +471,8 @@ export function AllUsersTab() {
 
                 {/* Детали */}
                 <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
-                  <span className={`px-2 py-1 rounded ${online ? 'bg-green-100 text-green-600' : recentlyActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
-                    }`}>
+                  <span className={`px - 2 py - 1 rounded ${online ? 'bg-green-100 text-green-600' : recentlyActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
+                    } `}>
                     {getRelativeTime(user.last_active_at)}
                   </span>
                   {isPremium && (
@@ -521,7 +521,7 @@ export function AllUsersTab() {
                     {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(' ') || 'Без имени'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {selectedUser.username ? `@${selectedUser.username}` : `ID: ${selectedUser.telegram_id}`}
+                    {selectedUser.username ? `@${selectedUser.username} ` : `ID: ${selectedUser.telegram_id} `}
                   </div>
                 </div>
               </div>
@@ -544,10 +544,10 @@ export function AllUsersTab() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
+                  className={`flex items - center gap - 1.5 px - 3 py - 3 text - sm font - medium border - b - 2 transition - colors ${activeTab === tab.id
                     ? 'border-orange-500 text-orange-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
+                    } `}
                 >
                   <tab.icon size={16} />
                   {tab.label}
@@ -737,7 +737,7 @@ export function AllUsersTab() {
                                     <ArrowDownCircle size={20} className="text-red-500" />
                                   )}
                                   <div>
-                                    <div className={`font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    <div className={`font - medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'} `}>
                                       {tx.amount > 0 ? '+' : ''}{tx.amount}
                                     </div>
                                     <div className="text-xs text-gray-500">
@@ -856,10 +856,10 @@ export function AllUsersTab() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               onClick={() => setSubscriptionPlan('pro')}
-                              className={`p-3 rounded-xl border-2 text-left transition-colors ${subscriptionPlan === 'pro'
+                              className={`p - 3 rounded - xl border - 2 text - left transition - colors ${subscriptionPlan === 'pro'
                                 ? 'border-cyan-500 bg-cyan-50'
                                 : 'border-gray-200 hover:border-gray-300'
-                                }`}
+                                } `}
                             >
                               <div className="font-bold text-gray-900">PRO</div>
                               <div className="text-sm text-gray-500">2 900 ₽/мес</div>
@@ -995,17 +995,16 @@ function GrantStyleSelector({ telegramId, ownedStyleIds, onSuccess }: { telegram
   const { data: styles } = useQuery({
     queryKey: ['admin-grant-styles'],
     queryFn: async () => {
-      // Fetch directly from DB to allow more options if needed
       const { data } = await supabase.from('carousel_styles').select('style_id, name').order('name')
       return data || []
     }
   })
 
   const availableStyles = styles?.filter(s => !ownedStyleIds.includes(s.style_id)) || []
+  const hasAvailableStyles = availableStyles.length > 0
 
   const handleGrant = async () => {
     if (!selectedStyleId) return
-    if (!confirm(`Выдать стиль ${selectedStyleId} бесплатно?`)) return
 
     setIsGranting(true)
     try {
@@ -1018,7 +1017,10 @@ function GrantStyleSelector({ telegramId, ownedStyleIds, onSuccess }: { telegram
 
       if (error) throw error
 
-      toast.success('Стиль выдан!')
+      toast.success('Стиль успешно выдан!', {
+        icon: '🎁',
+        style: { borderRadius: '16px', background: '#FFF8F5', border: '1px solid #FFEDD5' }
+      })
       setSelectedStyleId('')
       onSuccess()
     } catch (e) {
@@ -1029,24 +1031,47 @@ function GrantStyleSelector({ telegramId, ownedStyleIds, onSuccess }: { telegram
     }
   }
 
+  if (!hasAvailableStyles) {
+    return (
+      <div className="bg-green-50/50 border border-green-100 rounded-xl p-4 flex items-center justify-center gap-2 text-green-700">
+        <Sparkles className="w-4 h-4" />
+        <span className="text-sm font-medium">У пользователя есть все стили</span>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex w-full gap-2">
-      <select
-        value={selectedStyleId}
-        onChange={(e) => setSelectedStyleId(e.target.value)}
-        className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm"
-      >
-        <option value="">Выберите стиль...</option>
-        {availableStyles.map(s => (
-          <option key={s.style_id} value={s.style_id}>{s.name} ({s.style_id})</option>
-        ))}
-      </select>
+    <div className="flex flex-col gap-3 w-full animate-in fade-in zoom-in-95 duration-300">
+      <div className="relative group">
+        <select
+          value={selectedStyleId}
+          onChange={(e) => setSelectedStyleId(e.target.value)}
+          className="w-full appearance-none bg-white/80 backdrop-blur-sm border border-orange-100 rounded-xl pl-4 pr-10 py-3 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-300 transition-all cursor-pointer shadow-sm hover:bg-white hover:shadow-md hover:border-orange-200"
+        >
+          <option value="">Выберите стиль для выдачи...</option>
+          {availableStyles.map(s => (
+            <option key={s.style_id} value={s.style_id}>{s.name} ({s.style_id})</option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-300 pointer-events-none group-hover:text-orange-500 transition-colors" />
+      </div>
+
       <button
         onClick={handleGrant}
         disabled={!selectedStyleId || isGranting}
-        className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-sm font-medium hover:from-orange-500 hover:to-orange-600 disabled:opacity-50 transition-colors"
+        className="w-full py-3 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none bg-[length:200%_auto] hover:bg-right duration-500"
       >
-        {isGranting ? '...' : 'Выдать'}
+        {isGranting ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Выдача...
+          </>
+        ) : (
+          <>
+            <Gift className="w-4 h-4" />
+            Выдать бесплатно
+          </>
+        )}
       </button>
     </div>
   )
