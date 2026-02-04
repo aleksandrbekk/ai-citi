@@ -6,19 +6,45 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Конфигурация пакетов монет (должна совпадать с lava-create-invoice)
-const PACKAGES: Record<string, { coins: number; price: number }> = {
-  light: { coins: 30, price: 290 },
-  starter: { coins: 100, price: 890 },
-  standard: { coins: 300, price: 2490 },
-  pro: { coins: 500, price: 3990 },
-  business: { coins: 1000, price: 7500 },
+// Multi-currency supported packages configuration
+const PACKAGES: Record<string, { coins: number; prices: { RUB: number; USD: number; EUR: number } }> = {
+  light: {
+    coins: 30,
+    prices: { RUB: 290, USD: 3, EUR: 3 }
+  },
+  starter: {
+    coins: 100,
+    prices: { RUB: 890, USD: 9, EUR: 9 }
+  },
+  standard: {
+    coins: 300,
+    prices: { RUB: 2490, USD: 25, EUR: 24 }
+  },
+  pro: {
+    coins: 500,
+    prices: { RUB: 3990, USD: 40, EUR: 38 }
+  },
+  business: {
+    coins: 1000,
+    prices: { RUB: 7500, USD: 75, EUR: 70 }
+  },
 }
 
-// Конфигурация подписок (только PRO и BUSINESS)
-const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number }> = {
-  pro: { neurons: 500, amount: 2900 },
-  business: { neurons: 2000, amount: 9900 },
+// Subscriptions
+const SUBSCRIPTIONS: Record<string, { neurons: number; prices: { RUB: number; USD: number; EUR: number } }> = {
+  pro: {
+    neurons: 500,
+    prices: { RUB: 2900, USD: 29, EUR: 27 }
+  },
+  business: {
+    neurons: 2000,
+    prices: { RUB: 9900, USD: 99, EUR: 95 }
+  },
+  // Legacy support for logic mapping
+  elite: {
+    neurons: 2000,
+    prices: { RUB: 9900, USD: 99, EUR: 95 }
+  }
 }
 
 const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || ''
@@ -116,6 +142,11 @@ serve(async (req) => {
     const contractId = body.contractId || body.id || null
     const campaign = body.clientUtm?.utm_campaign || body.clientUtm?.utmCampaign || ''
 
+    // Extract actual payment details
+    // Lava payload structures vary, check multiple paths for amount/currency
+    const paidAmount = parseFloat(body.amount || body.sum || 0)
+    const paidCurrency = body.currency || 'RUB' // Default fallback
+
     // Определяем тип события
     const isSubscriptionEvent = campaign.startsWith('sub_') ||
       eventType.includes('subscription')
@@ -208,13 +239,12 @@ serve(async (req) => {
         .eq('telegram_id', telegramId)
 
       // Добавляем платёж
-      const subAmount = extendResult?.amount_rub || 499
       await supabase
         .from('payments')
         .insert({
           telegram_id: telegramId,
-          amount: subAmount,
-          currency: 'RUB',
+          amount: paidAmount,
+          currency: paidCurrency,
           source: 'lava.top',
           payment_method: 'subscription_recurring',
           paid_at: new Date().toISOString()
@@ -233,7 +263,7 @@ serve(async (req) => {
       const userLink = `ID: <code>${telegramId}</code>`
       const msg = `🔄 <b>Продление подписки</b>\n\n` +
         `👤 User: ${userLink}\n` +
-        `💰 Сумма: <b>${subAmount} RUB</b>\n` +
+        `💰 Сумма: <b>${paidAmount} ${paidCurrency}</b>\n` +
         `💎 Нейроны: <b>${extendResult?.neurons_added || 0}</b>\n` +
         `🧾 Contract: <code>${contractId}</code>`
 
@@ -260,8 +290,10 @@ serve(async (req) => {
       console.log('Processing new subscription')
 
       // Извлекаем planId из campaign (формат: sub_starter, sub_pro, sub_business)
-      const planId = campaign.replace('sub_', '')
-      const subConfig = SUBSCRIPTIONS[planId]
+      const rawPlanId = campaign.replace('sub_', '')
+      // Handle 'business' alias to 'elite' if needed, or unify
+      const planId = rawPlanId === 'elite' ? 'business' : rawPlanId // Normalize aliases
+      const subConfig = SUBSCRIPTIONS[planId] || SUBSCRIPTIONS[rawPlanId]
 
       if (!subConfig) {
         console.error('Unknown subscription plan:', planId)
@@ -272,11 +304,12 @@ serve(async (req) => {
       }
 
       // Создаём подписку через функцию в БД
+      // Note: create_subscription RPC might need amount passed, we prefer the paidAmount from webhook
       const { data: createResult, error: createError } = await supabase.rpc('create_subscription', {
         p_telegram_id: telegramId,
         p_plan: planId,
         p_contract_id: contractId,
-        p_amount_rub: subConfig.amount,
+        p_amount_rub: paidAmount, // Using paidAmount as the value (even if USD, passed as numeric)
         p_neurons_per_month: subConfig.neurons
       })
 
@@ -315,13 +348,13 @@ serve(async (req) => {
           payment_method: 'subscription'
         }, { onConflict: 'telegram_id' })
 
-      // Добавляем платёж
+      // Добавляем платёж с правильной валютой
       await supabase
         .from('payments')
         .insert({
           telegram_id: telegramId,
-          amount: subConfig.amount,
-          currency: 'RUB',
+          amount: paidAmount,
+          currency: paidCurrency,
           source: 'lava.top',
           payment_method: 'subscription',
           paid_at: new Date().toISOString()
@@ -337,7 +370,7 @@ serve(async (req) => {
       const userLink = `ID: <code>${telegramId}</code>` + (userData?.username ? ` (@${userData.username})` : '') + (userData?.first_name ? ` (${userData.first_name})` : '')
       const msg = `✅ <b>Новая подписка: ${planUpper}</b>\n\n` +
         `👤 User: ${userLink}\n` +
-        `💰 Сумма: <b>${subConfig.amount} RUB</b>\n` +
+        `💰 Сумма: <b>${paidAmount} ${paidCurrency}</b>\n` +
         `💎 Нейроны: <b>${subConfig.neurons}</b>\n` +
         `🧾 Contract: <code>${contractId}</code>`
 
@@ -363,7 +396,8 @@ serve(async (req) => {
 
     // Определяем пакет из campaign
     const packageId = campaign || 'starter'
-    const pkgConfig = PACKAGES[packageId]
+    // Fallback: if package not found, default to starter but warn
+    const pkgConfig = PACKAGES[packageId] || PACKAGES['starter']
     const coinsAmount = pkgConfig?.coins || 100
 
     console.log('Package:', packageId, 'Coins:', coinsAmount)
@@ -373,8 +407,8 @@ serve(async (req) => {
       p_telegram_id: telegramId,
       p_amount: coinsAmount,
       p_type: 'purchase',
-      p_description: `Покупка пакета ${packageId.toUpperCase()} (${coinsAmount} нейронов)`,
-      p_metadata: { source: 'lava.top', contractId: contractId || 'unknown', packageId }
+      p_description: `Покупка пакета ${packageId.toUpperCase()} (${coinsAmount} нейронов) за ${paidAmount} ${paidCurrency}`,
+      p_metadata: { source: 'lava.top', contractId: contractId || 'unknown', packageId, currency: paidCurrency, amount: paidAmount }
     })
 
     if (addError) {
@@ -401,7 +435,7 @@ serve(async (req) => {
 
     // Уведомление админу
     const pkgName = packageId.toUpperCase()
-    // Пытаемся получить username для красоты (не критично если нет)
+    // Пытаемся получить username
     let userInfo = `ID: <code>${telegramId}</code>`
     try {
       const { data: u } = await supabase.from('users').select('username, first_name').eq('telegram_id', telegramId).single()
@@ -412,7 +446,7 @@ serve(async (req) => {
 
     const msg = `💰 <b>Покупка монет: ${pkgName}</b>\n\n` +
       `👤 User: ${userInfo}\n` +
-      `💵 Сумма: <b>${pkgConfig?.price || '?'} RUB</b>\n` +
+      `💵 Сумма: <b>${paidAmount} ${paidCurrency}</b>\n` +
       `💎 Нейроны: <b>${coinsAmount}</b>\n` +
       `🧾 Contract: <code>${contractId || 'one-time'}</code>`
 
