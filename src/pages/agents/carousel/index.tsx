@@ -795,22 +795,20 @@ function CarouselIndexInner() {
             <span className="text-sm font-medium text-gray-700">О чём карусель?</span>
             <button
               onClick={() => setShowTipsModal(true)}
-              className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-orange-100 hover:text-orange-500 transition-colors cursor-pointer"
+              data-onboarding="tips"
+              className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white shadow-md shadow-orange-500/30 hover:shadow-lg hover:scale-105 transition-all cursor-pointer animate-pulse"
             >
-              <span className="text-xs font-medium">?</span>
+              <span className="text-xs font-bold">?</span>
             </button>
           </div>
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value.slice(0, 5000))}
-            placeholder="Например: ТОП 5 ответов на возражение «Ваши бады дорогие!» 😄
-
-Можно добавить подробности: контекст, примеры, пожелания по стилю текста..."
+            placeholder="Введите тему карусели..."
             maxLength={5000}
-            className="w-full min-h-[140px] px-4 py-3.5 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm"
+            className="w-full min-h-[180px] px-4 py-4 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm"
           />
-          <div className="flex justify-between items-center mt-2 px-1">
-            <span className="text-xs text-gray-400">Можно писать подробно — AI всё учтёт</span>
+          <div className="flex justify-end items-center mt-2 px-1">
             <span className={`text-xs font-medium ${topic.length > 4500 ? 'text-orange-500' : 'text-gray-400'}`}>{topic.length} / 5000</span>
           </div>
         </div>

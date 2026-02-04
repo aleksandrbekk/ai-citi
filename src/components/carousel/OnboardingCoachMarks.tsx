@@ -25,6 +25,14 @@ const STEPS: OnboardingStep[] = [
     position: 'bottom',
   },
   {
+    id: 'tips',
+    message: 'Здесь все подсказки и примеры — как правильно писать запрос. Жми если не уверен! 💡',
+    emoji: '❓',
+    targetSelector: '[data-onboarding="tips"]',
+    position: 'bottom',
+    highlight: true,
+  },
+  {
     id: 'style',
     message: 'Тут выбираешь стиль слайдов. У нас много крутых дизайнов — попробуй разные!',
     emoji: '🎨',
@@ -269,13 +277,12 @@ export function OnboardingCoachMarks({ onComplete }: OnboardingCoachMarksProps) 
                   {STEPS.map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        i === currentStep
+                      className={`h-1.5 rounded-full transition-all duration-300 ${i === currentStep
                           ? 'w-6 bg-gradient-to-r from-orange-400 to-cyan-500'
                           : i < currentStep
-                          ? 'w-1.5 bg-orange-400'
-                          : 'w-1.5 bg-gray-200'
-                      }`}
+                            ? 'w-1.5 bg-orange-400'
+                            : 'w-1.5 bg-gray-200'
+                        }`}
                     />
                   ))}
                 </div>
@@ -293,11 +300,10 @@ export function OnboardingCoachMarks({ onComplete }: OnboardingCoachMarksProps) 
                   <button
                     onClick={handleNext}
                     disabled={isTyping}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.98] ${
-                      isTyping
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.98] ${isTyping
                         ? 'bg-gray-100 text-gray-400'
                         : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/25 hover:shadow-xl'
-                    }`}
+                      }`}
                   >
                     {isLastStep ? (
                       <>Поехали! 🚀</>
