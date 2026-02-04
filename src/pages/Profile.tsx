@@ -102,7 +102,7 @@ export default function Profile() {
 
   // Проверяем, является ли тариф платной подпиской
   const isPaidSubscription = tariffInfo &&
-    ['PRO', 'BUSINESS'].includes(tariffInfo.tariff_slug.toUpperCase())
+    ['pro', 'elite', 'PRO', 'ELITE'].includes(tariffInfo.tariff_slug)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white pb-24">
@@ -152,7 +152,8 @@ export default function Profile() {
         onClose={() => setShowSettings(false)}
         onLogout={logout}
         hasActiveSubscription={!!isPaidSubscription}
-        subscriptionPlan={tariffInfo?.tariff_slug.toUpperCase()}
+        subscriptionPlan={tariffInfo?.tariff_slug}
+        subscriptionExpiry={tariffExpiry}
         onCancelSubscription={handleCancelSubscription}
       />
 

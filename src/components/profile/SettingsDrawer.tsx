@@ -1,4 +1,4 @@
-import { X, LogOut, Bell, Moon, Globe, ChevronRight, CreditCard, Loader2 } from 'lucide-react'
+import { X, LogOut, CreditCard, Loader2, AlertTriangle } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 import { useState } from 'react'
 
@@ -8,6 +8,7 @@ interface SettingsDrawerProps {
   onLogout: () => void
   hasActiveSubscription?: boolean
   subscriptionPlan?: string
+  subscriptionExpiry?: string
   onCancelSubscription?: () => Promise<void>
 }
 
@@ -17,51 +18,35 @@ export function SettingsDrawer({
   onLogout,
   hasActiveSubscription,
   subscriptionPlan,
+  subscriptionExpiry,
   onCancelSubscription
 }: SettingsDrawerProps) {
   const [isCancelling, setIsCancelling] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   if (!isOpen) return null
 
   const handleCancelSubscription = async () => {
     if (!onCancelSubscription) return
 
-    const confirmed = window.confirm(
-      `Отменить подписку ${subscriptionPlan}? Доступ сохранится до конца оплаченного периода.`
-    )
-    if (!confirmed) return
-
     setIsCancelling(true)
     try {
       await onCancelSubscription()
+      setShowConfirm(false)
     } finally {
       setIsCancelling(false)
     }
   }
 
-  const settings = [
-    {
-      id: 'notifications',
-      icon: Bell,
-      label: 'Уведомления',
-      value: 'Включены',
-      disabled: true
-    },
-    {
-      id: 'theme',
-      icon: Moon,
-      label: 'Тема',
-      value: 'Светлая',
-      disabled: true
-    },
-    {
-      id: 'language',
-      icon: Globe,
-      label: 'Язык',
-      value: 'Русский',
-      disabled: true
+  const formatPlanName = (plan: string) => {
+    const names: Record<string, string> = {
+      'pro': 'PRO',
+      'elite': 'ELITE',
+      'PRO': 'PRO',
+      'ELITE': 'ELITE'
     }
-  ]
+    return names[plan] || plan.toUpperCase()
+  }
 
   return (
     <div className="fixed inset-0 z-50">
@@ -89,64 +74,87 @@ export function SettingsDrawer({
           </button>
         </div>
 
-        {/* Settings List */}
-        <div className="px-6 py-4 space-y-2">
-          {settings.map(setting => (
-            <button
-              key={setting.id}
-              disabled={setting.disabled}
-              className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-xl opacity-50 cursor-not-allowed"
-            >
-              <div className="w-10 h-10 rounded-xl bg-gray-200 flex items-center justify-center">
-                <setting.icon className="w-5 h-5 text-gray-600" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-medium text-gray-900">{setting.label}</p>
-                <p className="text-sm text-gray-500">{setting.value}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </button>
-          ))}
-
-          {/* Coming Soon Note */}
-          <p className="text-xs text-gray-400 text-center py-2">
-            Настройки скоро будут доступны
-          </p>
-        </div>
-
         {/* Subscription Management */}
-        {hasActiveSubscription && (
-          <div className="px-6 py-4 border-t border-gray-100">
-            <div className="bg-orange-50 rounded-xl p-4 mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Подписка {subscriptionPlan}</p>
-                  <p className="text-sm text-gray-500">Активна, автопродление включено</p>
+        <div className="px-6 py-6">
+          {hasActiveSubscription ? (
+            <>
+              {/* Active Subscription Card */}
+              <div className="bg-gradient-to-r from-orange-50 to-cyan-50 rounded-2xl p-4 mb-4 border border-orange-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-200">
+                    <CreditCard className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">
+                      Подписка {formatPlanName(subscriptionPlan || '')}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {subscriptionExpiry ? `Активна ${subscriptionExpiry}` : 'Активна'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <button
-              onClick={() => {
-                haptic.tap()
-                handleCancelSubscription()
-              }}
-              disabled={isCancelling}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {isCancelling ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Отмена...
-                </>
+
+              {/* Cancel Button / Confirm */}
+              {!showConfirm ? (
+                <button
+                  onClick={() => {
+                    haptic.tap()
+                    setShowConfirm(true)
+                  }}
+                  className="w-full py-3 text-gray-500 font-medium rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                >
+                  Отменить подписку
+                </button>
               ) : (
-                'Отменить подписку'
+                <div className="bg-red-50 rounded-xl p-4 space-y-3 border border-red-100">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-gray-900">Отменить подписку?</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Доступ сохранится до конца оплаченного периода.
+                        Нейроны на балансе останутся.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowConfirm(false)}
+                      className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl cursor-pointer"
+                    >
+                      Назад
+                    </button>
+                    <button
+                      onClick={() => {
+                        haptic.tap()
+                        handleCancelSubscription()
+                      }}
+                      disabled={isCancelling}
+                      className="flex-1 py-2.5 bg-red-500 text-white font-medium rounded-xl cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isCancelling ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Отмена...
+                        </>
+                      ) : (
+                        'Подтвердить'
+                      )}
+                    </button>
+                  </div>
+                </div>
               )}
-            </button>
-          </div>
-        )}
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-500">У вас нет активной подписки</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Оформите подписку в магазине для получения нейронов ежемесячно
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Logout Button */}
         <div className="px-6 pb-12 pt-4 border-t border-gray-100">
