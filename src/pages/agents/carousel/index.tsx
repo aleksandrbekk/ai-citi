@@ -804,7 +804,7 @@ function CarouselIndexInner() {
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value.slice(0, 5000))}
-            placeholder="Введите тему карусели..."
+            placeholder="Например: ТОП 5 способов похудения без диеты"
             maxLength={5000}
             className="w-full min-h-[180px] px-4 py-4 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm"
           />
