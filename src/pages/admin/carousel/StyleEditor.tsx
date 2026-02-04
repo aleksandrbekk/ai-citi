@@ -339,37 +339,39 @@ export default function StyleEditor() {
 
   return (
     <div className="h-full overflow-y-auto bg-gray-50" style={{ maxHeight: 'calc(100vh - 80px)' }}>
-      {/* Header */}
+      {/* Header - Clean & Mobile-Optimized */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/admin/carousel-styles')} className="p-2 hover:bg-gray-100 rounded-lg">
-              <ArrowLeft className="w-5 h-5" />
+            <button
+              onClick={() => navigate('/admin/carousel-styles')}
+              className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="font-bold text-gray-900">{isNew ? 'Новый стиль' : 'Редактирование'}</h1>
-              <p className="text-xs text-gray-500">Полный редактор стиля карусели</p>
-            </div>
+            <h1 className="font-bold text-gray-900 text-lg">
+              {isNew ? 'Новый стиль' : name || 'Редактирование'}
+            </h1>
           </div>
           <div className="flex items-center gap-2">
-            {/* Active toggle */}
+            {/* Active toggle - pill style */}
             <button
               onClick={() => setIsActive(!isActive)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${isActive
-                ? 'bg-green-50 text-green-600'
-                : 'bg-gray-100 text-gray-400'
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all cursor-pointer ${isActive
+                ? 'bg-green-100 text-green-700 border border-green-200'
+                : 'bg-gray-100 text-gray-500 border border-gray-200'
                 }`}
             >
               {isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              <span className="text-sm">{isActive ? 'Активен' : 'Скрыт'}</span>
+              <span className="text-sm font-medium hidden sm:inline">{isActive ? 'Активен' : 'Скрыт'}</span>
             </button>
             <button
               onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending || !name}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl hover:shadow-lg hover:shadow-orange-500/25 disabled:opacity-50 transition-all cursor-pointer font-medium"
             >
               {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Сохранить
+              <span className="hidden sm:inline">Сохранить</span>
             </button>
           </div>
         </div>
@@ -385,14 +387,17 @@ export default function StyleEditor() {
         >
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Название <span className="text-orange-500">*</span>
+              </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Мой стиль"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               />
+              <p className="text-xs text-gray-400 mt-1">Видят пользователи при выборе</p>
             </div>
             <div className="col-span-2 sm:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">Style ID</label>
@@ -401,9 +406,9 @@ export default function StyleEditor() {
                 value={styleId}
                 onChange={(e) => setStyleId(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
                 placeholder="AUTO_GENERATED"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl font-mono text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               />
-              <p className="text-xs text-gray-400 mt-1">Оставьте пустым для автогенерации</p>
+              <p className="text-xs text-gray-400 mt-1">Техническое имя. Пусто = автогенерация</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Эмодзи</label>
@@ -411,37 +416,41 @@ export default function StyleEditor() {
                 type="text"
                 value={emoji}
                 onChange={(e) => setEmoji(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center text-2xl"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-center text-2xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Цвет превью</label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={previewColor}
-                  onChange={(e) => setPreviewColor(e.target.value)}
-                  className="w-12 h-10 border border-gray-200 rounded-lg cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={previewColor}
-                  onChange={(e) => setPreviewColor(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
-                />
-              </div>
+              <p className="text-xs text-gray-400 mt-1">Показывается в списке стилей</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Аудитория</label>
               <select
                 value={audience}
                 onChange={(e) => setAudience(e.target.value as 'universal' | 'female' | 'male')}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all cursor-pointer appearance-none bg-white"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
               >
-                <option value="universal">👥 Универсальная</option>
-                <option value="female">👩 Женская</option>
-                <option value="male">👨 Мужская</option>
+                <option value="universal">Универсальная</option>
+                <option value="female">Женская</option>
+                <option value="male">Мужская</option>
               </select>
+              <p className="text-xs text-gray-400 mt-1">Фильтр для показа релевантных стилей</p>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Цвет превью</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={previewColor}
+                  onChange={(e) => setPreviewColor(e.target.value)}
+                  className="w-12 h-11 border border-gray-200 rounded-xl cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={previewColor}
+                  onChange={(e) => setPreviewColor(e.target.value)}
+                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl font-mono text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Фон карточки в списке, если нет картинки</p>
             </div>
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
@@ -450,8 +459,9 @@ export default function StyleEditor() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Краткое описание стиля для пользователей"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               />
+              <p className="text-xs text-gray-400 mt-1">1-2 предложения о стиле</p>
             </div>
           </div>
         </Section>
@@ -459,14 +469,14 @@ export default function StyleEditor() {
         {/* SECTION: Avatar */}
         <Section
           title="Аватарка стиля"
-          icon={<Image className="w-4 h-4" />}
+          icon={<Image className="w-4 h-4 text-gray-600" />}
           isOpen={sections.avatar}
           onToggle={() => toggleSection('avatar')}
         >
           <div className="flex items-start gap-4">
             <div
-              className="w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 cursor-pointer hover:border-orange-400 transition-colors"
-              style={{ backgroundColor: previewColor + '20' }}
+              className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 cursor-pointer hover:border-orange-400 hover:bg-orange-50/50 transition-all active:scale-95"
+              style={{ backgroundColor: previewColor + '15' }}
               onClick={() => avatarInputRef.current?.click()}
             >
               {uploadingAvatar ? (
@@ -475,7 +485,7 @@ export default function StyleEditor() {
                 <img src={previewImage} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center">
-                  <Upload className="w-6 h-6 text-gray-400 mx-auto" />
+                  <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
                   <span className="text-xs text-gray-400">Загрузить</span>
                 </div>
               )}
@@ -488,13 +498,13 @@ export default function StyleEditor() {
               className="hidden"
             />
             <div className="flex-1">
-              <p className="text-sm text-gray-600 mb-2">
-                Аватарка отображается в списке стилей и при выборе стиля пользователем.
+              <p className="text-sm text-gray-600 mb-3">
+                Отображается в списке стилей и при выборе. Рекомендуемый размер: 200x200px.
               </p>
               {previewImage && (
                 <button
                   onClick={() => setPreviewImage('')}
-                  className="text-sm text-red-500 hover:text-red-600"
+                  className="text-sm text-red-500 hover:text-red-600 font-medium cursor-pointer"
                 >
                   Удалить аватарку
                 </button>
@@ -505,24 +515,24 @@ export default function StyleEditor() {
 
         {/* SECTION: Example Images (9) */}
         <Section
-          title="Превью карусели (9 шт)"
-          icon={<Layers className="w-4 h-4" />}
+          title="Превью карусели"
+          icon={<Layers className="w-4 h-4 text-gray-600" />}
           isOpen={sections.examples}
           onToggle={() => toggleSection('examples')}
         >
           <p className="text-sm text-gray-600 mb-4">
-            Загрузите до 9 примеров карусели в этом стиле. Они показываются пользователям при выборе стиля.
+            До 9 примеров стиля. Показываются при выборе стиля пользователем.
           </p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2.5">
             {[...Array(9)].map((_, index) => (
               <div
                 key={index}
-                className="aspect-[4/5] rounded-lg border-2 border-dashed border-gray-300 overflow-hidden relative group cursor-pointer hover:border-orange-400 transition-colors"
+                className="aspect-[4/5] rounded-xl border-2 border-dashed border-gray-200 overflow-hidden relative group cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-all active:scale-95"
                 onClick={() => exampleInputRefs.current[index]?.click()}
               >
                 {uploadingExample === index ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                    <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+                    <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
                   </div>
                 ) : exampleImages[index] ? (
                   <>
@@ -536,15 +546,18 @@ export default function StyleEditor() {
                         e.stopPropagation()
                         removeExampleImage(index)
                       }}
-                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1.5 right-1.5 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
+                    <div className="absolute bottom-1.5 left-1.5 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center">
+                      <span className="text-[10px] text-white font-medium">{index + 1}</span>
+                    </div>
                   </>
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-                    <Upload className="w-5 h-5 mb-1" />
-                    <span className="text-xs">{index + 1}</span>
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
+                    <Upload className="w-4 h-4 mb-1" />
+                    <span className="text-xs font-medium">{index + 1}</span>
                   </div>
                 )}
                 <input
@@ -557,23 +570,25 @@ export default function StyleEditor() {
               </div>
             ))}
           </div>
+          <p className="text-xs text-gray-400 mt-3">
+            Загружено: {exampleImages.filter(Boolean).length}/9
+          </p>
         </Section>
 
         {/* SECTION: Slide Templates (MAIN PROMPTS) */}
         <Section
-          title="Промпты слайдов (для n8n)"
+          title="Визуальный стиль"
           icon={<Sparkles className="w-4 h-4 text-orange-500" />}
           isOpen={sections.templates}
           onToggle={() => toggleSection('templates')}
           highlight
         >
           {/* Подсказка о глобальном промпте */}
-          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
-              <strong>💡 Системный промпт</strong> (генерация текста) теперь глобальный для всех стилей.
-              <br />
-              <a href="/admin/carousel-settings" className="text-blue-600 underline hover:text-blue-800">
-                Редактировать глобальный промпт →
+          <div className="mb-6 p-4 bg-cyan-50 border border-cyan-200 rounded-xl">
+            <p className="text-sm text-cyan-700">
+              <strong>Системный промпт</strong> (генерация текста) — глобальный для всех стилей.{' '}
+              <a href="/admin/carousel-settings" className="text-cyan-600 font-medium underline hover:text-cyan-800">
+                Редактировать →
               </a>
             </p>
           </div>
@@ -581,72 +596,76 @@ export default function StyleEditor() {
           {/* Единый промпт визуального стиля */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="font-medium text-purple-600 flex items-center gap-2">
-                🎨 Промпт визуального стиля
+              <label className="font-semibold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-orange-500" />
+                Промпт визуального стиля
               </label>
               <button
                 type="button"
                 onClick={() => setStylePrompt(DEFAULT_STYLE_PROMPT)}
-                className="text-xs px-2 py-1 bg-purple-50 text-purple-600 rounded hover:bg-purple-100"
+                className="text-xs px-3 py-1.5 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer font-medium"
               >
-                Сбросить к стандартному
+                Сбросить
               </button>
             </div>
-            <p className="text-xs text-purple-600 mb-3">
-              Полное описание визуального стиля карусели. Опишите цвета, типографику, позицию персоны, декорации и т.д.
+            <p className="text-sm text-gray-500 mb-3">
+              Главное поле! Опишите весь визуальный стиль: цвета, типографику, позицию персоны, декорации. Это передаётся в AI для генерации.
             </p>
             <textarea
               value={stylePrompt}
               onChange={(e) => setStylePrompt(e.target.value)}
               rows={14}
               placeholder="Опишите визуальный стиль карусели..."
-              className="w-full px-3 py-2 border border-purple-300 rounded-lg font-mono text-sm resize-y bg-white"
+              className="w-full px-4 py-3 border border-orange-200 rounded-xl font-mono text-sm resize-y bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
             />
+            <p className="text-xs text-gray-400 mt-2">
+              {stylePrompt.length} символов
+            </p>
           </div>
         </Section>
 
         {/* Магазин стилей */}
         <Section
-          title="🛒 Магазин (AI SHOP)"
-          icon={<ShoppingBag className="w-4 h-4 text-green-500" />}
+          title="Магазин"
+          icon={<ShoppingBag className="w-4 h-4 text-orange-500" />}
           isOpen={sections.shop}
           onToggle={() => toggleSection('shop')}
           highlight
         >
           <div className="space-y-4">
             {/* Показывать в магазине */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
               <div>
-                <p className="font-medium text-gray-900">Показывать в магазине</p>
-                <p className="text-sm text-gray-500">Стиль будет доступен для покупки</p>
+                <p className="font-medium text-gray-900">В магазине</p>
+                <p className="text-sm text-gray-500">Доступен для покупки в AI Shop</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsInShop(!isInShop)}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
+                className={`relative w-14 h-8 rounded-full transition-colors cursor-pointer ${
                   isInShop ? 'bg-green-500' : 'bg-gray-300'
                 }`}
               >
-                <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-transform ${
                   isInShop ? 'left-7' : 'left-1'
                 }`} />
               </button>
             </div>
 
             {/* Бесплатный стиль */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
               <div>
-                <p className="font-medium text-gray-900">Бесплатный стиль</p>
-                <p className="text-sm text-gray-500">Доступен всем пользователям</p>
+                <p className="font-medium text-gray-900">Бесплатный</p>
+                <p className="text-sm text-gray-500">Доступен всем без покупки</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsFree(!isFree)}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
+                className={`relative w-14 h-8 rounded-full transition-colors cursor-pointer ${
                   isFree ? 'bg-cyan-500' : 'bg-gray-300'
                 }`}
               >
-                <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-transform ${
                   isFree ? 'left-7' : 'left-1'
                 }`} />
               </button>
@@ -654,9 +673,9 @@ export default function StyleEditor() {
 
             {/* Цена в нейронах */}
             {!isFree && (
-              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                <label className="block font-medium text-gray-900 mb-2">
-                  <Coins className="w-4 h-4 inline mr-2 text-orange-500" />
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                <label className="block font-medium text-gray-900 mb-2 flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-orange-500" />
                   Цена в нейронах
                 </label>
                 <div className="flex items-center gap-3">
@@ -665,25 +684,25 @@ export default function StyleEditor() {
                     min={1}
                     value={priceNeurons}
                     onChange={(e) => setPriceNeurons(Math.max(1, parseInt(e.target.value) || 0))}
-                    className="w-32 px-3 py-2 border border-orange-300 rounded-lg text-lg font-bold text-center"
+                    className="w-28 px-3 py-2.5 border border-orange-300 rounded-xl text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
-                  <span className="text-gray-600">нейронов</span>
+                  <img src="/neirocoin.png" alt="нейро" className="w-6 h-6" />
                 </div>
                 <p className="text-sm text-orange-600 mt-2">
-                  ≈ {Math.ceil(priceNeurons / 30)} карусель(и) по стоимости
+                  Примерно {Math.ceil(priceNeurons / 30)} карусель по стоимости
                 </p>
               </div>
             )}
 
-            {/* Статус */}
-            <div className={`p-4 rounded-lg ${isInShop ? 'bg-green-50 border border-green-200' : 'bg-gray-100'}`}>
-              <p className="font-medium">
-                {isInShop ? '✅ Стиль в магазине' : '⏸ Стиль скрыт из магазина'}
+            {/* Статус - итоговое резюме */}
+            <div className={`p-4 rounded-xl border ${isInShop ? 'bg-green-50 border-green-200' : 'bg-gray-100 border-gray-200'}`}>
+              <p className="font-medium text-gray-900">
+                {isInShop ? 'Стиль виден в магазине' : 'Стиль скрыт из магазина'}
               </p>
               <p className="text-sm text-gray-600 mt-1">
                 {isFree
-                  ? '🆓 Бесплатно для всех пользователей'
-                  : `💰 ${priceNeurons} нейронов для покупки`
+                  ? 'Бесплатный для всех'
+                  : `Цена: ${priceNeurons} нейронов`
                 }
               </p>
             </div>
@@ -695,11 +714,18 @@ export default function StyleEditor() {
         <button
           onClick={() => saveMutation.mutate()}
           disabled={saveMutation.isPending || !name}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50 font-medium"
+          className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl hover:shadow-lg hover:shadow-orange-500/25 disabled:opacity-50 font-semibold text-lg transition-all cursor-pointer active:scale-[0.98]"
         >
           {saveMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           Сохранить стиль
         </button>
+
+        {/* Краткая справка */}
+        <div className="text-center py-2">
+          <p className="text-xs text-gray-400">
+            Главное — заполните промпт визуального стиля. Остальное опционально.
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -722,19 +748,23 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm overflow-hidden ${highlight ? 'ring-2 ring-orange-200' : ''}`}>
+    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border ${highlight ? 'border-orange-200 ring-1 ring-orange-100' : 'border-gray-100'}`}>
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
       >
-        <div className="flex items-center gap-2">
-          {icon}
+        <div className="flex items-center gap-2.5">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${highlight ? 'bg-orange-50' : 'bg-gray-50'}`}>
+            {icon}
+          </div>
           <span className="font-semibold text-gray-900">{title}</span>
         </div>
-        {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isOpen ? 'bg-orange-50' : 'bg-gray-50'}`}>
+          {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+        </div>
       </button>
       {isOpen && (
-        <div className="px-4 pb-4 border-t border-gray-100">
+        <div className="px-4 pb-5 border-t border-gray-100">
           <div className="pt-4">
             {children}
           </div>
