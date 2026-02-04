@@ -9,6 +9,9 @@ import {
   type ShopStyle,
   type PurchasedStyle
 } from '@/lib/carouselStylesApi'
+import { getUserTariffInfo } from '@/lib/supabase'
+
+const DISCOUNT_PERCENT = 30
 
 interface StylesTabProps {
   telegramId: number | undefined
@@ -26,15 +29,24 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
   // Модалка предпросмотра
   const [previewStyle, setPreviewStyle] = useState<ShopStyle | null>(null)
 
+  // Скидка для подписчиков
+  const [discountActive, setDiscountActive] = useState(false)
+
   useEffect(() => {
     const loadStyles = async () => {
       if (telegramId) {
-        const [styles, purchased] = await Promise.all([
+        const [styles, purchased, tariffInfo] = await Promise.all([
           getShopStyles(),
-          getUserPurchasedStyles(telegramId)
+          getUserPurchasedStyles(telegramId),
+          getUserTariffInfo(telegramId)
         ])
         setShopStyles(styles)
         setPurchasedStyles(purchased)
+
+        // Проверяем скидку (PRO или BUSINESS)
+        if (tariffInfo?.is_active && ['pro', 'business'].includes(tariffInfo.tariff_slug)) {
+          setDiscountActive(true)
+        }
       }
       setIsLoading(false)
     }
@@ -63,9 +75,13 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
       return
     }
 
-    if (coinBalance < style.price_neurons) {
+    const finalPrice = discountActive && !style.is_free
+      ? Math.ceil(style.price_neurons * (1 - DISCOUNT_PERCENT / 100))
+      : style.price_neurons
+
+    if (coinBalance < finalPrice) {
       haptic.warning()
-      toast.error(`Недостаточно нейронов. Нужно: ${style.price_neurons}, у вас: ${coinBalance}`)
+      toast.error(`Недостаточно нейронов. Нужно: ${finalPrice}, у вас: ${coinBalance}`)
       return
     }
 
@@ -87,7 +103,12 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
     setIsProcessing(true)
 
     try {
-      const result = await purchaseStyle(telegramId, confirmModal.style_id, confirmModal.price_neurons)
+      // Пересчитываем цену перед покупкой для надежности
+      const priceToPay = discountActive && confirmModal && !confirmModal.is_free
+        ? Math.ceil(confirmModal.price_neurons * (1 - DISCOUNT_PERCENT / 100))
+        : confirmModal?.price_neurons || 0
+
+      const result = await purchaseStyle(telegramId, confirmModal.style_id, priceToPay)
 
       if (result.success) {
         haptic.success()
@@ -141,6 +162,12 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
       <div className="text-center mb-4">
         <h2 className="text-lg font-bold text-gray-900 mb-1">Стили каруселей</h2>
         <p className="text-sm text-gray-500">Уникальный дизайн для ваших постов</p>
+
+        {discountActive && (
+          <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+            <span className="text-xs font-bold">💎 Ваша скидка подписчика: {DISCOUNT_PERCENT}%</span>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -219,7 +246,14 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
                       {style.is_free ? (
                         '0'
                       ) : (
-                        style.price_neurons
+                        discountActive ? (
+                          <div className="flex flex-col items-end leading-none">
+                            <span className="text-[10px] line-through opacity-70 mb-[-2px]">{style.price_neurons}</span>
+                            <span>{Math.ceil(style.price_neurons * (1 - DISCOUNT_PERCENT / 100))}</span>
+                          </div>
+                        ) : (
+                          style.price_neurons
+                        )
                       )}
                       <img src="/neirocoin.png" alt="н" className="w-4 h-4" />
                     </button>
@@ -267,6 +301,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
             handleBuyClick(previewStyle)
           }}
           onChangeStyle={(newStyle) => setPreviewStyle(newStyle)}
+          discountActive={discountActive}
         />
       )}
 
@@ -317,14 +352,27 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
                 <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600">Спишется с баланса</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-orange-500 text-lg">{confirmModal.price_neurons}</span>
+                    {discountActive && !confirmModal.is_free ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 line-through text-sm">{confirmModal.price_neurons}</span>
+                        <span className="font-bold text-orange-500 text-lg">
+                          {Math.ceil(confirmModal.price_neurons * (1 - DISCOUNT_PERCENT / 100))}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-bold text-orange-500 text-lg">{confirmModal.price_neurons}</span>
+                    )}
                     <img src="/neirocoin.png" alt="нейро" className="w-5 h-5" />
                   </div>
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <span className="text-gray-600">Баланс после покупки</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-gray-900">{coinBalance - confirmModal.price_neurons}</span>
+                    <span className="font-semibold text-gray-900">
+                      {coinBalance - (discountActive && !confirmModal.is_free
+                        ? Math.ceil(confirmModal.price_neurons * (1 - DISCOUNT_PERCENT / 100))
+                        : confirmModal.price_neurons)}
+                    </span>
                     <img src="/neirocoin.png" alt="нейро" className="w-4 h-4 opacity-70" />
                   </div>
                 </div>
@@ -371,9 +419,10 @@ interface StylePreviewModalProps {
   onBuy: () => void
   onClose: () => void
   onChangeStyle: (style: ShopStyle) => void
+  discountActive?: boolean
 }
 
-function StylePreviewModal({ style, allStyles, owned, onBuy, onChangeStyle }: Omit<StylePreviewModalProps, 'onClose'>) {
+function StylePreviewModal({ style, allStyles, owned, onBuy, onChangeStyle, discountActive = false }: Omit<StylePreviewModalProps, 'onClose'>) {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isTransitioning, setIsTransitioning] = useState(false)
 
@@ -560,7 +609,9 @@ function StylePreviewModal({ style, allStyles, owned, onBuy, onChangeStyle }: Om
             className={`w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-base shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 ${isTransitioning ? 'opacity-70 cursor-wait' : 'hover:shadow-xl active:scale-[0.98] cursor-pointer'}`}
           >
             <ShoppingBag className="w-5 h-5" />
-            Купить "{style.name}" за {style.price_neurons}
+            Купить "{style.name}" за {discountActive
+              ? Math.ceil(style.price_neurons * (1 - DISCOUNT_PERCENT / 100))
+              : style.price_neurons}
             <img src="/neirocoin.png" alt="н" className="w-5 h-5" />
           </button>
         )}
