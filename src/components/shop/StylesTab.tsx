@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { Palette, Check, X, ShoppingBag } from 'lucide-react'
+import { Palette, Check, X, ShoppingBag, Eye } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 import {
   getShopStyles,
@@ -23,6 +23,8 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
   const [isProcessing, setIsProcessing] = useState(false)
   // Модалка подтверждения
   const [confirmModal, setConfirmModal] = useState<ShopStyle | null>(null)
+  // Модалка предпросмотра
+  const [previewStyle, setPreviewStyle] = useState<ShopStyle | null>(null)
 
   useEffect(() => {
     const loadStyles = async () => {
@@ -46,7 +48,8 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
   }
 
   // Открыть модалку подтверждения
-  const handleBuyClick = (style: ShopStyle) => {
+  const handleBuyClick = (style: ShopStyle, e?: React.MouseEvent) => {
+    e?.stopPropagation()
     haptic.action()
 
     if (!telegramId) {
@@ -68,6 +71,13 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
 
     // Показываем модалку подтверждения
     setConfirmModal(style)
+  }
+
+  // Открыть предпросмотр
+  const handlePreviewClick = (style: ShopStyle, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    haptic.action()
+    setPreviewStyle(style)
   }
 
   // Подтвердить покупку
@@ -104,6 +114,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
     } finally {
       setIsProcessing(false)
       setConfirmModal(null)
+      setPreviewStyle(null) // Закрываем и превью
     }
   }
 
@@ -128,7 +139,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
   return (
     <>
       <div className="text-center mb-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">🎨 Стили каруселей</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Стили каруселей</h2>
         <p className="text-sm text-gray-500">Уникальный дизайн для ваших постов</p>
       </div>
 
@@ -136,15 +147,12 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
         {shopStyles.map((style) => {
           const owned = ownsStyle(style.style_id)
           return (
-            <button
+            <div
               key={style.style_id}
-              onClick={() => !owned && handleBuyClick(style)}
-              disabled={isProcessing || owned}
-              className={`relative w-full bg-white border-2 rounded-2xl p-4 text-left transition-all duration-200 cursor-pointer ${
-                owned
+              className={`relative bg-white border-2 rounded-2xl p-4 transition-all duration-200 ${owned
                   ? 'border-green-400 bg-green-50/50'
-                  : 'border-gray-200 hover:border-orange-300 hover:shadow-lg active:scale-[0.99]'
-              } ${isProcessing ? 'opacity-70' : ''}`}
+                  : 'border-gray-200'
+                } ${isProcessing ? 'opacity-70' : ''}`}
             >
               {style.is_free && (
                 <div className="absolute -top-2.5 left-4 z-10">
@@ -161,9 +169,10 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
                 </div>
               )}
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* Preview Image */}
                 <div
-                  className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl shadow-md flex-shrink-0"
+                  className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-md flex-shrink-0"
                   style={{ backgroundColor: style.preview_color + '20' }}
                 >
                   {style.preview_image ? (
@@ -177,63 +186,91 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
                   )}
                 </div>
 
+                {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900">{style.name}</p>
-                  <p className="text-sm text-gray-500 truncate">
-                    {style.description || 'Уникальный стиль дизайна'}
+                  <p className="font-bold text-gray-900 text-sm">{style.name}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {style.description || 'Уникальный стиль'}
                   </p>
                 </div>
 
-                <div className="text-right flex-shrink-0">
+                {/* Buttons */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Предпросмотр */}
+                  <button
+                    onClick={(e) => handlePreviewClick(style, e)}
+                    className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer active:scale-95"
+                    title="Предпросмотр"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+
+                  {/* Купить / Есть */}
                   {owned ? (
-                    <div className="flex items-center gap-1 text-green-600">
+                    <div className="flex items-center gap-1 text-green-600 px-3 py-2">
                       <Check className="w-5 h-5" />
-                      <span className="font-medium">Есть</span>
                     </div>
-                  ) : style.is_free ? (
-                    <span className="text-cyan-600 font-bold">0 🪙</span>
                   ) : (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xl font-bold text-orange-500">
-                        {style.price_neurons}
-                      </span>
-                      <img src="/neirocoin.png" alt="нейро" className="w-5 h-5" />
-                    </div>
+                    <button
+                      onClick={(e) => handleBuyClick(style, e)}
+                      disabled={isProcessing}
+                      className="flex items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 disabled:opacity-70"
+                    >
+                      {style.is_free ? (
+                        '0'
+                      ) : (
+                        style.price_neurons
+                      )}
+                      <img src="/neirocoin.png" alt="н" className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               </div>
 
+              {/* Mini preview row */}
               {style.example_images && style.example_images.length > 0 && (
-                <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                  {style.example_images.slice(0, 4).map((img, i) => (
+                <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1">
+                  {style.example_images.slice(0, 5).map((img, i) => (
                     <img
                       key={i}
                       src={img}
                       alt={`Пример ${i + 1}`}
-                      className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                     />
                   ))}
-                  {style.example_images.length > 4 && (
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">
-                      +{style.example_images.length - 4}
+                  {style.example_images.length > 5 && (
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">
+                      +{style.example_images.length - 5}
                     </div>
                   )}
                 </div>
               )}
-            </button>
+            </div>
           )
         })}
       </div>
 
       <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl">
         <p className="text-sm text-orange-700">
-          💡 Купленные стили появятся в выборе при создании карусели
+          Купленные стили появятся в выборе при создании карусели
         </p>
       </div>
 
+      {/* Модалка предпросмотра */}
+      {previewStyle && (
+        <StylePreviewModal
+          style={previewStyle}
+          allStyles={shopStyles}
+          owned={ownsStyle(previewStyle.style_id)}
+          onBuy={() => handleBuyClick(previewStyle)}
+          onClose={() => setPreviewStyle(null)}
+          onChangeStyle={(newStyle) => setPreviewStyle(newStyle)}
+        />
+      )}
+
       {/* Модалка подтверждения покупки */}
       {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
             {/* Header */}
             <div className="relative bg-gradient-to-r from-orange-400 to-orange-500 p-6 text-center">
@@ -275,10 +312,6 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
 
               {/* Детали */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Вы получите</span>
-                  <span className="font-semibold text-gray-900">Стиль "{confirmModal.name}"</span>
-                </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-100">
                   <span className="text-gray-600">Спишется с баланса</span>
                   <div className="flex items-center gap-1.5">
@@ -324,5 +357,214 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
         </div>
       )}
     </>
+  )
+}
+
+// ========== STYLE PREVIEW MODAL ==========
+
+interface StylePreviewModalProps {
+  style: ShopStyle
+  allStyles: ShopStyle[]
+  owned: boolean
+  onBuy: () => void
+  onClose: () => void
+  onChangeStyle: (style: ShopStyle) => void
+}
+
+function StylePreviewModal({ style, allStyles, owned, onBuy, onClose, onChangeStyle }: StylePreviewModalProps) {
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  // Swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const minSwipeDistance = 50
+
+  const styleIndex = allStyles.findIndex(s => s.style_id === style.style_id)
+  const totalStyles = allStyles.length
+  const examples = style.example_images || []
+
+  // Navigate to style
+  const navigateToStyle = (newIndex: number) => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+    setTimeout(() => {
+      onChangeStyle(allStyles[newIndex])
+      setLoadedImages(new Set())
+      setIsTransitioning(false)
+    }, 150)
+  }
+
+  const goToPrev = () => {
+    const newIndex = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
+    navigateToStyle(newIndex)
+  }
+
+  const goToNext = () => {
+    const newIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
+    navigateToStyle(newIndex)
+  }
+
+  // Swipe handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) goToNext()
+    else if (isRightSwipe) goToPrev()
+  }
+
+  const handleImageLoad = (src: string) => {
+    setLoadedImages(prev => new Set(prev).add(src))
+  }
+
+  const handleImageError = (src: string) => {
+    console.warn('Failed to load image:', src)
+    setLoadedImages(prev => new Set(prev).add(src))
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white overflow-hidden"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Header with Navigation */}
+      <div className="px-4 py-4 border-b border-gray-100/50">
+        <div className="flex items-center justify-between">
+          {/* Prev Button */}
+          <button
+            onClick={goToPrev}
+            className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          {/* Style Info */}
+          <div className="text-center flex-1 px-3">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-orange-100 to-pink-100 rounded-full mb-1.5">
+              <span className="text-xs font-semibold text-orange-600">{styleIndex + 1} из {totalStyles}</span>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 truncate">{style.name}</h3>
+          </div>
+
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Progress Dots */}
+        <div className="mt-3 flex justify-center gap-1">
+          {allStyles.map((s, i) => (
+            <button
+              key={s.style_id}
+              onClick={() => onChangeStyle(allStyles[i])}
+              className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === styleIndex
+                  ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500'
+                  : 'w-1.5 bg-gray-200 hover:bg-gray-300'
+                }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Description */}
+      {style.description && (
+        <div className="px-4 py-3 bg-gray-50/50">
+          <p className="text-sm text-gray-500 text-center line-clamp-2">{style.description}</p>
+        </div>
+      )}
+
+      {/* Examples Grid */}
+      <div className="flex-1 px-4 py-3 overflow-auto">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-gray-500">Примеры слайдов</p>
+          <span className="text-xs text-gray-400">← Свайп для смены стиля →</span>
+        </div>
+
+        {examples.length > 0 ? (
+          <div
+            className="grid grid-cols-3 gap-2 transition-all duration-200"
+            style={{
+              opacity: isTransitioning ? 0.5 : 1,
+              transform: isTransitioning ? 'scale(0.98)' : 'scale(1)'
+            }}
+          >
+            {examples.slice(0, 9).map((src, i) => (
+              <div
+                key={`${style.style_id}-${i}`}
+                className="aspect-[3/4] rounded-xl overflow-hidden shadow-sm bg-gray-100 relative"
+              >
+                {/* Skeleton while loading */}
+                {!loadedImages.has(src) && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-orange-400 animate-spin" />
+                  </div>
+                )}
+                <img
+                  src={src}
+                  alt={`Пример ${i + 1}`}
+                  loading={i < 6 ? 'eager' : 'lazy'}
+                  onLoad={() => handleImageLoad(src)}
+                  onError={() => handleImageError(src)}
+                  className="w-full h-full object-cover"
+                  style={{
+                    opacity: loadedImages.has(src) ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
+                />
+                {/* Номер слайда */}
+                <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center">
+                  <span className="text-[10px] text-white font-medium">{i + 1}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-32 bg-gray-50 rounded-xl">
+            <p className="text-sm text-gray-400">Нет примеров</p>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Actions */}
+      <div className="px-4 py-4 bg-white border-t border-gray-100">
+        {owned ? (
+          <div className="text-center py-3">
+            <div className="flex items-center justify-center gap-2 text-green-600">
+              <Check className="w-6 h-6" />
+              <span className="font-bold text-lg">Этот стиль у вас есть</span>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={onBuy}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-base shadow-lg shadow-orange-500/25 active:scale-[0.98] transition-all cursor-pointer hover:shadow-xl flex items-center justify-center gap-2"
+          >
+            <ShoppingBag className="w-5 h-5" />
+            Купить за {style.price_neurons}
+            <img src="/neirocoin.png" alt="н" className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
