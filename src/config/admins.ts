@@ -12,7 +12,7 @@ export const isAdmin = (telegramId: number | undefined | null): boolean => {
 }
 
 // Проверка на расширенное меню (профиль, магазин)
-// ТОЛЬКО ДЛЯ АДМИНОВ — пока скрыто от обычных пользователей
-export const canSeeFullMenu = (telegramId: number | undefined | null): boolean => {
-  return isAdmin(telegramId)
+// Теперь доступно всем пользователям
+export const canSeeFullMenu = (_telegramId: number | undefined | null): boolean => {
+  return true
 }
