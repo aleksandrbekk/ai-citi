@@ -710,14 +710,26 @@ function CarouselIndexInner() {
 
           {/* Generate Button */}
           <button
-            onClick={handleGenerate}
-            disabled={isSubmitting || coinBalance < GENERATION_COST}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-pink-500/30 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer"
+            onClick={() => {
+              if (coinBalance < GENERATION_COST) {
+                navigate('/shop')
+                return
+              }
+              handleGenerate()
+            }}
+            disabled={isSubmitting}
+            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer ${coinBalance < GENERATION_COST
+                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-green-500/30'
+                : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white shadow-pink-500/30'
+              }`}
           >
             {isSubmitting ? (
               <><LoaderIcon size={20} className="animate-spin" /> Создание...</>
             ) : coinBalance < GENERATION_COST ? (
-              <span>Недостаточно нейронов</span>
+              <>
+                <span>Пополнить баланс</span>
+                <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
+              </>
             ) : (
               <>
                 <span>Сгенерировать за {GENERATION_COST}</span>
