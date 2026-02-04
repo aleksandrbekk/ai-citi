@@ -92,9 +92,12 @@ export function CurrencySelectionModal({ isOpen, onClose, onSelect, title = 'В�
                     </button>
 
                     {/* Примечание о задержке для международных платежей */}
-                    <p className="text-[11px] text-gray-400 text-center pt-1 px-2">
-                        💳 USD/EUR: зачисление до 30 мин (международный платёж)
-                    </p>
+                    <div className="flex items-center justify-center gap-1.5 pt-2 px-2">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <p className="text-[12px] text-gray-600 font-semibold">
+                            USD/EUR: зачисление до 30 мин
+                        </p>
+                    </div>
 
                     <div className="pt-2 text-center">
                         <button onClick={onClose} className="text-base font-medium text-gray-400 hover:text-gray-900 transition-colors">
