@@ -264,7 +264,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
           owned={ownsStyle(previewStyle.style_id)}
           onBuy={() => {
             setPreviewStyle(null)
-            if (onBuy) onBuy(previewStyle)
+            handleBuyClick(previewStyle)
           }}
           onChangeStyle={(newStyle) => setPreviewStyle(newStyle)}
         />
