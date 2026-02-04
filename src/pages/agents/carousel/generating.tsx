@@ -96,8 +96,15 @@ export default function CarouselGenerating() {
     haptic.action()
     const tg = window.Telegram?.WebApp
     if (tg) {
-      // Закрываем mini app — пользователь вернётся в чат с ботом
-      tg.close()
+      // Открываем чат с ботом через Telegram
+      // @ts-ignore - openTelegramLink exists in Telegram WebApp API
+      if (typeof tg.openTelegramLink === 'function') {
+        // @ts-ignore
+        tg.openTelegramLink('https://t.me/Neirociti_bot')
+      } else {
+        // Fallback: закрываем мини-апп
+        tg.close()
+      }
     } else {
       window.open('https://t.me/Neirociti_bot', '_blank')
     }
