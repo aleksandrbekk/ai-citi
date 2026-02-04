@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Folder, ChevronRight, Lock } from 'lucide-react'
+import { Folder, ChevronRight, Lock, Star } from 'lucide-react'
 import { getUserTariffsById, checkIsCurator, supabase } from '@/lib/supabase'
+import { useFeatureAccess, FEATURES } from '@/hooks/useSubscription'
 
 export default function SchoolIndex() {
   const navigate = useNavigate()
   const [userTariffs, setUserTariffs] = useState<string[]>([])
   const [isLoadingTariffs, setIsLoadingTariffs] = useState(true)
   const [isCurator, setIsCurator] = useState(false)
+
+  // Проверка подписки PRO/ELITE
+  const { data: academyAccess, isLoading: isLoadingAccess } = useFeatureAccess(FEATURES.AI_ACADEMY)
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp
@@ -49,7 +53,11 @@ export default function SchoolIndex() {
   const tariffSlug = userTariffs.includes('platinum') ? 'platinum' :
     userTariffs.includes('standard') ? 'standard' : null
 
-  if (isLoadingTariffs) {
+  // Доступ есть если: подписка PRO/ELITE ИЛИ куплен курс ИЛИ куратор
+  const hasSubscriptionAccess = academyAccess?.has_access || false
+  const hasAccess = hasSubscriptionAccess || !!tariffSlug || isCurator
+
+  if (isLoadingTariffs || isLoadingAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -60,15 +68,15 @@ export default function SchoolIndex() {
     )
   }
 
-  // Если нет подписки и не куратор - показываем экран блокировки
-  if (!tariffSlug && !isCurator) {
+  // Если нет доступа - показываем экран блокировки
+  if (!hasAccess) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-700">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -79,8 +87,8 @@ export default function SchoolIndex() {
               <Lock size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Школа AI</h1>
-              <p className="text-xs text-gray-400">Требуется подписка</p>
+              <h1 className="text-lg font-semibold text-gray-900">AI Академия</h1>
+              <p className="text-xs text-gray-400">Требуется подписка PRO или ELITE</p>
             </div>
           </div>
         </div>
@@ -88,16 +96,19 @@ export default function SchoolIndex() {
         {/* Locked content */}
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="text-center max-w-sm">
-            <div className="w-24 h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <Lock size={40} className="text-gray-500" />
+            <div className="w-24 h-24 bg-gradient-to-br from-cyan-100 to-cyan-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+              <Lock size={40} className="text-cyan-500" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h2>
-            <p className="text-gray-500 mb-6">
-              Школа AI доступна для пользователей с активной подпиской. Оформи подписку, чтобы получить доступ к курсам.
+            <p className="text-gray-500 mb-2">
+              AI Академия доступна для подписчиков PRO и ELITE.
+            </p>
+            <p className="text-sm text-gray-400 mb-6">
+              Оформи подписку и получи доступ к обучающим материалам и курсам.
             </p>
             <button
               onClick={() => navigate('/shop')}
-              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
+              className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-semibold rounded-full shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all cursor-pointer"
             >
               Оформить подписку
             </button>
@@ -112,7 +123,24 @@ export default function SchoolIndex() {
       <h1 className="text-2xl font-bold mb-6">📚 Мои курсы</h1>
 
       <div className="space-y-3">
-        {/* Курс */}
+        {/* Доступ по подписке PRO/ELITE */}
+        {hasSubscriptionAccess && !tariffSlug && (
+          <Link
+            to="/school/subscription"
+            className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-cyan-500/20 to-teal-500/10 border border-cyan-500/50 hover:border-cyan-400 transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cyan-500/30 flex items-center justify-center">
+              <Star className="w-6 h-6 text-cyan-500" />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-lg text-cyan-600">AI Академия</div>
+              <div className="text-sm text-gray-500">Доступ по подписке PRO/ELITE</div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-cyan-500" />
+          </Link>
+        )}
+
+        {/* Курс (купленный) */}
         {tariffSlug && (
           <Link
             to={`/school/${tariffSlug}`}
