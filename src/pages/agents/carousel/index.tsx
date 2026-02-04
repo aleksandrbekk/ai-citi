@@ -789,8 +789,8 @@ function CarouselIndexInner() {
       </div>
 
       <div className="px-4 pb-6 flex-1 flex flex-col">
-        {/* Topic Input - Glass Card */}
-        <div className="mb-4 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 shadow-lg shadow-gray-500/5">
+        {/* Topic Input - Clean Design */}
+        <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">О чём карусель?</span>
             <button
@@ -807,11 +807,11 @@ function CarouselIndexInner() {
 
 Можно добавить подробности: контекст, примеры, пожелания по стилю текста..."
             maxLength={5000}
-            className="w-full min-h-[120px] px-4 py-3 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 resize-y text-sm leading-relaxed"
+            className="w-full min-h-[140px] px-4 py-3.5 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm"
           />
-          <div className="flex justify-between items-center mt-1">
-            <span className="text-[10px] text-gray-400">Можно писать подробно — AI всё учтёт</span>
-            <span className={`text-xs ${topic.length > 4500 ? 'text-orange-500' : 'text-gray-400'}`}>{topic.length} / 5000</span>
+          <div className="flex justify-between items-center mt-2 px-1">
+            <span className="text-xs text-gray-400">Можно писать подробно — AI всё учтёт</span>
+            <span className={`text-xs font-medium ${topic.length > 4500 ? 'text-orange-500' : 'text-gray-400'}`}>{topic.length} / 5000</span>
           </div>
         </div>
 
