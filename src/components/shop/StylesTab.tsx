@@ -150,8 +150,8 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
             <div
               key={style.style_id}
               className={`relative bg-white border-2 rounded-2xl p-4 transition-all duration-200 ${owned
-                  ? 'border-green-400 bg-green-50/50'
-                  : 'border-gray-200'
+                ? 'border-green-400 bg-green-50/50'
+                : 'border-gray-200'
                 } ${isProcessing ? 'opacity-70' : ''}`}
             >
               {style.is_free && (
@@ -463,12 +463,7 @@ function StylePreviewModal({ style, allStyles, owned, onBuy, onClose, onChangeSt
           </div>
 
           {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Close Button Removed as per user request (system back button used) */}
         </div>
 
         {/* Progress Dots */}
@@ -478,8 +473,8 @@ function StylePreviewModal({ style, allStyles, owned, onBuy, onClose, onChangeSt
               key={s.style_id}
               onClick={() => onChangeStyle(allStyles[i])}
               className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === styleIndex
-                  ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500'
-                  : 'w-1.5 bg-gray-200 hover:bg-gray-300'
+                ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500'
+                : 'w-1.5 bg-gray-200 hover:bg-gray-300'
                 }`}
             />
           ))}
@@ -557,10 +552,11 @@ function StylePreviewModal({ style, allStyles, owned, onBuy, onClose, onChangeSt
         ) : (
           <button
             onClick={onBuy}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-base shadow-lg shadow-orange-500/25 active:scale-[0.98] transition-all cursor-pointer hover:shadow-xl flex items-center justify-center gap-2"
+            disabled={isTransitioning} // Блокируем во время свайпа
+            className={`w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-base shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 ${isTransitioning ? 'opacity-70 cursor-wait' : 'hover:shadow-xl active:scale-[0.98] cursor-pointer'}`}
           >
             <ShoppingBag className="w-5 h-5" />
-            Купить за {style.price_neurons}
+            Купить "{style.name}" за {style.price_neurons}
             <img src="/neirocoin.png" alt="н" className="w-5 h-5" />
           </button>
         )}
