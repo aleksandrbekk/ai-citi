@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
-import { Search, Trash2, CreditCard, X, Coins, Calendar, Globe, User as UserIcon, Send } from 'lucide-react'
+import {
+  Search, Trash2, CreditCard, X, Coins, Calendar, Globe, User as UserIcon,
+  Send, ChevronRight, Star, Palette, ArrowUpCircle, ArrowDownCircle,
+  Crown, Clock, Zap, ShoppingBag, Plus, Minus
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 interface User {
@@ -24,6 +28,51 @@ interface PremiumClient {
   plan: string
 }
 
+interface CoinTransaction {
+  id: string
+  amount: number
+  balance_after: number
+  type: string
+  description: string
+  created_at: string
+}
+
+interface UserFullStats {
+  subscription: {
+    id: string
+    plan: string
+    status: string
+    started_at: string
+    expires_at: string | null
+    next_charge_at: string | null
+    amount_rub: number
+    neurons_per_month: number
+    days_remaining: number | null
+  } | null
+  purchased_styles: Array<{
+    style_id: string
+    price_paid: number
+    purchased_at: string
+  }>
+  coin_stats: {
+    balance: number
+    total_spent: number
+    total_earned: number
+    spent_on_generations: number
+    spent_on_styles: number
+    earned_from_referrals: number
+    earned_from_purchases: number
+    earned_from_bonuses: number
+    transactions_count: number
+  }
+  payment_stats: {
+    total_paid_rub: number
+    total_paid_usd: number
+    payments_count: number
+    last_payment_at: string | null
+  }
+}
+
 export function AllUsersTab() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
@@ -31,6 +80,9 @@ export function AllUsersTab() {
   const [coinsAmount, setCoinsAmount] = useState('')
   const [coinsReason, setCoinsReason] = useState('')
   const [isAddingCoins, setIsAddingCoins] = useState(false)
+  const [activeTab, setActiveTab] = useState<'info' | 'coins' | 'subscription' | 'styles'>('info')
+  const [subscriptionPlan, setSubscriptionPlan] = useState<'pro' | 'elite'>('pro')
+  const [subscriptionMonths, setSubscriptionMonths] = useState(1)
 
   // Загрузка всех пользователей
   const { data: users, isLoading } = useQuery({
@@ -57,7 +109,7 @@ export function AllUsersTab() {
     }
   })
 
-  // Создаём Set для быстрой проверки платных клиентов
+  // Создаём Map для быстрой проверки платных клиентов
   const premiumMap = new Map(
     premiumClients?.map(c => [c.telegram_id, c.plan]) || []
   )
@@ -72,22 +124,40 @@ export function AllUsersTab() {
     enabled: !!selectedUser
   })
 
-  // Профиль выбранного юзера (для будущего расширения)
-  const { data: _userProfile } = useQuery({
-    queryKey: ['user-profile', selectedUser?.telegram_id],
+  // Полная статистика пользователя
+  const { data: userStats, isLoading: isLoadingStats, refetch: refetchStats } = useQuery({
+    queryKey: ['user-full-stats', selectedUser?.telegram_id],
     queryFn: async () => {
       if (!selectedUser) return null
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('telegram_id', selectedUser.telegram_id)
-        .single()
-      if (error) return null
-      return data
+      const { data, error } = await supabase.rpc('admin_get_user_full_stats', {
+        p_telegram_id: selectedUser.telegram_id
+      })
+      if (error) {
+        console.error('Error fetching user stats:', error)
+        return null
+      }
+      return data as UserFullStats
     },
     enabled: !!selectedUser
   })
-  void _userProfile // используется для будущего расширения
+
+  // Транзакции монет пользователя
+  const { data: coinTransactions } = useQuery({
+    queryKey: ['user-coin-transactions', selectedUser?.telegram_id],
+    queryFn: async () => {
+      if (!selectedUser) return []
+      const { data, error } = await supabase.rpc('admin_get_user_coin_transactions', {
+        p_telegram_id: selectedUser.telegram_id,
+        p_limit: 20
+      })
+      if (error) {
+        console.error('Error fetching transactions:', error)
+        return []
+      }
+      return data as CoinTransaction[]
+    },
+    enabled: !!selectedUser && activeTab === 'coins'
+  })
 
   // Удаление пользователя
   const deleteUser = useMutation({
@@ -100,6 +170,72 @@ export function AllUsersTab() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-users'] })
+      toast.success('Пользователь удалён')
+    }
+  })
+
+  // Активация подписки
+  const activateSubscription = useMutation({
+    mutationFn: async ({ telegramId, plan, months }: { telegramId: number; plan: string; months: number }) => {
+      const { data, error } = await supabase.rpc('admin_activate_subscription', {
+        p_telegram_id: telegramId,
+        p_plan: plan,
+        p_months: months
+      })
+      if (error) throw error
+      return data
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success(`Подписка ${data.plan.toUpperCase()} активирована! Начислено ${data.neurons_added} нейронов`)
+        refetchStats()
+        refetchCoins()
+      } else {
+        toast.error(data.error || 'Ошибка активации')
+      }
+    },
+    onError: () => {
+      toast.error('Ошибка активации подписки')
+    }
+  })
+
+  // Деактивация подписки
+  const deactivateSubscription = useMutation({
+    mutationFn: async (telegramId: number) => {
+      const { data, error } = await supabase.rpc('admin_deactivate_subscription', {
+        p_telegram_id: telegramId
+      })
+      if (error) throw error
+      return data
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('Подписка деактивирована')
+        refetchStats()
+      }
+    },
+    onError: () => {
+      toast.error('Ошибка деактивации')
+    }
+  })
+
+  // Продление подписки
+  const extendSubscription = useMutation({
+    mutationFn: async ({ telegramId, months }: { telegramId: number; months: number }) => {
+      const { data, error } = await supabase.rpc('admin_extend_subscription', {
+        p_telegram_id: telegramId,
+        p_months: months
+      })
+      if (error) throw error
+      return data
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('Подписка продлена')
+        refetchStats()
+      } else {
+        toast.error(data.error || 'Ошибка продления')
+      }
     }
   })
 
@@ -115,7 +251,7 @@ export function AllUsersTab() {
     if (!selectedUser || !coinsAmount) return
 
     const amount = parseInt(coinsAmount)
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amount) || amount === 0) {
       toast.error('Введите корректное количество монет')
       return
     }
@@ -124,21 +260,22 @@ export function AllUsersTab() {
     try {
       const result = await addCoins(
         selectedUser.telegram_id,
-        amount,
+        Math.abs(amount),
         'bonus',
-        coinsReason || 'Начислено администратором'
+        coinsReason || (amount > 0 ? 'Начислено администратором' : 'Списано администратором')
       )
 
       if (result.success) {
-        toast.success(`Начислено ${amount} монет`)
+        toast.success(amount > 0 ? `Начислено ${amount} монет` : `Списано ${Math.abs(amount)} монет`)
         setCoinsAmount('')
         setCoinsReason('')
         refetchCoins()
+        refetchStats()
       } else {
-        toast.error(result.error || 'Ошибка начисления')
+        toast.error(result.error || 'Ошибка операции')
       }
-    } catch (error) {
-      toast.error('Ошибка начисления монет')
+    } catch {
+      toast.error('Ошибка операции с монетами')
     } finally {
       setIsAddingCoins(false)
     }
@@ -147,6 +284,7 @@ export function AllUsersTab() {
   // Открыть карточку юзера
   const handleOpenUserCard = (user: User) => {
     setSelectedUser(user)
+    setActiveTab('info')
     setCoinsAmount('')
     setCoinsReason('')
   }
@@ -214,6 +352,20 @@ export function AllUsersTab() {
     if (diffDays === 1) return 'Вчера'
     if (diffDays < 7) return `${diffDays} дн. назад`
     return formatDate(dateStr)
+  }
+
+  // Форматирование типа транзакции
+  const formatTransactionType = (type: string) => {
+    const types: Record<string, string> = {
+      generation: 'Генерация',
+      purchase: 'Покупка',
+      subscription: 'Подписка',
+      referral: 'Реферал',
+      bonus: 'Бонус',
+      style_purchase: 'Стиль',
+      admin_deduct: 'Списание'
+    }
+    return types[type] || type
   }
 
   return (
@@ -314,17 +466,8 @@ export function AllUsersTab() {
                     </div>
                   </div>
 
-                  {/* Действия */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete(user)
-                    }}
-                    disabled={deleteUser.isPending}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  {/* Стрелка */}
+                  <ChevronRight size={18} className="text-gray-400 flex-shrink-0" />
                 </div>
 
                 {/* Детали */}
@@ -354,16 +497,36 @@ export function AllUsersTab() {
         </div>
       )}
 
-      {/* Модальное окно - Карточка юзера */}
+      {/* Модальное окно - Расширенная карточка юзера */}
       {selectedUser && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseUserCard}>
           <div
-            className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Шапка */}
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Карточка пользователя</h2>
+            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
+              <div className="flex items-center gap-3">
+                {selectedUser.photo_url ? (
+                  <img
+                    src={selectedUser.photo_url}
+                    alt=""
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xl font-bold">
+                    {selectedUser.first_name?.[0] || selectedUser.username?.[0] || '?'}
+                  </div>
+                )}
+                <div>
+                  <div className="font-semibold text-gray-900">
+                    {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(' ') || 'Без имени'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {selectedUser.username ? `@${selectedUser.username}` : `ID: ${selectedUser.telegram_id}`}
+                  </div>
+                </div>
+              </div>
               <button
                 onClick={handleCloseUserCard}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -372,122 +535,445 @@ export function AllUsersTab() {
               </button>
             </div>
 
-            {/* Контент */}
-            <div className="p-4 space-y-4">
-              {/* Аватар и имя */}
-              <div className="flex items-center gap-4">
-                {selectedUser.photo_url ? (
-                  <img
-                    src={selectedUser.photo_url}
-                    alt=""
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl font-bold">
-                    {selectedUser.first_name?.[0] || selectedUser.username?.[0] || '?'}
-                  </div>
-                )}
-                <div>
-                  <div className="text-xl font-semibold text-gray-900">
-                    {[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(' ') || 'Без имени'}
-                  </div>
-                  <div className="text-gray-500">
-                    {selectedUser.username ? `@${selectedUser.username}` : `ID: ${selectedUser.telegram_id}`}
-                  </div>
-                  {premiumMap.has(selectedUser.telegram_id) && (
-                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs rounded-full">
-                      <CreditCard size={12} />
-                      {premiumMap.get(selectedUser.telegram_id)}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Баланс монет */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-100 rounded-xl p-4">
-                <div className="flex items-center gap-2 text-orange-600 mb-1">
-                  <Coins size={20} />
-                  <span className="font-medium">Баланс монет</span>
-                </div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {userCoins ?? '...'} <span className="text-lg text-gray-500">монет</span>
-                </div>
-              </div>
-
-              {/* Информация */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-gray-600">
-                  <UserIcon size={18} className="text-gray-400" />
-                  <span className="text-sm">Telegram ID:</span>
-                  <span className="font-mono text-sm">{selectedUser.telegram_id}</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <Calendar size={18} className="text-gray-400" />
-                  <span className="text-sm">Регистрация:</span>
-                  <span className="text-sm">{formatDate(selectedUser.created_at)}</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <Globe size={18} className="text-gray-400" />
-                  <span className="text-sm">Последняя активность:</span>
-                  <span className="text-sm">{getRelativeTime(selectedUser.last_active_at)}</span>
-                </div>
-                {selectedUser.utm_source && (
-                  <div className="flex items-center gap-3 text-gray-600">
-                    <Send size={18} className="text-gray-400" />
-                    <span className="text-sm">Источник:</span>
-                    <span className="text-sm">{selectedUser.utm_source}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Начисление монет */}
-              <div className="border-t border-gray-100 pt-4">
-                <h3 className="font-medium text-gray-900 mb-3">Начислить монеты</h3>
-                <div className="space-y-3">
-                  <input
-                    type="number"
-                    placeholder="Количество монет"
-                    value={coinsAmount}
-                    onChange={(e) => setCoinsAmount(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Причина (необязательно)"
-                    value={coinsReason}
-                    onChange={(e) => setCoinsReason(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
-                  />
-                  <button
-                    onClick={handleAddCoins}
-                    disabled={isAddingCoins || !coinsAmount}
-                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-                  >
-                    {isAddingCoins ? (
-                      'Начисляю...'
-                    ) : (
-                      <>
-                        <Coins size={18} />
-                        Начислить
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Действия */}
-              <div className="border-t border-gray-100 pt-4 flex gap-2">
+            {/* Табы */}
+            <div className="flex border-b border-gray-100 px-4">
+              {[
+                { id: 'info', label: 'Инфо', icon: UserIcon },
+                { id: 'coins', label: 'Монеты', icon: Coins },
+                { id: 'subscription', label: 'Подписка', icon: Crown },
+                { id: 'styles', label: 'Стили', icon: Palette }
+              ].map((tab) => (
                 <button
-                  onClick={() => {
-                    handleCloseUserCard()
-                    handleDelete(selectedUser)
-                  }}
-                  className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-orange-500 text-orange-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
                 >
-                  <Trash2 size={18} />
-                  Удалить
+                  <tab.icon size={16} />
+                  {tab.label}
                 </button>
-              </div>
+              ))}
+            </div>
+
+            {/* Контент табов */}
+            <div className="p-4 space-y-4">
+              {isLoadingStats ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
+                  Загрузка...
+                </div>
+              ) : (
+                <>
+                  {/* Таб: Информация */}
+                  {activeTab === 'info' && (
+                    <div className="space-y-4">
+                      {/* Основная статистика */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-3">
+                          <div className="flex items-center gap-2 text-orange-600 mb-1">
+                            <Coins size={16} />
+                            <span className="text-xs">Баланс</span>
+                          </div>
+                          <div className="text-2xl font-bold text-gray-900">
+                            {userCoins ?? userStats?.coin_stats?.balance ?? 0}
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 border border-cyan-200 rounded-xl p-3">
+                          <div className="flex items-center gap-2 text-cyan-600 mb-1">
+                            <CreditCard size={16} />
+                            <span className="text-xs">Оплачено</span>
+                          </div>
+                          <div className="text-2xl font-bold text-gray-900">
+                            {(userStats?.payment_stats?.total_paid_rub || 0).toLocaleString('ru-RU')}₽
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Статистика монет */}
+                      <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                        <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                          <Zap size={16} className="text-orange-500" />
+                          Статистика монет
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Потрачено всего:</span>
+                            <span className="text-red-600 font-medium">-{userStats?.coin_stats?.total_spent || 0}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Заработано:</span>
+                            <span className="text-green-600 font-medium">+{userStats?.coin_stats?.total_earned || 0}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">На генерации:</span>
+                            <span className="text-gray-700">{userStats?.coin_stats?.spent_on_generations || 0}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">На стили:</span>
+                            <span className="text-gray-700">{userStats?.coin_stats?.spent_on_styles || 0}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">От рефералов:</span>
+                            <span className="text-gray-700">{userStats?.coin_stats?.earned_from_referrals || 0}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">От покупок:</span>
+                            <span className="text-gray-700">{userStats?.coin_stats?.earned_from_purchases || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Информация о пользователе */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <UserIcon size={18} className="text-gray-400" />
+                          <span className="text-sm">Telegram ID:</span>
+                          <span className="font-mono text-sm">{selectedUser.telegram_id}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <Calendar size={18} className="text-gray-400" />
+                          <span className="text-sm">Регистрация:</span>
+                          <span className="text-sm">{formatDate(selectedUser.created_at)}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <Globe size={18} className="text-gray-400" />
+                          <span className="text-sm">Последняя активность:</span>
+                          <span className="text-sm">{getRelativeTime(selectedUser.last_active_at)}</span>
+                        </div>
+                        {selectedUser.utm_source && (
+                          <div className="flex items-center gap-3 text-gray-600">
+                            <Send size={18} className="text-gray-400" />
+                            <span className="text-sm">Источник:</span>
+                            <span className="text-sm">{selectedUser.utm_source}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Действия */}
+                      <div className="border-t border-gray-100 pt-4">
+                        <button
+                          onClick={() => {
+                            handleCloseUserCard()
+                            handleDelete(selectedUser)
+                          }}
+                          className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Trash2 size={18} />
+                          Удалить пользователя
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Таб: Монеты */}
+                  {activeTab === 'coins' && (
+                    <div className="space-y-4">
+                      {/* Баланс */}
+                      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-orange-100 rounded-xl p-4">
+                        <div className="flex items-center gap-2 text-orange-600 mb-1">
+                          <Coins size={20} />
+                          <span className="font-medium">Текущий баланс</span>
+                        </div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          {userCoins ?? '...'} <span className="text-lg text-gray-500">монет</span>
+                        </div>
+                      </div>
+
+                      {/* Начисление/списание монет */}
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h3 className="font-medium text-gray-900 mb-3">Операции с монетами</h3>
+                        <div className="space-y-3">
+                          <input
+                            type="number"
+                            placeholder="Количество (- для списания)"
+                            value={coinsAmount}
+                            onChange={(e) => setCoinsAmount(e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Причина (необязательно)"
+                            value={coinsReason}
+                            onChange={(e) => setCoinsReason(e.target.value)}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleAddCoins}
+                              disabled={isAddingCoins || !coinsAmount}
+                              className="flex-1 py-3 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Plus size={18} />
+                              Начислить
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (coinsAmount && !coinsAmount.startsWith('-')) {
+                                  setCoinsAmount('-' + coinsAmount)
+                                }
+                                handleAddCoins()
+                              }}
+                              disabled={isAddingCoins || !coinsAmount}
+                              className="flex-1 py-3 bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Minus size={18} />
+                              Списать
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* История транзакций */}
+                      <div className="border-t border-gray-100 pt-4">
+                        <h4 className="font-medium text-gray-900 mb-3">История операций</h4>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {coinTransactions && coinTransactions.length > 0 ? (
+                            coinTransactions.map((tx) => (
+                              <div key={tx.id} className="bg-gray-50 rounded-lg p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  {tx.amount > 0 ? (
+                                    <ArrowUpCircle size={20} className="text-green-500" />
+                                  ) : (
+                                    <ArrowDownCircle size={20} className="text-red-500" />
+                                  )}
+                                  <div>
+                                    <div className={`font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {tx.amount > 0 ? '+' : ''}{tx.amount}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {formatTransactionType(tx.type)}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm text-gray-600">= {tx.balance_after}</div>
+                                  <div className="text-xs text-gray-400">
+                                    {new Date(tx.created_at).toLocaleDateString('ru-RU')}
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-center text-gray-500 py-4">Нет транзакций</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Таб: Подписка */}
+                  {activeTab === 'subscription' && (
+                    <div className="space-y-4">
+                      {/* Текущая подписка */}
+                      {userStats?.subscription ? (
+                        <div className={`rounded-xl p-4 border ${
+                          userStats.subscription.plan === 'elite'
+                            ? 'bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200'
+                            : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200'
+                        }`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <Crown size={20} className={userStats.subscription.plan === 'elite' ? 'text-orange-500' : 'text-cyan-500'} />
+                              <span className="font-bold text-lg text-gray-900">
+                                {userStats.subscription.plan.toUpperCase()}
+                              </span>
+                            </div>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              userStats.subscription.status === 'active'
+                                ? 'bg-green-100 text-green-600'
+                                : 'bg-red-100 text-red-600'
+                            }`}>
+                              {userStats.subscription.status === 'active' ? 'Активна' : 'Неактивна'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-gray-500">Осталось:</span>
+                              <div className={`font-medium ${
+                                (userStats.subscription.days_remaining || 0) <= 7 ? 'text-red-500' : 'text-gray-900'
+                              }`}>
+                                {userStats.subscription.days_remaining !== null
+                                  ? `${userStats.subscription.days_remaining} дн.`
+                                  : '∞'
+                                }
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Истекает:</span>
+                              <div className="font-medium text-gray-900">
+                                {userStats.subscription.expires_at
+                                  ? new Date(userStats.subscription.expires_at).toLocaleDateString('ru-RU')
+                                  : '—'
+                                }
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Нейронов/мес:</span>
+                              <div className="font-medium text-gray-900">{userStats.subscription.neurons_per_month}</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Стоимость:</span>
+                              <div className="font-medium text-gray-900">{userStats.subscription.amount_rub}₽</div>
+                            </div>
+                          </div>
+
+                          {/* Действия с подпиской */}
+                          <div className="flex gap-2 mt-4">
+                            <button
+                              onClick={() => extendSubscription.mutate({
+                                telegramId: selectedUser.telegram_id,
+                                months: 1
+                              })}
+                              disabled={extendSubscription.isPending}
+                              className="flex-1 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                            >
+                              <Clock size={16} />
+                              +1 мес
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('Деактивировать подписку?')) {
+                                  deactivateSubscription.mutate(selectedUser.telegram_id)
+                                }
+                              }}
+                              disabled={deactivateSubscription.isPending}
+                              className="flex-1 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-sm font-medium transition-colors"
+                            >
+                              Деактивировать
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-xl p-4 text-center">
+                          <Crown size={40} className="text-gray-300 mx-auto mb-2" />
+                          <p className="text-gray-500">Нет активной подписки</p>
+                        </div>
+                      )}
+
+                      {/* Активация подписки */}
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Активировать подписку</h4>
+
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => setSubscriptionPlan('pro')}
+                              className={`p-3 rounded-xl border-2 text-left transition-colors ${
+                                subscriptionPlan === 'pro'
+                                  ? 'border-cyan-500 bg-cyan-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="font-bold text-gray-900">PRO</div>
+                              <div className="text-sm text-gray-500">2 900 ₽/мес</div>
+                              <div className="text-xs text-cyan-600">+150 нейронов</div>
+                            </button>
+                            <button
+                              onClick={() => setSubscriptionPlan('elite')}
+                              className={`p-3 rounded-xl border-2 text-left transition-colors ${
+                                subscriptionPlan === 'elite'
+                                  ? 'border-orange-500 bg-orange-50'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="font-bold text-gray-900">ELITE</div>
+                              <div className="text-sm text-gray-500">9 900 ₽/мес</div>
+                              <div className="text-xs text-orange-600">+600 нейронов</div>
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="text-sm text-gray-600 mb-1 block">Срок (месяцев)</label>
+                            <select
+                              value={subscriptionMonths}
+                              onChange={(e) => setSubscriptionMonths(parseInt(e.target.value))}
+                              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900"
+                            >
+                              {[1, 2, 3, 6, 12].map(m => (
+                                <option key={m} value={m}>{m} мес.</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              if (confirm(`Активировать ${subscriptionPlan.toUpperCase()} на ${subscriptionMonths} мес.?`)) {
+                                activateSubscription.mutate({
+                                  telegramId: selectedUser.telegram_id,
+                                  plan: subscriptionPlan,
+                                  months: subscriptionMonths
+                                })
+                              }
+                            }}
+                            disabled={activateSubscription.isPending}
+                            className="w-full py-3 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Star size={18} />
+                            {activateSubscription.isPending ? 'Активация...' : 'Активировать подписку'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Таб: Стили */}
+                  {activeTab === 'styles' && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-gray-600 mb-2">
+                        <ShoppingBag size={18} />
+                        <span className="font-medium">Купленные стили</span>
+                        <span className="px-2 py-0.5 bg-gray-100 rounded text-sm">
+                          {userStats?.purchased_styles?.length || 0}
+                        </span>
+                      </div>
+
+                      {userStats?.purchased_styles && userStats.purchased_styles.length > 0 ? (
+                        <div className="space-y-2">
+                          {userStats.purchased_styles.map((style, index) => (
+                            <div
+                              key={index}
+                              className="bg-gray-50 rounded-xl p-3 flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                                  <Palette size={20} className="text-white" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-gray-900">{style.style_id}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {new Date(style.purchased_at).toLocaleDateString('ru-RU')}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-orange-600">{style.price_paid}</div>
+                                <div className="text-xs text-gray-500">монет</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-xl p-8 text-center">
+                          <Palette size={40} className="text-gray-300 mx-auto mb-2" />
+                          <p className="text-gray-500">Нет купленных стилей</p>
+                        </div>
+                      )}
+
+                      {/* Итого потрачено на стили */}
+                      {(userStats?.coin_stats?.spent_on_styles ?? 0) > 0 && (
+                        <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 flex items-center justify-between">
+                          <span className="text-gray-600">Всего потрачено на стили:</span>
+                          <span className="font-bold text-orange-600">{userStats?.coin_stats?.spent_on_styles ?? 0} монет</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

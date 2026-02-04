@@ -598,12 +598,14 @@ export function Shop() {
         )}
       </div>
 
-      {/* Footer info */}
-      <div className="px-6 pt-6 pb-4">
-        <p className="text-center text-[11px] text-gray-400">
-          Монеты не сгорают · Отмена в любой момент
-        </p>
-      </div>
+      {/* Footer info - только для подписки */}
+      {activeTab === 'subscription' && (
+        <div className="px-6 pt-6 pb-4">
+          <p className="text-center text-[11px] text-gray-400">
+            Монеты не сгорают · Отмена в любой момент
+          </p>
+        </div>
+      )}
     </div>
   )
 }
