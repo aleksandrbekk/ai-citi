@@ -849,9 +849,15 @@ export function AllUsersTab() {
                                 "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
                                 userStats.subscription.status === 'active'
                                   ? "bg-green-500/20 text-green-500 ring-1 ring-green-500/40"
+                                  : userStats.subscription.status === 'cancelled'
+                                  ? "bg-amber-500/20 text-amber-600 ring-1 ring-amber-500/40"
                                   : "bg-red-500/20 text-red-500"
                               )}>
-                                {userStats.subscription.status === 'active' ? 'Active' : 'Expired'}
+                                {userStats.subscription.status === 'active'
+                                  ? 'Active'
+                                  : userStats.subscription.status === 'cancelled'
+                                  ? 'Отменена'
+                                  : 'Expired'}
                               </span>
                             </div>
 
