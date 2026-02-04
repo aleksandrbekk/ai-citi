@@ -115,7 +115,7 @@ const subscriptionPackages: SubscriptionPackage[] = [
       '5 базовых стилей',
       '10% на баланс от генераций друзей'
     ],
-    color: 'from-gray-400 to-gray-500',
+    color: 'from-gray-300 to-gray-400',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
   },
@@ -135,9 +135,9 @@ const subscriptionPackages: SubscriptionPackage[] = [
       'Скидка 30% на все стили',
       'Бот-транскрибатор (видео/аудио в текст)'
     ],
-    color: 'from-orange-400 to-orange-500',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-400',
+    color: 'from-cyan-400 to-cyan-500',
+    bgColor: 'bg-cyan-50',
+    borderColor: 'border-cyan-400',
     popular: true,
   },
   {
@@ -157,9 +157,9 @@ const subscriptionPackages: SubscriptionPackage[] = [
       'Бот-транскрибатор (видео/аудио в текст)',
       'Купон на любой стиль из магазина'
     ],
-    color: 'from-amber-400 to-amber-500',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-400',
+    color: 'from-orange-400 to-orange-500',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-400',
   },
 ]
 
@@ -489,80 +489,125 @@ export function Shop() {
           <>
             <div className="text-center mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">Выберите тариф</h2>
-              <p className="text-sm text-gray-500">Ежемесячная подписка с нейронами</p>
+              <p className="text-sm text-gray-500">Ежемесячная подписка с бонусами</p>
             </div>
-            <div className="grid grid-cols-1 gap-4">
-              {subscriptionPackages.map((pkg) => (
-                <button
-                  key={pkg.id}
-                  onClick={() => handleBuySubscription(pkg.id)}
-                  className={`relative w-full bg-white border-2 ${pkg.borderColor} rounded-2xl p-5 text-left transition-all duration-300 hover:shadow-xl active:scale-[0.99] cursor-pointer ${pkg.popular
-                    ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
-                    : 'hover:border-opacity-60'
-                    }`}
-                >
-                  {pkg.popular && (
-                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                        ХИТ
-                      </span>
-                    </div>
-                  )}
-                  {pkg.id === 'elite' && (
-                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap">
-                        ДЛЯ ПРЕДПРИНИМАТЕЛЕЙ
-                      </span>
-                    </div>
-                  )}
 
-                  {/* Header */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
-                      <Star className="w-7 h-7 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-xl">{pkg.name}</p>
-                      <p className="text-base font-semibold text-gray-700">{pkg.priceLabel}</p>
-                    </div>
+            {/* FREE - Текущий тариф */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <Star className="w-5 h-5 text-gray-400" />
                   </div>
+                  <div>
+                    <p className="font-semibold text-gray-700">FREE</p>
+                    <p className="text-xs text-gray-400">Ваш текущий тариф</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-xs font-medium text-gray-600">Активен</span>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2">
+                  {subscriptionPackages[0].features.map((feature, i) => (
+                    <span key={i} className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-lg">
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-                  {/* Features */}
-                  <div className="space-y-2 mb-4">
-                    {pkg.features.map((feature, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${pkg.popular
-                          ? 'bg-orange-500'
-                          : pkg.id === 'elite'
-                            ? 'bg-amber-500'
-                            : pkg.id === 'starter'
-                              ? 'bg-cyan-500'
-                              : 'bg-gray-400'
-                          }`} />
-                        <span className="text-sm text-gray-600 leading-relaxed flex-1">{feature}</span>
+            {/* PRO - Бирюзовый */}
+            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-cyan-500/10 border-2 border-cyan-400 mb-4">
+              {/* Бейдж ХИТ */}
+              <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-10">
+                <span className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold px-5 py-1.5 rounded-b-xl shadow-lg">
+                  ХИТ
+                </span>
+              </div>
+
+              {/* Градиентный хедер */}
+              <div className="bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-500 px-5 pt-8 pb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <Star className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-2xl">PRO</p>
+                    <p className="text-cyan-100 font-medium">2 900 ₽/мес</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Контент */}
+              <div className="p-5">
+                <div className="space-y-2.5 mb-5">
+                  {subscriptionPackages[1].features.map((feature, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-cyan-600 text-xs">✓</span>
                       </div>
-                    ))}
-                  </div>
+                      <span className="text-sm text-gray-700 leading-relaxed">{feature}</span>
+                    </div>
+                  ))}
+                </div>
 
-                  {/* CTA Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleBuySubscription(pkg.id)
-                    }}
-                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${pkg.popular
-                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/40 hover:scale-[1.02]'
-                      : pkg.id === 'elite'
-                        ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-lg hover:shadow-amber-500/40 hover:scale-[1.02]'
-                        : pkg.id === 'starter'
-                          ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02]'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                  >
-                    {pkg.id === 'free' ? 'Начать бесплатно' : 'Оформить подписку'}
-                  </button>
+                <button
+                  onClick={() => handleBuySubscription('pro')}
+                  disabled={isProcessing}
+                  className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-70"
+                >
+                  Оформить PRO
                 </button>
-              ))}
+              </div>
+            </div>
+
+            {/* ELITE - Оранжевый */}
+            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-orange-500/10 border-2 border-orange-400">
+              {/* Бейдж */}
+              <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-10">
+                <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-b-xl shadow-lg whitespace-nowrap">
+                  ДЛЯ ПРЕДПРИНИМАТЕЛЕЙ
+                </span>
+              </div>
+
+              {/* Градиентный хедер */}
+              <div className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 px-5 pt-8 pb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <Star className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-2xl">ELITE</p>
+                    <p className="text-orange-100 font-medium">9 900 ₽/мес</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Контент */}
+              <div className="p-5">
+                <div className="space-y-2.5 mb-5">
+                  {subscriptionPackages[2].features.map((feature, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-orange-600 text-xs">✓</span>
+                      </div>
+                      <span className="text-sm text-gray-700 leading-relaxed">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handleBuySubscription('elite')}
+                  disabled={isProcessing}
+                  className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-70"
+                >
+                  Оформить ELITE
+                </button>
+              </div>
             </div>
           </>
         )}
