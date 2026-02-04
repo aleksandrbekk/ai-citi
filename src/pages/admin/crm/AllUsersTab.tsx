@@ -263,20 +263,61 @@ export function AllUsersTab() {
         selectedUser.telegram_id,
         Math.abs(amount),
         'bonus',
-        coinsReason || (amount > 0 ? 'Начислено администратором' : 'Списано администратором')
+        coinsReason || 'Начислено администратором'
       )
 
       if (result.success) {
-        toast.success(amount > 0 ? `Начислено ${amount} монет` : `Списано ${Math.abs(amount)} монет`)
+        toast.success(`Начислено ${Math.abs(amount)} монет`)
         setCoinsAmount('')
         setCoinsReason('')
         refetchCoins()
         refetchStats()
+        queryClient.invalidateQueries({ queryKey: ['user-coin-transactions', selectedUser.telegram_id] })
       } else {
         toast.error(result.error || 'Ошибка операции')
       }
     } catch {
       toast.error('Ошибка операции с монетами')
+    } finally {
+      setIsAddingCoins(false)
+    }
+  }
+
+  const handleSpendCoins = async () => {
+    if (!selectedUser || !coinsAmount) return
+
+    const amount = parseInt(coinsAmount)
+    if (isNaN(amount) || amount === 0) {
+      toast.error('Введите корректное количество монет')
+      return
+    }
+
+    setIsAddingCoins(true)
+    try {
+      const { data, error } = await supabase.rpc('spend_coins', {
+        p_telegram_id: selectedUser.telegram_id,
+        p_amount: Math.abs(amount),
+        p_type: 'correction',
+        p_description: coinsReason || 'Списано администратором'
+      })
+
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      if (data?.success) {
+        toast.success(`Списано ${Math.abs(amount)} монет`)
+        setCoinsAmount('')
+        setCoinsReason('')
+        refetchCoins()
+        refetchStats()
+        queryClient.invalidateQueries({ queryKey: ['user-coin-transactions', selectedUser.telegram_id] })
+      } else {
+        toast.error(data?.error || 'Недостаточно монет')
+      }
+    } catch {
+      toast.error('Ошибка списания монет')
     } finally {
       setIsAddingCoins(false)
     }
@@ -752,12 +793,7 @@ export function AllUsersTab() {
                               Начислить
                             </button>
                             <button
-                              onClick={() => {
-                                if (coinsAmount && !coinsAmount.startsWith('-')) {
-                                  setCoinsAmount('-' + coinsAmount)
-                                }
-                                handleAddCoins()
-                              }}
+                              onClick={handleSpendCoins}
                               disabled={isAddingCoins || !coinsAmount}
                               className="py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 active:scale-95 flex items-center justify-center gap-2"
                             >
