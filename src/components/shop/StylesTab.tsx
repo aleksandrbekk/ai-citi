@@ -44,7 +44,7 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
         setPurchasedStyles(purchased)
 
         // Проверяем скидку (PRO или BUSINESS)
-        if (tariffInfo?.is_active && ['pro', 'business'].includes(tariffInfo.tariff_slug)) {
+        if (tariffInfo?.is_active && ['pro', 'business'].includes(tariffInfo.tariff_slug.toLowerCase())) {
           setDiscountActive(true)
         }
       }
