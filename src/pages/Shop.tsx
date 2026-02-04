@@ -356,7 +356,7 @@ export function Shop() {
               }`}
           >
             <Coins className="w-4 h-4 inline mr-1" />
-            МОНЕТЫ
+            НЕЙРОНЫ
           </button>
           <button
             onClick={() => setActiveTab('subscription')}
@@ -411,7 +411,7 @@ export function Shop() {
                     <span className="text-base font-bold text-gray-900">
                       {isLoadingCoins ? '...' : coinBalance}
                     </span>
-                    <span className="text-xs text-gray-500">монет</span>
+                    <span className="text-xs text-gray-500">нейронов</span>
                   </div>
                 </div>
               </div>
@@ -458,27 +458,13 @@ export function Shop() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-base font-bold text-gray-900">{pkg.name}</p>
-                          {pkg.savings > 0 && (
-                            <span className="text-[10px] font-semibold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">
-                              -{pkg.savings}%
-                            </span>
-                          )}
                         </div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-sm text-gray-700 font-medium">{pkg.coins} нейронов</span>
-                          <span className="text-xs text-gray-400">• {pkg.pricePerCoin}₽/шт</span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {isProcessing ? 'Создаём платёж...' : `~${pkg.generations} карусел${pkg.generations === 1 ? 'ь' : pkg.generations < 5 ? 'и' : 'ей'}`}
-                        </p>
+                        <p className="text-sm text-gray-700 font-medium mt-0.5">{pkg.coins} нейронов</p>
                       </div>
                     </div>
 
-                    {/* Price с перечёркнутой старой ценой */}
+                    {/* Price */}
                     <div className="text-right">
-                      <p className="text-sm text-gray-400 line-through">
-                        {pkg.oldPriceRub.toLocaleString('ru-RU')} ₽
-                      </p>
                       <p className={`text-xl font-bold ${pkg.popular ? 'text-orange-500' : 'text-gray-900'}`}>
                         {pkg.priceRub.toLocaleString('ru-RU')} ₽
                       </p>
