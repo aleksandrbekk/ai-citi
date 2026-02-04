@@ -19,9 +19,11 @@ export interface ReferralStats {
 
 /**
  * Получить реферальную ссылку пользователя по referral_code
+ * Формат: ?start= открывает бота с приветственным сообщением
+ * (не /app?startapp= который открывает Mini App напрямую)
  */
 export function getReferralLink(referralCode: string): string {
-  return `https://t.me/Neirociti_bot/app?startapp=ref_${referralCode}`
+  return `https://t.me/Neirociti_bot?start=ref_${referralCode}`
 }
 
 /**

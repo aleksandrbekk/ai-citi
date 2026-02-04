@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance, getUserTariffInfo, getGiftCoinBalance, getUserSpendStats, cancelSubscription, type UserTariffInfo } from '@/lib/supabase'
 import { useReferrals } from '@/hooks/useReferrals'
-import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 import {
   ProfileHeader,
@@ -16,7 +15,6 @@ import {
 
 export default function Profile() {
   const navigate = useNavigate()
-  const logout = useAuthStore((state) => state.logout)
   const telegramUser = getTelegramUser()
   const firstName = telegramUser?.first_name || 'Пользователь'
   const photoUrl = telegramUser?.photo_url
@@ -142,7 +140,7 @@ export default function Profile() {
       <QRCodeModal
         isOpen={showQRCode}
         onClose={() => setShowQRCode(false)}
-        referralLink={referralLink || `https://t.me/Neirociti_bot/app?startapp=ref_${referralCode}`}
+        referralLink={referralLink || `https://t.me/Neirociti_bot?start=ref_${referralCode}`}
         referralCode={referralCode || ''}
       />
 
@@ -150,7 +148,6 @@ export default function Profile() {
       <SettingsDrawer
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
-        onLogout={logout}
         hasActiveSubscription={!!isPaidSubscription}
         subscriptionPlan={tariffInfo?.tariff_slug}
         subscriptionExpiry={tariffExpiry}

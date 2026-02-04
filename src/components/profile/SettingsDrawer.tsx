@@ -1,11 +1,10 @@
-import { X, LogOut, CreditCard, Loader2, AlertTriangle } from 'lucide-react'
+import { X, CreditCard, Loader2, AlertTriangle } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 import { useState } from 'react'
 
 interface SettingsDrawerProps {
   isOpen: boolean
   onClose: () => void
-  onLogout: () => void
   hasActiveSubscription?: boolean
   subscriptionPlan?: string
   subscriptionExpiry?: string
@@ -15,7 +14,6 @@ interface SettingsDrawerProps {
 export function SettingsDrawer({
   isOpen,
   onClose,
-  onLogout,
   hasActiveSubscription,
   subscriptionPlan,
   subscriptionExpiry,
@@ -154,20 +152,6 @@ export function SettingsDrawer({
               </p>
             </div>
           )}
-        </div>
-
-        {/* Logout Button */}
-        <div className="px-6 pb-12 pt-4 border-t border-gray-100">
-          <button
-            onClick={() => {
-              haptic.tap()
-              onLogout()
-            }}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-colors cursor-pointer"
-          >
-            <LogOut className="w-5 h-5" />
-            Выйти из аккаунта
-          </button>
         </div>
       </div>
     </div>

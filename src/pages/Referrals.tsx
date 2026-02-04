@@ -67,7 +67,7 @@ export default function Referrals() {
   // Шаринг через Telegram
   const handleShare = () => {
     const text = '🎁 Привет! Присоединяйся к AI CITI — получи бонусные нейроны для генерации контента!'
-    const url = referralLink || `https://t.me/Neirociti_bot/app?startapp=ref_${referralCode}`
+    const url = referralLink || `https://t.me/Neirociti_bot?start=ref_${referralCode}`
 
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
 
@@ -142,18 +142,17 @@ export default function Referrals() {
           <div className="p-4 bg-gray-50/50">
             <div className="flex items-center gap-2 p-3 bg-white rounded-xl border border-gray-200 mb-3">
               <p className="flex-1 text-sm text-gray-600 truncate font-mono">
-                {referralLink ? referralLink.replace('https://', '') : `t.me/Neirociti_bot/app?startapp=ref_${referralCode}`}
+                {referralLink ? referralLink.replace('https://', '') : `t.me/Neirociti_bot?start=ref_${referralCode}`}
               </p>
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={handleCopyLink}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all cursor-pointer active:scale-[0.98] ${
-                  isCopied
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-all cursor-pointer active:scale-[0.98] ${isCopied
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                 {isCopied ? 'Скопировано!' : 'Копировать'}
@@ -186,7 +185,7 @@ export default function Referrals() {
                 <div className="w-8 h-8 rounded-full bg-orange-100 border-2 border-orange-400 flex items-center justify-center text-orange-600 font-bold text-sm z-10">
                   1
                 </div>
-                <p className="text-xs text-gray-600 mt-2 text-center leading-snug">Отправь<br/>ссылку</p>
+                <p className="text-xs text-gray-600 mt-2 text-center leading-snug">Отправь<br />ссылку</p>
               </div>
 
               {/* Шаг 2 */}
@@ -194,7 +193,7 @@ export default function Referrals() {
                 <div className="w-8 h-8 rounded-full bg-orange-400 border-2 border-orange-400 flex items-center justify-center text-white font-bold text-sm z-10">
                   2
                 </div>
-                <p className="text-xs text-gray-600 mt-2 text-center leading-snug">Друг<br/>генерирует</p>
+                <p className="text-xs text-gray-600 mt-2 text-center leading-snug">Друг<br />генерирует</p>
               </div>
 
               {/* Шаг 3 */}
@@ -202,7 +201,7 @@ export default function Referrals() {
                 <div className="w-8 h-8 rounded-full bg-orange-500 border-2 border-orange-500 flex items-center justify-center text-white font-bold text-sm z-10 shadow-md shadow-orange-500/30">
                   3
                 </div>
-                <p className="text-xs font-semibold text-orange-500 mt-2 text-center leading-snug">Тебе<br/>10%</p>
+                <p className="text-xs font-semibold text-orange-500 mt-2 text-center leading-snug">Тебе<br />10%</p>
               </div>
             </div>
           </div>
@@ -432,13 +431,12 @@ function ReferralOnboarding({ onComplete }: { onComplete: () => void }) {
                   {steps.map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        i === step
+                      className={`h-1.5 rounded-full transition-all duration-300 ${i === step
                           ? 'w-6 bg-gradient-to-r from-orange-400 to-cyan-500'
                           : i < step
-                          ? 'w-1.5 bg-orange-400'
-                          : 'w-1.5 bg-gray-200'
-                      }`}
+                            ? 'w-1.5 bg-orange-400'
+                            : 'w-1.5 bg-gray-200'
+                        }`}
                     />
                   ))}
                 </div>
@@ -446,11 +444,10 @@ function ReferralOnboarding({ onComplete }: { onComplete: () => void }) {
                 <button
                   onClick={handleNext}
                   disabled={isTyping}
-                  className={`w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.98] ${
-                    isTyping
+                  className={`w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer active:scale-[0.98] ${isTyping
                       ? 'bg-gray-100 text-gray-400'
                       : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/25'
-                  }`}
+                    }`}
                 >
                   {isLastStep ? 'Понятно! 🎉' : 'Далее'}
                   {!isLastStep && <ChevronRight className="w-4 h-4" />}
