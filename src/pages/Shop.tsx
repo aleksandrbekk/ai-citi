@@ -508,6 +508,13 @@ export function Shop() {
                       </span>
                     </div>
                   )}
+                  {pkg.id === 'elite' && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-10">
+                      <span className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg whitespace-nowrap">
+                        ДЛЯ ПРЕДПРИНИМАТЕЛЕЙ
+                      </span>
+                    </div>
+                  )}
 
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-4">
@@ -571,9 +578,26 @@ export function Shop() {
 
       {/* Footer info */}
       <div className="px-4 pt-6 pb-4">
-        <p className="text-center text-xs text-gray-500">
-          Монеты не сгорают • Безопасная оплата • Отмена в любой момент
-        </p>
+        <div className="flex justify-center gap-4 flex-wrap">
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-green-600 text-[10px]">∞</span>
+            </div>
+            <span className="text-xs">Монеты не сгорают</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-blue-600 text-[10px]">🔒</span>
+            </div>
+            <span className="text-xs">Безопасная оплата</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
+              <span className="text-orange-600 text-[10px]">↩</span>
+            </div>
+            <span className="text-xs whitespace-nowrap">Отмена в любой момент</span>
+          </div>
+        </div>
       </div>
     </div>
   )

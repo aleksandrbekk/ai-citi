@@ -12,13 +12,15 @@ const LAVA_API_KEY = Deno.env.get('LAVA_API_KEY') || ''
 // Offer ID для подписок (создаются в Lava.top с periodicity: MONTHLY)
 const SUBSCRIPTION_OFFER_IDS: Record<string, string> = {
   pro: Deno.env.get('LAVA_OFFER_SUB_PRO') || '',
-  business: Deno.env.get('LAVA_OFFER_SUB_BUSINESS') || '',
+  elite: Deno.env.get('LAVA_OFFER_SUB_BUSINESS') || '', // Используем тот же offer
+  business: Deno.env.get('LAVA_OFFER_SUB_BUSINESS') || '', // Для обратной совместимости
 }
 
-// Конфигурация подписок (только PRO и BUSINESS)
+// Конфигурация подписок (PRO и ELITE)
 const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number; name: string }> = {
-  pro: { neurons: 500, amount: 2900, name: 'PRO' },
-  business: { neurons: 2000, amount: 9900, name: 'BUSINESS' },
+  pro: { neurons: 150, amount: 2900, name: 'PRO' },
+  elite: { neurons: 600, amount: 9900, name: 'ELITE' },
+  business: { neurons: 600, amount: 9900, name: 'ELITE' }, // Алиас для обратной совместимости
 }
 
 serve(async (req) => {
@@ -43,7 +45,7 @@ serve(async (req) => {
 
     if (!planId || planId === 'free') {
       return new Response(
-        JSON.stringify({ ok: false, error: 'Invalid plan. Choose starter, pro, or business' }),
+        JSON.stringify({ ok: false, error: 'Invalid plan. Choose pro or elite' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
