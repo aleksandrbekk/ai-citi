@@ -17,7 +17,9 @@ const SETTINGS_API_URL = `${SUPABASE_URL}/rest/v1/carousel_settings`
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlYmN3dnhsdm96amxxa2huYXV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4NDk5NTksImV4cCI6MjA4MTQyNTk1OX0.PYX-O9CbKiNuVsR8CtidbvgTcPWqwUeuHcWq6uY2BG4'
 
 // Service role key для записи (обходит RLS)
-const SUPABASE_SERVICE_KEY = import.meta.env.VITE_CAROUSEL_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlYmN3dnhsdm96amxxa2huYXV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTg0OTk1OSwiZXhwIjoyMDgxNDI1OTU5fQ.JQdPDqFfs055C4FzabojTUsU6X6qmIrNnJgTN_L21S8'
+// ВАЖНО: Должен быть установлен через VITE_CAROUSEL_SERVICE_KEY в .env.local
+// НЕ хардкодить ключ здесь — это критическая уязвимость безопасности!
+const SUPABASE_SERVICE_KEY = import.meta.env.VITE_CAROUSEL_SERVICE_KEY || ''
 
 export interface CarouselStyleDB {
   id: string
@@ -70,6 +72,10 @@ async function supabaseFetch(
   options: RequestInit = {},
   useServiceKey = false
 ): Promise<Response> {
+  // Проверяем что service key установлен при попытке его использовать
+  if (useServiceKey && !SUPABASE_SERVICE_KEY) {
+    throw new Error('VITE_CAROUSEL_SERVICE_KEY не установлен. Админские операции недоступны.')
+  }
   const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

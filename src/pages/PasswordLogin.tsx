@@ -7,13 +7,21 @@ export default function PasswordLogin() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  // Пароль из env переменных или дефолтный
-  const correctPassword = import.meta.env.VITE_APP_PASSWORD || 'admin123'
+  // Пароль из env переменных (ОБЯЗАТЕЛЬНО должен быть установлен!)
+  // ВАЖНО: Никогда не использовать дефолтный пароль — это критическая уязвимость
+  const correctPassword = import.meta.env.VITE_APP_PASSWORD
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+
+    // Проверка что пароль настроен в env
+    if (!correctPassword) {
+      setError('Пароль не настроен (VITE_APP_PASSWORD)')
+      setIsLoading(false)
+      return
+    }
 
     // Простая проверка пароля
     if (password === correctPassword) {
