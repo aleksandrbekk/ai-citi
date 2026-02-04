@@ -494,7 +494,9 @@ function StylePreviewModal({ style, allStyles, owned, onBuy, onChangeStyle }: Om
       <div className="flex-1 px-4 py-3 overflow-auto">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-gray-500">Примеры слайдов</p>
-          <span className="text-xs text-gray-400">← Свайп для смены стиля →</span>
+          <span className="text-xs text-gray-400">
+            <span className="text-orange-500 font-bold">←</span> Свайп для смены стиля <span className="text-orange-500 font-bold">→</span>
+          </span>
         </div>
 
         {examples.length > 0 ? (
