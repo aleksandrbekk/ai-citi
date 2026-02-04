@@ -91,6 +91,11 @@ export function CurrencySelectionModal({ isOpen, onClose, onSelect, title = 'В�
                         <span className="text-3xl font-bold text-white">€</span>
                     </button>
 
+                    {/* Примечание о задержке для международных платежей */}
+                    <p className="text-[11px] text-gray-400 text-center pt-1 px-2">
+                        💳 USD/EUR: зачисление до 30 мин (международный платёж)
+                    </p>
+
                     <div className="pt-2 text-center">
                         <button onClick={onClose} className="text-base font-medium text-gray-400 hover:text-gray-900 transition-colors">
                             Отмена
