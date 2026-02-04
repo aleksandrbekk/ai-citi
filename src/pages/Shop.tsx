@@ -634,7 +634,6 @@ export function Shop() {
         isOpen={showCurrencyModal}
         onClose={() => setShowCurrencyModal(false)}
         onSelect={handleCurrencySelect}
-        amountRub={pendingPackage?.priceRub || (pendingSubscriptionId ? (subscriptionPackages.find(p => p.id === pendingSubscriptionId)?.priceRub || 0) : 0)}
       />
     </div>
   )

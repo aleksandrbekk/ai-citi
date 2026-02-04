@@ -1,24 +1,4 @@
 import { useRef, useEffect } from 'react'
-import { X, DollarSign, Euro, Coins } from 'lucide-react'
-
-// Extended Russian Ruble implementation since lucide-react might not have it or it differs
-const Ruble = ({ className }: { className?: string }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="M6 3h9a4 4 0 0 1 0 8H6" />
-        <path d="M6 15h9" />
-        <path d="M11 11H6" />
-        <path d="M6 21V3" />
-    </svg>
-)
 
 export type Currency = 'RUB' | 'USD' | 'EUR'
 
@@ -26,11 +6,10 @@ interface CurrencySelectionModalProps {
     isOpen: boolean
     onClose: () => void
     onSelect: (currency: Currency) => void
-    amountRub: number
     title?: string
 }
 
-export function CurrencySelectionModal({ isOpen, onClose, onSelect, amountRub, title = 'Выберите валюту' }: CurrencySelectionModalProps) {
+export function CurrencySelectionModal({ isOpen, onClose, onSelect, title = 'Выберите валюту' }: CurrencySelectionModalProps) {
     const modalRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -51,93 +30,72 @@ export function CurrencySelectionModal({ isOpen, onClose, onSelect, amountRub, t
 
     if (!isOpen) return null
 
-    // Approximate conversions for display context (actual logic is on backend)
-    const priceUsd = Math.ceil(amountRub / 90)
-    const priceEur = Math.ceil(amountRub / 100)
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
             <div
                 ref={modalRef}
-                className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 border border-white/20 animate-in zoom-in-95 duration-200"
+                className="relative w-full max-w-[340px] bg-[#1C1C1E] rounded-[32px] overflow-hidden animate-in zoom-in-95 duration-200 shadow-2xl border border-white/5"
             >
-                <button
-                    onClick={onClose}
-                    className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                    <X size={20} />
-                </button>
+                {/* Header */}
+                <div className="pt-8 pb-4 text-center px-6 relative">
+                    <button
+                        onClick={onClose}
+                        className="absolute left-6 top-8 p-1 text-white/50 hover:text-white transition-colors z-10"
+                    >
+                        <div className="flex items-center gap-1">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M15 18l-6-6 6-6" />
+                            </svg>
+                        </div>
+                    </button>
 
-                <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-orange-500 shadow-inner">
-                        <Coins size={32} />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-                    <p className="text-sm text-gray-500 mt-1">В какой валюте вам удобнее платить?</p>
+                    <h3 className="text-2xl font-bold text-white tracking-tight">{title}</h3>
+                    <p className="text-[13px] text-white/40 mt-1 uppercase tracking-wider font-medium">Visa, Mastercard, МИР</p>
                 </div>
 
-                <div className="space-y-3">
+                {/* Plaques */}
+                <div className="p-4 space-y-3 pb-8">
+                    {/* RUB - Blue (Vibrant) */}
                     <button
                         onClick={() => onSelect('RUB')}
-                        className="w-full relative group p-4 border-2 border-gray-100 rounded-2xl flex items-center justify-between hover:border-blue-500 hover:bg-blue-50 transition-all active:scale-[0.98]"
+                        className="w-full relative group h-[72px] rounded-3xl flex items-center justify-between px-6 bg-[#0062FF] hover:bg-[#0A6CFF] active:scale-[0.98] transition-all duration-200"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                                <Ruble className="w-5 h-5" />
-                            </div>
-                            <div className="text-left">
-                                <p className="font-bold text-gray-900">Рубли (RUB)</p>
-                                <p className="text-xs text-gray-500">Карты РФ</p>
-                            </div>
+                        <div className="flex flex-col items-start">
+                            <span className="font-bold text-[19px] leading-none text-white">Рубли</span>
+                            <span className="text-[11px] font-medium text-white/60 mt-0.5 tracking-wide">RUB</span>
                         </div>
-                        <div className="text-right">
-                            <span className="font-bold text-gray-900 text-lg">{amountRub.toLocaleString()} ₽</span>
-                        </div>
+                        <span className="text-3xl font-bold text-white">₽</span>
                     </button>
 
+                    {/* USD - Green (Vibrant) */}
                     <button
                         onClick={() => onSelect('USD')}
-                        className="w-full relative group p-4 border-2 border-gray-100 rounded-2xl flex items-center justify-between hover:border-green-500 hover:bg-green-50 transition-all active:scale-[0.98]"
+                        className="w-full relative group h-[72px] rounded-3xl flex items-center justify-between px-6 bg-[#00A835] hover:bg-[#00B83A] active:scale-[0.98] transition-all duration-200"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">
-                                <DollarSign className="w-5 h-5" />
-                            </div>
-                            <div className="text-left">
-                                <p className="font-bold text-gray-900">Dollars (USD)</p>
-                                <p className="text-xs text-gray-500">Intl. Cards</p>
-                            </div>
+                        <div className="flex flex-col items-start">
+                            <span className="font-bold text-[19px] leading-none text-white">Доллары</span>
+                            <span className="text-[11px] font-medium text-white/60 mt-0.5 tracking-wide">USD</span>
                         </div>
-                        <div className="text-right">
-                            <span className="font-bold text-gray-900 text-lg">~ {priceUsd} $</span>
-                        </div>
+                        <span className="text-3xl font-bold text-white">$</span>
                     </button>
 
+                    {/* EUR - Purple (Vibrant) */}
                     <button
                         onClick={() => onSelect('EUR')}
-                        className="w-full relative group p-4 border-2 border-gray-100 rounded-2xl flex items-center justify-between hover:border-indigo-500 hover:bg-indigo-50 transition-all active:scale-[0.98]"
+                        className="w-full relative group h-[72px] rounded-3xl flex items-center justify-between px-6 bg-[#9333EA] hover:bg-[#A855F7] active:scale-[0.98] transition-all duration-200"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                                <Euro className="w-5 h-5" />
-                            </div>
-                            <div className="text-left">
-                                <p className="font-bold text-gray-900">Euro (EUR)</p>
-                                <p className="text-xs text-gray-500">EU Cards</p>
-                            </div>
+                        <div className="flex flex-col items-start">
+                            <span className="font-bold text-[19px] leading-none text-white">Евро</span>
+                            <span className="text-[11px] font-medium text-white/60 mt-0.5 tracking-wide">EUR</span>
                         </div>
-                        <div className="text-right">
-                            <span className="font-bold text-gray-900 text-lg">~ {priceEur} €</span>
-                        </div>
+                        <span className="text-3xl font-bold text-white">€</span>
                     </button>
-                </div>
 
-                <div className="mt-6 text-center">
-                    <p className="text-[10px] text-gray-400">
-                        Безопасная оплата через Lava.top
-                        <br />
-                        Комиссия может зависеть от выбранного способа оплаты
-                    </p>
+                    <div className="pt-2 text-center">
+                        <button onClick={onClose} className="text-base font-medium text-white/40 hover:text-white transition-colors">
+                            Отмена
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
