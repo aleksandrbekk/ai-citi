@@ -24,9 +24,9 @@ export default function ReferralDetail() {
   const { data: partnerStats } = useQuery({
     queryKey: ['partner-stats', user?.telegram_id, id],
     queryFn: async () => {
-      if (!user?.telegram_id || !id) return { earned: 0, generations: 0 }
+      if (!user?.telegram_id || !id) return { earned: 0, generations: 0, stylePurchases: 0 }
 
-      // Получаем сколько заработано от генераций этого партнёра
+      // Получаем сколько заработано от этого партнёра
       const { data, error } = await supabase.rpc('get_partner_earnings', {
         p_referrer_telegram_id: user.telegram_id,
         p_partner_telegram_id: parseInt(id)
@@ -34,15 +34,16 @@ export default function ReferralDetail() {
 
       if (error) {
         console.error('Error fetching partner stats:', error)
-        return { earned: 0, generations: 0 }
+        return { earned: 0, generations: 0, stylePurchases: 0 }
       }
 
-      // spending = заработано от генераций (10%)
-      // Если spending = 3, значит партнёр потратил 30 нейронов на генерации
+      // spending = всего заработано от трат партнёра (10%)
       const earned = (data?.spending || 0)
-      const generations = earned > 0 ? Math.round(earned / 3) : 0 // ~30 нейронов = 1 карусель = 3 нейрона бонус
+      // ИСПРАВЛЕНО: используем реальный счётчик генераций вместо формулы
+      const generations = data?.generation_count || 0
+      const stylePurchases = data?.style_purchases || 0
 
-      return { earned, generations }
+      return { earned, generations, stylePurchases }
     },
     enabled: !!user?.telegram_id && !!id
   })
@@ -135,9 +136,18 @@ export default function ReferralDetail() {
                 <TrendingUp className="w-8 h-8 text-orange-500" />
               </div>
               <p className="text-2xl font-bold text-gray-900">{partnerStats?.generations || 0}</p>
-              <p className="text-xs text-gray-500">Генераций сделал</p>
+              <p className="text-xs text-gray-500">Генераций</p>
             </div>
           </div>
+
+          {/* Покупки стилей (если есть) */}
+          {(partnerStats?.stylePurchases || 0) > 0 && (
+            <div className="bg-cyan-50 rounded-2xl p-3 mb-6 text-center">
+              <p className="text-sm text-cyan-700">
+                Купил стилей: <span className="font-bold">{partnerStats?.stylePurchases}</span>
+              </p>
+            </div>
+          )}
 
           {/* Кнопки действий */}
           <div className="space-y-3">
