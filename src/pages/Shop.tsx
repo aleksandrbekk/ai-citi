@@ -74,7 +74,7 @@ const coinPackages: CoinPackage[] = [
     maxPerUser: 10,
   },
   {
-    id: 'business',
+    id: 'elite',
     name: 'Business',
     coins: 1000,
     generations: 33,
@@ -102,16 +102,19 @@ interface SubscriptionPackage {
   popular?: boolean
 }
 
-// Пакеты подписок (3 тарифа: FREE, PRO, BUSINESS)
+// Пакеты подписок (3 тарифа: FREE, PRO, ELITE)
 const subscriptionPackages: SubscriptionPackage[] = [
   {
     id: 'free',
     name: 'FREE',
     priceRub: 0,
     priceLabel: 'Бесплатно',
-    neuronsPerMonth: 30,
-    generationsPerMonth: 1,
-    features: ['1 бесплатная генерация', 'Базовые стили карусели', 'Стандартная очередь'],
+    neuronsPerMonth: 0,
+    generationsPerMonth: 0,
+    features: [
+      '5 базовых стилей',
+      '10% на баланс от генераций друзей'
+    ],
     color: 'from-gray-400 to-gray-500',
     bgColor: 'bg-gray-50',
     borderColor: 'border-gray-200',
@@ -121,22 +124,34 @@ const subscriptionPackages: SubscriptionPackage[] = [
     name: 'PRO',
     priceRub: 2900,
     priceLabel: '2 900 ₽/мес',
-    neuronsPerMonth: 500,
-    generationsPerMonth: 17,
-    features: ['17 генераций в месяц', 'Все стили карусели', 'Приоритет генерации', 'Сохранение настроек', 'Экспорт в высоком качестве'],
+    neuronsPerMonth: 150,
+    generationsPerMonth: 5,
+    features: [
+      '7 стилей для генерации',
+      'Доступ к AI академии',
+      'Доступ к закрытому клубу',
+      '+150 нейронов на баланс',
+      'Скидка 30% на все стили',
+      'Бот-транскрибатор (видео/аудио в текст)'
+    ],
     color: 'from-orange-400 to-orange-500',
     bgColor: 'bg-orange-50',
     borderColor: 'border-orange-400',
     popular: true,
   },
   {
-    id: 'business',
-    name: 'BUSINESS',
+    id: 'elite',
+    name: 'ELITE',
     priceRub: 9900,
     priceLabel: '9 900 ₽/мес',
-    neuronsPerMonth: 2000,
-    generationsPerMonth: 67,
-    features: ['Безлимит генераций', 'API доступ', 'Персональный менеджер', 'White-label возможности', 'Приоритетная разработка'],
+    neuronsPerMonth: 600,
+    generationsPerMonth: 20,
+    features: [
+      'Всё что входит в PRO',
+      '10 стилей для генерации',
+      'Купон на любой стиль из магазина',
+      '+600 нейронов на баланс'
+    ],
     color: 'from-amber-400 to-amber-500',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-400',
@@ -516,7 +531,7 @@ export function Shop() {
                       <div key={i} className="flex items-start gap-2">
                         <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${pkg.popular
                           ? 'bg-orange-500'
-                          : pkg.id === 'business'
+                          : pkg.id === 'elite'
                             ? 'bg-amber-500'
                             : pkg.id === 'starter'
                               ? 'bg-cyan-500'
@@ -535,7 +550,7 @@ export function Shop() {
                     }}
                     className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${pkg.popular
                       ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg hover:shadow-orange-500/40 hover:scale-[1.02]'
-                      : pkg.id === 'business'
+                      : pkg.id === 'elite'
                         ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white hover:shadow-lg hover:shadow-amber-500/40 hover:scale-[1.02]'
                         : pkg.id === 'starter'
                           ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white hover:shadow-lg hover:shadow-cyan-500/40 hover:scale-[1.02]'
