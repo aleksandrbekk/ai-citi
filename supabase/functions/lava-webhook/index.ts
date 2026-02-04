@@ -21,6 +21,33 @@ const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number }> = {
   business: { neurons: 2000, amount: 9900 },
 }
 
+const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || ''
+const ADMIN_CHAT_ID = 190202791
+
+async function sendAdminNotification(message: string) {
+  if (!BOT_TOKEN) {
+    console.error('BOT_TOKEN not set, cannot send admin notification')
+    return
+  }
+  try {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`
+    const body = {
+      chat_id: ADMIN_CHAT_ID,
+      text: message,
+      parse_mode: 'HTML'
+    }
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    const json = await res.json()
+    console.log('Admin notification sent:', json)
+  } catch (e) {
+    console.error('Failed to send admin notification:', e)
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -202,6 +229,16 @@ serve(async (req) => {
         })
       }
 
+      // Уведомление админу
+      const userLink = `ID: <code>${telegramId}</code>`
+      const msg = `🔄 <b>Продление подписки</b>\n\n` +
+        `👤 User: ${userLink}\n` +
+        `💰 Сумма: <b>${subAmount} RUB</b>\n` +
+        `💎 Нейроны: <b>${extendResult?.neurons_added || 0}</b>\n` +
+        `🧾 Contract: <code>${contractId}</code>`
+
+      await sendAdminNotification(msg)
+
       return new Response(
         JSON.stringify({
           ok: true,
@@ -296,6 +333,16 @@ serve(async (req) => {
         p_coins_purchased: subConfig.neurons
       })
 
+      // Уведомление админу
+      const userLink = `ID: <code>${telegramId}</code>` + (userData?.username ? ` (@${userData.username})` : '') + (userData?.first_name ? ` (${userData.first_name})` : '')
+      const msg = `✅ <b>Новая подписка: ${planUpper}</b>\n\n` +
+        `👤 User: ${userLink}\n` +
+        `💰 Сумма: <b>${subConfig.amount} RUB</b>\n` +
+        `💎 Нейроны: <b>${subConfig.neurons}</b>\n` +
+        `🧾 Contract: <code>${contractId}</code>`
+
+      await sendAdminNotification(msg)
+
       return new Response(
         JSON.stringify({
           ok: true,
@@ -351,6 +398,25 @@ serve(async (req) => {
     } else {
       console.log('Referral bonus result:', referralResult)
     }
+
+    // Уведомление админу
+    const pkgName = packageId.toUpperCase()
+    // Пытаемся получить username для красоты (не критично если нет)
+    let userInfo = `ID: <code>${telegramId}</code>`
+    try {
+      const { data: u } = await supabase.from('users').select('username, first_name').eq('telegram_id', telegramId).single()
+      if (u) {
+        userInfo += (u.username ? ` (@${u.username})` : '') + (u.first_name ? ` (${u.first_name})` : '')
+      }
+    } catch (e) { }
+
+    const msg = `💰 <b>Покупка монет: ${pkgName}</b>\n\n` +
+      `👤 User: ${userInfo}\n` +
+      `💵 Сумма: <b>${pkgConfig?.price || '?'} RUB</b>\n` +
+      `💎 Нейроны: <b>${coinsAmount}</b>\n` +
+      `🧾 Contract: <code>${contractId || 'one-time'}</code>`
+
+    await sendAdminNotification(msg)
 
     return new Response(
       JSON.stringify({
