@@ -125,9 +125,10 @@ const subscriptionPackages: SubscriptionPackage[] = [
     priceRub: 2900,
     priceLabel: '2 900 ₽/мес',
     neuronsPerMonth: 150,
-    generationsPerMonth: 5,
+    generationsPerMonth: 0,
     features: [
       '7 стилей для генерации',
+      '10% на баланс от генераций друзей',
       'Доступ к AI академии',
       'Доступ к закрытому клубу',
       '+150 нейронов на баланс',
@@ -145,12 +146,16 @@ const subscriptionPackages: SubscriptionPackage[] = [
     priceRub: 9900,
     priceLabel: '9 900 ₽/мес',
     neuronsPerMonth: 600,
-    generationsPerMonth: 20,
+    generationsPerMonth: 0,
     features: [
-      'Всё что входит в PRO',
       '10 стилей для генерации',
-      'Купон на любой стиль из магазина',
-      '+600 нейронов на баланс'
+      '10% на баланс от генераций друзей',
+      'Доступ к AI академии',
+      'Доступ к закрытому клубу',
+      '+600 нейронов на баланс',
+      'Скидка 30% на все стили',
+      'Бот-транскрибатор (видео/аудио в текст)',
+      'Купон на любой стиль из магазина'
     ],
     color: 'from-amber-400 to-amber-500',
     bgColor: 'bg-amber-50',
@@ -505,23 +510,13 @@ export function Shop() {
                   )}
 
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
-                        <Star className="w-7 h-7 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900 text-xl">{pkg.name}</p>
-                        <p className="text-base font-semibold text-gray-700">{pkg.priceLabel}</p>
-                      </div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center shadow-lg`}>
+                      <Star className="w-7 h-7 text-white" />
                     </div>
-                    {/* Neurons Badge */}
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 justify-end">
-                        <img src="/neirocoin.png" alt="Нейро" className="w-5 h-5 object-contain" />
-                        <span className="text-lg font-bold text-gray-900">{pkg.neuronsPerMonth}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">~{pkg.generationsPerMonth} карусел/мес</p>
+                    <div>
+                      <p className="font-bold text-gray-900 text-xl">{pkg.name}</p>
+                      <p className="text-base font-semibold text-gray-700">{pkg.priceLabel}</p>
                     </div>
                   </div>
 
