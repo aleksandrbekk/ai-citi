@@ -124,6 +124,12 @@ serve(async (req) => {
 
     if (!telegramIdStr) {
       console.error('No telegram_id found in payload')
+      // Уведомляем админа о проблеме
+      await sendAdminNotification(
+        `⚠️ <b>Webhook: telegram_id не найден!</b>\n\n` +
+        `Payload: <code>${JSON.stringify(body).slice(0, 500)}</code>\n\n` +
+        `Возможно клиент оплатил, но монеты не начислены!`
+      )
       return new Response(
         JSON.stringify({ ok: false, error: 'No telegram_id found', received_payload: body }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -206,6 +212,12 @@ serve(async (req) => {
           JSON.stringify({ ok: true, message: 'Already processed', contractId }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
+      }
+
+      // Логируем другие ошибки (например, таблица не существует)
+      if (insertError && insertError.code !== '23505') {
+        console.error('Error inserting processed payment:', insertError)
+        // Продолжаем выполнение, но логируем
       }
     }
 
@@ -413,6 +425,16 @@ serve(async (req) => {
 
     if (addError) {
       console.error('Error adding coins:', addError)
+      // Уведомляем админа о проблеме
+      await sendAdminNotification(
+        `❌ <b>Ошибка начисления монет!</b>\n\n` +
+        `👤 Telegram ID: <code>${telegramId}</code>\n` +
+        `💎 Пакет: ${packageId} (${coinsAmount} нейронов)\n` +
+        `💰 Сумма: ${paidAmount} ${paidCurrency}\n` +
+        `🧾 Contract: <code>${contractId || 'N/A'}</code>\n\n` +
+        `❗ Ошибка: ${addError.message}\n\n` +
+        `Нужно начислить вручную!`
+      )
       return new Response(
         JSON.stringify({ ok: false, error: addError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
