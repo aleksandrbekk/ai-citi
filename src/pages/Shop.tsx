@@ -526,16 +526,9 @@ export function Shop() {
             </div>
 
             {/* PRO - Бирюзовый */}
-            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-cyan-500/10 border-2 border-cyan-400 mb-4 mt-4">
-              {/* Бейдж ХИТ */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span className="bg-white text-cyan-600 text-xs font-bold px-5 py-1.5 rounded-full shadow-md border-2 border-cyan-400">
-                  ХИТ
-                </span>
-              </div>
-
+            <div className="bg-white rounded-3xl overflow-hidden shadow-xl shadow-cyan-500/10 border-2 border-cyan-400 mb-4 mt-4">
               {/* Градиентный хедер */}
-              <div className="bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-500 px-5 pt-8 pb-5">
+              <div className="bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-500 px-5 pt-5 pb-5">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
                     <Star className="w-8 h-8 text-white" />
@@ -571,16 +564,9 @@ export function Shop() {
             </div>
 
             {/* ELITE - Оранжевый */}
-            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-orange-500/10 border-2 border-orange-400 mt-4">
-              {/* Бейдж ELITE */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span className="bg-white text-orange-600 text-xs font-bold px-5 py-1.5 rounded-full shadow-md border-2 border-orange-400">
-                  ELITE
-                </span>
-              </div>
-
+            <div className="bg-white rounded-3xl overflow-hidden shadow-xl shadow-orange-500/10 border-2 border-orange-400 mt-4">
               {/* Градиентный хедер */}
-              <div className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 px-5 pt-8 pb-5">
+              <div className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 px-5 pt-5 pb-5">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
                     <Star className="w-8 h-8 text-white" />
