@@ -94,7 +94,13 @@ export default function CarouselGenerating() {
 
   const openTelegram = () => {
     haptic.action()
-    window.open('https://t.me/Neirociti_bot', '_blank')
+    const tg = window.Telegram?.WebApp
+    if (tg) {
+      // Закрываем mini app — пользователь вернётся в чат с ботом
+      tg.close()
+    } else {
+      window.open('https://t.me/Neirociti_bot', '_blank')
+    }
   }
 
   return (
