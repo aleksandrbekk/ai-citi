@@ -262,8 +262,10 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
           style={previewStyle}
           allStyles={shopStyles}
           owned={ownsStyle(previewStyle.style_id)}
-          onBuy={() => handleBuyClick(previewStyle)}
-          onClose={() => setPreviewStyle(null)}
+          onBuy={() => {
+            setPreviewStyle(null)
+            if (onBuy) onBuy(previewStyle)
+          }}
           onChangeStyle={(newStyle) => setPreviewStyle(newStyle)}
         />
       )}
@@ -371,7 +373,7 @@ interface StylePreviewModalProps {
   onChangeStyle: (style: ShopStyle) => void
 }
 
-function StylePreviewModal({ style, allStyles, owned, onBuy, onClose, onChangeStyle }: StylePreviewModalProps) {
+function StylePreviewModal({ style, allStyles, owned, onBuy, onChangeStyle }: Omit<StylePreviewModalProps, 'onClose'>) {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const [isTransitioning, setIsTransitioning] = useState(false)
 

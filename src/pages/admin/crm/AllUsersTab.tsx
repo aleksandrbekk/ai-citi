@@ -436,9 +436,8 @@ export function AllUsersTab() {
               <div
                 key={user.id}
                 onClick={() => handleOpenUserCard(user)}
-                className={`bg-white border border-gray-200 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
-                }`}
+                className={`bg-white border border-gray-200 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-colors ${online ? 'border-l-2 border-l-green-500' : recentlyActive ? 'border-l-2 border-l-blue-500' : ''
+                  }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   {/* Аватар и имя */}
@@ -472,9 +471,8 @@ export function AllUsersTab() {
 
                 {/* Детали */}
                 <div className="flex items-center gap-2 mt-2 flex-wrap text-xs">
-                  <span className={`px-2 py-1 rounded ${
-                    online ? 'bg-green-100 text-green-600' : recentlyActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
-                  }`}>
+                  <span className={`px-2 py-1 rounded ${online ? 'bg-green-100 text-green-600' : recentlyActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
+                    }`}>
                     {getRelativeTime(user.last_active_at)}
                   </span>
                   {isPremium && (
@@ -546,11 +544,10 @@ export function AllUsersTab() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-orange-500 text-orange-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   <tab.icon size={16} />
                   {tab.label}
@@ -769,11 +766,10 @@ export function AllUsersTab() {
                     <div className="space-y-4">
                       {/* Текущая подписка */}
                       {userStats?.subscription ? (
-                        <div className={`rounded-xl p-4 border ${
-                          userStats.subscription.plan === 'elite'
-                            ? 'bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200'
-                            : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200'
-                        }`}>
+                        <div className={`rounded-xl p-4 border ${userStats.subscription.plan === 'elite'
+                          ? 'bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200'
+                          : 'bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200'
+                          }`}>
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                               <Crown size={20} className={userStats.subscription.plan === 'elite' ? 'text-orange-500' : 'text-cyan-500'} />
@@ -781,11 +777,10 @@ export function AllUsersTab() {
                                 {userStats.subscription.plan.toUpperCase()}
                               </span>
                             </div>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              userStats.subscription.status === 'active'
-                                ? 'bg-green-100 text-green-600'
-                                : 'bg-red-100 text-red-600'
-                            }`}>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${userStats.subscription.status === 'active'
+                              ? 'bg-green-100 text-green-600'
+                              : 'bg-red-100 text-red-600'
+                              }`}>
                               {userStats.subscription.status === 'active' ? 'Активна' : 'Неактивна'}
                             </span>
                           </div>
@@ -793,9 +788,8 @@ export function AllUsersTab() {
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
                               <span className="text-gray-500">Осталось:</span>
-                              <div className={`font-medium ${
-                                (userStats.subscription.days_remaining || 0) <= 7 ? 'text-red-500' : 'text-gray-900'
-                              }`}>
+                              <div className={`font-medium ${(userStats.subscription.days_remaining || 0) <= 7 ? 'text-red-500' : 'text-gray-900'
+                                }`}>
                                 {userStats.subscription.days_remaining !== null
                                   ? `${userStats.subscription.days_remaining} дн.`
                                   : '∞'
@@ -862,11 +856,10 @@ export function AllUsersTab() {
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               onClick={() => setSubscriptionPlan('pro')}
-                              className={`p-3 rounded-xl border-2 text-left transition-colors ${
-                                subscriptionPlan === 'pro'
-                                  ? 'border-cyan-500 bg-cyan-50'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
+                              className={`p-3 rounded-xl border-2 text-left transition-colors ${subscriptionPlan === 'pro'
+                                ? 'border-cyan-500 bg-cyan-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                                }`}
                             >
                               <div className="font-bold text-gray-900">PRO</div>
                               <div className="text-sm text-gray-500">2 900 ₽/мес</div>
@@ -874,11 +867,10 @@ export function AllUsersTab() {
                             </button>
                             <button
                               onClick={() => setSubscriptionPlan('elite')}
-                              className={`p-3 rounded-xl border-2 text-left transition-colors ${
-                                subscriptionPlan === 'elite'
-                                  ? 'border-orange-500 bg-orange-50'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
+                              className={`p-3 rounded-xl border-2 text-left transition-colors ${subscriptionPlan === 'elite'
+                                ? 'border-orange-500 bg-orange-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                                }`}
                             >
                               <div className="font-bold text-gray-900">ELITE</div>
                               <div className="text-sm text-gray-500">9 900 ₽/мес</div>
@@ -923,6 +915,18 @@ export function AllUsersTab() {
                   {/* Таб: Стили */}
                   {activeTab === 'styles' && (
                     <div className="space-y-4">
+                      {/* Грант стиля */}
+                      <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
+                        <h4 className="font-medium text-gray-900 mb-3">Выдать стиль (Бесплатно)</h4>
+                        <div className="flex gap-2">
+                          <GrantStyleSelector
+                            telegramId={selectedUser.telegram_id}
+                            ownedStyleIds={userStats?.purchased_styles.map(s => s.style_id) || []}
+                            onSuccess={() => refetchStats()}
+                          />
+                        </div>
+                      </div>
+
                       <div className="flex items-center gap-2 text-gray-600 mb-2">
                         <ShoppingBag size={18} />
                         <span className="font-medium">Купленные стили</span>
@@ -978,6 +982,72 @@ export function AllUsersTab() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Компонент выбора стиля для выдачи
+function GrantStyleSelector({ telegramId, ownedStyleIds, onSuccess }: { telegramId: number, ownedStyleIds: string[], onSuccess: () => void }) {
+  const [selectedStyleId, setSelectedStyleId] = useState('')
+  const [isGranting, setIsGranting] = useState(false)
+
+  // Load styles
+  const { data: styles } = useQuery({
+    queryKey: ['admin-grant-styles'],
+    queryFn: async () => {
+      // Fetch directly from DB to allow more options if needed
+      const { data } = await supabase.from('carousel_styles').select('style_id, name').order('name')
+      return data || []
+    }
+  })
+
+  const availableStyles = styles?.filter(s => !ownedStyleIds.includes(s.style_id)) || []
+
+  const handleGrant = async () => {
+    if (!selectedStyleId) return
+    if (!confirm(`Выдать стиль ${selectedStyleId} бесплатно?`)) return
+
+    setIsGranting(true)
+    try {
+      const { error } = await supabase.from('user_purchased_styles').insert({
+        telegram_id: telegramId,
+        style_id: selectedStyleId,
+        price_paid: 0,
+        purchased_at: new Date().toISOString()
+      })
+
+      if (error) throw error
+
+      toast.success('Стиль выдан!')
+      setSelectedStyleId('')
+      onSuccess()
+    } catch (e) {
+      console.error(e)
+      toast.error('Ошибка выдачи стиля')
+    } finally {
+      setIsGranting(false)
+    }
+  }
+
+  return (
+    <div className="flex w-full gap-2">
+      <select
+        value={selectedStyleId}
+        onChange={(e) => setSelectedStyleId(e.target.value)}
+        className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm"
+      >
+        <option value="">Выберите стиль...</option>
+        {availableStyles.map(s => (
+          <option key={s.style_id} value={s.style_id}>{s.name} ({s.style_id})</option>
+        ))}
+      </select>
+      <button
+        onClick={handleGrant}
+        disabled={!selectedStyleId || isGranting}
+        className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-sm font-medium hover:from-orange-500 hover:to-orange-600 disabled:opacity-50 transition-colors"
+      >
+        {isGranting ? '...' : 'Выдать'}
+      </button>
     </div>
   )
 }
