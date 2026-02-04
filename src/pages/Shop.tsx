@@ -304,8 +304,13 @@ export function Shop() {
       )
 
       const result = await response.json()
+      console.log('Subscription response:', result)
 
       if (!result.ok || !result.paymentUrl) {
+        // Показываем более понятную ошибку
+        if (result.error?.includes('not configured')) {
+          throw new Error('Подписки временно недоступны. Скоро будут!')
+        }
         throw new Error(result.error || 'Не удалось создать подписку')
       }
 
@@ -521,10 +526,10 @@ export function Shop() {
             </div>
 
             {/* PRO - Бирюзовый */}
-            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-cyan-500/10 border-2 border-cyan-400 mb-4">
+            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-cyan-500/10 border-2 border-cyan-400 mb-4 mt-4">
               {/* Бейдж ХИТ */}
-              <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-10">
-                <span className="bg-gradient-to-r from-cyan-400 to-cyan-500 text-white text-xs font-bold px-5 py-1.5 rounded-b-xl shadow-lg">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                <span className="bg-gray-900 text-cyan-400 text-xs font-bold px-5 py-1.5 rounded-full shadow-lg border-2 border-cyan-400">
                   ХИТ
                 </span>
               </div>
@@ -566,10 +571,10 @@ export function Shop() {
             </div>
 
             {/* ELITE - Оранжевый */}
-            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-orange-500/10 border-2 border-orange-400">
+            <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-orange-500/10 border-2 border-orange-400 mt-4">
               {/* Бейдж */}
-              <div className="absolute -top-0 left-1/2 -translate-x-1/2 z-10">
-                <span className="bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-b-xl shadow-lg whitespace-nowrap">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                <span className="bg-gray-900 text-orange-400 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg border-2 border-orange-400 whitespace-nowrap">
                   ДЛЯ ПРЕДПРИНИМАТЕЛЕЙ
                 </span>
               </div>
@@ -622,27 +627,10 @@ export function Shop() {
       </div>
 
       {/* Footer info */}
-      <div className="px-4 pt-6 pb-4">
-        <div className="flex justify-center gap-4 flex-wrap">
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-600 text-[10px]">∞</span>
-            </div>
-            <span className="text-xs">Монеты не сгорают</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-blue-600 text-[10px]">🔒</span>
-            </div>
-            <span className="text-xs">Безопасная оплата</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center">
-              <span className="text-orange-600 text-[10px]">↩</span>
-            </div>
-            <span className="text-xs whitespace-nowrap">Отмена в любой момент</span>
-          </div>
-        </div>
+      <div className="px-6 pt-6 pb-4">
+        <p className="text-center text-xs text-gray-400">
+          Монеты не сгорают · Безопасная оплата · Отмена в любой момент
+        </p>
       </div>
     </div>
   )
