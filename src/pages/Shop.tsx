@@ -74,7 +74,7 @@ const coinPackages: CoinPackage[] = [
     maxPerUser: 10,
   },
   {
-    id: 'elite',
+    id: 'business',
     name: 'Business',
     coins: 1000,
     generations: 33,
