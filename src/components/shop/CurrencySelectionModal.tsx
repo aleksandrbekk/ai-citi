@@ -91,7 +91,7 @@ export function CurrencySelectionModal({ isOpen, onClose, onSelect, amountRub, t
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="font-bold text-gray-900 text-lg">₽</span>
+                            <span className="font-bold text-gray-900 text-lg">{amountRub.toLocaleString()} ₽</span>
                         </div>
                     </button>
 
@@ -109,7 +109,7 @@ export function CurrencySelectionModal({ isOpen, onClose, onSelect, amountRub, t
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="font-bold text-gray-900 text-lg">$</span>
+                            <span className="font-bold text-gray-900 text-lg">~ {priceUsd} $</span>
                         </div>
                     </button>
 
@@ -127,7 +127,7 @@ export function CurrencySelectionModal({ isOpen, onClose, onSelect, amountRub, t
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="font-bold text-gray-900 text-lg">€</span>
+                            <span className="font-bold text-gray-900 text-lg">~ {priceEur} €</span>
                         </div>
                     </button>
                 </div>
