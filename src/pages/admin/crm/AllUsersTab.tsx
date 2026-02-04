@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
 import {
   Search, Filter, MoreVertical, X, Sparkles, AlertCircle, ChevronDown, Check, CreditCard, Ban, Undo, Calendar, ShoppingBag, Send, Gift, Loader2,
-  Coins, Globe, User, ChevronRight, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2
+  Coins, Globe, User as UserIcon, User, ChevronRight, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 

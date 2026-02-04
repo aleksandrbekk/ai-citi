@@ -5,6 +5,7 @@ import { getCoinBalance } from '@/lib/supabase'
 import { haptic } from '@/lib/haptic'
 import { Star, User, Palette, Coins } from 'lucide-react'
 import { StylesTab } from '@/components/shop/StylesTab'
+import { CurrencySelectionModal } from '@/components/shop/CurrencySelectionModal'
 
 // Типы для пакетов
 interface CoinPackage {
@@ -215,14 +216,18 @@ export function Shop() {
 
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleBuy = async (pkg: CoinPackage) => {
-    haptic.action() // Вибрация при покупке
-    console.log('handleBuy called', { telegramUser, pkg })
+  // State for currency selection
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false)
+  const [pendingPackage, setPendingPackage] = useState<CoinPackage | null>(null)
+  const [pendingSubscriptionId, setPendingSubscriptionId] = useState<string | null>(null)
+
+  // Start payment flow for coins
+  const initiateBuy = (pkg: CoinPackage) => {
+    haptic.action()
 
     if (!telegramUser?.id) {
-      console.error('No telegramUser.id')
       haptic.error()
-      toast.error('Не удалось определить пользователя. Откройте магазин через Telegram бота.')
+      toast.error('Не удалось определить пользователя')
       return
     }
 
@@ -232,20 +237,57 @@ export function Shop() {
       return
     }
 
+    setPendingPackage(pkg)
+    setPendingSubscriptionId(null)
+    setShowCurrencyModal(true)
+  }
+
+  // Start payment flow for subscription
+  const initiateSubscription = (planId: string) => {
+    haptic.action()
+
+    if (planId === 'free') {
+      toast.info('Вы уже используете бесплатный тариф')
+      return
+    }
+
+    if (!telegramUser?.id) {
+      haptic.error()
+      toast.error('Не удалось определить пользователя')
+      return
+    }
+
+    setPendingSubscriptionId(planId)
+    setPendingPackage(null)
+    setShowCurrencyModal(true)
+  }
+
+  // Finalize payment with selected currency
+  const handleCurrencySelect = async (currency: 'RUB' | 'USD' | 'EUR') => {
+    setShowCurrencyModal(false)
+
+    if (pendingPackage) {
+      await processBuyCoins(pendingPackage, currency)
+    } else if (pendingSubscriptionId) {
+      await processBuySubscription(pendingSubscriptionId, currency)
+    }
+  }
+
+  const processBuyCoins = async (pkg: CoinPackage, currency: string) => {
+    console.log('processBuyCoins', { pkg, currency })
     setIsProcessing(true)
 
     try {
-      // Вызываем бэкенд для создания инвойса (только RUB)
       const response = await fetch(
         'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-invoice',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            telegramId: telegramUser.id,
-            currency: 'RUB',
+            telegramId: telegramUser?.id,
+            currency: currency,
             packageId: pkg.id,
-            amount: pkg.priceRub,
+            amount: pkg.priceRub, // Legacy param, ignored by backend now
             coins: pkg.coins,
           })
         }
@@ -257,7 +299,6 @@ export function Shop() {
         throw new Error(result.error || 'Не удалось создать платёж')
       }
 
-      // Открываем страницу оплаты
       const tg = window.Telegram?.WebApp
       if (tg?.openLink) {
         tg.openLink(result.paymentUrl)
@@ -270,24 +311,12 @@ export function Shop() {
       toast.error('Ошибка при создании платежа: ' + (error.message || 'Попробуйте позже'))
     } finally {
       setIsProcessing(false)
+      setPendingPackage(null)
     }
   }
 
-  const handleBuySubscription = async (planId: string) => {
-    haptic.action()
-
-    // FREE план — просто информируем
-    if (planId === 'free') {
-      toast.info('Вы уже используете бесплатный тариф')
-      return
-    }
-
-    if (!telegramUser?.id) {
-      haptic.error()
-      toast.error('Не удалось определить пользователя')
-      return
-    }
-
+  const processBuySubscription = async (planId: string, currency: string) => {
+    console.log('processBuySubscription', { planId, currency })
     setIsProcessing(true)
 
     try {
@@ -297,24 +326,22 @@ export function Shop() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            telegramId: telegramUser.id,
+            telegramId: telegramUser?.id,
             planId,
+            currency
           })
         }
       )
 
       const result = await response.json()
-      console.log('Subscription response:', result)
 
       if (!result.ok || !result.paymentUrl) {
-        // Показываем более понятную ошибку
         if (result.error?.includes('not configured')) {
           throw new Error('Подписки временно недоступны. Скоро будут!')
         }
         throw new Error(result.error || 'Не удалось создать подписку')
       }
 
-      // Открываем страницу оплаты
       const tg = window.Telegram?.WebApp
       if (tg?.openLink) {
         tg.openLink(result.paymentUrl)
@@ -322,19 +349,14 @@ export function Shop() {
         window.open(result.paymentUrl, '_blank')
       }
 
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Subscription error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Попробуйте позже'
-      toast.error('Ошибка: ' + errorMessage)
+      toast.error('Ошибка: ' + (error.message || 'Попробуйте позже'))
     } finally {
       setIsProcessing(false)
+      setPendingSubscriptionId(null)
     }
   }
-
-  // Временно скрыто
-  // const handleBuyStyle = (_id: string) => {
-  //   alert('Стили скоро будут доступны!')
-  // }
 
   return (
     <div className="min-h-screen bg-[#FFF8F5] pb-24">
@@ -428,7 +450,7 @@ export function Shop() {
               {coinPackages.map((pkg) => (
                 <button
                   key={pkg.id}
-                  onClick={() => handleBuy(pkg)}
+                  onClick={() => initiateBuy(pkg)}
                   disabled={isProcessing}
                   className={`relative w-full bg-white border-2 rounded-2xl p-4 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-wait cursor-pointer ${pkg.popular
                     ? 'border-orange-400 shadow-lg shadow-orange-500/20 ring-2 ring-orange-400/30'
@@ -540,7 +562,7 @@ export function Shop() {
                 </div>
 
                 <button
-                  onClick={() => handleBuySubscription('pro')}
+                  onClick={() => initiateSubscription('pro')}
                   disabled={isProcessing}
                   className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-70"
                 >
@@ -578,7 +600,7 @@ export function Shop() {
                 </div>
 
                 <button
-                  onClick={() => handleBuySubscription('elite')}
+                  onClick={() => initiateSubscription('elite')}
                   disabled={isProcessing}
                   className="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-[1.02] transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-70"
                 >
@@ -606,6 +628,14 @@ export function Shop() {
           </p>
         </div>
       )}
+
+      {/* Currency Selection Modal */}
+      <CurrencySelectionModal
+        isOpen={showCurrencyModal}
+        onClose={() => setShowCurrencyModal(false)}
+        onSelect={handleCurrencySelect}
+        amountRub={pendingPackage?.priceRub || (pendingSubscriptionId ? (subscriptionPackages.find(p => p.id === pendingSubscriptionId)?.priceRub || 0) : 0)}
+      />
     </div>
   )
 }

@@ -5,11 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Lava.top API
 const LAVA_API_URL = 'https://gate.lava.top/api/v3/invoice'
 const LAVA_API_KEY = Deno.env.get('LAVA_API_KEY') || ''
 
-// Offer ID для каждого пакета монет (создаются в Lava.top)
 const OFFER_IDS: Record<string, string> = {
   light: Deno.env.get('LAVA_OFFER_COINS_LIGHT') || '',
   starter: Deno.env.get('LAVA_OFFER_COINS_STARTER') || '',
@@ -18,20 +16,33 @@ const OFFER_IDS: Record<string, string> = {
   business: Deno.env.get('LAVA_OFFER_COINS_BUSINESS') || '',
 }
 
-// Fallback на единый оффер (для обратной совместимости)
 const FALLBACK_OFFER_ID = Deno.env.get('LAVA_OFFER_ID') || ''
 
-// Конфигурация пакетов монет
-const PACKAGES: Record<string, { coins: number; price: number }> = {
-  light: { coins: 30, price: 290 },
-  starter: { coins: 100, price: 890 },
-  standard: { coins: 300, price: 2490 },
-  pro: { coins: 500, price: 3990 },
-  business: { coins: 1000, price: 7500 },
+// Multi-currency pricing configuration
+const PACKAGES: Record<string, { coins: number; prices: { RUB: number; USD: number; EUR: number } }> = {
+  light: {
+    coins: 30,
+    prices: { RUB: 290, USD: 3, EUR: 3 }
+  },
+  starter: {
+    coins: 100,
+    prices: { RUB: 890, USD: 9, EUR: 9 }
+  },
+  standard: {
+    coins: 300,
+    prices: { RUB: 2490, USD: 25, EUR: 24 }
+  },
+  pro: {
+    coins: 500,
+    prices: { RUB: 3990, USD: 40, EUR: 38 }
+  },
+  business: {
+    coins: 1000,
+    prices: { RUB: 7500, USD: 75, EUR: 70 }
+  },
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -59,7 +70,6 @@ serve(async (req) => {
       )
     }
 
-    // Получаем конфигурацию пакета
     const pkg = PACKAGES[packageId]
     if (!pkg) {
       return new Response(
@@ -68,7 +78,10 @@ serve(async (req) => {
       )
     }
 
-    // Получаем offer ID для конкретного пакета или используем fallback
+    // Validate currency
+    const safeCurrency = (['RUB', 'USD', 'EUR'].includes(currency) ? currency : 'RUB') as 'RUB' | 'USD' | 'EUR'
+    const amount = pkg.prices[safeCurrency]
+
     let offerId = OFFER_IDS[packageId]
     if (!offerId) {
       console.log(`No specific offer for ${packageId}, using fallback`)
@@ -83,17 +96,17 @@ serve(async (req) => {
       )
     }
 
-    // Создаём инвойс через Lava.top API
     const invoiceData = {
       email: email || 'noreply@ai-citi.app',
       offerId: offerId,
-      currency: 'RUB',
+      currency: safeCurrency,
+      sum: amount, // Explicitly pass the calculated amount
       periodicity: 'ONE_TIME',
       buyerLanguage: 'RU',
       successUrl: 'https://aiciti.pro/payment-success',
       clientUtm: {
         utm_content: String(telegramId),
-        utm_campaign: packageId // Передаём ID пакета для webhook
+        utm_campaign: packageId
       }
     }
 
@@ -120,7 +133,6 @@ serve(async (req) => {
       )
     }
 
-    // Возвращаем URL для оплаты
     return new Response(
       JSON.stringify({
         ok: true,
@@ -129,7 +141,8 @@ serve(async (req) => {
         package: {
           id: packageId,
           coins: pkg.coins,
-          price: pkg.price
+          price: amount,
+          currency: safeCurrency
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

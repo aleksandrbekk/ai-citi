@@ -17,10 +17,23 @@ const SUBSCRIPTION_OFFER_IDS: Record<string, string> = {
 }
 
 // Конфигурация подписок (PRO и ELITE)
-const SUBSCRIPTIONS: Record<string, { neurons: number; amount: number; name: string }> = {
-  pro: { neurons: 150, amount: 2900, name: 'PRO' },
-  elite: { neurons: 600, amount: 9900, name: 'ELITE' },
-  business: { neurons: 600, amount: 9900, name: 'ELITE' }, // Алиас для обратной совместимости
+// Цены для разных валют
+const SUBSCRIPTIONS: Record<string, { neurons: number; name: string; prices: { RUB: number; USD: number; EUR: number } }> = {
+  pro: {
+    neurons: 150,
+    name: 'PRO',
+    prices: { RUB: 2900, USD: 29, EUR: 27 }
+  },
+  elite: {
+    neurons: 600,
+    name: 'ELITE',
+    prices: { RUB: 9900, USD: 99, EUR: 95 }
+  },
+  business: {
+    neurons: 600,
+    name: 'ELITE',
+    prices: { RUB: 9900, USD: 99, EUR: 95 }
+  },
 }
 
 serve(async (req) => {
@@ -30,11 +43,12 @@ serve(async (req) => {
   }
 
   try {
-    const { telegramId, email, planId } = await req.json()
+    const { telegramId, email, planId, currency = 'RUB' } = await req.json()
 
     console.log('=== Creating Lava.top Subscription Invoice ===')
     console.log('telegramId:', telegramId)
     console.log('planId:', planId)
+    console.log('currency:', currency)
 
     if (!telegramId) {
       return new Response(
@@ -67,6 +81,10 @@ serve(async (req) => {
       )
     }
 
+    // Validate currency
+    const safeCurrency = (['RUB', 'USD', 'EUR'].includes(currency) ? currency : 'RUB') as 'RUB' | 'USD' | 'EUR'
+    const amount = sub.prices[safeCurrency]
+
     // Получаем offer ID для подписки
     const offerId = SUBSCRIPTION_OFFER_IDS[planId]
     if (!offerId) {
@@ -81,7 +99,8 @@ serve(async (req) => {
     const invoiceData = {
       email: email || 'noreply@ai-citi.app',
       offerId: offerId,
-      currency: 'RUB',
+      currency: safeCurrency,
+      sum: amount,
       periodicity: 'MONTHLY', // КЛЮЧЕВОЕ: рекуррентный платёж
       buyerLanguage: 'RU',
       successUrl: 'https://aiciti.pro/subscription-success',
@@ -89,7 +108,7 @@ serve(async (req) => {
         utm_content: String(telegramId),
         utm_campaign: `sub_${planId}`, // Prefix sub_ для различения в webhook
         utm_term: String(sub.neurons), // Передаём количество нейронов
-        utm_medium: String(sub.amount) // Передаём сумму
+        utm_medium: String(amount) // Передаём сумму
       }
     }
 
@@ -125,7 +144,8 @@ serve(async (req) => {
         subscription: {
           plan: planId,
           name: sub.name,
-          amount: sub.amount,
+          amount: amount,
+          currency: safeCurrency,
           neuronsPerMonth: sub.neurons
         }
       }),
