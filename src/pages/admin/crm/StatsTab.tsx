@@ -268,6 +268,8 @@ export default function StatsTab() {
   }
 
   const [showSubscriptions, setShowSubscriptions] = useState(false)
+  const [showPurchases, setShowPurchases] = useState(false)
+  const [showRefunds, setShowRefunds] = useState(false)
 
   return (
     <div className="space-y-4">
@@ -446,36 +448,68 @@ export default function StatsTab() {
       />
 
       {/* Последние покупки */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-          <ShoppingCart size={16} className="text-green-500" /> Последние покупки
-        </h3>
-        <div className="space-y-2">
-          {coinPurchases?.slice(0, 5).map((purchase, i) => (
-            <div key={purchase.id || i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-              <div>
-                <span className="text-gray-900 text-sm">
-                  {new Date(purchase.created_at).toLocaleDateString('ru-RU')}
-                </span>
-                <span className="text-gray-500 text-xs ml-2">
-                  {purchase.username ? `@${purchase.username}` : purchase.telegram_id ? `ID ${purchase.telegram_id}` : purchase.user_id?.slice(0, 8)}
-                </span>
-              </div>
-              <span className="text-green-600 font-medium">+{purchase.amount} монет</span>
-            </div>
-          ))}
-          {(!coinPurchases || coinPurchases.length === 0) && (
-            <p className="text-gray-500 text-center py-4">Пока нет покупок</p>
-          )}
+      <button
+        onClick={() => setShowPurchases(!showPurchases)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <ShoppingCart size={18} className="text-green-500" />
+          <span className="text-gray-900 font-medium">Последние покупки</span>
+          <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
+            {purchaseStats.total}
+          </span>
         </div>
+        <ChevronDown
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 ${showPurchases ? 'rotate-180' : ''}`}
+        />
+      </button>
 
-        {/* Последние возвраты (ошибки генерации) */}
+      {showPurchases && (
         <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-            <AlertCircle size={16} className="text-red-500" /> Последние возвраты
-          </h3>
+          <div className="space-y-2">
+            {coinPurchases?.slice(0, 10).map((purchase, i) => (
+              <div key={purchase.id || i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div>
+                  <span className="text-gray-900 text-sm">
+                    {new Date(purchase.created_at).toLocaleDateString('ru-RU')}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-2">
+                    {purchase.username ? `@${purchase.username}` : purchase.telegram_id ? `ID ${purchase.telegram_id}` : purchase.user_id?.slice(0, 8)}
+                  </span>
+                </div>
+                <span className="text-green-600 font-medium">+{purchase.amount} монет</span>
+              </div>
+            ))}
+            {(!coinPurchases || coinPurchases.length === 0) && (
+              <p className="text-gray-500 text-center py-4">Пока нет покупок</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Последние возвраты */}
+      <button
+        onClick={() => setShowRefunds(!showRefunds)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <AlertCircle size={18} className="text-red-500" />
+          <span className="text-gray-900 font-medium">Последние возвраты</span>
+          <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+            {refundStats.total}
+          </span>
+        </div>
+        <ChevronDown
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 ${showRefunds ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {showRefunds && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
           <p className="text-gray-500 text-xs mb-3">
-            Когда генерация карусели падала — монеты возвращались пользователю. Здесь видно все такие случаи.
+            Когда генерация карусели падала — монеты возвращались пользователю.
           </p>
           <div className="space-y-2">
             {carouselRefunds?.slice(0, 10).map((refund, i) => (
@@ -496,56 +530,56 @@ export default function StatsTab() {
             )}
           </div>
         </div>
+      )}
 
-        {/* По пользователям: генерации и ошибки */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4">
-          <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-            <Users size={16} className="text-indigo-500" /> По пользователям
-          </h3>
-          <p className="text-gray-500 text-xs mb-3">
-            Сколько раз каждый пользователь генерировал карусели и сколько раз получал возврат из-за ошибки.
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-200">
-                  <th className="py-2 pr-2">Пользователь</th>
-                  <th className="py-2 pr-2 text-center">Генераций</th>
-                  <th className="py-2 pr-2 text-center">Возвратов</th>
-                  <th className="py-2 pr-2 text-right">Потрачено</th>
-                  <th className="py-2 pr-2 text-right">Возвращено</th>
+      {/* По пользователям: генерации и ошибки */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
+        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+          <Users size={16} className="text-indigo-500" /> По пользователям
+        </h3>
+        <p className="text-gray-500 text-xs mb-3">
+          Сколько раз каждый пользователь генерировал карусели и сколько раз получал возврат из-за ошибки.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-gray-500 border-b border-gray-200">
+                <th className="py-2 pr-2">Пользователь</th>
+                <th className="py-2 pr-2 text-center">Генераций</th>
+                <th className="py-2 pr-2 text-center">Возвратов</th>
+                <th className="py-2 pr-2 text-right">Потрачено</th>
+                <th className="py-2 pr-2 text-right">Возвращено</th>
+              </tr>
+            </thead>
+            <tbody>
+              {statsByUser?.slice(0, 20).map((row) => (
+                <tr key={row.user_id} className="border-b border-gray-100">
+                  <td className="py-2 pr-2 text-gray-900">
+                    {row.username ? `@${row.username}` : `ID ${row.telegram_id}`}
+                  </td>
+                  <td className="py-2 pr-2 text-center">{row.generations_count}</td>
+                  <td className="py-2 pr-2 text-center">
+                    {row.refunds_count > 0 ? (
+                      <span className="text-red-600 font-medium">{row.refunds_count}</span>
+                    ) : (
+                      row.refunds_count
+                    )}
+                  </td>
+                  <td className="py-2 pr-2 text-right">{row.coins_spent}</td>
+                  <td className="py-2 pr-2 text-right">
+                    {row.coins_refunded > 0 ? (
+                      <span className="text-red-600">+{row.coins_refunded}</span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {statsByUser?.slice(0, 20).map((row) => (
-                  <tr key={row.user_id} className="border-b border-gray-100">
-                    <td className="py-2 pr-2 text-gray-900">
-                      {row.username ? `@${row.username}` : `ID ${row.telegram_id}`}
-                    </td>
-                    <td className="py-2 pr-2 text-center">{row.generations_count}</td>
-                    <td className="py-2 pr-2 text-center">
-                      {row.refunds_count > 0 ? (
-                        <span className="text-red-600 font-medium">{row.refunds_count}</span>
-                      ) : (
-                        row.refunds_count
-                      )}
-                    </td>
-                    <td className="py-2 pr-2 text-right">{row.coins_spent}</td>
-                    <td className="py-2 pr-2 text-right">
-                      {row.coins_refunded > 0 ? (
-                        <span className="text-red-600">+{row.coins_refunded}</span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {(!statsByUser || statsByUser.length === 0) && (
-              <p className="text-gray-500 text-center py-4">Нет данных</p>
-            )}
-          </div>
+              ))}
+            </tbody>
+          </table>
+          {(!statsByUser || statsByUser.length === 0) && (
+            <p className="text-gray-500 text-center py-4">Нет данных</p>
+          )}
         </div>
       </div>
     </div>
