@@ -103,7 +103,7 @@ serve(async (req) => {
       sum: amount, // Explicitly pass the calculated amount
       periodicity: 'ONE_TIME',
       buyerLanguage: 'RU',
-      successUrl: 'https://aiciti.pro/payment-success',
+      successUrl: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
       clientUtm: {
         utm_content: String(telegramId),
         utm_campaign: packageId
