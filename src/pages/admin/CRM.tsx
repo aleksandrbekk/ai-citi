@@ -11,11 +11,11 @@ import { ReferralsTab } from './crm/ReferralsTab'
 const tabs = [
   { id: 'all', label: 'Все пользователи', icon: Users },
   { id: 'paid', label: 'Платные клиенты', icon: CreditCard },
-  { id: 'broadcast', label: 'Рассылка', icon: Send },
   { id: 'stats', label: 'Статистика', icon: Coins },
   { id: 'subscriptions', label: 'Подписки', icon: BarChart3 },
   { id: 'referrals', label: 'Рефералы', icon: UserPlus },
   { id: 'utm', label: 'UTM Ссылки', icon: Link2 },
+  { id: 'broadcast', label: 'Рассылка', icon: Send },
 ]
 
 export function AdminCRM() {
