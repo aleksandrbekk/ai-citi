@@ -443,6 +443,18 @@ serve(async (req) => {
 
     console.log('Coins added successfully:', addResult)
 
+    // Записываем в payments для админки
+    await supabase
+      .from('payments')
+      .insert({
+        telegram_id: telegramId,
+        amount: paidAmount,
+        currency: paidCurrency,
+        source: 'lava.top',
+        payment_method: 'one_time',
+        paid_at: new Date().toISOString()
+      })
+
     // Реферальный бонус
     const { data: referralResult, error: referralError } = await supabase.rpc('pay_referral_purchase_bonus', {
       p_buyer_telegram_id: telegramId,
