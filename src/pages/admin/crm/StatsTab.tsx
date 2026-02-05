@@ -270,6 +270,7 @@ export default function StatsTab() {
   const [showSubscriptions, setShowSubscriptions] = useState(false)
   const [showPurchases, setShowPurchases] = useState(false)
   const [showRefunds, setShowRefunds] = useState(false)
+  const [showByUser, setShowByUser] = useState(false)
 
   return (
     <div className="space-y-4">
@@ -532,56 +533,69 @@ export default function StatsTab() {
         </div>
       )}
 
-      {/* По пользователям: генерации и ошибки */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-          <Users size={16} className="text-indigo-500" /> По пользователям
-        </h3>
-        <p className="text-gray-500 text-xs mb-3">
-          Сколько раз каждый пользователь генерировал карусели и сколько раз получал возврат из-за ошибки.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-200">
-                <th className="py-2 pr-2">Пользователь</th>
-                <th className="py-2 pr-2 text-center">Генераций</th>
-                <th className="py-2 pr-2 text-center">Возвратов</th>
-                <th className="py-2 pr-2 text-right">Потрачено</th>
-                <th className="py-2 pr-2 text-right">Возвращено</th>
-              </tr>
-            </thead>
-            <tbody>
-              {statsByUser?.slice(0, 20).map((row) => (
-                <tr key={row.user_id} className="border-b border-gray-100">
-                  <td className="py-2 pr-2 text-gray-900">
-                    {row.username ? `@${row.username}` : `ID ${row.telegram_id}`}
-                  </td>
-                  <td className="py-2 pr-2 text-center">{row.generations_count}</td>
-                  <td className="py-2 pr-2 text-center">
-                    {row.refunds_count > 0 ? (
-                      <span className="text-red-600 font-medium">{row.refunds_count}</span>
-                    ) : (
-                      row.refunds_count
-                    )}
-                  </td>
-                  <td className="py-2 pr-2 text-right">{row.coins_spent}</td>
-                  <td className="py-2 pr-2 text-right">
-                    {row.coins_refunded > 0 ? (
-                      <span className="text-red-600">+{row.coins_refunded}</span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {(!statsByUser || statsByUser.length === 0) && (
-            <p className="text-gray-500 text-center py-4">Нет данных</p>
-          )}
+      {/* По пользователям */}
+      <button
+        onClick={() => setShowByUser(!showByUser)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <Users size={18} className="text-indigo-500" />
+          <span className="text-gray-900 font-medium">По пользователям</span>
+          <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
+            {statsByUser?.length || 0}
+          </span>
         </div>
-      </div>
+        <ChevronDown
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 ${showByUser ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {showByUser && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 border-b border-gray-200">
+                  <th className="py-2 pr-2">Пользователь</th>
+                  <th className="py-2 pr-2 text-center">Генераций</th>
+                  <th className="py-2 pr-2 text-center">Возвратов</th>
+                  <th className="py-2 pr-2 text-right">Потрачено</th>
+                  <th className="py-2 pr-2 text-right">Возвращено</th>
+                </tr>
+              </thead>
+              <tbody>
+                {statsByUser?.slice(0, 20).map((row) => (
+                  <tr key={row.user_id} className="border-b border-gray-100">
+                    <td className="py-2 pr-2 text-gray-900">
+                      {row.username ? `@${row.username}` : `ID ${row.telegram_id}`}
+                    </td>
+                    <td className="py-2 pr-2 text-center">{row.generations_count}</td>
+                    <td className="py-2 pr-2 text-center">
+                      {row.refunds_count > 0 ? (
+                        <span className="text-red-600 font-medium">{row.refunds_count}</span>
+                      ) : (
+                        row.refunds_count
+                      )}
+                    </td>
+                    <td className="py-2 pr-2 text-right">{row.coins_spent}</td>
+                    <td className="py-2 pr-2 text-right">
+                      {row.coins_refunded > 0 ? (
+                        <span className="text-red-600">+{row.coins_refunded}</span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(!statsByUser || statsByUser.length === 0) && (
+              <p className="text-gray-500 text-center py-4">Нет данных</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
