@@ -9,11 +9,13 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   AlertCircle,
   Users,
   BarChart3,
   DollarSign,
-  Calendar
+  Calendar,
+  CreditCard
 } from 'lucide-react'
 import LiveGenerationFeed from '@/components/admin/LiveGenerationFeed'
 
@@ -265,72 +267,96 @@ export default function StatsTab() {
     )
   }
 
+  const [showSubscriptions, setShowSubscriptions] = useState(false)
+
   return (
     <div className="space-y-4">
-      {/* Аналитика клиентов */}
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          icon={Users}
-          label="Всего клиентов"
-          value={clientStats.total}
-          color="bg-blue-100 text-blue-600"
+      {/* Кнопка Подписки */}
+      <button
+        onClick={() => setShowSubscriptions(!showSubscriptions)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <CreditCard size={18} className="text-orange-500" />
+          <span className="text-gray-900 font-medium">Подписки</span>
+          <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-medium">
+            {clientStats.active} активных
+          </span>
+        </div>
+        <ChevronDown
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 ${showSubscriptions ? 'rotate-180' : ''}`}
         />
-        <StatCard
-          icon={TrendingUp}
-          label="Активных"
-          value={clientStats.active}
-          subvalue={`${clientStats.expiring} истекает скоро`}
-          color="bg-green-100 text-green-600"
-        />
-        <StatCard
-          icon={DollarSign}
-          label="Общий LTV"
-          value={`$${clientStats.totalLTV}`}
-          subvalue={`Средний: $${clientStats.avgLTV}`}
-          color="bg-yellow-100 text-yellow-600"
-        />
-        <StatCard
-          icon={Calendar}
-          label="Просрочено"
-          value={clientStats.expired}
-          color="bg-red-100 text-red-600"
-        />
-      </div>
+      </button>
 
-      {/* По тарифам */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-          <BarChart3 size={16} /> По тарифам
-        </h3>
-        <ProgressBar label="FREE" value={byPlan.free} total={clientStats.total} color="bg-gray-400" />
-        <ProgressBar label="PRO (2900₽)" value={byPlan.pro} total={clientStats.total} color="bg-orange-500" />
-        <ProgressBar label="BUSINESS (9900₽)" value={byPlan.business} total={clientStats.total} color="bg-amber-500" />
-      </div>
+      {showSubscriptions && (
+        <div className="space-y-4">
+          {/* Аналитика клиентов */}
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard
+              icon={Users}
+              label="Всего клиентов"
+              value={clientStats.total}
+              color="bg-blue-100 text-blue-600"
+            />
+            <StatCard
+              icon={TrendingUp}
+              label="Активных"
+              value={clientStats.active}
+              subvalue={`${clientStats.expiring} истекает скоро`}
+              color="bg-green-100 text-green-600"
+            />
+            <StatCard
+              icon={DollarSign}
+              label="Общий LTV"
+              value={`$${clientStats.totalLTV}`}
+              subvalue={`Средний: $${clientStats.avgLTV}`}
+              color="bg-yellow-100 text-yellow-600"
+            />
+            <StatCard
+              icon={Calendar}
+              label="Просрочено"
+              value={clientStats.expired}
+              color="bg-red-100 text-red-600"
+            />
+          </div>
 
-      {/* По источникам */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
-          <TrendingUp size={16} /> Источники
-        </h3>
-        {Object.entries(bySources).length > 0 ? (
-          Object.entries(bySources)
-            .sort((a, b) => (b[1] as number) - (a[1] as number))
-            .map(([source, count]) => (
-              <ProgressBar
-                key={source}
-                label={source}
-                value={count as number}
-                total={clientStats.total}
-                color="bg-cyan-500"
-              />
-            ))
-        ) : (
-          <p className="text-gray-500">Нет данных</p>
-        )}
-      </div>
+          {/* По тарифам */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+              <BarChart3 size={16} /> По тарифам
+            </h3>
+            <ProgressBar label="FREE" value={byPlan.free} total={clientStats.total} color="bg-gray-400" />
+            <ProgressBar label="PRO (2900₽)" value={byPlan.pro} total={clientStats.total} color="bg-orange-500" />
+            <ProgressBar label="BUSINESS (9900₽)" value={byPlan.business} total={clientStats.total} color="bg-amber-500" />
+          </div>
 
-      {/* Клиенты по месяцам */}
-      <ClientMonthSelector data={clientsByMonth} />
+          {/* По источникам */}
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <h3 className="text-gray-900 font-medium text-sm mb-3 flex items-center gap-2">
+              <TrendingUp size={16} /> Источники
+            </h3>
+            {Object.entries(bySources).length > 0 ? (
+              Object.entries(bySources)
+                .sort((a, b) => (b[1] as number) - (a[1] as number))
+                .map(([source, count]) => (
+                  <ProgressBar
+                    key={source}
+                    label={source}
+                    value={count as number}
+                    total={clientStats.total}
+                    color="bg-cyan-500"
+                  />
+                ))
+            ) : (
+              <p className="text-gray-500">Нет данных</p>
+            )}
+          </div>
+
+          {/* Клиенты по месяцам */}
+          <ClientMonthSelector data={clientsByMonth} />
+        </div>
+      )}
 
       {/* Live-лента генераций */}
       <LiveGenerationFeed />
