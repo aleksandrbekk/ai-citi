@@ -137,11 +137,18 @@ export async function getUserTariffInfo(telegramId: number): Promise<UserTariffI
 // Отмена подписки
 export async function cancelSubscription(telegramId: number): Promise<{ ok: boolean; message?: string; error?: string }> {
   try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
     const response = await fetch(
-      'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-cancel-subscription',
+      `${supabaseUrl}/functions/v1/lava-cancel-subscription`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
+        },
         body: JSON.stringify({ telegramId })
       }
     )

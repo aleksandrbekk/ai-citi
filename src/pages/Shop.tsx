@@ -278,16 +278,23 @@ export function Shop() {
     setIsProcessing(true)
 
     try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
       const response = await fetch(
-        'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-invoice',
+        `${supabaseUrl}/functions/v1/lava-create-invoice`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+            'apikey': supabaseKey,
+          },
           body: JSON.stringify({
             telegramId: telegramUser?.id,
             currency: currency,
             packageId: pkg.id,
-            amount: pkg.priceRub, // Legacy param, ignored by backend now
+            amount: pkg.priceRub,
             coins: pkg.coins,
           })
         }
@@ -320,11 +327,18 @@ export function Shop() {
     setIsProcessing(true)
 
     try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
       const response = await fetch(
-        'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/lava-create-subscription',
+        `${supabaseUrl}/functions/v1/lava-create-subscription`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+            'apikey': supabaseKey,
+          },
           body: JSON.stringify({
             telegramId: telegramUser?.id,
             planId,
