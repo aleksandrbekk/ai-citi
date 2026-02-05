@@ -13,7 +13,7 @@ const tabs = [
   { id: 'paid', label: 'Платные клиенты', icon: CreditCard },
   { id: 'referrals', label: 'Рефералы', icon: UserPlus },
   { id: 'broadcast', label: 'Рассылка', icon: Send },
-  { id: 'stats', label: 'Монеты', icon: Coins },
+  { id: 'stats', label: 'Статистика', icon: Coins },
   { id: 'subscriptions', label: 'Подписки', icon: BarChart3 },
   { id: 'utm', label: 'UTM Ссылки', icon: Link2 },
 ]
