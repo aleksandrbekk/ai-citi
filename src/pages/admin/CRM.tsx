@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { Users, Send, BarChart3, CreditCard, Link2, UserPlus, Coins } from 'lucide-react'
+import { Users, Send, CreditCard, Link2, UserPlus, Coins } from 'lucide-react'
 import { ClientsTab } from './crm/ClientsTab'
 import { AllUsersTab } from './crm/AllUsersTab'
 import { BroadcastTab } from './crm/BroadcastTab'
-import AnalyticsTab from './crm/AnalyticsTab'
 import StatsTab from './crm/StatsTab'
 import UtmTab from './crm/UtmTab'
 import { ReferralsTab } from './crm/ReferralsTab'
@@ -13,7 +12,6 @@ const tabs = [
   { id: 'paid', label: 'Платные клиенты', icon: CreditCard },
   { id: 'referrals', label: 'Рефералы', icon: UserPlus },
   { id: 'broadcast', label: 'Рассылка', icon: Send },
-  { id: 'analytics', label: 'Аналитика', icon: BarChart3 },
   { id: 'stats', label: 'Статистика', icon: Coins },
   { id: 'utm', label: 'UTM Ссылки', icon: Link2 },
 ]
@@ -49,7 +47,6 @@ export function AdminCRM() {
       {activeTab === 'paid' && <ClientsTab />}
       {activeTab === 'referrals' && <ReferralsTab />}
       {activeTab === 'broadcast' && <BroadcastTab />}
-      {activeTab === 'analytics' && <AnalyticsTab />}
       {activeTab === 'stats' && <StatsTab />}
       {activeTab === 'utm' && <UtmTab />}
     </div>
