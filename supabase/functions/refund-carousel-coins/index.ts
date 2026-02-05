@@ -43,11 +43,23 @@ serve(async (req) => {
           { headers: { 'X-N8N-API-KEY': n8nKey } }
         )
         const execData = await execRes.json()
-        const runData = execData?.data?.resultData?.runData?.Webhook ?? execData?.resultData?.runData?.Webhook
-        if (runData?.[0]?.data?.main?.[0]?.[0]?.json) {
-          const webhookJson = runData[0].data.main[0][0].json
-          const b = webhookJson.body || webhookJson
-          chatId = b.chatId ?? b.telegram_id
+        const allRunData = execData?.data?.resultData?.runData ?? execData?.resultData?.runData ?? {}
+        // Ищем chatId во всех нодах (Webhook, Webhook1, и т.д.)
+        for (const nodeName of Object.keys(allRunData)) {
+          if (chatId) break
+          const nodeRuns = allRunData[nodeName]
+          if (!Array.isArray(nodeRuns)) continue
+          for (const run of nodeRuns) {
+            const items = run?.data?.main?.[0] ?? []
+            for (const item of items) {
+              const j = item?.json
+              if (!j) continue
+              const b = j.body || j
+              const found = b.chatId ?? b.telegram_id
+              if (found) { chatId = found; break }
+            }
+            if (chatId) break
+          }
         }
       }
     }
