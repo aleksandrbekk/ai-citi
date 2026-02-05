@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Users, TrendingUp, DollarSign, Calendar, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, TrendingUp, DollarSign, Calendar, BarChart3, ChevronLeft, ChevronRight, ChevronDown, ShoppingCart, XCircle } from 'lucide-react'
 
 const MONTH_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 
@@ -9,7 +9,59 @@ function getMonthName(monthNum: number): string {
   return MONTH_NAMES[monthNum] || ''
 }
 
+interface Subscription {
+  id: string
+  telegram_id: number
+  plan: string
+  status: string
+  amount_rub: number
+  neurons_per_month: number
+  started_at: string
+  expires_at: string
+  cancelled_at: string | null
+  username?: string
+}
+
 export default function SubscriptionsTab() {
+  const [showRecent, setShowRecent] = useState(false)
+  const [showCancelled, setShowCancelled] = useState(false)
+  const [showByUser, setShowByUser] = useState(false)
+
+  // Подписки из user_subscriptions
+  const { data: subscriptions } = useQuery<Subscription[]>({
+    queryKey: ['all_subscriptions'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_subscriptions')
+        .select('id, telegram_id, plan, status, amount_rub, neurons_per_month, started_at, expires_at, cancelled_at')
+        .order('created_at', { ascending: false })
+      if (!data) return []
+      // Подтянуть username
+      const telegramIds = [...new Set(data.map((s: any) => s.telegram_id))]
+      const { data: users } = await supabase
+        .from('users')
+        .select('telegram_id, username')
+        .in('telegram_id', telegramIds)
+      const userMap = new Map((users || []).map((u: any) => [u.telegram_id, u.username]))
+      return data.map((s: any) => ({ ...s, username: userMap.get(s.telegram_id) || null }))
+    }
+  })
+
+  const recentSubs = subscriptions?.filter((s) => s.status === 'active') || []
+  const cancelledSubs = subscriptions?.filter((s) => s.status === 'cancelled') || []
+
+  // По пользователям: группировка
+  const byUserMap = subscriptions?.reduce((acc, s) => {
+    const key = s.username ? `@${s.username}` : `ID ${s.telegram_id}`
+    if (!acc[key]) acc[key] = { active: 0, cancelled: 0, totalPaid: 0 }
+    if (s.status === 'active') acc[key].active++
+    if (s.status === 'cancelled') acc[key].cancelled++
+    acc[key].totalPaid += s.amount_rub || 0
+    return acc
+  }, {} as Record<string, { active: number; cancelled: number; totalPaid: number }>) || {}
+
+  const uniqueUsers = Object.keys(byUserMap)
+
   const { data: clients } = useQuery({
     queryKey: ['premium_clients'],
     queryFn: async () => {
@@ -116,6 +168,141 @@ export default function SubscriptionsTab() {
       </div>
 
       <MonthSelector data={clientsByMonth} />
+
+      {/* Последние подписки */}
+      <button
+        onClick={() => setShowRecent(!showRecent)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <ShoppingCart size={18} className="text-green-500" />
+          <span className="text-gray-900 font-medium">Активные подписки</span>
+          <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
+            {recentSubs.length}
+          </span>
+        </div>
+        <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${showRecent ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showRecent && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="space-y-2">
+            {recentSubs.map((s) => (
+              <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div>
+                  <span className="text-gray-900 text-sm font-medium">
+                    {s.plan.toUpperCase()}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-2">
+                    {s.username ? `@${s.username}` : `ID ${s.telegram_id}`}
+                  </span>
+                  <span className="text-gray-400 text-xs ml-2">
+                    до {new Date(s.expires_at).toLocaleDateString('ru-RU')}
+                  </span>
+                </div>
+                <span className="text-green-600 font-medium text-sm">{s.amount_rub}₽/мес</span>
+              </div>
+            ))}
+            {recentSubs.length === 0 && (
+              <p className="text-gray-500 text-center py-4">Нет активных подписок</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Отменённые подписки */}
+      <button
+        onClick={() => setShowCancelled(!showCancelled)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <XCircle size={18} className="text-red-500" />
+          <span className="text-gray-900 font-medium">Отменённые</span>
+          <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+            {cancelledSubs.length}
+          </span>
+        </div>
+        <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${showCancelled ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showCancelled && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="space-y-2">
+            {cancelledSubs.map((s) => (
+              <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div>
+                  <span className="text-gray-900 text-sm font-medium">
+                    {s.plan.toUpperCase()}
+                  </span>
+                  <span className="text-gray-500 text-xs ml-2">
+                    {s.username ? `@${s.username}` : `ID ${s.telegram_id}`}
+                  </span>
+                  {s.cancelled_at && (
+                    <span className="text-red-400 text-xs ml-2">
+                      отменена {new Date(s.cancelled_at).toLocaleDateString('ru-RU')}
+                    </span>
+                  )}
+                </div>
+                <span className="text-red-500 font-medium text-sm">{s.amount_rub}₽</span>
+              </div>
+            ))}
+            {cancelledSubs.length === 0 && (
+              <p className="text-gray-500 text-center py-4">Отмен пока не было</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* По пользователям */}
+      <button
+        onClick={() => setShowByUser(!showByUser)}
+        className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <Users size={18} className="text-indigo-500" />
+          <span className="text-gray-900 font-medium">По пользователям</span>
+          <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
+            {uniqueUsers.length}
+          </span>
+        </div>
+        <ChevronDown size={18} className={`text-gray-400 transition-transform duration-200 ${showByUser ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showByUser && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 border-b border-gray-200">
+                  <th className="py-2 pr-2">Пользователь</th>
+                  <th className="py-2 pr-2 text-center">Активных</th>
+                  <th className="py-2 pr-2 text-center">Отменено</th>
+                  <th className="py-2 pr-2 text-right">Оплачено</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(byUserMap)
+                  .sort((a, b) => b[1].totalPaid - a[1].totalPaid)
+                  .map(([user, data]) => (
+                  <tr key={user} className="border-b border-gray-100">
+                    <td className="py-2 pr-2 text-gray-900">{user}</td>
+                    <td className="py-2 pr-2 text-center">
+                      {data.active > 0 ? <span className="text-green-600 font-medium">{data.active}</span> : '0'}
+                    </td>
+                    <td className="py-2 pr-2 text-center">
+                      {data.cancelled > 0 ? <span className="text-red-600 font-medium">{data.cancelled}</span> : '0'}
+                    </td>
+                    <td className="py-2 pr-2 text-right">{data.totalPaid.toLocaleString()}₽</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {uniqueUsers.length === 0 && (
+              <p className="text-gray-500 text-center py-4">Нет данных</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
