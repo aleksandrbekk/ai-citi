@@ -81,8 +81,8 @@ export function AdminLayout() {
 
       <div className="flex bg-white">
         {/* Desktop Sidebar - Вертикальные кнопки */}
-        <aside className="hidden lg:flex w-64 bg-gray-50 border-r border-gray-200 flex-col h-screen sticky top-0">
-          <div className="p-5 border-b border-gray-200">
+        <aside className="hidden lg:flex w-64 bg-gray-50 border-r border-gray-200 flex-col h-screen sticky top-0 overflow-hidden">
+          <div className="shrink-0 p-5 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <Link
                 to="/"
@@ -94,7 +94,7 @@ export function AdminLayout() {
             </div>
           </div>
 
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto min-h-0">
             {/* CRM */}
             <NavLink
               to="/admin/crm"
