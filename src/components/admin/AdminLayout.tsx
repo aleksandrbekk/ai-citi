@@ -163,7 +163,7 @@ export function AdminLayout() {
             </NavLink>
           </nav>
 
-          <div className="p-4 border-t border-gray-200">
+          <div className="shrink-0 p-4 border-t border-gray-200 bg-gray-50">
             <button
               onClick={handleLogout}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-all active:scale-95"
