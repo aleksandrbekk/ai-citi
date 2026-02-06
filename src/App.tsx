@@ -246,9 +246,11 @@ function AppContent() {
           <Route path="/admin/login" element={<AdminLogin />} />
 
           <Route path="/admin" element={<AdminProtectedRoute />}>
+            {/* Главная с плитками — без sidebar */}
+            <Route index element={<AdminDashboard />} />
+
+            {/* Остальные страницы с sidebar */}
             <Route element={<AdminLayout />}>
-              {/* Главная с плитками */}
-              <Route index element={<AdminDashboard />} />
               {/* CRM */}
               <Route path="crm" element={<AdminCRM />} />
               <Route path="settings" element={<AdminSettings />} />
