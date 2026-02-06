@@ -15,38 +15,6 @@ const TEST_PACKAGES: Record<string, { coins: number; price: number; name: string
   test_100: { coins: 30, price: 100, name: 'Тест 100₽ — 30 нейронов' },
 }
 
-// Рекурсивная сортировка ключей объекта
-function sortObj(obj: unknown): unknown {
-  if (Array.isArray(obj)) return obj.map(sortObj)
-  if (obj !== null && typeof obj === 'object') {
-    const sorted: Record<string, unknown> = {}
-    for (const key of Object.keys(obj as Record<string, unknown>).sort()) {
-      sorted[key] = sortObj((obj as Record<string, unknown>)[key])
-    }
-    return sorted
-  }
-  return String(obj)
-}
-
-// HMAC-SHA256 подпись (алгоритм Prodamus)
-async function hmacSign(data: Record<string, unknown>, secret: string): Promise<string> {
-  const sorted = sortObj(data)
-  const json = JSON.stringify(sorted)
-
-  const encoder = new TextEncoder()
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(json))
-  return Array.from(new Uint8Array(sig))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -83,48 +51,41 @@ serve(async (req) => {
 
     const orderId = `prodamus_${telegramId}_${Date.now()}_${packageId}`
     const webhookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/prodamus-webhook`
-
-    // Данные для подписи
-    const paymentData: Record<string, unknown> = {
-      order_id: orderId,
-      customer_extra: `Telegram ID: ${telegramId}`,
-      products: [
-        {
-          name: pkg.name,
-          price: String(pkg.price),
-          quantity: '1',
-          sku: packageId,
-        }
-      ],
-      urlNotification: webhookUrl,
-      urlSuccess: 'https://aiciti.pro/test-payment?success=1',
-      urlReturn: 'https://aiciti.pro/test-payment',
-    }
-
-    // Подписываем
-    const sign = await hmacSign(paymentData, PRODAMUS_SECRET)
-
-    // Собираем URL вручную — URLSearchParams кодирует [] и Prodamus не видит товар
     const baseUrl = PRODAMUS_URL.replace(/\/$/, '')
-    const priceFormatted = pkg.price.toFixed(2) // "10.00"
 
-    const queryParts = [
-      `order_id=${encodeURIComponent(orderId)}`,
-      `customer_extra=${encodeURIComponent(`Telegram ID: ${telegramId}`)}`,
-      `products[0][name]=${encodeURIComponent(pkg.name)}`,
-      `products[0][price]=${priceFormatted}`,
-      `products[0][quantity]=1`,
-      `products[0][sku]=${encodeURIComponent(packageId)}`,
-      `urlNotification=${encodeURIComponent(webhookUrl)}`,
-      `urlSuccess=${encodeURIComponent('https://aiciti.pro/test-payment?success=1')}`,
-      `urlReturn=${encodeURIComponent('https://aiciti.pro/test-payment')}`,
-      `sign=${sign}`,
-    ]
+    // POST к Prodamus с do=link — получаем короткую ссылку на оплату
+    const formData = new URLSearchParams()
+    formData.set('do', 'link')
+    formData.set('order_id', orderId)
+    formData.set('customer_extra', `Telegram ID: ${telegramId}`)
+    formData.set('products[0][name]', pkg.name)
+    formData.set('products[0][price]', pkg.price.toFixed(2))
+    formData.set('products[0][quantity]', '1')
+    formData.set('products[0][sku]', packageId)
+    formData.set('urlNotification', webhookUrl)
+    formData.set('urlSuccess', 'https://aiciti.pro/test-payment?success=1')
+    formData.set('urlReturn', 'https://aiciti.pro/test-payment')
 
-    const paymentUrl = `${baseUrl}/?${queryParts.join('&')}`
+    console.log('POST to Prodamus:', baseUrl)
+    console.log('Form data:', formData.toString())
 
-    console.log('Prodamus payment URL created:', paymentUrl)
-    console.log('Webhook URL:', webhookUrl)
+    const response = await fetch(`${baseUrl}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString(),
+    })
+
+    const paymentUrl = (await response.text()).trim()
+
+    console.log('Prodamus response:', paymentUrl)
+
+    if (!paymentUrl.startsWith('http')) {
+      console.error('Unexpected Prodamus response:', paymentUrl)
+      return new Response(
+        JSON.stringify({ ok: false, error: 'Prodamus не вернул ссылку', response: paymentUrl }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     return new Response(
       JSON.stringify({
