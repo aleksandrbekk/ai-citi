@@ -59,6 +59,8 @@ serve(async (req) => {
     formData.set('products[0][price]', pkg.price.toFixed(2))
     formData.set('products[0][quantity]', '1')
     formData.set('products[0][sku]', packageId)
+    // Доступы к материалам — чтобы Prodamus пробивал чеки по 54-ФЗ
+    formData.set('paid_content', `Доступ к нейронам в AI CITI. Пакет: ${pkg.name}. Ссылка: https://t.me/Neirociti_bot`)
     // НЕ передаём urlNotification — без sys параметра он игнорируется.
     // Вместо этого URL уведомлений настроен глобально в Prodamus → Настройки уведомлений
     formData.set('callbackType', 'json')
