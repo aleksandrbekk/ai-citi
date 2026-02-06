@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
 import {
   Search, X, ChevronDown, CreditCard, Calendar, Gift, Loader2,
-  Coins, Globe, User as UserIcon, Check, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2
+  Coins, Globe, User as UserIcon, Check, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2, Users, Link2, Unlink
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '../../../lib/utils'
@@ -81,9 +81,11 @@ export function AllUsersTab() {
   const [coinsAmount, setCoinsAmount] = useState('')
   const [coinsReason, setCoinsReason] = useState('')
   const [isAddingCoins, setIsAddingCoins] = useState(false)
-  const [activeTab, setActiveTab] = useState<'info' | 'coins' | 'subscription' | 'styles'>('info')
+  const [activeTab, setActiveTab] = useState<'info' | 'coins' | 'subscription' | 'styles' | 'referral'>('info')
   const [subscriptionPlan, setSubscriptionPlan] = useState<'pro' | 'elite'>('pro')
   const [subscriptionMonths, setSubscriptionMonths] = useState(1)
+  const [referrerInput, setReferrerInput] = useState('')
+  const [isAssigningReferral, setIsAssigningReferral] = useState(false)
 
   // Загрузка всех пользователей
   const { data: users, isLoading } = useQuery({
@@ -138,6 +140,23 @@ export function AllUsersTab() {
         return null
       }
       return data as UserFullStats
+    },
+    enabled: !!selectedUser
+  })
+
+  // Реферер пользователя
+  const { data: userReferrer, refetch: refetchReferrer } = useQuery({
+    queryKey: ['user-referrer', selectedUser?.telegram_id],
+    queryFn: async () => {
+      if (!selectedUser) return null
+      const { data, error } = await supabase.rpc('admin_get_user_referrer', {
+        p_telegram_id: selectedUser.telegram_id
+      })
+      if (error) {
+        console.error('Error fetching user referrer:', error)
+        return null
+      }
+      return data as { has_referrer: boolean; referrer_telegram_id?: number; referrer_username?: string; referrer_first_name?: string; assigned_at?: string }
     },
     enabled: !!selectedUser
   })
@@ -611,7 +630,8 @@ export function AllUsersTab() {
                   { id: 'info', label: 'Инфо', icon: UserIcon },
                   { id: 'coins', label: 'Монеты', icon: Coins },
                   { id: 'subscription', label: 'Подписка', icon: Crown },
-                  { id: 'styles', label: 'Стили', icon: Palette }
+                  { id: 'styles', label: 'Стили', icon: Palette },
+                  { id: 'referral', label: 'Реферал', icon: Users }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1068,6 +1088,134 @@ export function AllUsersTab() {
                             <div className="text-gray-400 text-sm">Нет купленных стилей</div>
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Таб: Реферал */}
+                  {activeTab === 'referral' && (
+                    <div className="space-y-6">
+                      {/* Текущий реферер */}
+                      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                        <h4 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                          <Link2 size={18} className="text-cyan-500" />
+                          Наставник (кто пригласил)
+                        </h4>
+
+                        {userReferrer?.has_referrer ? (
+                          <div className="bg-cyan-50/50 border border-cyan-100 rounded-xl p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  {userReferrer.referrer_first_name || 'Без имени'}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {userReferrer.referrer_username ? `@${userReferrer.referrer_username}` : `ID: ${userReferrer.referrer_telegram_id}`}
+                                </div>
+                                <div className="text-xs text-gray-400 mt-1">
+                                  Назначен: {userReferrer.assigned_at ? new Date(userReferrer.assigned_at).toLocaleDateString('ru-RU') : '—'}
+                                </div>
+                              </div>
+                              <button
+                                onClick={async () => {
+                                  if (!confirm('Удалить реферальную связь?')) return
+                                  try {
+                                    const { data, error } = await supabase.rpc('admin_remove_referral', {
+                                      p_referred_telegram_id: selectedUser.telegram_id
+                                    })
+                                    if (error) throw error
+                                    if (data?.success) {
+                                      toast.success('Реферальная связь удалена')
+                                      refetchReferrer()
+                                      queryClient.invalidateQueries({ queryKey: ['admin-referral-links'] })
+                                    } else {
+                                      toast.error(data?.error || 'Ошибка')
+                                    }
+                                  } catch {
+                                    toast.error('Ошибка удаления')
+                                  }
+                                }}
+                                className="p-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-xl transition-colors"
+                                title="Удалить связь"
+                              >
+                                <Unlink size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                            <Users size={28} className="mx-auto text-gray-300 mb-2" />
+                            <div className="text-gray-400 text-sm">Нет наставника</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Назначить реферера */}
+                      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                        <h4 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                          <Plus size={18} className="text-orange-500" />
+                          {userReferrer?.has_referrer ? 'Переназначить наставника' : 'Назначить наставника'}
+                        </h4>
+
+                        <div className="space-y-3">
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                              <UserIcon size={16} className="text-gray-400" />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Telegram ID наставника"
+                              value={referrerInput}
+                              onChange={(e) => setReferrerInput(e.target.value)}
+                              className="w-full pl-10 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-mono placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                            />
+                          </div>
+
+                          <button
+                            onClick={async () => {
+                              const referrerTelegramId = parseInt(referrerInput)
+                              if (isNaN(referrerTelegramId)) {
+                                toast.error('Введите корректный Telegram ID')
+                                return
+                              }
+                              if (referrerTelegramId === selectedUser.telegram_id) {
+                                toast.error('Нельзя назначить самого себя')
+                                return
+                              }
+
+                              setIsAssigningReferral(true)
+                              try {
+                                const { data, error } = await supabase.rpc('admin_assign_referral', {
+                                  p_referrer_telegram_id: referrerTelegramId,
+                                  p_referred_telegram_id: selectedUser.telegram_id
+                                })
+                                if (error) throw error
+                                if (data?.success) {
+                                  toast.success('Наставник назначен!')
+                                  setReferrerInput('')
+                                  refetchReferrer()
+                                  queryClient.invalidateQueries({ queryKey: ['admin-referral-links'] })
+                                  queryClient.invalidateQueries({ queryKey: ['admin-referral-stats'] })
+                                } else {
+                                  toast.error(data?.error || 'Ошибка назначения')
+                                }
+                              } catch {
+                                toast.error('Ошибка назначения реферала')
+                              } finally {
+                                setIsAssigningReferral(false)
+                              }
+                            }}
+                            disabled={isAssigningReferral || !referrerInput}
+                            className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                          >
+                            {isAssigningReferral ? <Loader2 className="animate-spin" size={18} /> : <Link2 size={18} />}
+                            {userReferrer?.has_referrer ? 'Переназначить' : 'Назначить наставника'}
+                          </button>
+                        </div>
+
+                        <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                          Введите Telegram ID пользователя, который станет наставником. После назначения наставник будет получать бонусы с активности этого пользователя.
+                        </p>
                       </div>
                     </div>
                   )}
