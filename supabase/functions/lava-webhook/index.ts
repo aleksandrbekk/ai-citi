@@ -50,6 +50,20 @@ const SUBSCRIPTIONS: Record<string, { neurons: number; prices: { RUB: number; US
 const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || ''
 const ADMIN_CHAT_ID = 190202791
 
+// Отправка уведомления рефереру через Telegram бот
+async function sendUserNotification(chatId: number, text: string) {
+  if (!BOT_TOKEN) return
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    })
+  } catch (e) {
+    console.error('Failed to send user notification:', e)
+  }
+}
+
 async function sendAdminNotification(message: string) {
   if (!BOT_TOKEN) {
     console.error('BOT_TOKEN not set, cannot send admin notification')
@@ -271,6 +285,32 @@ serve(async (req) => {
         })
       }
 
+      // Уведомление рефереру о продлении подписки партнёра
+      try {
+        const { data: referral } = await supabase
+          .from('referrals')
+          .select('referrer_telegram_id')
+          .eq('referred_telegram_id', telegramId)
+          .single()
+
+        if (referral?.referrer_telegram_id) {
+          let buyerName = 'Ваш партнёр'
+          try {
+            const { data: buyerData } = await supabase.from('users').select('first_name, username').eq('telegram_id', telegramId).single()
+            if (buyerData) buyerName = buyerData.first_name || buyerData.username || buyerName
+          } catch (_) { /* ignore */ }
+
+          await sendUserNotification(
+            referral.referrer_telegram_id,
+            `🔔 <b>${buyerName}</b> продлил подписку!\n\n` +
+            `Вы получаете бонус с активности вашего партнёра.`
+          )
+          console.log('Referral renewal notification sent to:', referral.referrer_telegram_id)
+        }
+      } catch (e) {
+        console.error('Failed to send referral renewal notification:', e)
+      }
+
       // Уведомление админу
       const userLink = `ID: <code>${telegramId}</code>`
       const msg = `🔄 <b>Продление подписки</b>\n\n` +
@@ -377,6 +417,27 @@ serve(async (req) => {
         p_buyer_telegram_id: telegramId,
         p_coins_purchased: subConfig.neurons
       })
+
+      // Уведомление рефереру о подписке партнёра
+      try {
+        const { data: referral } = await supabase
+          .from('referrals')
+          .select('referrer_telegram_id')
+          .eq('referred_telegram_id', telegramId)
+          .single()
+
+        if (referral?.referrer_telegram_id) {
+          const buyerName = userData?.first_name || userData?.username || 'Ваш партнёр'
+          await sendUserNotification(
+            referral.referrer_telegram_id,
+            `🔔 <b>${buyerName}</b> оформил подписку <b>${planUpper}</b>!\n\n` +
+            `Вы получаете бонус с активности вашего партнёра.`
+          )
+          console.log('Referral subscription notification sent to:', referral.referrer_telegram_id)
+        }
+      } catch (e) {
+        console.error('Failed to send referral subscription notification:', e)
+      }
 
       // Уведомление админу
       const userLink = `ID: <code>${telegramId}</code>` + (userData?.username ? ` (@${userData.username})` : '') + (userData?.first_name ? ` (${userData.first_name})` : '')

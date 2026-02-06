@@ -7,6 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Отправка уведомления рефереру через Telegram бот
+async function sendReferralNotification(chatId: number, text: string) {
+  const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+  if (!botToken) return
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    })
+  } catch (e) {
+    console.error('Failed to send referral notification:', e)
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -155,6 +170,36 @@ serve(async (req) => {
         } else {
           console.log('Referral registration skipped:', refError || registerResult?.error)
         }
+
+        // Уведомление рефереру о новом партнёре
+        try {
+          const { data: referrerUser } = await supabase
+            .from('users')
+            .select('telegram_id')
+            .eq('referral_code', referrerCode)
+            .single()
+
+          if (referrerUser?.telegram_id) {
+            const { data: stats } = await supabase
+              .from('referral_stats')
+              .select('total_referrals')
+              .eq('telegram_id', referrerUser.telegram_id)
+              .single()
+
+            const partnerName = userData.first_name || userData.username || 'Новый пользователь'
+            const totalPartners = stats?.total_referrals || 1
+
+            await sendReferralNotification(
+              referrerUser.telegram_id,
+              `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\n` +
+              `У вас теперь <b>${totalPartners}</b> партнёр(ов).\n` +
+              `Вы получаете бонус с каждой их активности.`
+            )
+            console.log('Referral notification sent to:', referrerUser.telegram_id)
+          }
+        } catch (e) {
+          console.error('Failed to send referral registration notification:', e)
+        }
       }
     } else {
       // Обновить данные существующего пользователя
@@ -223,6 +268,36 @@ serve(async (req) => {
             console.log('Referral bonus paid:', bonusResult)
           } else {
             console.log('Referral registration skipped:', refError || registerResult?.error)
+          }
+
+          // Уведомление рефереру о новом партнёре
+          try {
+            const { data: referrerUser } = await supabase
+              .from('users')
+              .select('telegram_id')
+              .eq('referral_code', referrerCode)
+              .single()
+
+            if (referrerUser?.telegram_id) {
+              const { data: stats } = await supabase
+                .from('referral_stats')
+                .select('total_referrals')
+                .eq('telegram_id', referrerUser.telegram_id)
+                .single()
+
+              const partnerName = userData.first_name || userData.username || 'Новый пользователь'
+              const totalPartners = stats?.total_referrals || 1
+
+              await sendReferralNotification(
+                referrerUser.telegram_id,
+                `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\n` +
+                `У вас теперь <b>${totalPartners}</b> партнёр(ов).\n` +
+                `Вы получаете бонус с каждой их активности.`
+              )
+              console.log('Referral notification sent to:', referrerUser.telegram_id)
+            }
+          } catch (e) {
+            console.error('Failed to send referral registration notification:', e)
           }
         }
       }
