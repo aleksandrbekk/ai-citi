@@ -58,6 +58,7 @@ export default function TestPayment() {
           body: JSON.stringify({
             telegramId: telegramUser?.id,
             packageId: pkg.id,
+            source: window.Telegram?.WebApp?.initData ? 'miniapp' : 'web',
           })
         }
       )

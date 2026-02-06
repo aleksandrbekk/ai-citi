@@ -19,7 +19,7 @@ serve(async (req) => {
   }
 
   try {
-    const { telegramId, packageId = 'test_10' } = await req.json()
+    const { telegramId, packageId = 'test_10', source = 'web' } = await req.json()
 
     console.log('=== Creating Prodamus Invoice ===')
     console.log('telegramId:', telegramId, 'packageId:', packageId)
@@ -62,8 +62,15 @@ serve(async (req) => {
     // НЕ передаём urlNotification — без sys параметра он игнорируется.
     // Вместо этого URL уведомлений настроен глобально в Prodamus → Настройки уведомлений
     formData.set('callbackType', 'json')
-    formData.set('urlSuccess', 'https://aiciti.pro/test-payment?success=1')
-    formData.set('urlReturn', 'https://aiciti.pro/test-payment')
+
+    // Возврат: если из мини-апа — в мини-ап, если из веба — на сайт
+    if (source === 'miniapp') {
+      formData.set('urlSuccess', 'https://t.me/Neirociti_bot')
+      formData.set('urlReturn', 'https://t.me/Neirociti_bot')
+    } else {
+      formData.set('urlSuccess', 'https://aiciti.pro/test-payment?success=1')
+      formData.set('urlReturn', 'https://aiciti.pro/test-payment')
+    }
 
     console.log('POST to Prodamus:', baseUrl)
     console.log('Form data:', formData.toString())
