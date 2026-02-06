@@ -8,7 +8,10 @@ import {
   LogOut,
   LayoutDashboard,
   Home,
-  Palette
+  Palette,
+  BookOpen,
+  UserCheck,
+  ClipboardCheck
 } from 'lucide-react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
 
@@ -137,6 +140,7 @@ export function AdminLayout() {
             {/* Школа */}
             <NavLink
               to="/admin/mlm"
+              end
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive || isSchoolActive
                   ? 'bg-gradient-to-r from-teal-500 to-cyan-600 ring-2 ring-teal-300'
@@ -147,6 +151,48 @@ export function AdminLayout() {
               <GraduationCap className="w-5 h-5" />
               Школа
             </NavLink>
+
+            {/* Подпункты Школы */}
+            {isSchoolActive && (
+              <div className="ml-3 space-y-1">
+                <NavLink
+                  to="/admin/mlm/modules"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive
+                      ? 'bg-teal-100 text-teal-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Модули
+                </NavLink>
+                <NavLink
+                  to="/admin/mlm/students"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive
+                      ? 'bg-teal-100 text-teal-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Ученики
+                </NavLink>
+                <NavLink
+                  to="/admin/mlm/homework"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive
+                      ? 'bg-teal-100 text-teal-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <ClipboardCheck className="w-4 h-4" />
+                  Проверка ДЗ
+                </NavLink>
+              </div>
+            )}
 
             {/* Настройки */}
             <NavLink
