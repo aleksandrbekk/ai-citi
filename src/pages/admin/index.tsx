@@ -14,15 +14,13 @@ import {
   BarChart3,
   Search,
   Link2,
-  Cpu,
   Palette
 } from 'lucide-react'
 import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 import UtmTab from './crm/UtmTab'
 import StatsTab from './crm/StatsTab'
-import AiAnalytics from './AiAnalytics'
 
-type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'carousel-styles' | 'ai-analytics' | 'settings'
+type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'carousel-styles' | 'settings'
 
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<AdminSection>('crm')
@@ -63,12 +61,6 @@ export default function AdminPanel() {
             onClick={() => setActiveSection('carousel-styles')}
           />
           <SidebarItem
-            icon={Cpu}
-            label="AI Аналитика"
-            active={activeSection === 'ai-analytics'}
-            onClick={() => setActiveSection('ai-analytics')}
-          />
-          <SidebarItem
             icon={Settings}
             label="Настройки"
             active={activeSection === 'settings'}
@@ -93,7 +85,6 @@ export default function AdminPanel() {
           {activeSection === 'mlm-camp' && <MLMCampSection />}
           {activeSection === 'quizzes' && <QuizzesSection navigate={navigate} />}
           {activeSection === 'carousel-styles' && <CarouselStylesSection navigate={navigate} />}
-          {activeSection === 'ai-analytics' && <AiAnalytics />}
           {activeSection === 'settings' && <SettingsSection />}
         </div>
       </main>
