@@ -169,11 +169,11 @@ BEGIN
   SELECT
     r.id,
     r.referrer_telegram_id,
-    u_referrer.username AS referrer_username,
-    u_referrer.first_name AS referrer_first_name,
+    u_referrer.username::TEXT AS referrer_username,
+    u_referrer.first_name::TEXT AS referrer_first_name,
     r.referred_telegram_id,
-    u_referred.username AS referred_username,
-    u_referred.first_name AS referred_first_name,
+    u_referred.username::TEXT AS referred_username,
+    u_referred.first_name::TEXT AS referred_first_name,
     r.bonus_paid,
     r.created_at,
     COALESCE((
@@ -182,7 +182,11 @@ BEGIN
       JOIN users u ON ct.user_id = u.id
       WHERE u.telegram_id = r.referrer_telegram_id
         AND ct.type = 'referral'
-        AND ct.metadata->>'spender_telegram_id' = r.referred_telegram_id::TEXT
+        AND (
+          ct.metadata->>'spender_telegram_id' = r.referred_telegram_id::TEXT
+          OR ct.metadata->>'referred_telegram_id' = r.referred_telegram_id::TEXT
+          OR ct.metadata->>'buyer_telegram_id' = r.referred_telegram_id::TEXT
+        )
     ), 0)::INTEGER AS partner_earnings
   FROM referrals r
   JOIN users u_referrer ON r.referrer_user_id = u_referrer.id
