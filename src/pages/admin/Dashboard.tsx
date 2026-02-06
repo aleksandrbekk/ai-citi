@@ -111,7 +111,7 @@ export function AdminDashboard() {
 
                 {/* Настройки по центру снизу */}
                 <div className="flex justify-center mt-4 lg:mt-6">
-                    <div className="w-[calc(50%-8px)] lg:w-[calc(50%-12px)]">
+                    <div className="w-1/2">
                         <DashboardTile {...tiles[4]} />
                     </div>
                 </div>
