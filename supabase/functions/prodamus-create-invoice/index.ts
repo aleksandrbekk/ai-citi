@@ -104,21 +104,24 @@ serve(async (req) => {
     // Подписываем
     const sign = await hmacSign(paymentData, PRODAMUS_SECRET)
 
-    // Собираем URL с параметрами
+    // Собираем URL вручную — URLSearchParams кодирует [] и Prodamus не видит товар
     const baseUrl = PRODAMUS_URL.replace(/\/$/, '')
-    const params = new URLSearchParams()
-    params.set('order_id', orderId)
-    params.set('customer_extra', `Telegram ID: ${telegramId}`)
-    params.set('products[0][name]', pkg.name)
-    params.set('products[0][price]', String(pkg.price))
-    params.set('products[0][quantity]', '1')
-    params.set('products[0][sku]', packageId)
-    params.set('urlNotification', webhookUrl)
-    params.set('urlSuccess', 'https://aiciti.pro/test-payment?success=1')
-    params.set('urlReturn', 'https://aiciti.pro/test-payment')
-    params.set('sign', sign)
+    const priceFormatted = pkg.price.toFixed(2) // "10.00"
 
-    const paymentUrl = `${baseUrl}/?${params.toString()}`
+    const queryParts = [
+      `order_id=${encodeURIComponent(orderId)}`,
+      `customer_extra=${encodeURIComponent(`Telegram ID: ${telegramId}`)}`,
+      `products[0][name]=${encodeURIComponent(pkg.name)}`,
+      `products[0][price]=${priceFormatted}`,
+      `products[0][quantity]=1`,
+      `products[0][sku]=${encodeURIComponent(packageId)}`,
+      `urlNotification=${encodeURIComponent(webhookUrl)}`,
+      `urlSuccess=${encodeURIComponent('https://aiciti.pro/test-payment?success=1')}`,
+      `urlReturn=${encodeURIComponent('https://aiciti.pro/test-payment')}`,
+      `sign=${sign}`,
+    ]
+
+    const paymentUrl = `${baseUrl}/?${queryParts.join('&')}`
 
     console.log('Prodamus payment URL created:', paymentUrl)
     console.log('Webhook URL:', webhookUrl)
