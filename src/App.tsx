@@ -114,7 +114,6 @@ const QuizzesList = lazy(() => import('./pages/admin/quizzes/QuizzesList').then(
 const AdminQuizBuilder = lazy(() => import('./pages/admin/quizzes/QuizBuilder'))
 const AdminQuizAnalytics = lazy(() => import('./pages/admin/quizzes/QuizAnalytics'))
 const AdminQuizImageEditor = lazy(() => import('./pages/admin/quizzes/QuizImageEditor').then(m => ({ default: m.AdminQuizImageEditor })))
-const AiAnalytics = lazy(() => import('./pages/admin/AiAnalytics'))
 const CarouselStylesList = lazy(() => import('./pages/admin/carousel/StylesList'))
 const CarouselStyleEditor = lazy(() => import('./pages/admin/carousel/StyleEditor'))
 const CarouselSettingsPage = lazy(() => import('./pages/admin/carousel/CarouselSettings'))
@@ -250,7 +249,6 @@ function AppContent() {
               {/* CRM */}
               <Route index element={<AdminCRM />} />
               <Route path="settings" element={<AdminSettings />} />
-              <Route path="ai-analytics" element={<AiAnalytics />} />
               <Route path="whitelist" element={<AdminWhitelist />} />
               <Route path="quizzes" element={<QuizzesList />} />
               <Route path="quizzes/new" element={<AdminQuizBuilder />} />
