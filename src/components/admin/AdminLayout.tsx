@@ -77,9 +77,9 @@ export function AdminLayout() {
       </header>
 
       <div className="flex bg-white">
-        {/* Desktop Sidebar - Плитки */}
-        <aside className="hidden lg:flex w-72 bg-gray-50 border-r border-gray-200 flex-col h-screen sticky top-0">
-          <div className="p-6 border-b border-gray-200">
+        {/* Desktop Sidebar - Вертикальные кнопки */}
+        <aside className="hidden lg:flex w-64 bg-gray-50 border-r border-gray-200 flex-col h-screen sticky top-0">
+          <div className="p-5 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <Link
                 to="/"
@@ -87,85 +87,79 @@ export function AdminLayout() {
               >
                 <Home size={18} />
               </Link>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">AI CiTY</h1>
-                <p className="text-gray-500 text-sm">Админ-панель</p>
-              </div>
+              <h1 className="text-xl font-bold text-gray-900">Админ-панель</h1>
             </div>
           </div>
 
-          <nav className="flex-1 p-4 overflow-y-auto">
-            {/* Сетка плиток 2x2 */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {/* CRM */}
-              <NavLink
-                to="/admin/crm"
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 ${isActive
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-700 ring-2 ring-orange-300'
-                    : 'bg-gradient-to-br from-orange-400 to-orange-600'
-                  }`
-                }
-              >
-                <Users className="w-6 h-6" />
-                <span className="text-sm font-semibold">CRM</span>
-              </NavLink>
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            {/* CRM */}
+            <NavLink
+              to="/admin/crm"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 ring-2 ring-orange-300'
+                  : 'bg-gradient-to-r from-orange-400 to-orange-500'
+                }`
+              }
+            >
+              <Users className="w-5 h-5" />
+              CRM
+            </NavLink>
 
-              {/* Квизы */}
-              <NavLink
-                to="/admin/quizzes"
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 ${isActive
-                    ? 'bg-gradient-to-br from-cyan-500 to-teal-700 ring-2 ring-cyan-300'
-                    : 'bg-gradient-to-br from-cyan-400 to-teal-600'
-                  }`
-                }
-              >
-                <HelpCircle className="w-6 h-6" />
-                <span className="text-sm font-semibold">Квизы</span>
-              </NavLink>
+            {/* Квизы */}
+            <NavLink
+              to="/admin/quizzes"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-600 ring-2 ring-cyan-300'
+                  : 'bg-gradient-to-r from-cyan-400 to-teal-500'
+                }`
+              }
+            >
+              <HelpCircle className="w-5 h-5" />
+              Квизы
+            </NavLink>
 
-              {/* Карусели */}
-              <NavLink
-                to="/admin/carousel-styles"
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 ${isActive
-                    ? 'bg-gradient-to-br from-orange-500 to-rose-600 ring-2 ring-rose-300'
-                    : 'bg-gradient-to-br from-orange-400 to-rose-500'
-                  }`
-                }
-              >
-                <Palette className="w-6 h-6" />
-                <span className="text-sm font-semibold">Карусели</span>
-              </NavLink>
+            {/* Карусели */}
+            <NavLink
+              to="/admin/carousel-styles"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive
+                  ? 'bg-gradient-to-r from-orange-500 to-rose-500 ring-2 ring-rose-300'
+                  : 'bg-gradient-to-r from-orange-400 to-rose-400'
+                }`
+              }
+            >
+              <Palette className="w-5 h-5" />
+              Карусели
+            </NavLink>
 
-              {/* Школа */}
-              <NavLink
-                to="/admin/mlm"
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 ${isActive || isSchoolActive
-                    ? 'bg-gradient-to-br from-teal-500 to-cyan-700 ring-2 ring-teal-300'
-                    : 'bg-gradient-to-br from-teal-400 to-cyan-600'
-                  }`
-                }
-              >
-                <GraduationCap className="w-6 h-6" />
-                <span className="text-sm font-semibold">Школа</span>
-              </NavLink>
-            </div>
+            {/* Школа */}
+            <NavLink
+              to="/admin/mlm"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive || isSchoolActive
+                  ? 'bg-gradient-to-r from-teal-500 to-cyan-600 ring-2 ring-teal-300'
+                  : 'bg-gradient-to-r from-teal-400 to-cyan-500'
+                }`
+              }
+            >
+              <GraduationCap className="w-5 h-5" />
+              Школа
+            </NavLink>
 
             {/* Настройки */}
             <NavLink
               to="/admin/settings"
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-2 p-4 rounded-2xl text-white shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 ${isActive
-                  ? 'bg-gradient-to-br from-gray-500 to-gray-700 ring-2 ring-gray-300'
-                  : 'bg-gradient-to-br from-gray-400 to-gray-600'
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive
+                  ? 'bg-gradient-to-r from-gray-500 to-gray-600 ring-2 ring-gray-400'
+                  : 'bg-gradient-to-r from-gray-400 to-gray-500'
                 }`
               }
             >
-              <Settings className="w-6 h-6" />
-              <span className="text-sm font-semibold">Настройки</span>
+              <Settings className="w-5 h-5" />
+              Настройки
             </NavLink>
           </nav>
 

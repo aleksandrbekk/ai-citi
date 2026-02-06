@@ -88,8 +88,7 @@ export function AdminDashboard() {
         <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-8">
             {/* Заголовок */}
             <div className="text-center mb-8 lg:mb-12">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">AI CITY</h1>
-                <p className="text-gray-500 mt-1">Админ-панель</p>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Админ-панель</h1>
             </div>
 
             {/* Сетка плиток */}
