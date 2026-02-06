@@ -1,10 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
     Users,
     HelpCircle,
     Palette,
     GraduationCap,
     Settings,
+    Home,
     type LucideIcon
 } from 'lucide-react'
 
@@ -86,6 +87,14 @@ export function AdminDashboard() {
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-8">
+            {/* Кнопка домой для мобайла */}
+            <Link
+                to="/"
+                className="lg:hidden absolute top-4 left-4 p-3 rounded-xl bg-orange-500 text-white shadow-md hover:bg-orange-600 transition-all active:scale-95"
+            >
+                <Home className="w-5 h-5" />
+            </Link>
+
             {/* Заголовок */}
             <div className="text-center mb-8 lg:mb-12">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Админ-панель</h1>
