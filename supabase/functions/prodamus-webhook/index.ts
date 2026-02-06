@@ -294,6 +294,20 @@ serve(async (req) => {
 
     console.log('Coins added:', addResult)
 
+    // Уведомление покупателю
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: telegramId,
+          text: `✅ Оплата ${sum}₽ прошла успешно!\n\n💎 Начислено: ${coinsToAdd} нейронов\n📦 Пакет: ${packageId}\n\nСпасибо за покупку!`,
+        })
+      })
+    } catch (e) {
+      console.error('Failed to notify buyer:', e)
+    }
+
     // Записываем платёж
     await supabase
       .from('payments')
