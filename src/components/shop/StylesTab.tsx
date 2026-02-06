@@ -170,6 +170,32 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
         )}
       </div>
 
+      {/* Онбординг — как это работает */}
+      {purchasedStyles.length === 0 && (
+        <div className="mb-4 p-4 bg-gradient-to-br from-cyan-50 via-white to-orange-50 border border-cyan-100 rounded-2xl">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">?</span>
+            </div>
+            <span className="text-sm font-bold text-gray-800">Как это работает</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+              <p className="text-xs text-gray-600">Выберите стиль и посмотрите примеры</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+              <p className="text-xs text-gray-600">Купите за нейроны — стиль ваш навсегда</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+              <p className="text-xs text-gray-600">Используйте при создании каруселей</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         {shopStyles.map((style) => {
           const owned = ownsStyle(style.style_id)
@@ -284,10 +310,21 @@ export function StylesTab({ telegramId, coinBalance, onBalanceChange }: StylesTa
         })}
       </div>
 
-      <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl">
-        <p className="text-sm text-orange-700">
-          Купленные стили появятся в выборе при создании карусели
-        </p>
+      {/* Подсказка */}
+      <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/50 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <Palette className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-800">
+              Купленный стиль появится в выборе
+            </p>
+            <p className="text-xs text-gray-500">
+              При создании новой карусели
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Модалка предпросмотра */}
