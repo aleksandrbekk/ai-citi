@@ -30,19 +30,19 @@ const PACKAGES: Record<string, { coins: number; prices: { RUB: number; USD: numb
   },
 }
 
-// Subscriptions
+// Subscriptions — количество нейронов должно соответствовать UI в Shop.tsx!
 const SUBSCRIPTIONS: Record<string, { neurons: number; prices: { RUB: number; USD: number; EUR: number } }> = {
   pro: {
-    neurons: 500,
+    neurons: 150,  // PRO: +150 нейронов/мес
     prices: { RUB: 2900, USD: 29, EUR: 27 }
   },
   business: {
-    neurons: 2000,
+    neurons: 600,  // ELITE/Business: +600 нейронов/мес
     prices: { RUB: 9900, USD: 99, EUR: 95 }
   },
   // Legacy support for logic mapping
   elite: {
-    neurons: 2000,
+    neurons: 600,  // ELITE: +600 нейронов/мес
     prices: { RUB: 9900, USD: 99, EUR: 95 }
   }
 }
