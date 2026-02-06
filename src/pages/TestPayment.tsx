@@ -13,9 +13,7 @@ interface TestPackage {
 }
 
 const testPackages: TestPackage[] = [
-  { id: 'test_1', name: 'Тест 1₽', coins: 1, price: 1 },
-  { id: 'test_10', name: 'Тест 10₽', coins: 5, price: 10 },
-  { id: 'test_100', name: 'Тест 100₽', coins: 30, price: 100 },
+  { id: 'test_50', name: 'Тест 50₽', coins: 10, price: 50 },
 ]
 
 export default function TestPayment() {

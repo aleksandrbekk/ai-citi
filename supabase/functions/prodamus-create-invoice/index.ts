@@ -10,9 +10,7 @@ const PRODAMUS_URL = Deno.env.get('PRODAMUS_PAYFORM_URL') || 'https://lagermlm.p
 
 // Тестовые пакеты для Prodamus (только рубли)
 const TEST_PACKAGES: Record<string, { coins: number; price: number; name: string }> = {
-  test_1: { coins: 1, price: 1, name: 'Тест 1₽ — 1 нейрон' },
-  test_10: { coins: 5, price: 10, name: 'Тест 10₽ — 5 нейронов' },
-  test_100: { coins: 30, price: 100, name: 'Тест 100₽ — 30 нейронов' },
+  test_50: { coins: 10, price: 50, name: 'Тест 50₽ — 10 нейронов' },
 }
 
 serve(async (req) => {

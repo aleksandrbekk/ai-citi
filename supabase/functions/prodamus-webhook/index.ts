@@ -212,6 +212,7 @@ serve(async (req) => {
     const PACKAGES: Record<string, number> = {
       test_1: 1,
       test_10: 5,
+      test_50: 10,
       test_100: 30,
       // Будущие боевые пакеты
       light: 30,
