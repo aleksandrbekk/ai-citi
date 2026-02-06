@@ -395,16 +395,6 @@ export function Shop() {
             НЕЙРОНЫ
           </button>
           <button
-            onClick={() => setActiveTab('subscription')}
-            className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'subscription'
-              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
-              : 'text-gray-600 hover:text-gray-900'
-              }`}
-          >
-            <Star className="w-4 h-4 inline mr-1" />
-            ПОДПИСКА
-          </button>
-          <button
             onClick={() => setActiveTab('styles')}
             className={`flex-1 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer ${activeTab === 'styles'
               ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'

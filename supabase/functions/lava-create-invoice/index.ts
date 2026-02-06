@@ -104,6 +104,15 @@ serve(async (req) => {
       periodicity: 'ONE_TIME',
       buyerLanguage: 'RU',
       successUrl: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
+      success_url: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
+      failUrl: 'https://aiciti.pro/shop',
+      fail_url: 'https://aiciti.pro/shop',
+      offer_id: offerId, // Duplicate for safety
+      // Exhaustive redirect parameters for "100%" certainty
+      returnUrl: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
+      return_url: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
+      redirectUrl: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
+      redirect_url: `https://aiciti.pro/payment-success?amount=${amount}&currency=${safeCurrency}&packageId=${packageId}`,
       clientUtm: {
         utm_content: String(telegramId),
         utm_campaign: packageId
