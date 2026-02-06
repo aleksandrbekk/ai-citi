@@ -48,7 +48,6 @@ serve(async (req) => {
     }
 
     const orderId = `prodamus_${telegramId}_${Date.now()}_${packageId}`
-    const webhookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/prodamus-webhook`
     const baseUrl = PRODAMUS_URL.replace(/\/$/, '')
 
     // POST к Prodamus с do=link — получаем короткую ссылку на оплату
@@ -60,8 +59,9 @@ serve(async (req) => {
     formData.set('products[0][price]', pkg.price.toFixed(2))
     formData.set('products[0][quantity]', '1')
     formData.set('products[0][sku]', packageId)
+    // НЕ передаём urlNotification — без sys параметра он игнорируется.
+    // Вместо этого URL уведомлений настроен глобально в Prodamus → Настройки уведомлений
     formData.set('callbackType', 'json')
-    formData.set('urlNotification', webhookUrl)
     formData.set('urlSuccess', 'https://aiciti.pro/test-payment?success=1')
     formData.set('urlReturn', 'https://aiciti.pro/test-payment')
 
