@@ -3,7 +3,9 @@ import { toast } from 'sonner'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { haptic } from '@/lib/haptic'
-import { Star, User, Palette, Coins } from 'lucide-react'
+import { Star, User, Palette, Coins, FlaskConical } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { isAdmin } from '@/config/admins'
 import { StylesTab } from '@/components/shop/StylesTab'
 import { CurrencySelectionModal } from '@/components/shop/CurrencySelectionModal'
 
@@ -199,6 +201,7 @@ const subscriptionPackages: SubscriptionPackage[] = [
 
 export function Shop() {
   const telegramUser = getTelegramUser()
+  const navigate = useNavigate()
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [isLoadingCoins, setIsLoadingCoins] = useState(true)
   const [activeTab, setActiveTab] = useState<'coins' | 'subscription' | 'styles'>('coins')
@@ -379,6 +382,17 @@ export function Shop() {
         <h1 className="text-2xl font-bold text-center text-gray-900">
           МАГАЗИН
         </h1>
+
+        {/* Кнопка тест оплаты — только для админов */}
+        {isAdmin(telegramUser?.id) && (
+          <button
+            onClick={() => navigate('/test-payment')}
+            className="mt-2 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-gray-100 border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-200 transition-all cursor-pointer"
+          >
+            <FlaskConical className="w-3.5 h-3.5" />
+            Тест Prodamus (админ)
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
