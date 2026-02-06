@@ -99,6 +99,7 @@ const DebugReferral = lazy(() => import('./pages/DebugReferral'))
 const AdminLayout = lazy(() => import('./components/admin').then(m => ({ default: m.AdminLayout })))
 const AdminProtectedRoute = lazy(() => import('./components/admin').then(m => ({ default: m.AdminProtectedRoute })))
 const AdminLogin = lazy(() => import('./pages/admin/Login').then(m => ({ default: m.AdminLogin })))
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard').then(m => ({ default: m.AdminDashboard })))
 const AdminCRM = lazy(() => import('./pages/admin/CRM').then(m => ({ default: m.AdminCRM })))
 const AdminSettings = lazy(() => import('./pages/admin/Settings').then(m => ({ default: m.AdminSettings })))
 const MlmDashboard = lazy(() => import('./pages/admin/mlm/MlmDashboard').then(m => ({ default: m.MlmDashboard })))
@@ -246,8 +247,10 @@ function AppContent() {
 
           <Route path="/admin" element={<AdminProtectedRoute />}>
             <Route element={<AdminLayout />}>
+              {/* Главная с плитками */}
+              <Route index element={<AdminDashboard />} />
               {/* CRM */}
-              <Route index element={<AdminCRM />} />
+              <Route path="crm" element={<AdminCRM />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="whitelist" element={<AdminWhitelist />} />
               <Route path="quizzes" element={<QuizzesList />} />

@@ -53,7 +53,7 @@ export function AdminLayout() {
   }, [handleBack])
 
   const mainLinks = [
-    { to: '/admin', icon: Users, label: 'CRM' },
+    { to: '/admin/crm', icon: Users, label: 'CRM' },
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
     { to: '/admin/carousel-styles', icon: Palette, label: 'Карусели' },
   ]
@@ -117,7 +117,7 @@ export function AdminLayout() {
                 <NavLink
                   key={link.to}
                   to={link.to}
-                  end={link.to === '/admin'}
+                  end={link.to === '/admin/crm'}
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
@@ -134,9 +134,8 @@ export function AdminLayout() {
               {/* School dropdown */}
               <button
                 onClick={() => setSchoolOpen(!schoolOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                  isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
-                }`}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <GraduationCap className="w-5 h-5" />
@@ -218,7 +217,7 @@ export function AdminLayout() {
               <NavLink
                 key={link.to}
                 to={link.to}
-                end={link.to === '/admin'}
+                end={link.to === '/admin/crm'}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
                     ? 'bg-orange-500 text-white'
@@ -234,9 +233,8 @@ export function AdminLayout() {
             <div className="pt-2">
               <button
                 onClick={() => setSchoolOpen(!schoolOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
-                  isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <GraduationCap className="w-5 h-5" />
