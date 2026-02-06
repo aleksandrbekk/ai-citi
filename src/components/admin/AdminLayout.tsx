@@ -64,10 +64,7 @@ export function AdminLayout() {
             >
               <Home size={20} />
             </Link>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">AI CiTY</h1>
-              <p className="text-xs text-gray-500">Админ-панель</p>
-            </div>
+            <h1 className="text-lg font-bold text-gray-900">Админ-панель</h1>
           </div>
           {/* Кнопка на дашборд с плитками */}
           <Link
