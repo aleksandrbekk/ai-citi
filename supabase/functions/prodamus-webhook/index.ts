@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const PRODAMUS_SECRET = Deno.env.get('PRODAMUS_SECRET_KEY') || ''
 const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || ''
-const ADMIN_CHAT_ID = 190202791
+const ADMIN_CHAT_IDS = [190202791, 643763835]
 
 // Отправка уведомления админу в Telegram
 async function sendAdminNotification(message: string) {
@@ -11,19 +11,21 @@ async function sendAdminNotification(message: string) {
     console.error('BOT_TOKEN not set')
     return
   }
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: ADMIN_CHAT_ID,
-        text: message,
-        parse_mode: 'HTML',
+  for (const chatId of ADMIN_CHAT_IDS) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'HTML',
+        })
       })
-    })
-    console.log('Admin notification:', await res.json())
-  } catch (e) {
-    console.error('Failed to notify admin:', e)
+      console.log(`Notification to ${chatId}:`, await res.json())
+    } catch (e) {
+      console.error(`Failed to notify ${chatId}:`, e)
+    }
   }
 }
 
