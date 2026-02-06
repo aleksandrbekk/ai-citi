@@ -97,96 +97,81 @@ export function AdminLayout() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Плитки */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl max-h-[70vh] overflow-y-auto">
-            <nav className="p-4 space-y-2">
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-xl">
+            <nav className="p-4">
               {/* Кнопка на главную */}
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-50 text-orange-600 border border-orange-200"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 mb-4 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 text-sm font-medium"
               >
-                <Home className="w-5 h-5" />
+                <Home className="w-4 h-4" />
                 На главную
               </Link>
 
-              <div className="my-2 border-t border-gray-200" />
-
-              {mainLinks.map(link => (
+              {/* Сетка плиток */}
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                {/* CRM */}
                 <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.to === '/admin/crm'}
+                  to="/admin/crm"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                      ? 'bg-orange-500 text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
-                    }`
-                  }
+                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
                 >
-                  <link.icon className="w-5 h-5" />
-                  {link.label}
+                  <Users className="w-6 h-6" />
+                  <span className="text-sm font-semibold">CRM</span>
                 </NavLink>
-              ))}
 
-              {/* School dropdown */}
-              <button
-                onClick={() => setSchoolOpen(!schoolOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${isSchoolActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <GraduationCap className="w-5 h-5" />
-                  Школа
-                </div>
-                <ChevronDown className={`w-4 h-4 transition-transform ${schoolOpen ? 'rotate-180' : ''}`} />
-              </button>
+                {/* Квизы */}
+                <NavLink
+                  to="/admin/quizzes"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+                >
+                  <HelpCircle className="w-6 h-6" />
+                  <span className="text-sm font-semibold">Квизы</span>
+                </NavLink>
 
-              {schoolOpen && (
-                <div className="ml-4 space-y-1">
-                  {schoolLinks.map(link => (
-                    <NavLink
-                      key={link.to}
-                      to={link.to}
-                      end={link.to === '/admin/mlm'}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${isActive
-                          ? 'bg-orange-500 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                        }`
-                      }
-                    >
-                      <link.icon className="w-4 h-4" />
-                      {link.label}
-                    </NavLink>
-                  ))}
-                </div>
-              )}
+                {/* Карусели */}
+                <NavLink
+                  to="/admin/carousel-styles"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+                >
+                  <Palette className="w-6 h-6" />
+                  <span className="text-sm font-semibold">Карусели</span>
+                </NavLink>
 
-              <div className="my-2 border-t border-gray-200" />
+                {/* Школа */}
+                <NavLink
+                  to="/admin/mlm"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+                >
+                  <GraduationCap className="w-6 h-6" />
+                  <span className="text-sm font-semibold">Школа</span>
+                </NavLink>
+              </div>
 
-              <NavLink
-                to="/admin/settings"
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                  }`
-                }
-              >
-                <Settings className="w-5 h-5" />
-                Настройки
-              </NavLink>
+              {/* Настройки по центру */}
+              <div className="flex justify-center mb-3">
+                <NavLink
+                  to="/admin/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center gap-2 p-4 w-[calc(50%-6px)] rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95"
+                >
+                  <Settings className="w-6 h-6" />
+                  <span className="text-sm font-semibold">Настройки</span>
+                </NavLink>
+              </div>
 
+              {/* Выйти */}
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-all active:scale-95"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
                 Выйти
               </button>
             </nav>
