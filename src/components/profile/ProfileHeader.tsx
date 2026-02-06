@@ -1,4 +1,4 @@
-import { Settings, Crown, ChevronRight } from 'lucide-react'
+import { Settings, Crown, ChevronRight, User } from 'lucide-react'
 import { haptic } from '@/lib/haptic'
 
 interface ProfileHeaderProps {
@@ -71,7 +71,16 @@ export function ProfileHeader({
                 <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
                 <div className="w-16 h-4 bg-gray-200 rounded animate-pulse" />
               </>
+            ) : isFreeTariff ? (
+              /* FREE тариф — без короны и без срока */
+              <>
+                <User className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-500">
+                  Бесплатная подписка
+                </span>
+              </>
             ) : (
+              /* Платные тарифы — с короной и сроком */
               <>
                 <Crown className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-amber-600">
