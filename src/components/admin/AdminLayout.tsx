@@ -80,8 +80,8 @@ export function AdminLayout() {
       </header>
 
       <div className="flex bg-white">
-        {/* Desktop Sidebar - Вертикальные кнопки */}
-        <aside className="hidden lg:flex w-64 bg-gray-50 border-r border-gray-200 flex-col h-screen sticky top-0 overflow-hidden">
+        {/* Desktop Sidebar - Fixed позиция */}
+        <aside className="hidden lg:flex w-64 bg-gray-50 border-r border-gray-200 flex-col h-screen fixed top-0 left-0 overflow-hidden z-40">
           <div className="shrink-0 p-5 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <Link
@@ -220,8 +220,8 @@ export function AdminLayout() {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 min-h-screen bg-white overflow-x-hidden">
+        {/* Main Content - с отступом под fixed sidebar */}
+        <main className="flex-1 min-h-screen bg-white overflow-x-hidden lg:ml-64">
           <div className="p-4 lg:p-6 max-w-full overflow-x-hidden">
             <Outlet />
           </div>
