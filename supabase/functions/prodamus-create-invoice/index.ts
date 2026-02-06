@@ -60,6 +60,7 @@ serve(async (req) => {
     formData.set('products[0][price]', pkg.price.toFixed(2))
     formData.set('products[0][quantity]', '1')
     formData.set('products[0][sku]', packageId)
+    formData.set('callbackType', 'json')
     formData.set('urlNotification', webhookUrl)
     formData.set('urlSuccess', 'https://aiciti.pro/test-payment?success=1')
     formData.set('urlReturn', 'https://aiciti.pro/test-payment')

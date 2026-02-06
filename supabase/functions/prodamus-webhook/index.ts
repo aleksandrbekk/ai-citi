@@ -148,7 +148,8 @@ serve(async (req) => {
     }
 
     // Извлекаем данные платежа
-    const orderId = String(data.order_id || data.order_num || '')
+    // ВАЖНО: Prodamus отправляет НАШ order_id в поле order_num, а order_id — их внутренний
+    const orderId = String(data.order_num || data.order_id || '')
     const sum = String(data.sum || data.payment_sum || '0')
     const paymentStatus = String(data.payment_status || data.status || '')
     const customerExtra = String(data.customer_extra || '')
