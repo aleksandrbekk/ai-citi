@@ -94,6 +94,7 @@ const QuizAnalytics = lazy(() => import('./pages/quizzes/analytics'))
 const AdminPanel = lazy(() => import('./pages/admin/index'))
 const MiniAdmin = lazy(() => import('./pages/mini-admin/index'))
 const DebugReferral = lazy(() => import('./pages/DebugReferral'))
+const TestPayment = lazy(() => import('./pages/TestPayment'))
 
 // Admin imports - lazy
 const AdminLayout = lazy(() => import('./components/admin').then(m => ({ default: m.AdminLayout })))
@@ -283,6 +284,7 @@ function AppContent() {
           <Route path="/mini-admin" element={<MiniAdmin />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/debug-referral" element={<DebugReferral />} />
+          <Route path="/test-payment" element={<TestPayment />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
