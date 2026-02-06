@@ -27,33 +27,44 @@ async function sendAdminNotification(message: string) {
   }
 }
 
-// Парсинг PHP-style form data в nested dict
+// Парсинг PHP-style ключей в nested dict
 // products[0][name]=Test -> { products: { "0": { name: "Test" } } }
-function parsePhpFormData(body: string): Record<string, unknown> {
+function setNestedValue(obj: Record<string, unknown>, rawKey: string, value: string) {
+  const parts = rawKey.split(/\[|\]/).filter(p => p !== '')
+  if (parts.length === 0) return
+
+  let current: Record<string, unknown> = obj
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i]
+    if (!(part in current) || typeof current[part] !== 'object') {
+      current[part] = {}
+    }
+    current = current[part] as Record<string, unknown>
+  }
+  current[parts[parts.length - 1]] = value
+}
+
+// Парсинг URL-encoded form data
+function parseUrlEncoded(body: string): Record<string, unknown> {
   const result: Record<string, unknown> = {}
   const pairs = body.split('&')
-
   for (const pair of pairs) {
     const eqIdx = pair.indexOf('=')
     if (eqIdx === -1) continue
-
     const rawKey = decodeURIComponent(pair.substring(0, eqIdx).replace(/\+/g, ' '))
     const value = decodeURIComponent(pair.substring(eqIdx + 1).replace(/\+/g, ' '))
-
-    // Разбиваем ключ на части: products[0][name] -> ["products", "0", "name"]
-    const parts = rawKey.split(/\[|\]/).filter(p => p !== '')
-
-    let current: Record<string, unknown> = result
-    for (let i = 0; i < parts.length - 1; i++) {
-      const part = parts[i]
-      if (!(part in current) || typeof current[part] !== 'object') {
-        current[part] = {}
-      }
-      current = current[part] as Record<string, unknown>
-    }
-    current[parts[parts.length - 1]] = value
+    setNestedValue(result, rawKey, value)
   }
+  return result
+}
 
+// Парсинг multipart/form-data через Deno FormData API
+async function parseMultipart(req: Request): Promise<Record<string, unknown>> {
+  const result: Record<string, unknown> = {}
+  const formData = await req.formData()
+  for (const [key, value] of formData.entries()) {
+    setNestedValue(result, key, String(value))
+  }
   return result
 }
 
@@ -101,32 +112,31 @@ serve(async (req) => {
   console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries())))
 
   try {
-    const rawBody = await req.text()
-    console.log('Raw body:', rawBody.substring(0, 1000))
-
-    // Парсим тело — может быть form-encoded или JSON
-    let data: Record<string, unknown>
-    let receivedSign = ''
-
     const contentType = req.headers.get('content-type') || ''
+    let data: Record<string, unknown>
 
-    if (contentType.includes('application/json')) {
+    // Prodamus отправляет вебхук в формате multipart/form-data
+    if (contentType.includes('multipart/form-data')) {
+      console.log('Parsing as multipart/form-data')
+      data = await parseMultipart(req)
+    } else if (contentType.includes('application/json')) {
+      console.log('Parsing as JSON')
+      const rawBody = await req.text()
+      console.log('Raw body:', rawBody.substring(0, 1000))
       data = JSON.parse(rawBody)
     } else {
-      // Form-encoded (default для Prodamus)
-      data = parsePhpFormData(rawBody)
+      // Fallback: URL-encoded
+      console.log('Parsing as URL-encoded')
+      const rawBody = await req.text()
+      console.log('Raw body:', rawBody.substring(0, 1000))
+      data = parseUrlEncoded(rawBody)
     }
 
-    console.log('Parsed data:', JSON.stringify(data, null, 2))
+    console.log('Parsed data keys:', Object.keys(data))
+    console.log('Parsed data:', JSON.stringify(data, null, 2).substring(0, 2000))
 
-    // Извлекаем подпись — из заголовка Sign или из тела
-    receivedSign = req.headers.get('Sign') || req.headers.get('sign') || ''
-    if (!receivedSign && data.sign) {
-      receivedSign = String(data.sign)
-      // Удаляем sign из данных перед верификацией
-      delete data.sign
-    }
-
+    // Извлекаем подпись из заголовка Sign
+    const receivedSign = req.headers.get('Sign') || req.headers.get('sign') || ''
     console.log('Received sign:', receivedSign)
 
     // Верифицируем подпись
@@ -140,18 +150,17 @@ serve(async (req) => {
           `⚠️ <b>Prodamus Webhook: невалидная подпись!</b>\n\n` +
           `Данные: <code>${JSON.stringify(data).slice(0, 300)}</code>`
         )
-        // Продолжаем обработку для тестирования, но логируем
-        // В продакшене: return new Response('Invalid signature', { status: 403 })
+        // Продолжаем обработку для тестирования
       }
     } else {
       console.log('Signature check skipped (no secret or no sign)')
     }
 
     // Извлекаем данные платежа
-    // ВАЖНО: Prodamus отправляет НАШ order_id в поле order_num, а order_id — их внутренний
+    // ВАЖНО: Prodamus отправляет НАШ order_id в поле order_num
     const orderId = String(data.order_num || data.order_id || '')
-    const sum = String(data.sum || data.payment_sum || '0')
-    const paymentStatus = String(data.payment_status || data.status || '')
+    const sum = String(data.sum || '0')
+    const paymentStatus = String(data.payment_status || '')
     const customerExtra = String(data.customer_extra || '')
 
     console.log('Order ID:', orderId, 'Sum:', sum, 'Status:', paymentStatus)
@@ -193,10 +202,8 @@ serve(async (req) => {
       return new Response('OK', { status: 200 })
     }
 
-    // Проверяем статус — Prodamus может отправить "success" или другие статусы
-    const isSuccess = paymentStatus === 'success' ||
-      paymentStatus === 'completed' ||
-      paymentStatus === '' // Если статус не указан, считаем успешным (зависит от настроек Prodamus)
+    // Проверяем статус — Prodamus отправляет "success" при успешной оплате
+    const isSuccess = paymentStatus === 'success'
 
     if (!isSuccess) {
       console.log('Payment not successful:', paymentStatus)
@@ -215,7 +222,7 @@ serve(async (req) => {
       test_10: 5,
       test_50: 10,
       test_100: 30,
-      // Будущие боевые пакеты
+      // Боевые пакеты
       light: 30,
       starter: 100,
       standard: 300,
@@ -243,10 +250,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Защита от дубликатов — используем order_id
+    // Защита от дубликатов
     if (orderId) {
       const { error: dupError } = await supabase
-        .from('processed_lava_payments') // Переиспользуем таблицу дедупликации
+        .from('processed_lava_payments')
         .insert({ contract_id: orderId, telegram_id: telegramId })
 
       if (dupError?.code === '23505') {
@@ -332,7 +339,6 @@ serve(async (req) => {
     await sendAdminNotification(
       `❌ <b>Prodamus webhook ошибка!</b>\n\n${error.message}`
     )
-    // Возвращаем 200 чтобы Prodamus не ретраил
     return new Response('OK', { status: 200 })
   }
 })
