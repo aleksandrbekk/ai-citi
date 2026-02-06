@@ -155,6 +155,12 @@ serve(async (req) => {
 
     console.log('Order ID:', orderId, 'Sum:', sum, 'Status:', paymentStatus)
 
+    // ЗАЩИТА: игнорируем заказы НЕ от нашего приложения (курсы и т.д.)
+    if (!orderId.startsWith('prodamus_')) {
+      console.log('Skipping non-app order:', orderId, '(probably course payment)')
+      return new Response('OK', { status: 200 })
+    }
+
     // Извлекаем telegramId из order_id (формат: prodamus_<telegramId>_<timestamp>_<packageId>)
     let telegramId = 0
     let packageId = ''
