@@ -42,14 +42,23 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🛑 STOP #4: ДЕПЛОЙ ВЕБХУКА? --no-verify-jwt!              │
+│  🛑 STOP #4: ДЕПЛОЙ EDGE FUNCTION? ПРОВЕРЬ --no-verify-jwt!│
 │                                                             │
-│  Деплоишь lava-webhook / prodamus-webhook /                │
-│  telegram-bot-webhook?                                      │
-│  → ОБЯЗАТЕЛЬНО добавь --no-verify-jwt                      │
-│  → Без этого флага вебхуки получат 401 и СЛОМАЮТСЯ!        │
+│  СЛЕДУЮЩИЕ ФУНКЦИИ ТРЕБУЮТ --no-verify-jwt:                │
+│  • lava-webhook         (платежи Lava)                     │
+│  • prodamus-webhook     (платежи Prodamus)                 │
+│  • telegram-bot-webhook (бот Telegram)                     │
+│  • auth-telegram        (авторизация мини-аппа)            │
 │                                                             │
-│  ЗАПРЕЩЕНО деплоить вебхук-функции без --no-verify-jwt     │
+│  БЕЗ ЭТОГО ФЛАГА ОНИ ПОЛУЧАТ 401 И СЛОМАЮТСЯ!             │
+│  Платежи перестанут приходить, бот не будет отвечать,       │
+│  авторизация и рефералы сломаются.                         │
+│                                                             │
+│  ⛔ ЗАПРЕЩЕНО деплоить эти функции без --no-verify-jwt     │
+│                                                             │
+│  Пример:                                                    │
+│  supabase functions deploy lava-webhook \                   │
+│    --no-verify-jwt --project-ref debcwvxlvozjlqkhnauy      │
 └─────────────────────────────────────────────────────────────┘
 ```
 

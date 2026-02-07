@@ -61,17 +61,24 @@ supabase functions deploy prodamus-webhook --project-ref debcwvxlvozjlqkhnauy --
 ```
 
 Функции-вебхуки (ОБЯЗАТЕЛЬНО `--no-verify-jwt`):
-- `lava-webhook`
-- `prodamus-webhook`
-- `telegram-bot-webhook`
+- `lava-webhook` — платежи Lava
+- `prodamus-webhook` — платежи Prodamus
+- `telegram-bot-webhook` — вебхук Telegram бота
+- `auth-telegram` — авторизация из мини-аппа
 
-Обычные функции (с JWT, без флага):
+Обычные функции (БЕЗ `--no-verify-jwt`):
 - `lava-create-invoice`
 - `lava-create-subscription`
+- `lava-cancel-subscription`
 - `prodamus-create-invoice`
-- `auth-telegram`
 - `gemini-chat`
-- и остальные
+- `send-broadcast`
+- `delete-cloudinary-photo`
+- `refund-carousel-coins`
+- `n8n-carousel-proxy`
+- `n8n-publish-proxy`
+
+⚠️ **ЗАПОМНИ:** Если деплоишь ЛЮБУЮ функцию из списка вебхуков БЕЗ `--no-verify-jwt` — она СЛОМАЕТСЯ. Платежи перестанут приходить, бот перестанет отвечать, авторизация сломается.
 
 ### Деплой обычных функций
 
