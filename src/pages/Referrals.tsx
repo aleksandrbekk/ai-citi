@@ -26,6 +26,7 @@ interface Partner {
   first_name: string | null
   avatar_url: string | null
   created_at: string
+  earnings: number
 }
 
 export default function Referrals() {
@@ -256,7 +257,14 @@ export default function Referrals() {
                         <p className="text-sm text-gray-500">@{ref.username}</p>
                       )}
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {(ref.earnings || 0) > 0 && (
+                        <span className="text-sm font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+                          +{ref.earnings}
+                        </span>
+                      )}
+                      <ChevronRight className="w-5 h-5 text-gray-300" />
+                    </div>
                   </button>
 
                   {/* Кнопка отправки нейронов — заметная */}

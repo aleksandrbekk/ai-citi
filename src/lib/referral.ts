@@ -14,6 +14,7 @@ export interface ReferralStats {
     first_name: string | null
     avatar_url: string | null
     created_at: string
+    earnings: number
   }>
 }
 
