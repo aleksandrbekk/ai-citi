@@ -260,7 +260,7 @@ serve(async (req) => {
         const neuronsAdded = extendResult?.neurons_added || 0
         await sendUserNotification(
           telegramId,
-          `🔄 Подписка продлена!\n\n💎 Начислено: ${neuronsAdded} нейронов\n💰 Сумма: ${paidAmount} ${paidCurrency}\n\nСпасибо!`
+          `🔄 Подписка продлена!\n\n💎 Начислено: ${neuronsAdded} нейронов\n💰 Сумма: ${paidAmount} ${paidCurrency}\n\nСпасибо!\n\nЕсли возникли трудности — тех. поддержка: @dmbekk`
         )
       } catch (e) {
         console.error('Failed to notify buyer about renewal:', e)
@@ -389,7 +389,7 @@ serve(async (req) => {
       try {
         await sendUserNotification(
           telegramId,
-          `✅ Подписка оформлена!\n\n💎 Начислено: ${subConfig.neurons} нейронов\n📦 План: ${planId.toUpperCase()}\n💰 Сумма: ${paidAmount} ${paidCurrency}\n\nСпасибо за покупку!`
+          `✅ Подписка оформлена!\n\n💎 Начислено: ${subConfig.neurons} нейронов\n📦 План: ${planId.toUpperCase()}\n💰 Сумма: ${paidAmount} ${paidCurrency}\n\nСпасибо за покупку!\n\nЕсли возникли трудности — тех. поддержка: @dmbekk`
         )
       } catch (e) {
         console.error('Failed to notify buyer about subscription:', e)
@@ -528,7 +528,7 @@ serve(async (req) => {
     try {
       await sendUserNotification(
         telegramId,
-        `✅ Оплата ${paidAmount} ${paidCurrency} прошла успешно!\n\n💎 Начислено: ${coinsAmount} нейронов\n📦 Пакет: ${packageId.toUpperCase()}\n\nСпасибо за покупку!`
+        `✅ Оплата ${paidAmount} ${paidCurrency} прошла успешно!\n\n💎 Начислено: ${coinsAmount} нейронов\n📦 Пакет: ${packageId.toUpperCase()}\n\nСпасибо за покупку!\n\nЕсли возникли трудности — тех. поддержка: @dmbekk`
       )
     } catch (e) {
       console.error('Failed to notify buyer:', e)
