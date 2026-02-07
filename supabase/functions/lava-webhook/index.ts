@@ -48,7 +48,7 @@ const SUBSCRIPTIONS: Record<string, { neurons: number; prices: { RUB: number; US
 }
 
 const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || ''
-const ADMIN_CHAT_ID = 190202791
+const ADMIN_CHAT_IDS = [190202791, 643763835]
 
 // Отправка уведомления рефереру через Telegram бот
 async function sendUserNotification(chatId: number, text: string) {
@@ -69,22 +69,21 @@ async function sendAdminNotification(message: string) {
     console.error('BOT_TOKEN not set, cannot send admin notification')
     return
   }
-  try {
-    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`
-    const body = {
-      chat_id: ADMIN_CHAT_ID,
-      text: message,
-      parse_mode: 'HTML'
+  for (const chatId of ADMIN_CHAT_IDS) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'HTML'
+        })
+      })
+      console.log(`Notification to ${chatId}:`, await res.json())
+    } catch (e) {
+      console.error(`Failed to notify ${chatId}:`, e)
     }
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-    const json = await res.json()
-    console.log('Admin notification sent:', json)
-  } catch (e) {
-    console.error('Failed to send admin notification:', e)
   }
 }
 
