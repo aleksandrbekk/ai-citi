@@ -256,6 +256,17 @@ serve(async (req) => {
 
       console.log('Subscription extended:', extendResult)
 
+      // Уведомление покупателю о продлении
+      try {
+        const neuronsAdded = extendResult?.neurons_added || 0
+        await sendUserNotification(
+          telegramId,
+          `🔄 Подписка продлена!\n\n💎 Начислено: ${neuronsAdded} нейронов\n💰 Сумма: ${paidAmount} ${paidCurrency}\n\nСпасибо!`
+        )
+      } catch (e) {
+        console.error('Failed to notify buyer about renewal:', e)
+      }
+
       // Обновляем expires_at в premium_clients
       const newExpiresAt = new Date()
       newExpiresAt.setDate(newExpiresAt.getDate() + 30)
@@ -374,6 +385,16 @@ serve(async (req) => {
       }
 
       console.log('Subscription created:', createResult)
+
+      // Уведомление покупателю о подписке
+      try {
+        await sendUserNotification(
+          telegramId,
+          `✅ Подписка оформлена!\n\n💎 Начислено: ${subConfig.neurons} нейронов\n📦 План: ${planId.toUpperCase()}\n💰 Сумма: ${paidAmount} ${paidCurrency}\n\nСпасибо за покупку!`
+        )
+      } catch (e) {
+        console.error('Failed to notify buyer about subscription:', e)
+      }
 
       // Добавляем/обновляем в premium_clients для админки
       const planUpper = planId.toUpperCase()
@@ -503,6 +524,16 @@ serve(async (req) => {
     }
 
     console.log('Coins added successfully:', addResult)
+
+    // Уведомление покупателю
+    try {
+      await sendUserNotification(
+        telegramId,
+        `✅ Оплата ${paidAmount} ${paidCurrency} прошла успешно!\n\n💎 Начислено: ${coinsAmount} нейронов\n📦 Пакет: ${packageId.toUpperCase()}\n\nСпасибо за покупку!`
+      )
+    } catch (e) {
+      console.error('Failed to notify buyer:', e)
+    }
 
     // Записываем в payments для админки
     await supabase
