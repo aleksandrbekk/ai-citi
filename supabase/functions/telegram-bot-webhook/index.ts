@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -128,6 +129,22 @@ serve(async (req) => {
             } else if (promoCode && promoCode.startsWith('ref_')) {
                 // Реферальная ссылка — кнопка "Войти в город"
                 await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard('🚀 Войти в город', promoCode))
+
+                // Сохраняем реферальный код в pending_referrals
+                // чтобы реферал сработал даже если пользователь откроет мини-апп из меню (без кнопки)
+                try {
+                    const supabase = createClient(
+                        Deno.env.get('SUPABASE_URL')!,
+                        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+                    )
+                    const refCode = promoCode.replace('ref_', '')
+                    await supabase
+                        .from('pending_referrals')
+                        .upsert({ telegram_id: chatId, referral_code: refCode }, { onConflict: 'telegram_id' })
+                    console.log('Saved pending referral:', chatId, '->', refCode)
+                } catch (e) {
+                    console.error('Failed to save pending referral:', e)
+                }
 
             } else {
                 // Обычный /start — кнопка "Войти в город"

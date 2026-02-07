@@ -94,9 +94,32 @@ serve(async (req) => {
 
     if (effectiveStartParam && typeof effectiveStartParam === 'string' && effectiveStartParam.startsWith('ref_')) {
       referrerCode = effectiveStartParam.replace('ref_', '')
-      console.log('✅ Extracted referrer code:', referrerCode)
+      console.log('✅ Extracted referrer code from startParam:', referrerCode)
     } else {
-      console.log('❌ No referrer code found')
+      // Фоллбэк: проверяем pending_referrals (код сохранён ботом при /start ref_XX)
+      console.log('🔍 No startParam, checking pending_referrals...')
+      try {
+        const { data: pending } = await supabase
+          .from('pending_referrals')
+          .select('referral_code')
+          .eq('telegram_id', userData.id)
+          .single()
+
+        if (pending?.referral_code) {
+          referrerCode = pending.referral_code
+          console.log('✅ Found pending referral code:', referrerCode)
+
+          // Удаляем запись — код использован
+          await supabase
+            .from('pending_referrals')
+            .delete()
+            .eq('telegram_id', userData.id)
+        } else {
+          console.log('❌ No referrer code found anywhere')
+        }
+      } catch (e) {
+        console.log('❌ pending_referrals check failed:', e)
+      }
     }
 
     if (!user) {
