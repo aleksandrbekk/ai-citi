@@ -46,8 +46,37 @@ serve(async (req) => {
 
 ## Деплой
 
+### 🚨 КРИТИЧЕСКИ ВАЖНО: --no-verify-jwt для вебхуков
+
+Вебхуки от внешних сервисов (Lava, Prodamus и т.д.) НЕ отправляют JWT токен.
+**ВСЕГДА** деплой вебхук-функции с флагом `--no-verify-jwt`, иначе они получат 401!
+
 ```bash
-supabase functions deploy function-name
+# ❌ ЗАПРЕЩЕНО для вебхуков — сломает приём платежей!
+supabase functions deploy lava-webhook --project-ref debcwvxlvozjlqkhnauy
+
+# ✅ ПРАВИЛЬНО — вебхуки ВСЕГДА с --no-verify-jwt
+supabase functions deploy lava-webhook --project-ref debcwvxlvozjlqkhnauy --no-verify-jwt
+supabase functions deploy prodamus-webhook --project-ref debcwvxlvozjlqkhnauy --no-verify-jwt
+```
+
+Функции-вебхуки (ОБЯЗАТЕЛЬНО `--no-verify-jwt`):
+- `lava-webhook`
+- `prodamus-webhook`
+- `telegram-bot-webhook`
+
+Обычные функции (с JWT, без флага):
+- `lava-create-invoice`
+- `lava-create-subscription`
+- `prodamus-create-invoice`
+- `auth-telegram`
+- `gemini-chat`
+- и остальные
+
+### Деплой обычных функций
+
+```bash
+supabase functions deploy function-name --project-ref debcwvxlvozjlqkhnauy
 ```
 
 ## Логи
