@@ -233,7 +233,7 @@ export const useAuthStore = create<AuthState>()(
           // При ошибке — пробуем использовать данные из Telegram напрямую
           const telegramUser = getTelegramUser()
           if (telegramUser) {
-            console.log('Falling back to Telegram user data')
+            console.log('Auth failed, setting isAuthenticated: false')
             set({
               user: {
                 id: `tg-${telegramUser.id}`,
@@ -245,8 +245,8 @@ export const useAuthStore = create<AuthState>()(
               },
               profile: DEFAULT_PROFILE,
               isLoading: false,
-              isAuthenticated: true,
-              error: `Offline mode: ${error.message}`,
+              isAuthenticated: false,
+              error: `Ошибка авторизации: ${error.message}. Попробуйте перезапустить приложение.`,
             })
           } else {
             // Полный fallback на dev режим
@@ -261,8 +261,8 @@ export const useAuthStore = create<AuthState>()(
               },
               profile: DEFAULT_PROFILE,
               isLoading: false,
-              isAuthenticated: true,
-              error: error.message,
+              isAuthenticated: false,
+              error: `Ошибка авторизации: ${error.message}. Попробуйте перезапустить приложение.`,
             })
           }
         }

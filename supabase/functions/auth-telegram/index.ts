@@ -7,7 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Отправка уведомления рефереру через Telegram бот
 async function sendReferralNotification(chatId: number, text: string) {
   const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
   if (!botToken) return
@@ -22,15 +21,65 @@ async function sendReferralNotification(chatId: number, text: string) {
   }
 }
 
+/**
+ * Parse startParam with UTM support
+ * Format: ref_CODE or ref_CODE_src_TAG
+ */
+function parseStartParam(startParam: string | null): { referrerCode: string | null, utmSource: string | null } {
+  if (!startParam || typeof startParam !== 'string') return { referrerCode: null, utmSource: null }
+  if (!startParam.startsWith('ref_')) return { referrerCode: null, utmSource: null }
+  const rest = startParam.slice(4)
+  const srcIndex = rest.indexOf('_src_')
+  if (srcIndex !== -1) {
+    return { referrerCode: rest.slice(0, srcIndex) || null, utmSource: rest.slice(srcIndex + 5) || null }
+  }
+  return { referrerCode: rest || null, utmSource: null }
+}
+
+/**
+ * Generate unique referral code with retry to avoid race condition
+ * on users_referral_code_key UNIQUE constraint
+ */
+async function generateUniqueReferralCode(supabase: any, maxRetries = 5): Promise<string> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const { data: maxCodeData } = await supabase
+      .from('users')
+      .select('referral_code')
+      .not('referral_code', 'is', null)
+      .order('referral_code', { ascending: false })
+      .limit(1)
+      .single()
+
+    let newCode = '01'
+    if (maxCodeData?.referral_code) {
+      const maxNum = parseInt(maxCodeData.referral_code, 10)
+      if (!isNaN(maxNum)) {
+        newCode = String(maxNum + 1 + attempt).padStart(2, '0')
+      }
+    }
+
+    // Check if code already exists before inserting
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('referral_code', newCode)
+      .single()
+
+    if (!existing) return newCode
+    console.log(`Referral code ${newCode} taken, retry ${attempt + 1}/${maxRetries}`)
+  }
+
+  // Fallback: timestamp-based unique code
+  return String(Date.now()).slice(-6)
+}
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const { initData, startParam } = await req.json()
-
     console.log('Auth request received, startParam:', startParam)
 
     if (!initData) {
@@ -40,7 +89,6 @@ serve(async (req) => {
       )
     }
 
-    // Валидация initData от Telegram
     const isValid = validateTelegramData(initData)
     if (!isValid) {
       return new Response(
@@ -49,16 +97,11 @@ serve(async (req) => {
       )
     }
 
-    // Парсинг данных пользователя
     const params = new URLSearchParams(initData)
     const userDataString = params.get('user')
-
-    // ВАЖНО: start_param может быть внутри initData!
     const startParamFromInitData = params.get('start_param')
     const effectiveStartParam = startParam || startParamFromInitData
 
-    console.log('startParam from body:', startParam)
-    console.log('startParam from initData:', startParamFromInitData)
     console.log('effectiveStartParam:', effectiveStartParam)
 
     if (!userDataString) {
@@ -70,13 +113,11 @@ serve(async (req) => {
 
     const userData = JSON.parse(decodeURIComponent(userDataString))
 
-    // Создание Supabase клиента с service role
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Найти существующего пользователя
     const { data: existingUser } = await supabase
       .from('users')
       .select('*')
@@ -85,19 +126,13 @@ serve(async (req) => {
 
     let user = existingUser
 
-    // Извлекаем реферальный код из effectiveStartParam (ref_06 -> 06)
-    let referrerCode: string | null = null
-    console.log('🔍 Checking referrer code:')
-    console.log('  - effectiveStartParam:', effectiveStartParam)
-    console.log('  - type:', typeof effectiveStartParam)
-    console.log('  - starts with ref_:', effectiveStartParam?.startsWith('ref_'))
+    // Parse startParam with UTM support
+    const { referrerCode, utmSource } = parseStartParam(effectiveStartParam)
+    console.log('Parsed startParam:', { referrerCode, utmSource })
 
-    if (effectiveStartParam && typeof effectiveStartParam === 'string' && effectiveStartParam.startsWith('ref_')) {
-      referrerCode = effectiveStartParam.replace('ref_', '')
-      console.log('✅ Extracted referrer code from startParam:', referrerCode)
-    } else {
-      // Фоллбэк: проверяем pending_referrals (код сохранён ботом при /start ref_XX)
-      console.log('🔍 No startParam, checking pending_referrals...')
+    // Fallback: check pending_referrals
+    let finalReferrerCode = referrerCode
+    if (!finalReferrerCode) {
       try {
         const { data: pending } = await supabase
           .from('pending_referrals')
@@ -106,100 +141,91 @@ serve(async (req) => {
           .single()
 
         if (pending?.referral_code) {
-          referrerCode = pending.referral_code
-          console.log('✅ Found pending referral code:', referrerCode)
-
-          // Удаляем запись — код использован
-          await supabase
-            .from('pending_referrals')
-            .delete()
-            .eq('telegram_id', userData.id)
-        } else {
-          console.log('❌ No referrer code found anywhere')
+          finalReferrerCode = pending.referral_code
+          console.log('Found pending referral code:', finalReferrerCode)
+          await supabase.from('pending_referrals').delete().eq('telegram_id', userData.id)
         }
-      } catch (e) {
-        console.log('❌ pending_referrals check failed:', e)
-      }
+      } catch (_e) { /* ok */ }
     }
 
     if (!user) {
-      // Генерируем реферальный код для нового пользователя
-      // Получаем максимальный существующий код и добавляем 1
-      const { data: maxCodeData } = await supabase
-        .from('users')
-        .select('referral_code')
-        .not('referral_code', 'is', null)
-        .order('referral_code', { ascending: false })
-        .limit(1)
-        .single()
+      // Generate referral code with retry logic (fixes race condition)
+      const newReferralCode = await generateUniqueReferralCode(supabase)
 
-      let newReferralCode = '01'
-      if (maxCodeData?.referral_code) {
-        const maxNum = parseInt(maxCodeData.referral_code, 10)
-        if (!isNaN(maxNum)) {
-          newReferralCode = String(maxNum + 1).padStart(2, '0')
-        }
+      console.log('Creating new user:', { referral_code: newReferralCode, referred_by_code: finalReferrerCode, utm_source: utmSource })
+
+      const insertData: any = {
+        telegram_id: userData.id,
+        username: userData.username || null,
+        first_name: userData.first_name || null,
+        last_name: userData.last_name || null,
+        avatar_url: userData.photo_url || null,
+        language_code: userData.language_code || 'ru',
+        referral_code: newReferralCode,
+        referred_by_code: finalReferrerCode || null
       }
+      if (utmSource) insertData.utm_source = utmSource
 
-      console.log('Generated referral code for new user:', newReferralCode)
-      console.log('📝 Creating new user with:')
-      console.log('  - telegram_id:', userData.id)
-      console.log('  - referral_code:', newReferralCode)
-      console.log('  - referred_by_code:', referrerCode || null)
-
-      // Создать нового пользователя
       const { data: newUser, error: createError } = await supabase
         .from('users')
-        .insert({
-          telegram_id: userData.id,
-          username: userData.username || null,
-          first_name: userData.first_name || null,
-          last_name: userData.last_name || null,
-          avatar_url: userData.photo_url || null,
-          language_code: userData.language_code || 'ru',
-          referral_code: newReferralCode,
-          referred_by_code: referrerCode || null
-        })
+        .insert(insertData)
         .select()
         .single()
 
       if (createError) {
-        console.error('Error creating user:', createError)
-        return new Response(
-          JSON.stringify({ error: 'Failed to create user' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+        // Handle unique constraint violation on referral_code - retry with fallback
+        if (createError.code === '23505' && createError.message?.includes('referral_code')) {
+          console.log('Referral code collision on insert, using timestamp fallback')
+          insertData.referral_code = String(Date.now()).slice(-8)
+          const { data: retryUser, error: retryError } = await supabase
+            .from('users')
+            .insert(insertData)
+            .select()
+            .single()
+
+          if (retryError) {
+            console.error('Error creating user (retry):', retryError)
+            return new Response(
+              JSON.stringify({ error: 'Failed to create user' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+          user = retryUser
+        } else {
+          console.error('Error creating user:', createError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to create user' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      } else {
+        user = newUser
       }
 
-      user = newUser
-
-      // Обработка реферальной ссылки для нового пользователя
-      if (referrerCode) {
-        const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
-          p_referrer_code: referrerCode,
-          p_referred_telegram_id: userData.id
-        })
-
-        console.log('Referral registration result:', registerResult, refError)
-
-        if (!refError && registerResult?.success) {
-          console.log('Referral registered:', registerResult)
-
-          // Выплачиваем бонус за регистрацию (6 монет)
-          const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+      // Process referral for new user
+      if (finalReferrerCode) {
+        try {
+          const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
+            p_referrer_code: finalReferrerCode,
             p_referred_telegram_id: userData.id
           })
-          console.log('Referral bonus paid:', bonusResult)
-        } else {
-          console.log('Referral registration skipped:', refError || registerResult?.error)
+
+          if (!refError && registerResult?.success) {
+            const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+              p_referred_telegram_id: userData.id
+            })
+            console.log('Referral bonus paid:', bonusResult)
+          }
+        } catch (e) {
+          console.error('Referral processing error (non-fatal):', e)
         }
 
-        // Уведомление рефереру о новом партнёре
+        // Notify referrer
         try {
           const { data: referrerUser } = await supabase
             .from('users')
             .select('telegram_id')
-            .eq('referral_code', referrerCode)
+            .eq('referral_code', finalReferrerCode)
             .single()
 
           if (referrerUser?.telegram_id) {
@@ -211,21 +237,19 @@ serve(async (req) => {
 
             const partnerName = userData.first_name || userData.username || 'Новый пользователь'
             const totalPartners = stats?.total_referrals || 1
+            const utmNote = utmSource ? `\n📍 Источник: <b>${utmSource}</b>` : ''
 
             await sendReferralNotification(
               referrerUser.telegram_id,
-              `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\n` +
-              `У вас теперь <b>${totalPartners}</b> партнёр(ов).\n` +
-              `Вы получаете бонус с каждой их активности.`
+              `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\nУ вас теперь <b>${totalPartners}</b> партнёр(ов).\nВы получаете бонус с каждой их активности.${utmNote}`
             )
-            console.log('Referral notification sent to:', referrerUser.telegram_id)
           }
         } catch (e) {
-          console.error('Failed to send referral registration notification:', e)
+          console.error('Failed to send referral notification:', e)
         }
       }
     } else {
-      // Обновить данные существующего пользователя
+      // Update existing user
       const updateData: any = {
         username: userData.username || user.username,
         first_name: userData.first_name || user.first_name,
@@ -234,25 +258,13 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       }
 
-      // Если у пользователя нет referral_code, генерируем
-      if (!user.referral_code) {
-        const { data: maxCodeData } = await supabase
-          .from('users')
-          .select('referral_code')
-          .not('referral_code', 'is', null)
-          .order('referral_code', { ascending: false })
-          .limit(1)
-          .single()
+      if (utmSource && !user.utm_source) {
+        updateData.utm_source = utmSource
+        console.log('Setting utm_source for existing user:', utmSource)
+      }
 
-        let newCode = '01'
-        if (maxCodeData?.referral_code) {
-          const maxNum = parseInt(maxCodeData.referral_code, 10)
-          if (!isNaN(maxNum)) {
-            newCode = String(maxNum + 1).padStart(2, '0')
-          }
-        }
-        updateData.referral_code = newCode
-        console.log('Generated referral code for existing user:', updateData.referral_code)
+      if (!user.referral_code) {
+        updateData.referral_code = await generateUniqueReferralCode(supabase)
       }
 
       const { data: updatedUser } = await supabase
@@ -264,9 +276,8 @@ serve(async (req) => {
 
       if (updatedUser) user = updatedUser
 
-      // Обработка реферальной ссылки для существующего пользователя (если ещё нет реферера)
-      if (referrerCode) {
-        // Проверяем, есть ли уже реферер
+      // Process referral for existing user (if no referrer yet)
+      if (finalReferrerCode) {
         const { data: existingReferrer } = await supabase
           .from('referrals')
           .select('id')
@@ -274,31 +285,28 @@ serve(async (req) => {
           .single()
 
         if (!existingReferrer) {
-          const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
-            p_referrer_code: referrerCode,
-            p_referred_telegram_id: userData.id
-          })
-
-          console.log('Referral registration result for existing user:', registerResult, refError)
-
-          if (!refError && registerResult?.success) {
-            console.log('Referral registered for existing user:', registerResult)
-
-            // Выплачиваем бонус за регистрацию (6 монет)
-            const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+          try {
+            const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
+              p_referrer_code: finalReferrerCode,
               p_referred_telegram_id: userData.id
             })
-            console.log('Referral bonus paid:', bonusResult)
-          } else {
-            console.log('Referral registration skipped:', refError || registerResult?.error)
+
+            if (!refError && registerResult?.success) {
+              const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
+                p_referred_telegram_id: userData.id
+              })
+              console.log('Referral bonus paid:', bonusResult)
+            }
+          } catch (e) {
+            console.error('Referral processing error (non-fatal):', e)
           }
 
-          // Уведомление рефереру о новом партнёре
+          // Notify referrer
           try {
             const { data: referrerUser } = await supabase
               .from('users')
               .select('telegram_id')
-              .eq('referral_code', referrerCode)
+              .eq('referral_code', finalReferrerCode)
               .single()
 
             if (referrerUser?.telegram_id) {
@@ -310,23 +318,21 @@ serve(async (req) => {
 
               const partnerName = userData.first_name || userData.username || 'Новый пользователь'
               const totalPartners = stats?.total_referrals || 1
+              const utmNote = utmSource ? `\n📍 Источник: <b>${utmSource}</b>` : ''
 
               await sendReferralNotification(
                 referrerUser.telegram_id,
-                `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\n` +
-                `У вас теперь <b>${totalPartners}</b> партнёр(ов).\n` +
-                `Вы получаете бонус с каждой их активности.`
+                `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\nУ вас теперь <b>${totalPartners}</b> партнёр(ов).\nВы получаете бонус с каждой их активности.${utmNote}`
               )
-              console.log('Referral notification sent to:', referrerUser.telegram_id)
             }
           } catch (e) {
-            console.error('Failed to send referral registration notification:', e)
+            console.error('Failed to send referral notification:', e)
           }
         }
       }
     }
 
-    // Получить профиль пользователя
+    // Get user profile
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')

@@ -522,6 +522,24 @@ serve(async (req) => {
       )
     }
 
+    // Проверяем success в результате (add_coins может вернуть success: false, если юзер не найден)
+    if (addResult && addResult.success === false) {
+      console.error('add_coins returned success: false:', addResult)
+      await sendAdminNotification(
+        `❌ <b>add_coins: success=false!</b>\n\n` +
+        `👤 Telegram ID: <code>${telegramId}</code>\n` +
+        `💎 Пакет: ${packageId} (${coinsAmount} нейронов)\n` +
+        `💰 Сумма: ${paidAmount} ${paidCurrency}\n` +
+        `🧾 Contract: <code>${contractId || 'N/A'}</code>\n\n` +
+        `❗ Причина: ${addResult.error || 'неизвестна'}\n\n` +
+        `Нужно начислить вручную!`
+      )
+      return new Response(
+        JSON.stringify({ ok: false, error: 'add_coins returned success: false', details: addResult }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     console.log('Coins added successfully:', addResult)
 
     // Уведомление покупателю
