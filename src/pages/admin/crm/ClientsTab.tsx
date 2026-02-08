@@ -243,8 +243,10 @@ export function ClientsTab() {
     })
 
     return Array.from(map.values()).sort((a, b) => {
-      // Сортируем: по сумме оплат (больше = выше)
-      return b.totalPaid - a.totalPaid
+      // Сортируем: по дате последней оплаты (новые сверху)
+      const dateA = a.lastPaymentAt || a.firstPaymentAt || ''
+      const dateB = b.lastPaymentAt || b.firstPaymentAt || ''
+      return dateB.localeCompare(dateA)
     })
   }, [payments, subscriptions, clients, usersMap])
 
