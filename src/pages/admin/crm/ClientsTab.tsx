@@ -45,12 +45,21 @@ interface UserSubscription {
   cancelled_at: string | null
 }
 
+// Курс конвертации USD → RUB
+const USD_TO_RUB = 80
+
+const toRub = (amount: number, currency: string) => {
+  if (currency === 'USD') return Math.round(amount * USD_TO_RUB)
+  return amount
+}
+
 // Объединённый платящий юзер
 interface PaidUser {
   telegram_id: number
   username: string | null
   first_name: string | null
-  totalPaid: number
+  totalPaid: number // всегда в RUB (конвертировано)
+  totalPaidRaw: { rub: number; usd: number } // раздельно по валютам
   paymentsCount: number
   lastPaymentAt: string | null
   firstPaymentAt: string | null
@@ -153,9 +162,13 @@ export function ClientsTab() {
 
     // 1. Из payments
     payments.forEach(p => {
+      const amountRub = toRub(p.amount, p.currency)
+      const isUsd = p.currency === 'USD'
       const existing = map.get(p.telegram_id)
       if (existing) {
-        existing.totalPaid += p.amount
+        existing.totalPaid += amountRub
+        if (isUsd) existing.totalPaidRaw.usd += p.amount
+        else existing.totalPaidRaw.rub += p.amount
         existing.paymentsCount++
         if (!existing.lastPaymentAt || p.paid_at > existing.lastPaymentAt) {
           existing.lastPaymentAt = p.paid_at
@@ -169,7 +182,8 @@ export function ClientsTab() {
           telegram_id: p.telegram_id,
           username: user?.username || null,
           first_name: user?.first_name || null,
-          totalPaid: p.amount,
+          totalPaid: amountRub,
+          totalPaidRaw: { rub: isUsd ? 0 : p.amount, usd: isUsd ? p.amount : 0 },
           paymentsCount: 1,
           lastPaymentAt: p.paid_at,
           firstPaymentAt: p.paid_at,
@@ -201,6 +215,7 @@ export function ClientsTab() {
           username: user?.username || null,
           first_name: user?.first_name || null,
           totalPaid: s.amount_rub || 0,
+          totalPaidRaw: { rub: s.amount_rub || 0, usd: 0 },
           paymentsCount: s.amount_rub ? 1 : 0,
           lastPaymentAt: s.started_at,
           firstPaymentAt: s.started_at,
@@ -230,6 +245,7 @@ export function ClientsTab() {
           username: c.username || user?.username || null,
           first_name: c.first_name || user?.first_name || null,
           totalPaid: 0,
+          totalPaidRaw: { rub: 0, usd: 0 },
           paymentsCount: 0,
           lastPaymentAt: null,
           firstPaymentAt: c.created_at,
@@ -370,6 +386,13 @@ export function ClientsTab() {
 
   const formatAmount = (amount: number) => {
     return `${amount.toLocaleString('ru-RU')} ₽`
+  }
+
+  const formatUserAmount = (user: PaidUser) => {
+    const parts: string[] = []
+    if (user.totalPaidRaw.rub > 0) parts.push(`${user.totalPaidRaw.rub.toLocaleString('ru-RU')} ₽`)
+    if (user.totalPaidRaw.usd > 0) parts.push(`$${user.totalPaidRaw.usd.toLocaleString('en-US')}`)
+    return parts.join(' + ') || '0 ₽'
   }
 
   const formatDateShort = (dateStr: string) => {
@@ -537,7 +560,7 @@ export function ClientsTab() {
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
                     {user.totalPaid > 0 && (
                       <span className="text-sm font-bold text-orange-600">
-                        {formatAmount(user.totalPaid)}
+                        {formatUserAmount(user)}
                       </span>
                     )}
                     <div className="flex items-center gap-1 text-[10px] text-gray-400">
@@ -759,9 +782,9 @@ export function ClientsTab() {
                               <span>Оплачено</span>
                             </div>
                             <div className="text-3xl font-bold tracking-tight">
-                              {selectedUser.totalPaid.toLocaleString('ru-RU')}
+                              {formatUserAmount(selectedUser)}
                             </div>
-                            <div className="text-xs text-orange-100 mt-1 opacity-80">рублей всего</div>
+                            <div className="text-xs text-orange-100 mt-1 opacity-80">≈ {formatAmount(selectedUser.totalPaid)}</div>
                           </div>
                           <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm relative overflow-hidden">
                             <div className="flex items-center gap-2 text-gray-500 mb-2 font-medium">
