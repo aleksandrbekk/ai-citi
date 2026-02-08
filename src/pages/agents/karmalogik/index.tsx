@@ -4,6 +4,7 @@ import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, Message
 import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { getTelegramUser } from '@/lib/telegram'
+import { trackCoachEvent } from '@/lib/analytics'
 import Paywall from '@/components/Paywall'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { toast } from 'sonner'
@@ -142,6 +143,7 @@ export default function KarmalogikChat() {
       return
     }
 
+    trackCoachEvent('tts_played')
     // Остановить предыдущее
     if (audioRef.current) {
       audioRef.current.pause()
@@ -333,6 +335,7 @@ export default function KarmalogikChat() {
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
+    trackCoachEvent('message_sent')
 
     try {
       const history = messages.map(m => ({

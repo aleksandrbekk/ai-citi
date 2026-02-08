@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCoinBalance } from '@/lib/supabase'
 import { haptic } from '@/lib/haptic'
+import { trackShopEvent } from '@/lib/analytics'
 import { Star, User, Palette, Coins, FlaskConical } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '@/config/admins'
@@ -278,6 +279,7 @@ export function Shop() {
 
   const processBuyCoins = async (pkg: CoinPackage, currency: string) => {
     console.log('processBuyCoins', { pkg, currency })
+    trackShopEvent('buy_coins', { packageId: pkg.id, coins: pkg.coins, priceRub: pkg.priceRub, currency })
     setIsProcessing(true)
 
     try {
@@ -327,6 +329,7 @@ export function Shop() {
 
   const processBuySubscription = async (planId: string, currency: string) => {
     console.log('processBuySubscription', { planId, currency })
+    trackShopEvent('buy_subscription', { planId, currency })
     setIsProcessing(true)
 
     try {

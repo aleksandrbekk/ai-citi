@@ -5,6 +5,7 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
 import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles, getCarouselStylesByIds } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
+import { trackCarouselEvent } from '@/lib/analytics'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
@@ -566,6 +567,16 @@ function CarouselIndexInner() {
 
       if (!response.ok) throw new Error('Network error')
 
+      // Трекинг успешной генерации
+      trackCarouselEvent('start', {
+        style,
+        topic: topic.trim().slice(0, 50),
+        ctaType,
+        gender,
+        hasSubscription,
+        coinBalance
+      })
+
       setStatus('generating')
       navigate('/agents/carousel/generating')
     } catch {
@@ -719,8 +730,8 @@ function CarouselIndexInner() {
             }}
             disabled={isSubmitting}
             className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer ${coinBalance < GENERATION_COST
-                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-green-500/30'
-                : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white shadow-pink-500/30'
+              ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-green-500/30'
+              : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white shadow-pink-500/30'
               }`}
           >
             {isSubmitting ? (
