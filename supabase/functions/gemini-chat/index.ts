@@ -111,17 +111,17 @@ async function checkUserLimit(userId: string | undefined, settings: ChatSettings
 
   try {
     const supabase = getSupabaseClient()
-    
+
     const { data: userTariffs } = await supabase
       .from('user_tariffs')
       .select('tariff_slug')
       .eq('user_id', userId)
       .eq('is_active', true)
-    
+
     // Определяем лучший тариф
     let bestTariff = 'basic'
     let isPremium = false
-    
+
     const tariffLimits: Record<string, number> = {
       'basic': settings.limit_basic,
       'pro': settings.limit_pro,
@@ -130,11 +130,11 @@ async function checkUserLimit(userId: string | undefined, settings: ChatSettings
       'elite': settings.limit_elite,
       'platinum': settings.limit_elite
     }
-    
+
     const premiumTariffs = ['pro', 'standard', 'vip', 'elite', 'platinum']
-    
+
     let limit = tariffLimits['basic']
-    
+
     if (userTariffs && userTariffs.length > 0) {
       for (const t of userTariffs) {
         const tariffLimit = tariffLimits[t.tariff_slug] || settings.limit_basic
@@ -147,21 +147,21 @@ async function checkUserLimit(userId: string | undefined, settings: ChatSettings
         }
       }
     }
-    
+
     // Считаем использование за сегодня
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    
+
     const { count } = await supabase
       .from('chat_usage')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('success', true)
       .gte('created_at', today.toISOString())
-    
+
     const used = count || 0
     const remaining = Math.max(0, limit - used)
-    
+
     return {
       allowed: used < limit,
       tariff: bestTariff,
@@ -352,7 +352,7 @@ async function searchRAG(
         },
         summarySpec: {
           summaryPromptSpec: {
-            promptTemplate: "Ты полезный AI-ассистент. Отвечай строго на основе найденных документов. Если ответа нет в документах, скажи 'Не нашел ответа в документах'."
+            promptTemplate: "Извлеки ключевую информацию из документов, которая поможет ответить на вопрос. НЕ упоминай названия документов, файлов или источников. Просто изложи суть знаний."
           }
         }
       }
@@ -368,24 +368,28 @@ async function searchRAG(
   const data = await response.json()
   console.log('RAG search response:', JSON.stringify(data).substring(0, 1000))
 
-  // Извлекаем источники из результатов поиска
+  // Извлекаем ТОЛЬКО сниппеты (без названий файлов — они не должны утекать к пользователю)
   const sources = (data.results || []).map((r: any) => ({
-    title: r.document?.derivedStructData?.title || r.document?.title || 'Без названия',
-    uri: r.document?.derivedStructData?.link || r.document?.uri || '',
+    title: '', // Намеренно скрываем названия документов
+    uri: '',
     snippet: r.document?.derivedStructData?.snippets?.[0]?.snippet || ''
   }))
 
-  // Формируем ответ на основе найденных документов
-  // Если есть summary - используем его, иначе формируем из snippets
-  let answer = data.summary?.summaryText
-  
+  // Формируем ответ — убираем все ссылки на источники [1], [2] и т.д.
+  let answer = data.summary?.summaryText || ''
+
+  // Очищаем от ссылок формата [1], [2, 3], (1), (источник) и т.д.
+  answer = answer.replace(/\[\d+(?:,\s*\d+)*\]/g, '')
+  answer = answer.replace(/\(\d+\)/g, '')
+  answer = answer.replace(/📎\s*Источники:[\s\S]*/gi, '')
+  answer = answer.replace(/Источник[иы]?\s*:[\s\S]*/gi, '')
+  answer = answer.trim()
+
   if (!answer && sources.length > 0) {
-    // Формируем контекст из найденных документов
-    answer = sources.map((s: any, i: number) => 
-      `${i + 1}. ${s.title}\n${s.snippet}`
-    ).join('\n\n')
+    // Формируем контекст ТОЛЬКО из сниппетов (без заголовков)
+    answer = sources.map((s: any) => s.snippet).filter(Boolean).join('\n\n')
   }
-  
+
   if (!answer) {
     answer = 'Не нашел ответа в документах.'
   }
@@ -418,7 +422,7 @@ serve(async (req) => {
 
     // Проверяем лимит и определяем тариф
     const limitInfo = await checkUserLimit(userId, settings)
-    
+
     if (!limitInfo.allowed) {
       return new Response(
         JSON.stringify({
@@ -495,7 +499,7 @@ serve(async (req) => {
         console.log('Using RAG mode with engineId:', ragEngineId)
         ragResult = await searchRAG(token, message, ragEngineId)
         console.log('RAG result:', { answer: ragResult.answer.substring(0, 100), sourcesCount: ragResult.sources.length })
-        
+
         // Если RAG нашел ответ, используем его
         if (ragResult.answer && ragResult.answer !== 'Не нашел ответа в документах.') {
           // Формируем контекст из RAG (без упоминания источников)
@@ -510,13 +514,19 @@ serve(async (req) => {
             enhancedPrompt = `${systemPrompt}
 
 ---
-ВНУТРЕННИЕ ЗНАНИЯ (используй как свою экспертизу, НЕ упоминай источники, НЕ цитируй напрямую):
+ТВОИ ВНУТРЕННИЕ ЗНАНИЯ (это твоя экспертиза, ты ЗНАЕШЬ это сам, как профессиональный коуч):
 ${ragContext || ragResult.answer}
 ---
 
-Сообщение клиента: ${message}
+КРИТИЧЕСКИ ВАЖНО:
+- Ты НИКОГДА не упоминаешь источники, документы, файлы, базы данных
+- Ты НИКОГДА не пишешь [1], [2] или ссылки на источники
+- Ты НИКОГДА не говоришь "на основе документов" или "согласно данным"
+- Ты говоришь как ЖИВОЙ КОУЧ от первого лица
+- Ты ЗАДАЁШЬ ВОПРОСЫ клиенту, а не читаешь лекции
+- Максимум 2-3 коротких абзаца
 
-Ответь в соответствии с инструкциями выше. Помни: веди диалог, задавай вопросы, не упоминай источники.`
+Сообщение клиента: ${message}`
           } else {
             // Стандартный RAG режим с источниками
             enhancedPrompt = `
@@ -587,10 +597,10 @@ ${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((
           console.log(`Attempt ${attempts + 1}: using model ${modelToUse}`)
 
           result = await callGemini(
-            token, 
-            modelToUse, 
-            contents, 
-            settings.temperature, 
+            token,
+            modelToUse,
+            contents,
+            settings.temperature,
             settings.max_tokens
           )
           usedModel = modelToUse
