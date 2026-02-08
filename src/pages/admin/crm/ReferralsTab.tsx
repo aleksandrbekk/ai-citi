@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Users, Coins, TrendingUp, CreditCard, Search, ArrowRight, ChevronDown, ChevronUp, Gift, ShoppingCart } from 'lucide-react'
+import { Users, Coins, TrendingUp, Search, ArrowRight, ChevronDown, ChevronUp, Gift, ShoppingCart } from 'lucide-react'
 import { useState } from 'react'
 
 interface ReferralStatRow {
@@ -10,7 +10,6 @@ interface ReferralStatRow {
   total_referrals: number
   total_coins_earned: number
   total_partner_spent: number
-  total_partner_purchased: number
 }
 
 interface ReferralLink {
@@ -112,11 +111,10 @@ export function ReferralsTab() {
     (acc, row) => ({
       referrals: acc.referrals + row.total_referrals,
       earned: acc.earned + row.total_coins_earned,
-      spent: acc.spent + row.total_partner_spent,
-      purchased: acc.purchased + row.total_partner_purchased
+      spent: acc.spent + row.total_partner_spent
     }),
-    { referrals: 0, earned: 0, spent: 0, purchased: 0 }
-  ) || { referrals: 0, earned: 0, spent: 0, purchased: 0 }
+    { referrals: 0, earned: 0, spent: 0 }
+  ) || { referrals: 0, earned: 0, spent: 0 }
 
   const togglePartner = (referrerId: number, partnerId: number) => {
     const key = `${referrerId}-${partnerId}`
@@ -125,8 +123,7 @@ export function ReferralsTab() {
 
   return (
     <div className="space-y-4">
-      {/* Общая статистика */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <StatCard
           icon={Users}
           label="Всего рефералов"
@@ -144,12 +141,6 @@ export function ReferralsTab() {
           label="Траты партнёров"
           value={totals.spent}
           color="green"
-        />
-        <StatCard
-          icon={CreditCard}
-          label="Покупки партнёров"
-          value={totals.purchased}
-          color="purple"
         />
       </div>
 
@@ -346,13 +337,13 @@ function StatCard({
   icon: React.ElementType
   label: string
   value: number
-  color: 'blue' | 'yellow' | 'green' | 'purple'
+  color: 'blue' | 'yellow' | 'green' | 'cyan'
 }) {
   const colors = {
     blue: 'bg-blue-100 text-blue-600',
     yellow: 'bg-yellow-100 text-yellow-600',
     green: 'bg-green-100 text-green-600',
-    purple: 'bg-purple-100 text-purple-600'
+    cyan: 'bg-cyan-100 text-cyan-600'
   }
 
   return (
