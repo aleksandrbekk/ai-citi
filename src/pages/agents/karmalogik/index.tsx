@@ -192,13 +192,27 @@ export default function KarmalogikChat() {
     }
   }
 
-  // Очистка аудио при размонтировании
+  // Очистка аудио при размонтировании / сворачивании
   useEffect(() => {
-    return () => {
+    const stopAudio = () => {
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current = null
+        setPlayingMessageId(null)
       }
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) stopAudio()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('pagehide', stopAudio)
+
+    return () => {
+      stopAudio()
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('pagehide', stopAudio)
     }
   }, [])
 
