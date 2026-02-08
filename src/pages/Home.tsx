@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, PenTool, Lock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Bot } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
 
@@ -20,16 +20,16 @@ const characters = [
     comingSoon: false
   },
   {
-    id: 'copywriter',
+    id: 'assistant',
     skin: '/images/skins/skin_1.png',
-    name: 'Копирайтер',
-    label: 'AI Тексты',
+    name: 'Ассистент',
+    label: 'AI Помощник',
     path: '/chat',
-    task: 'Написать текст',
-    defaultSpeech: 'Напишу любой текст\nза минуту ✍️',
-    icon: PenTool,
-    disabled: true,
-    comingSoon: true
+    task: 'Задать вопрос',
+    defaultSpeech: 'Спроси меня о чём угодно!\nЯ помогу 🤖',
+    icon: Bot,
+    disabled: false,
+    comingSoon: false
   },
 ]
 
@@ -291,7 +291,7 @@ export default function Home() {
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <Lock size={10} />
+                    <ChevronRight size={10} />
                     СКОРО
                   </motion.div>
                 </div>
