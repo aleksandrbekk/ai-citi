@@ -629,57 +629,82 @@ export function AdminSettings() {
 }
 
 function MaintenanceToggleCard() {
-  const { isMaintenanceEnabled, message } = useMaintenanceMode()
+  const { isMaintenanceEnabled, message, refetch } = useMaintenanceMode()
+  const [localEnabled, setLocalEnabled] = useState(isMaintenanceEnabled)
   const [localMsg, setLocalMsg] = useState(message)
-  const [saving, setSaving] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  // Sync with server state
+  useEffect(() => {
+    setLocalEnabled(isMaintenanceEnabled)
+  }, [isMaintenanceEnabled])
 
   useEffect(() => {
     setLocalMsg(message)
   }, [message])
 
-  const handleToggle = async () => {
-    setSaving(true)
-    await toggleMaintenanceMode(!isMaintenanceEnabled)
-    setSaving(false)
+  const onToggle = async () => {
+    if (busy) return
+    const newVal = !localEnabled
+    setLocalEnabled(newVal) // optimistic
+    setBusy(true)
+    try {
+      await toggleMaintenanceMode(newVal)
+      await refetch()
+    } catch (e) {
+      console.error('[Maintenance] toggle failed:', e)
+      setLocalEnabled(!newVal) // revert
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const handleSave = async () => {
-    setSaving(true)
-    await updateMaintenanceMessage(localMsg)
-    setSaving(false)
+  const onSaveMsg = async () => {
+    setBusy(true)
+    try {
+      await updateMaintenanceMessage(localMsg)
+      await refetch()
+    } catch (e) {
+      console.error('[Maintenance] save msg failed:', e)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
-    <div className={`mb-6 p-5 rounded-2xl border transition-colors ${isMaintenanceEnabled
+    <div className={`mb-6 p-5 rounded-2xl border transition-colors ${localEnabled
       ? 'bg-orange-50 border-orange-200'
       : 'bg-white border-gray-200'
       }`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMaintenanceEnabled
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${localEnabled
             ? 'bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg shadow-orange-500/20'
             : 'bg-gray-100'
             }`}>
-            <Wrench className={`w-5 h-5 ${isMaintenanceEnabled ? 'text-white' : 'text-gray-400'}`} />
+            <Wrench className={`w-5 h-5 ${localEnabled ? 'text-white' : 'text-gray-400'}`} />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">Тех. работы</h3>
             <p className="text-xs text-gray-500">Заглушка для всех кроме админов</p>
           </div>
         </div>
-        <button
-          onClick={handleToggle}
-          disabled={saving}
-          className={`relative w-14 h-8 rounded-full transition-colors cursor-pointer touch-manipulation ${isMaintenanceEnabled ? 'bg-orange-500' : 'bg-gray-300'
+
+        {/* Toggle — простой div с onClick */}
+        <div
+          role="switch"
+          aria-checked={localEnabled}
+          onClick={onToggle}
+          className={`relative w-14 h-8 rounded-full cursor-pointer select-none transition-colors ${localEnabled ? 'bg-orange-500' : 'bg-gray-300'
             }`}
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
         >
-          <div className={`pointer-events-none absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${isMaintenanceEnabled ? 'translate-x-7' : 'translate-x-1'
+          <div className={`pointer-events-none absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-200 ${localEnabled ? 'translate-x-6' : 'translate-x-0'
             }`} />
-        </button>
+        </div>
       </div>
 
-      {isMaintenanceEnabled && (
+      {localEnabled && (
         <div className="mt-4 pt-4 border-t border-orange-200/60">
           <label className="text-xs text-gray-500 mb-1.5 block">Текст для пользователей:</label>
           <div className="flex gap-2">
@@ -689,13 +714,15 @@ function MaintenanceToggleCard() {
               onChange={(e) => setLocalMsg(e.target.value)}
               className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400"
             />
-            <button
-              onClick={handleSave}
-              disabled={saving || localMsg === message}
-              className="px-3 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+            <div
+              onClick={onSaveMsg}
+              className={`px-3 py-2 rounded-xl text-sm font-medium cursor-pointer select-none transition-colors ${localMsg !== message
+                  ? 'bg-orange-500 text-white active:bg-orange-600'
+                  : 'bg-gray-200 text-gray-400'
+                }`}
             >
               <Save className="w-4 h-4" />
-            </button>
+            </div>
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-xs text-orange-600">
             <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
