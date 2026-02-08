@@ -3,8 +3,7 @@ import { supabase } from '../../../lib/supabase'
 import { Users, Coins, TrendingUp, Search, ArrowRight, ChevronDown, ChevronUp, Gift, ShoppingCart, Link2, Copy, Check, Tag } from 'lucide-react'
 import { useState } from 'react'
 import { getTelegramUser } from '../../../lib/telegram'
-
-const ADMIN_IDS = [643763835, 190202791]
+import { ADMIN_IDS } from '../../../config/admins'
 
 interface ReferralStatRow {
   telegram_id: number
@@ -215,8 +214,8 @@ export function ReferralsTab() {
                 }
               }}
               className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex-shrink-0 ${utmCopied
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg'
+                ? 'bg-green-500 text-white'
+                : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg'
                 }`}
             >
               {utmCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
