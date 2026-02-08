@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Settings, Save, RefreshCw, Bot, Zap, MessageSquare, Users, Sliders, Info, Crown, Sparkles, Database } from 'lucide-react'
+import { Settings, Save, RefreshCw, Bot, Zap, MessageSquare, Users, Sliders, Info, Crown, Sparkles, Database, Wrench } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useMaintenanceMode, toggleMaintenanceMode, updateMaintenanceMessage } from '@/hooks/useMaintenanceMode'
 
 interface ChatSettings {
   id: string
@@ -224,6 +225,9 @@ export function AdminSettings() {
           </div>
         </div>
       )}
+
+      {/* Maintenance Mode Card */}
+      <MaintenanceToggleCard />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-2xl">
@@ -620,6 +624,84 @@ export function AdminSettings() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function MaintenanceToggleCard() {
+  const { isMaintenanceEnabled, message } = useMaintenanceMode()
+  const [localMsg, setLocalMsg] = useState(message)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    setLocalMsg(message)
+  }, [message])
+
+  const handleToggle = async () => {
+    setSaving(true)
+    await toggleMaintenanceMode(!isMaintenanceEnabled)
+    setSaving(false)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    await updateMaintenanceMessage(localMsg)
+    setSaving(false)
+  }
+
+  return (
+    <div className={`mb-6 p-5 rounded-2xl border transition-colors ${isMaintenanceEnabled
+        ? 'bg-orange-50 border-orange-200'
+        : 'bg-white border-gray-200'
+      }`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMaintenanceEnabled
+              ? 'bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg shadow-orange-500/20'
+              : 'bg-gray-100'
+            }`}>
+            <Wrench className={`w-5 h-5 ${isMaintenanceEnabled ? 'text-white' : 'text-gray-400'}`} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Тех. работы</h3>
+            <p className="text-xs text-gray-500">Заглушка для всех кроме админов</p>
+          </div>
+        </div>
+        <button
+          onClick={handleToggle}
+          disabled={saving}
+          className={`relative w-12 h-7 rounded-full transition-colors ${isMaintenanceEnabled ? 'bg-orange-500' : 'bg-gray-300'
+            }`}
+        >
+          <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isMaintenanceEnabled ? 'translate-x-5' : 'translate-x-0.5'
+            }`} />
+        </button>
+      </div>
+
+      {isMaintenanceEnabled && (
+        <div className="mt-4 pt-4 border-t border-orange-200/60">
+          <label className="text-xs text-gray-500 mb-1.5 block">Текст для пользователей:</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={localMsg}
+              onChange={(e) => setLocalMsg(e.target.value)}
+              className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-orange-400"
+            />
+            <button
+              onClick={handleSave}
+              disabled={saving || localMsg === message}
+              className="px-3 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              <Save className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-orange-600">
+            <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+            Активно — пользователи видят заглушку
+          </div>
+        </div>
+      )}
     </div>
   )
 }
