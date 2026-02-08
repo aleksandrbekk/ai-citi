@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, MessageSquare, X } from 'lucide-react'
+import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, MessageSquare, X, Volume2, Square } from 'lucide-react'
 import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { getTelegramUser } from '@/lib/telegram'
@@ -124,10 +124,83 @@ export default function KarmalogikChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<any>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null)
+  const [loadingTTSId, setLoadingTTSId] = useState<string | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  // TTS — озвучка сообщений коуча
+  const playTTS = async (messageId: string, text: string) => {
+    // Если играет это же сообщение — остановить
+    if (playingMessageId === messageId && audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+      setPlayingMessageId(null)
+      return
+    }
+
+    // Остановить предыдущее
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+
+    setLoadingTTSId(messageId)
+
+    try {
+      const response = await supabase.functions.invoke('tts', {
+        body: { text }
+      })
+
+      if (response.error) throw response.error
+      const { audioContent } = response.data
+
+      if (!audioContent) throw new Error('No audio')
+
+      // Декодируем base64 и воспроизводим
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(audioContent), c => c.charCodeAt(0))],
+        { type: 'audio/mp3' }
+      )
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
+
+      audio.onended = () => {
+        setPlayingMessageId(null)
+        URL.revokeObjectURL(audioUrl)
+        audioRef.current = null
+      }
+
+      audio.onerror = () => {
+        setPlayingMessageId(null)
+        URL.revokeObjectURL(audioUrl)
+        audioRef.current = null
+        toast.error('Не удалось воспроизвести')
+      }
+
+      audioRef.current = audio
+      setPlayingMessageId(messageId)
+      await audio.play()
+    } catch (err) {
+      console.error('TTS error:', err)
+      toast.error('Озвучка временно недоступна')
+    } finally {
+      setLoadingTTSId(null)
+    }
+  }
+
+  // Очистка аудио при размонтировании
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
 
   // Сохранение истории
   useEffect(() => {
@@ -511,6 +584,23 @@ export default function KarmalogikChat() {
                 >
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                 </div>
+                {/* TTS кнопка — только для сообщений коуча */}
+                {message.role === 'assistant' && (
+                  <button
+                    onClick={() => playTTS(message.id, message.content)}
+                    disabled={loadingTTSId === message.id}
+                    className="mt-1 ml-1 p-1.5 rounded-lg hover:bg-amber-50 transition-colors group cursor-pointer"
+                    title={playingMessageId === message.id ? 'Остановить' : 'Озвучить'}
+                  >
+                    {loadingTTSId === message.id ? (
+                      <Loader2 size={14} className="text-amber-500 animate-spin" />
+                    ) : playingMessageId === message.id ? (
+                      <Square size={14} className="text-orange-500 fill-orange-500" />
+                    ) : (
+                      <Volume2 size={14} className="text-gray-400 group-hover:text-amber-500 transition-colors" />
+                    )}
+                  </button>
+                )}
               </div>
 
               {message.role === 'user' && (
