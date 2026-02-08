@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { getTelegramUser } from '@/lib/telegram'
+import { ADMIN_IDS } from '@/config/admins'
 
 // =========================================================
 // ТИПЫ
@@ -94,6 +96,9 @@ export default function UtmTab() {
   // === Общее ===
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
+  // === Admin referral code для UTM-ссылок ===
+  const [adminRefCode, setAdminRefCode] = useState<string | null>(null)
+
   // =========================================================
   // ЗАГРУЗКА ДАННЫХ
   // =========================================================
@@ -101,7 +106,17 @@ export default function UtmTab() {
   useEffect(() => {
     loadCampaigns()
     loadPromoLinks()
+    loadAdminRefCode()
   }, [])
+
+  const loadAdminRefCode = async () => {
+    const tgUser = getTelegramUser()
+    if (!tgUser?.id || !ADMIN_IDS.includes(tgUser.id)) return
+    const { data } = await supabase.rpc('get_user_referral_code', {
+      p_telegram_id: tgUser.id
+    })
+    if (data) setAdminRefCode(data as string)
+  }
 
   const loadCampaigns = async () => {
     setUtmLoading(true)
@@ -168,13 +183,11 @@ export default function UtmTab() {
   }
 
   const buildUtmUrl = (campaign: Partial<UtmCampaign>) => {
-    const baseUrl = `https://t.me/${BOT_USERNAME}/app`
-    const params = new URLSearchParams()
-    if (campaign.utm_source) params.append('utm_source', campaign.utm_source)
-    if (campaign.utm_medium) params.append('utm_medium', campaign.utm_medium)
-    if (campaign.short_code) params.append('ref', campaign.short_code)
-    const paramStr = params.toString()
-    return paramStr ? `${baseUrl}?${paramStr}` : baseUrl
+    // Формат ?start= открывает бота (не inline Mini App)
+    // ref_CODE_src_TAG — реферальный код админа + источник трафика
+    const refCode = adminRefCode || '01'
+    const src = campaign.short_code || campaign.utm_source || 'direct'
+    return `https://t.me/${BOT_USERNAME}?start=ref_${refCode}_src_${src}`
   }
 
   const handleUtmSubmit = async (e: React.FormEvent) => {
