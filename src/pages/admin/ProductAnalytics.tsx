@@ -6,7 +6,6 @@ import {
     TrendingUp,
     Users,
     Eye,
-    MousePointer,
     ShoppingCart,
     MessageSquare,
     Palette,
@@ -14,12 +13,13 @@ import {
     Activity,
     Calendar,
     ArrowUp,
-    ArrowDown
+    ArrowDown,
+    Coins
 } from 'lucide-react'
 import { RevenueTab } from './analytics/RevenueTab'
 
 type Period = 'today' | 'week' | 'month' | 'all'
-type Tab = 'overview' | 'pages' | 'features' | 'revenue'
+type Tab = 'overview' | 'pages' | 'economy' | 'revenue'
 
 interface UserEvent {
     id: string
@@ -80,6 +80,64 @@ export function ProductAnalytics() {
                 .select('tier, status, created_at')
                 .eq('status', 'active')
             return data || []
+        }
+    })
+
+    // ---------- Загрузка сообщений AI Коуча из chat_usage ----------
+    const { data: chatUsageStats } = useQuery({
+        queryKey: ['chat_usage_stats', period],
+        queryFn: async () => {
+            let query = supabase
+                .from('chat_usage')
+                .select('id, user_id, model, input_tokens, output_tokens, created_at')
+                .order('created_at', { ascending: false })
+
+            query = query.gte('created_at', periodStart.toISOString())
+
+            const { data, error } = await query
+            if (error) { console.error('Chat usage error:', error); return { total: 0, uniqueUsers: 0, byModel: new Map<string, number>() } }
+
+            const msgs = data || []
+            const uniqueUsers = new Set(msgs.map(m => m.user_id)).size
+            const byModel = new Map<string, number>()
+            msgs.forEach(m => {
+                byModel.set(m.model, (byModel.get(m.model) || 0) + 1)
+            })
+            return { total: msgs.length, uniqueUsers, byModel }
+        }
+    })
+
+    // ---------- Загрузка экономики нейронов из coin_transactions ----------
+    const { data: neuronStats } = useQuery({
+        queryKey: ['neuron_economy_stats', period],
+        queryFn: async () => {
+            let query = supabase
+                .from('coin_transactions')
+                .select('id, user_id, amount, type, description, created_at')
+                .order('created_at', { ascending: false })
+
+            query = query.gte('created_at', periodStart.toISOString())
+
+            const { data, error } = await query
+            if (error) { console.error('Coin tx error:', error); return null }
+
+            const txs = data || []
+            const income = new Map<string, { count: number; total: number }>()
+            const expense = new Map<string, { count: number; total: number }>()
+            let totalIncome = 0
+            let totalExpense = 0
+
+            txs.forEach(tx => {
+                const map = tx.amount >= 0 ? income : expense
+                const existing = map.get(tx.type) || { count: 0, total: 0 }
+                existing.count++
+                existing.total += Math.abs(tx.amount)
+                map.set(tx.type, existing)
+                if (tx.amount >= 0) totalIncome += tx.amount
+                else totalExpense += Math.abs(tx.amount)
+            })
+
+            return { total: txs.length, totalIncome, totalExpense, income, expense, uniqueUsers: new Set(txs.map(t => t.user_id)).size }
         }
     })
 
@@ -184,7 +242,7 @@ export function ProductAnalytics() {
 
     // Фичи
     const carouselEvents = events.filter(e => e.event_category === 'carousel')
-    const coachEvents = events.filter(e => e.event_category === 'coach')
+    // coachEvents теперь из chatUsageStats
     const shopEvents = events.filter(e => e.event_category === 'shop')
 
     // Revenue events
@@ -298,7 +356,7 @@ export function ProductAnalytics() {
                 {([
                     ['overview', 'Обзор', Activity],
                     ['pages', 'Страницы', Eye],
-                    ['features', 'Фичи', MousePointer],
+                    ['economy', 'Экономика', Coins],
                     ['revenue', 'Монетизация', ShoppingCart],
                 ] as const).map(([key, label, Icon]) => (
                     <button
@@ -403,7 +461,7 @@ export function ProductAnalytics() {
                         </div>
                         <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
                             <MessageSquare className="w-6 h-6 mx-auto text-cyan-500 mb-2" />
-                            <div className="text-2xl font-bold text-gray-900">{coachEvents.length}</div>
+                            <div className="text-2xl font-bold text-gray-900">{chatUsageStats?.total || 0}</div>
                             <div className="text-xs text-gray-500">AI Коуч</div>
                         </div>
                         <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
@@ -473,85 +531,135 @@ export function ProductAnalytics() {
                 </>
             )}
 
-            {/* ========== ФИЧИ ========== */}
-            {tab === 'features' && (
+            {/* ========== ЭКОНОМИКА НЕЙРОНОВ ========== */}
+            {tab === 'economy' && (
                 <>
-                    {/* Карусели */}
-                    <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
-                            <Palette className="w-4 h-4 text-orange-500" /> Нейропостер
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div className="bg-orange-50 rounded-lg p-3">
-                                <div className="text-xs text-gray-500 mb-1">Генераций</div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {carouselEvents.filter(e => e.event_name === 'carousel_start').length}
-                                </div>
-                            </div>
-                            <div className="bg-orange-50 rounded-lg p-3">
-                                <div className="text-xs text-gray-500 mb-1">Уникальных юзеров</div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {new Set(carouselEvents.map(e => e.telegram_id)).size}
-                                </div>
+                    {/* Сводка */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                            <div className="text-xs text-gray-500 mb-1">Начислено</div>
+                            <div className="text-xl font-bold text-green-600">+{(neuronStats?.totalIncome || 0).toLocaleString('ru-RU')} ✨</div>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                            <div className="text-xs text-gray-500 mb-1">Потрачено</div>
+                            <div className="text-xl font-bold text-red-500">-{(neuronStats?.totalExpense || 0).toLocaleString('ru-RU')} ✨</div>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                            <div className="text-xs text-gray-500 mb-1">Баланс</div>
+                            <div className={`text-xl font-bold ${(neuronStats?.totalIncome || 0) - (neuronStats?.totalExpense || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                {((neuronStats?.totalIncome || 0) - (neuronStats?.totalExpense || 0)).toLocaleString('ru-RU')} ✨
                             </div>
                         </div>
-                        {/* Популярные стили */}
-                        {carouselStyles.size > 0 && (
-                            <div>
-                                <div className="text-xs text-gray-500 mb-2">Популярные стили</div>
-                                <div className="space-y-2">
-                                    {Array.from(carouselStyles.entries())
-                                        .sort((a, b) => b[1] - a[1])
-                                        .slice(0, 5)
-                                        .map(([style, count]) => (
-                                            <div key={style} className="flex items-center gap-2">
-                                                <span className="text-sm text-gray-700 flex-1 truncate">{style}</span>
-                                                <span className="text-sm font-medium text-gray-900">{count}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                            <div className="text-xs text-gray-500 mb-1">Транзакций</div>
+                            <div className="text-lg font-bold text-gray-900">{neuronStats?.total || 0}</div>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 border border-gray-200 text-center">
+                            <div className="text-xs text-gray-500 mb-1">Юзеров</div>
+                            <div className="text-lg font-bold text-gray-900">{neuronStats?.uniqueUsers || 0}</div>
+                        </div>
+                    </div>
+
+                    {/* Поступления */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                        <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
+                            <ArrowUp className="w-4 h-4 text-green-500" /> Поступления
+                        </h3>
+                        <div className="space-y-3">
+                            {neuronStats?.income && Array.from(neuronStats.income.entries())
+                                .sort((a, b) => b[1].total - a[1].total)
+                                .map(([type, data]) => {
+                                    const typeNames: Record<string, string> = {
+                                        bonus: '🎁 Бонусы',
+                                        purchase: '💳 Покупки',
+                                        subscription: '⭐ Подписки',
+                                        promo: '🎟️ Промокоды',
+                                        referral: '👥 Рефералы',
+                                        gift: '🎀 Подарки',
+                                        style_commission: '🎨 Комиссия со стилей',
+                                    }
+                                    const maxTotal = Math.max(...Array.from(neuronStats.income.values()).map(v => v.total))
+                                    return (
+                                        <div key={type}>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm text-gray-700">{typeNames[type] || type}</span>
+                                                <span className="text-sm font-bold text-green-600">+{data.total.toLocaleString('ru-RU')} ✨</span>
                                             </div>
-                                        ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* AI Коуч */}
-                    <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
-                            <MessageSquare className="w-4 h-4 text-cyan-500" /> AI Коуч (Кармалогик)
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-cyan-50 rounded-lg p-3">
-                                <div className="text-xs text-gray-500 mb-1">Сообщений</div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {coachEvents.filter(e => e.event_name === 'coach_message_sent').length}
-                                </div>
-                            </div>
-                            <div className="bg-cyan-50 rounded-lg p-3">
-                                <div className="text-xs text-gray-500 mb-1">TTS озвучек</div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {coachEvents.filter(e => e.event_name === 'coach_tts_played').length}
-                                </div>
-                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-green-400 rounded-full" style={{ width: `${(data.total / maxTotal) * 100}%` }} />
+                                                </div>
+                                                <span className="text-xs text-gray-400 w-8 text-right">{data.count}×</span>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            {(!neuronStats?.income || neuronStats.income.size === 0) && (
+                                <div className="text-sm text-gray-400 text-center py-4">Нет данных за период</div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Магазин */}
+                    {/* Расходы */}
                     <div className="bg-white rounded-xl p-4 border border-gray-200">
                         <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
-                            <ShoppingCart className="w-4 h-4 text-green-500" /> Магазин
+                            <ArrowDown className="w-4 h-4 text-red-500" /> Расходы
                         </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-green-50 rounded-lg p-3">
-                                <div className="text-xs text-gray-500 mb-1">Покупка монет</div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {buyCoinsEvents.length}
-                                </div>
+                        <div className="space-y-3">
+                            {neuronStats?.expense && Array.from(neuronStats.expense.entries())
+                                .sort((a, b) => b[1].total - a[1].total)
+                                .map(([type, data]) => {
+                                    const typeNames: Record<string, string> = {
+                                        generation: '🖼️ Генерации каруселей',
+                                        style_purchase: '🎨 Покупки стилей',
+                                        correction: '🔧 Корректировки',
+                                        transfer: '📤 Переводы',
+                                    }
+                                    const maxTotal = Math.max(...Array.from(neuronStats.expense.values()).map(v => v.total))
+                                    return (
+                                        <div key={type}>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-sm text-gray-700">{typeNames[type] || type}</span>
+                                                <span className="text-sm font-bold text-red-500">-{data.total.toLocaleString('ru-RU')} ✨</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-red-400 rounded-full" style={{ width: `${(data.total / maxTotal) * 100}%` }} />
+                                                </div>
+                                                <span className="text-xs text-gray-400 w-8 text-right">{data.count}×</span>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            {(!neuronStats?.expense || neuronStats.expense.size === 0) && (
+                                <div className="text-sm text-gray-400 text-center py-4">Нет расходов за период</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Использование фич */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                        <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
+                            <Activity className="w-4 h-4 text-orange-500" /> Использование фич
+                        </h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="bg-orange-50 rounded-lg p-3 text-center">
+                                <Palette className="w-5 h-5 mx-auto text-orange-500 mb-1" />
+                                <div className="text-lg font-bold text-gray-900">{carouselEvents.length}</div>
+                                <div className="text-xs text-gray-500">Карусели</div>
                             </div>
-                            <div className="bg-green-50 rounded-lg p-3">
-                                <div className="text-xs text-gray-500 mb-1">Покупка подписки</div>
-                                <div className="text-xl font-bold text-gray-900">
-                                    {buySubEvents.length}
-                                </div>
+                            <div className="bg-cyan-50 rounded-lg p-3 text-center">
+                                <MessageSquare className="w-5 h-5 mx-auto text-cyan-500 mb-1" />
+                                <div className="text-lg font-bold text-gray-900">{chatUsageStats?.total || 0}</div>
+                                <div className="text-xs text-gray-500">AI Коуч</div>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-3 text-center">
+                                <ShoppingCart className="w-5 h-5 mx-auto text-green-500 mb-1" />
+                                <div className="text-lg font-bold text-gray-900">{shopEvents.length}</div>
+                                <div className="text-xs text-gray-500">Магазин</div>
                             </div>
                         </div>
                     </div>

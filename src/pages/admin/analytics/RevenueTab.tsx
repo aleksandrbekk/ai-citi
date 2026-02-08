@@ -12,7 +12,6 @@ import {
     XCircle,
     DollarSign
 } from 'lucide-react'
-import LiveGenerationFeed from '../../../components/admin/LiveGenerationFeed'
 
 // Пакеты монет (актуальные)
 const COIN_PACKAGES = [
@@ -125,9 +124,6 @@ export function RevenueTab({
 
     return (
         <>
-            {/* Live-лента генераций */}
-            <LiveGenerationFeed />
-
             {/* Подписки (обзор) */}
             <div className="bg-white rounded-xl p-4 border border-gray-200">
                 <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
