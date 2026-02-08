@@ -16,6 +16,7 @@ import {
     ArrowUp,
     ArrowDown
 } from 'lucide-react'
+import { RevenueTab } from './analytics/RevenueTab'
 
 type Period = 'today' | 'week' | 'month' | 'all'
 type Tab = 'overview' | 'pages' | 'features' | 'revenue'
@@ -79,6 +80,58 @@ export function ProductAnalytics() {
                 .select('tier, status, created_at')
                 .eq('status', 'active')
             return data || []
+        }
+    })
+
+    // ---------- Загрузка полных подписок (для Revenue) ----------
+    const { data: allSubscriptions = [] } = useQuery({
+        queryKey: ['all_subscriptions_revenue'],
+        queryFn: async () => {
+            const { data } = await supabase
+                .from('user_subscriptions')
+                .select('id, telegram_id, plan, tier, status, amount_rub, neurons_per_month, started_at, expires_at, cancelled_at')
+                .order('created_at', { ascending: false })
+            if (!data) return []
+            const tgIds = [...new Set(data.map((s: any) => s.telegram_id))]
+            const { data: users } = await supabase.from('users').select('telegram_id, username').in('telegram_id', tgIds)
+            const uMap = new Map((users || []).map((u: any) => [u.telegram_id, u.username]))
+            return data.map((s: any) => ({ ...s, username: uMap.get(s.telegram_id) || null }))
+        }
+    })
+
+    // ---------- Покупки монет (RPC) ----------
+    const { data: coinPurchases = [] } = useQuery({
+        queryKey: ['coin_purchases_revenue'],
+        queryFn: async () => {
+            const { data } = await supabase.rpc('admin_get_coin_purchases')
+            return data || []
+        }
+    })
+
+    // ---------- Генерации каруселей (RPC) ----------
+    const { data: carouselGenerations = [] } = useQuery({
+        queryKey: ['carousel_generations_revenue'],
+        queryFn: async () => {
+            const { data } = await supabase.rpc('admin_get_carousel_generations')
+            return data || []
+        }
+    })
+
+    // ---------- Возвраты каруселей (RPC) ----------
+    const { data: carouselRefunds = [] } = useQuery({
+        queryKey: ['carousel_refunds_revenue'],
+        queryFn: async () => {
+            const { data } = await supabase.rpc('admin_get_carousel_refunds')
+            return data || []
+        }
+    })
+
+    // ---------- Сводка генераций (RPC) ----------
+    const { data: statsSummary } = useQuery({
+        queryKey: ['carousel_stats_summary_revenue'],
+        queryFn: async () => {
+            const { data } = await supabase.rpc('admin_get_carousel_stats_summary')
+            return data?.[0] || null
         }
     })
 
@@ -231,8 +284,8 @@ export function ProductAnalytics() {
                         key={key}
                         onClick={() => setPeriod(key)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${period === key
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                     >
                         {label}
@@ -252,8 +305,8 @@ export function ProductAnalytics() {
                         key={key}
                         onClick={() => setTab(key)}
                         className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === key
-                                ? 'border-orange-500 text-orange-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-orange-500 text-orange-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         <Icon className="w-4 h-4" />
@@ -507,72 +560,19 @@ export function ProductAnalytics() {
 
             {/* ========== МОНЕТИЗАЦИЯ ========== */}
             {tab === 'revenue' && (
-                <>
-                    {/* Подписки */}
-                    <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
-                            <TrendingUp className="w-4 h-4 text-green-500" /> Подписки
-                        </h3>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="bg-green-50 rounded-lg p-3 text-center">
-                                <div className="text-xs text-gray-500 mb-1">Активных</div>
-                                <div className="text-2xl font-bold text-gray-900">{subscriptions.length}</div>
-                            </div>
-                            <div className="bg-green-50 rounded-lg p-3 text-center">
-                                <div className="text-xs text-gray-500 mb-1">PRO</div>
-                                <div className="text-2xl font-bold text-gray-900">
-                                    {subscriptions.filter(s => s.tier === 'pro').length}
-                                </div>
-                            </div>
-                            <div className="bg-green-50 rounded-lg p-3 text-center">
-                                <div className="text-xs text-gray-500 mb-1">ELITE</div>
-                                <div className="text-2xl font-bold text-gray-900">
-                                    {subscriptions.filter(s => s.tier === 'elite').length}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Воронка конверсии */}
-                    <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h3 className="font-medium text-gray-900 flex items-center gap-2 mb-4">
-                            <BarChart3 className="w-4 h-4 text-orange-500" /> Воронка монетизации
-                        </h3>
-                        <FunnelBar label="Всего юзеров" value={totalUsers} max={totalUsers} color="bg-gray-400" />
-                        <FunnelBar label="Активные (WAU)" value={wau} max={totalUsers} color="bg-blue-500" />
-                        <FunnelBar label="Открыли магазин" value={shopEvents.length} max={totalUsers} color="bg-cyan-500" />
-                        <FunnelBar label="Нажали купить" value={buyCoinsEvents.length + buySubEvents.length} max={totalUsers} color="bg-orange-500" />
-                        <FunnelBar label="Подписки" value={subscriptions.length} max={totalUsers} color="bg-green-500" />
-                    </div>
-
-                    {/* Последние покупки */}
-                    {(buyCoinsEvents.length > 0 || buySubEvents.length > 0) && (
-                        <div className="bg-white rounded-xl p-4 border border-gray-200">
-                            <h3 className="font-medium text-gray-900 text-sm mb-3">Последние покупки</h3>
-                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                {[...buyCoinsEvents, ...buySubEvents]
-                                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                                    .slice(0, 20)
-                                    .map(e => (
-                                        <div key={e.id} className="flex items-center justify-between text-sm py-2 border-b border-gray-50">
-                                            <div>
-                                                <span className="font-medium text-gray-900">
-                                                    {e.event_name === 'shop_buy_coins' ? '🪙 Монеты' : '⭐ Подписка'}
-                                                </span>
-                                                <span className="text-gray-400 ml-2">ID: {e.telegram_id}</span>
-                                            </div>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(e.created_at).toLocaleString('ru', {
-                                                    day: '2-digit', month: '2-digit',
-                                                    hour: '2-digit', minute: '2-digit'
-                                                })}
-                                            </span>
-                                        </div>
-                                    ))}
-                            </div>
-                        </div>
-                    )}
-                </>
+                <RevenueTab
+                    subscriptions={subscriptions}
+                    allSubscriptions={allSubscriptions}
+                    coinPurchases={coinPurchases}
+                    carouselGenerations={carouselGenerations}
+                    carouselRefunds={carouselRefunds}
+                    statsSummary={statsSummary}
+                    totalUsers={totalUsers}
+                    wau={wau}
+                    shopEvents={shopEvents}
+                    buyCoinsEvents={buyCoinsEvents}
+                    buySubEvents={buySubEvents}
+                />
             )}
         </div>
     )
@@ -609,34 +609,6 @@ function MetricCard({
             <div className="flex items-end gap-2">
                 <span className="text-2xl font-bold text-gray-900">{formatNum(value)}</span>
                 {extra}
-            </div>
-        </div>
-    )
-}
-
-function FunnelBar({
-    label,
-    value,
-    max,
-    color
-}: {
-    label: string
-    value: number
-    max: number
-    color: string
-}) {
-    const percent = max > 0 ? (value / max) * 100 : 0
-    return (
-        <div className="mb-3">
-            <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">{label}</span>
-                <span className="text-gray-900 font-medium">{value} ({percent.toFixed(1)}%)</span>
-            </div>
-            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                    className={`h-full ${color} rounded-full transition-all`}
-                    style={{ width: `${Math.max(percent, 1)}%` }}
-                />
             </div>
         </div>
     )
