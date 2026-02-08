@@ -111,17 +111,12 @@ export function ProductAnalytics() {
     const { data: neuronStats } = useQuery({
         queryKey: ['neuron_economy_stats', period],
         queryFn: async () => {
-            let query = supabase
-                .from('coin_transactions')
-                .select('id, user_id, amount, type, description, created_at')
-                .order('created_at', { ascending: false })
+            const { data, error } = await supabase.rpc('admin_get_neuron_stats', {
+                p_since: periodStart.toISOString()
+            })
+            if (error) { console.error('Neuron stats error:', error); return null }
 
-            query = query.gte('created_at', periodStart.toISOString())
-
-            const { data, error } = await query
-            if (error) { console.error('Coin tx error:', error); return null }
-
-            const txs = data || []
+            const txs = (data || []) as { id: string; user_id: string; amount: number; type: string; description: string; created_at: string }[]
             const income = new Map<string, { count: number; total: number }>()
             const expense = new Map<string, { count: number; total: number }>()
             let totalIncome = 0
