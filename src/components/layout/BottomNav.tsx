@@ -39,6 +39,8 @@ export function BottomNav() {
     location.pathname.startsWith('/quiz/') ||
     location.pathname.startsWith('/carousel-designs') ||
     location.pathname.startsWith('/agents/carousel') ||
+    location.pathname.startsWith('/agents/karmalogik') ||
+    location.pathname.startsWith('/chat') ||
     location.pathname.startsWith('/admin')
   ) {
     return null

@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Loader2, User, Trash2, Sparkles } from 'lucide-react'
+import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, MessageSquare, X } from 'lucide-react'
 import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
-// authStore используется для user
 import { getTelegramUser } from '@/lib/telegram'
 import Paywall from '@/components/Paywall'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -112,9 +111,19 @@ export default function KarmalogikChat() {
   })
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [isDrawerOpen, setDrawerOpen] = useState(false)
+  const [sessions, setSessions] = useState<{ id: string; title: string; date: string; messages: Message[] }[]>(() => {
+    try {
+      const saved = localStorage.getItem('coach-sessions')
+      if (saved) return JSON.parse(saved)
+    } catch { /* ignore */ }
+    return []
+  })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const recognitionRef = useRef<any>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -138,6 +147,92 @@ export default function KarmalogikChat() {
       inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px'
     }
   }, [input])
+
+  // Инициализация голосового ввода
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition()
+      recognitionRef.current.continuous = true
+      recognitionRef.current.interimResults = true
+      recognitionRef.current.lang = 'ru-RU'
+
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = ''
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript
+          }
+        }
+        if (finalTranscript) {
+          setInput(prev => prev + finalTranscript)
+        }
+      }
+
+      recognitionRef.current.onerror = () => {
+        setIsRecording(false)
+      }
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false)
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+    }
+  }, [])
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      toast.error('Голосовой ввод не поддерживается')
+      return
+    }
+    if (isRecording) {
+      recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      recognitionRef.current.start()
+      setIsRecording(true)
+    }
+  }
+
+  // Сессии
+  const saveCurrentSession = () => {
+    if (messages.length === 0) return
+    const firstMsg = messages.find(m => m.role === 'user')
+    const title = firstMsg ? firstMsg.content.slice(0, 40) + (firstMsg.content.length > 40 ? '...' : '') : 'Сессия'
+    const newSession = {
+      id: Date.now().toString(),
+      title,
+      date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
+      messages: [...messages]
+    }
+    const updated = [newSession, ...sessions].slice(0, 20)
+    setSessions(updated)
+    localStorage.setItem('coach-sessions', JSON.stringify(updated))
+  }
+
+  const startNewSession = () => {
+    saveCurrentSession()
+    setMessages([])
+    localStorage.removeItem('karmalogik-chat-history')
+    setDrawerOpen(false)
+  }
+
+  const loadSession = (session: { messages: Message[] }) => {
+    setMessages(session.messages)
+    localStorage.setItem('karmalogik-chat-history', JSON.stringify(session.messages))
+    setDrawerOpen(false)
+  }
+
+  const deleteSession = (id: string) => {
+    const updated = sessions.filter(s => s.id !== id)
+    setSessions(updated)
+    localStorage.setItem('coach-sessions', JSON.stringify(updated))
+  }
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -221,8 +316,81 @@ export default function KarmalogikChat() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col">
+      {/* Sessions Drawer */}
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setDrawerOpen(false)}
+            />
+            <motion.div
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed left-0 top-0 bottom-0 w-72 bg-white z-50 shadow-2xl flex flex-col"
+            >
+              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="font-semibold text-gray-900">Сессии</h2>
+                <button onClick={() => setDrawerOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg cursor-pointer">
+                  <X size={18} className="text-gray-500" />
+                </button>
+              </div>
+              <div className="p-3">
+                <button
+                  onClick={startNewSession}
+                  className="w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-medium text-sm shadow-lg shadow-orange-500/20 cursor-pointer"
+                >
+                  <Plus size={18} />
+                  Новая сессия
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-1">
+                {sessions.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm py-8">Пока нет сохранённых сессий</p>
+                )}
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center gap-2 group"
+                  >
+                    <button
+                      onClick={() => loadSession(session)}
+                      className="flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-50 transition-colors text-left cursor-pointer"
+                    >
+                      <MessageSquare size={16} className="text-amber-500 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-gray-800 truncate">{session.title}</p>
+                        <p className="text-[10px] text-gray-400">{session.date} · {session.messages.length} сообщ.</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => deleteSession(session.id)}
+                      className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                    >
+                      <Trash2 size={14} className="text-red-400" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-amber-100 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="p-2 -ml-2 hover:bg-amber-50 rounded-xl transition-colors cursor-pointer"
+        >
+          <Menu size={22} className="text-gray-600" />
+        </button>
+
         <div className="flex items-center gap-3 flex-1">
           <img
             src="/images/ai-coach-avatar.png"
@@ -241,14 +409,13 @@ export default function KarmalogikChat() {
         {messages.length > 0 && (
           <button
             onClick={() => {
-              if (confirm('Очистить историю чата?')) {
-                setMessages([])
-                localStorage.removeItem('karmalogik-chat-history')
+              if (confirm('Начать новую сессию?')) {
+                startNewSession()
               }
             }}
-            className="p-2 hover:bg-red-50 rounded-xl transition-colors text-gray-400 hover:text-red-500 cursor-pointer"
+            className="p-2 hover:bg-amber-50 rounded-xl transition-colors text-gray-400 hover:text-amber-500 cursor-pointer"
           >
-            <Trash2 size={20} />
+            <Plus size={20} />
           </button>
         )}
       </div>
@@ -394,19 +561,48 @@ export default function KarmalogikChat() {
 
       {/* Input */}
       <div className="sticky bottom-0 bg-gradient-to-t from-amber-50 via-amber-50/95 to-transparent px-4 py-3 pb-safe">
-        <div className="border border-amber-200 rounded-xl bg-white/95 backdrop-blur-sm focus-within:border-amber-400 focus-within:shadow-lg focus-within:shadow-amber-500/10 transition-all">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Задай вопрос о жизни, отношениях, выборе..."
-            className="w-full px-4 pt-3 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px]"
-            rows={1}
-            disabled={isLoading}
-          />
+        <div className={`border rounded-2xl bg-white/95 backdrop-blur-sm transition-all duration-200 ${isRecording
+            ? 'border-red-300 bg-red-50/50'
+            : 'border-amber-200 focus-within:border-amber-400 focus-within:shadow-lg focus-within:shadow-amber-500/10'
+          }`}>
+          {isRecording ? (
+            <div className="px-4 py-4 flex items-center gap-3">
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-red-600 font-medium">Слушаю...</span>
+              <div className="flex gap-1 ml-auto">
+                {[4, 6, 4, 5, 3].map((h, i) => (
+                  <span
+                    key={i}
+                    className="w-1 bg-red-400 rounded-full animate-bounce"
+                    style={{ height: `${h * 4}px`, animationDelay: `${i * 0.1}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Задай вопрос о жизни, отношениях, выборе..."
+              className="w-full px-4 pt-3 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-amber-500"
+              rows={1}
+              disabled={isLoading}
+            />
+          )}
 
-          <div className="flex items-center justify-end px-3 pb-3">
+          <div className="flex items-center justify-end px-3 pb-3 gap-2">
+            <button
+              onClick={toggleRecording}
+              className={`p-2 rounded-xl transition-all cursor-pointer ${isRecording
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`}
+            >
+              {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+            </button>
+
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}

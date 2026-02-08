@@ -48,10 +48,18 @@ export function Layout() {
     )
   }
 
+  // Страницы без нижней навигации — не добавляем pb-20
+  const noBottomNav = location.pathname.startsWith('/quiz/') ||
+    location.pathname.startsWith('/carousel-designs') ||
+    location.pathname.startsWith('/agents/carousel') ||
+    location.pathname.startsWith('/agents/karmalogik') ||
+    location.pathname.startsWith('/chat') ||
+    location.pathname.startsWith('/admin')
+
   return (
     <div className="min-h-screen bg-white text-gray-900 flex flex-col">
       <main className={`flex-1 overflow-auto ${isHomePage ? 'h-screen overflow-hidden' : ''}`}>
-        <div className={isHomePage ? '' : 'pb-20'}>
+        <div className={isHomePage || noBottomNav ? '' : 'pb-20'}>
           <Outlet />
         </div>
       </main>
