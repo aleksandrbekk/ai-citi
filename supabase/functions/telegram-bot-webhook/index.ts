@@ -98,6 +98,7 @@ serve(async (req) => {
         if (text.startsWith('/start')) {
             const parts = text.split(' ')
             const promoCode = parts.length > 1 ? parts[1] : null
+            console.log('START command received:', { chatId, text, promoCode, parts })
 
             // Inline кнопка
             const getKeyboard = (buttonText: string, startapp?: string) => ({

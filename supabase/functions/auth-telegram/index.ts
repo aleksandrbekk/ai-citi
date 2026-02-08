@@ -223,6 +223,7 @@ serve(async (req) => {
       }
 
       // Process referral for new user
+      let referralJustRegistered = false
       if (finalReferrerCode) {
         try {
           const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
@@ -231,6 +232,7 @@ serve(async (req) => {
           })
 
           if (!refError && registerResult?.success) {
+            referralJustRegistered = true
             const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
               p_referred_telegram_id: userData.id
             })
@@ -240,32 +242,37 @@ serve(async (req) => {
           console.error('Referral processing error (non-fatal):', e)
         }
 
-        // Notify referrer
-        try {
-          const { data: referrerUser } = await supabase
-            .from('users')
-            .select('telegram_id')
-            .eq('referral_code', finalReferrerCode)
-            .single()
-
-          if (referrerUser?.telegram_id) {
-            const { data: stats } = await supabase
-              .from('referral_stats')
-              .select('total_referrals')
-              .eq('telegram_id', referrerUser.telegram_id)
+        // Notify referrer ONLY if referral was just registered (prevents duplicates)
+        if (referralJustRegistered) {
+          try {
+            const { data: referrerUser } = await supabase
+              .from('users')
+              .select('telegram_id')
+              .eq('referral_code', finalReferrerCode)
               .single()
 
-            const partnerName = userData.first_name || userData.username || 'Новый пользователь'
-            const totalPartners = stats?.total_referrals || 1
-            const utmNote = utmSource ? `\n📍 Источник: <b>${utmSource}</b>` : ''
+            if (referrerUser?.telegram_id) {
+              const { data: stats } = await supabase
+                .from('referral_stats')
+                .select('total_referrals')
+                .eq('telegram_id', referrerUser.telegram_id)
+                .single()
 
-            await sendReferralNotification(
-              referrerUser.telegram_id,
-              `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\nУ вас теперь <b>${totalPartners}</b> партнёр(ов).\nВы получаете бонус с каждой их активности.${utmNote}`
-            )
+              const partnerName = userData.first_name || userData.username || 'Новый пользователь'
+              const totalPartners = stats?.total_referrals || 1
+              const utmNote = utmSource ? `\n📍 Источник: <b>${utmSource}</b>` : ''
+
+              await sendReferralNotification(
+                referrerUser.telegram_id,
+                `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\nУ вас теперь <b>${totalPartners}</b> партнёр(ов).\nВы получаете бонус с каждой их активности.${utmNote}`
+              )
+              console.log('Referral notification sent for new user:', userData.id)
+            }
+          } catch (e) {
+            console.error('Failed to send referral notification:', e)
           }
-        } catch (e) {
-          console.error('Failed to send referral notification:', e)
+        } else {
+          console.log('Skipping notification - referral already existed for:', userData.id)
         }
       }
     } else {
@@ -305,6 +312,7 @@ serve(async (req) => {
           .single()
 
         if (!existingReferrer) {
+          let referralJustRegistered = false
           try {
             const { data: registerResult, error: refError } = await supabase.rpc('register_referral_by_code', {
               p_referrer_code: finalReferrerCode,
@@ -312,6 +320,7 @@ serve(async (req) => {
             })
 
             if (!refError && registerResult?.success) {
+              referralJustRegistered = true
               const { data: bonusResult } = await supabase.rpc('pay_referral_registration_bonus', {
                 p_referred_telegram_id: userData.id
               })
@@ -321,33 +330,40 @@ serve(async (req) => {
             console.error('Referral processing error (non-fatal):', e)
           }
 
-          // Notify referrer
-          try {
-            const { data: referrerUser } = await supabase
-              .from('users')
-              .select('telegram_id')
-              .eq('referral_code', finalReferrerCode)
-              .single()
-
-            if (referrerUser?.telegram_id) {
-              const { data: stats } = await supabase
-                .from('referral_stats')
-                .select('total_referrals')
-                .eq('telegram_id', referrerUser.telegram_id)
+          // Notify referrer ONLY if referral was just registered
+          if (referralJustRegistered) {
+            try {
+              const { data: referrerUser } = await supabase
+                .from('users')
+                .select('telegram_id')
+                .eq('referral_code', finalReferrerCode)
                 .single()
 
-              const partnerName = userData.first_name || userData.username || 'Новый пользователь'
-              const totalPartners = stats?.total_referrals || 1
-              const utmNote = utmSource ? `\n📍 Источник: <b>${utmSource}</b>` : ''
+              if (referrerUser?.telegram_id) {
+                const { data: stats } = await supabase
+                  .from('referral_stats')
+                  .select('total_referrals')
+                  .eq('telegram_id', referrerUser.telegram_id)
+                  .single()
 
-              await sendReferralNotification(
-                referrerUser.telegram_id,
-                `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\nУ вас теперь <b>${totalPartners}</b> партнёр(ов).\nВы получаете бонус с каждой их активности.${utmNote}`
-              )
+                const partnerName = userData.first_name || userData.username || 'Новый пользователь'
+                const totalPartners = stats?.total_referrals || 1
+                const utmNote = utmSource ? `\n📍 Источник: <b>${utmSource}</b>` : ''
+
+                await sendReferralNotification(
+                  referrerUser.telegram_id,
+                  `🎉 <b>${partnerName}</b> присоединился по вашей ссылке!\n\nУ вас теперь <b>${totalPartners}</b> партнёр(ов).\nВы получаете бонус с каждой их активности.${utmNote}`
+                )
+                console.log('Referral notification sent for existing user:', userData.id)
+              }
+            } catch (e) {
+              console.error('Failed to send referral notification:', e)
             }
-          } catch (e) {
-            console.error('Failed to send referral notification:', e)
+          } else {
+            console.log('Skipping notification - referral registration failed or duplicate for:', userData.id)
           }
+        } else {
+          console.log('Skipping referral - already has referrer:', userData.id)
         }
       }
     }
