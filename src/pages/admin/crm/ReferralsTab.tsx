@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Users, Coins, TrendingUp, Search, ArrowRight, ChevronDown, ChevronUp, Gift, ShoppingCart } from 'lucide-react'
+import { Users, Coins, TrendingUp, Search, ArrowRight, ChevronDown, ChevronUp, Gift, ShoppingCart, Link2, Copy, Check, Tag } from 'lucide-react'
 import { useState } from 'react'
+import { getTelegramUser } from '../../../lib/telegram'
+
+const ADMIN_IDS = [643763835, 190202791]
 
 interface ReferralStatRow {
   telegram_id: number
@@ -36,6 +39,24 @@ interface PartnerTransaction {
 export function ReferralsTab() {
   const [search, setSearch] = useState('')
   const [expandedPartner, setExpandedPartner] = useState<string | null>(null)
+  const [utmTag, setUtmTag] = useState('')
+  const [utmCopied, setUtmCopied] = useState(false)
+
+  const telegramUser = getTelegramUser()
+  const isAdmin = telegramUser?.id && ADMIN_IDS.includes(telegramUser.id)
+
+  // Получаем referral_code админа
+  const { data: adminReferralCode } = useQuery({
+    queryKey: ['admin-own-referral-code', telegramUser?.id],
+    queryFn: async () => {
+      if (!telegramUser?.id) return null
+      const { data } = await supabase.rpc('get_user_referral_code', {
+        p_telegram_id: telegramUser.id
+      })
+      return data as string | null
+    },
+    enabled: !!isAdmin
+  })
 
   const { data: stats } = useQuery({
     queryKey: ['admin-referral-stats'],
@@ -143,6 +164,81 @@ export function ReferralsTab() {
           color="green"
         />
       </div>
+
+      {/* UTM ссылки — только для админа */}
+      {isAdmin && adminReferralCode && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+              <Link2 className="w-4 h-4 text-orange-600" />
+            </div>
+            <div>
+              <div className="font-medium text-gray-900 text-sm">UTM-ссылки</div>
+              <div className="text-xs text-gray-500">Реферальная ссылка с меткой источника</div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mb-3">
+            <div className="relative flex-1">
+              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Метка (instagram, youtube, tg...)"
+                value={utmTag}
+                onChange={(e) => {
+                  setUtmTag(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))
+                  setUtmCopied(false)
+                }}
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-300"
+              />
+            </div>
+            <button
+              onClick={async () => {
+                const link = utmTag
+                  ? `https://t.me/Neirociti_bot?start=ref_${adminReferralCode}_src_${utmTag}`
+                  : `https://t.me/Neirociti_bot?start=ref_${adminReferralCode}`
+                try {
+                  await navigator.clipboard.writeText(link)
+                  setUtmCopied(true)
+                  window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred('success')
+                  setTimeout(() => setUtmCopied(false), 2000)
+                } catch {
+                  // fallback
+                  const ta = document.createElement('textarea')
+                  ta.value = link
+                  document.body.appendChild(ta)
+                  ta.select()
+                  document.execCommand('copy')
+                  document.body.removeChild(ta)
+                  setUtmCopied(true)
+                  setTimeout(() => setUtmCopied(false), 2000)
+                }
+              }}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex-shrink-0 ${utmCopied
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg'
+                }`}
+            >
+              {utmCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {utmCopied ? 'Скопировано' : 'Копировать'}
+            </button>
+          </div>
+
+          {/* Превью ссылки */}
+          <div className="bg-gray-50 rounded-lg px-3 py-2 text-xs text-gray-500 font-mono break-all">
+            {utmTag
+              ? `t.me/Neirociti_bot?start=ref_${adminReferralCode}_src_${utmTag}`
+              : `t.me/Neirociti_bot?start=ref_${adminReferralCode}`
+            }
+          </div>
+
+          {utmTag && (
+            <div className="mt-2 text-xs text-gray-400">
+              💡 Используй разные метки для разных каналов: <span className="text-gray-600">instagram</span>, <span className="text-gray-600">youtube</span>, <span className="text-gray-600">tg_channel</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Поиск */}
       <div className="relative">
