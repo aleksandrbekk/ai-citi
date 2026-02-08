@@ -76,11 +76,7 @@ export default function UtmTab() {
   const [showUtmForm, setShowUtmForm] = useState(false)
   const [editingCampaign, setEditingCampaign] = useState<UtmCampaign | null>(null)
   const [utmFormData, setUtmFormData] = useState({
-    name: '',
-    utm_source: '',
-    utm_medium: '',
-    short_code: '',
-    target_url: '/'
+    name: ''
   })
 
   // === Promo State ===
@@ -173,28 +169,26 @@ export default function UtmTab() {
   // UTM ФУНКЦИИ
   // =========================================================
 
-  const generateShortCode = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-    let code = ''
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return code
+
+  const nameToTag = (name: string) => {
+    return name.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '').slice(0, 20) || 'direct'
   }
 
   const buildUtmUrl = (campaign: Partial<UtmCampaign>) => {
     // Формат ?start= открывает бота (не inline Mini App)
     // ref_CODE_src_TAG — реферальный код админа + источник трафика
     const refCode = adminRefCode || '01'
-    const src = campaign.short_code || campaign.utm_source || 'direct'
+    const src = campaign.short_code || nameToTag(campaign.name || '')
     return `https://t.me/${BOT_USERNAME}?start=ref_${refCode}_src_${src}`
   }
 
   const handleUtmSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const tag = nameToTag(utmFormData.name)
     const campaignData = {
-      ...utmFormData,
-      short_code: utmFormData.short_code || generateShortCode()
+      name: utmFormData.name,
+      utm_source: tag,
+      short_code: tag
     }
 
     if (editingCampaign) {
@@ -224,11 +218,7 @@ export default function UtmTab() {
   const handleUtmEdit = (campaign: UtmCampaign) => {
     setEditingCampaign(campaign)
     setUtmFormData({
-      name: campaign.name,
-      utm_source: campaign.utm_source || '',
-      utm_medium: campaign.utm_medium || '',
-      short_code: campaign.short_code || '',
-      target_url: campaign.target_url || '/'
+      name: campaign.name
     })
     setShowUtmForm(true)
   }
@@ -261,11 +251,7 @@ export default function UtmTab() {
     setShowUtmForm(false)
     setEditingCampaign(null)
     setUtmFormData({
-      name: '',
-      utm_source: '',
-      utm_medium: '',
-      short_code: '',
-      target_url: '/'
+      name: ''
     })
   }
 
@@ -402,8 +388,8 @@ export default function UtmTab() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">UTM Ссылки</h3>
-              <p className="text-sm text-gray-500">Отслеживание источников трафика</p>
+              <h3 className="text-lg font-semibold text-gray-900">Ссылки с метками</h3>
+              <p className="text-sm text-gray-500">Введи название → получи ссылку → раздавай</p>
             </div>
             <button
               onClick={() => setShowUtmForm(true)}
@@ -430,61 +416,26 @@ export default function UtmTab() {
               </div>
 
               <form onSubmit={handleUtmSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">Название *</label>
-                    <input
-                      type="text"
-                      value={utmFormData.name}
-                      onChange={(e) => setUtmFormData({ ...utmFormData, name: e.target.value })}
-                      placeholder="Реклама в Instagram"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">Короткий код</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={utmFormData.short_code}
-                        onChange={(e) => setUtmFormData({ ...utmFormData, short_code: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
-                        placeholder="auto"
-                        className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setUtmFormData({ ...utmFormData, short_code: generateShortCode() })}
-                        className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                      >
-                        <Link2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2">Откуда трафик? *</label>
+                  <input
+                    type="text"
+                    value={utmFormData.name}
+                    onChange={(e) => setUtmFormData({ ...utmFormData, name: e.target.value })}
+                    placeholder="Instagram, TikTok, YouTube, Telegram..."
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">Источник (utm_source)</label>
-                    <input
-                      type="text"
-                      value={utmFormData.utm_source}
-                      onChange={(e) => setUtmFormData({ ...utmFormData, utm_source: e.target.value })}
-                      placeholder="instagram, telegram"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
+                {utmFormData.name && (
+                  <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
+                    <div className="text-xs text-gray-500 mb-1">Твоя ссылка будет:</div>
+                    <code className="text-sm text-orange-600 font-mono break-all">
+                      {buildUtmUrl({ name: utmFormData.name })}
+                    </code>
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-2">Тип (utm_medium)</label>
-                    <input
-                      type="text"
-                      value={utmFormData.utm_medium}
-                      onChange={(e) => setUtmFormData({ ...utmFormData, utm_medium: e.target.value })}
-                      placeholder="stories, post, reels"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
@@ -535,16 +486,6 @@ export default function UtmTab() {
                     <div className="flex flex-col gap-1">
                       <span className="font-semibold text-gray-900">{campaign.name}</span>
                       <div className="flex flex-wrap items-center gap-2">
-                        {campaign.utm_source && (
-                          <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
-                            {campaign.utm_source}
-                          </span>
-                        )}
-                        {campaign.utm_medium && (
-                          <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-lg text-xs font-medium">
-                            {campaign.utm_medium}
-                          </span>
-                        )}
                         {!campaign.is_active && (
                           <span className="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-xs">
                             Неактивна
