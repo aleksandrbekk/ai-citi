@@ -651,14 +651,14 @@ function MaintenanceToggleCard() {
 
   return (
     <div className={`mb-6 p-5 rounded-2xl border transition-colors ${isMaintenanceEnabled
-        ? 'bg-orange-50 border-orange-200'
-        : 'bg-white border-gray-200'
+      ? 'bg-orange-50 border-orange-200'
+      : 'bg-white border-gray-200'
       }`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isMaintenanceEnabled
-              ? 'bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg shadow-orange-500/20'
-              : 'bg-gray-100'
+            ? 'bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg shadow-orange-500/20'
+            : 'bg-gray-100'
             }`}>
             <Wrench className={`w-5 h-5 ${isMaintenanceEnabled ? 'text-white' : 'text-gray-400'}`} />
           </div>
@@ -670,10 +670,11 @@ function MaintenanceToggleCard() {
         <button
           onClick={handleToggle}
           disabled={saving}
-          className={`relative w-12 h-7 rounded-full transition-colors ${isMaintenanceEnabled ? 'bg-orange-500' : 'bg-gray-300'
+          className={`relative w-14 h-8 rounded-full transition-colors cursor-pointer touch-manipulation ${isMaintenanceEnabled ? 'bg-orange-500' : 'bg-gray-300'
             }`}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-          <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isMaintenanceEnabled ? 'translate-x-5' : 'translate-x-0.5'
+          <div className={`pointer-events-none absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${isMaintenanceEnabled ? 'translate-x-7' : 'translate-x-1'
             }`} />
         </button>
       </div>
