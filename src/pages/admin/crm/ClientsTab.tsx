@@ -71,11 +71,28 @@ interface PaidUser {
 }
 
 type Cohort = 'all_paid' | 'active_subs' | 'premium'
+type Period = 'today' | 'week' | 'month' | 'all'
+
+const getPeriodStart = (period: Period): Date | null => {
+  if (period === 'all') return null
+  const now = new Date()
+  if (period === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  if (period === 'week') {
+    const d = new Date(now)
+    d.setDate(d.getDate() - 7)
+    return d
+  }
+  // month
+  const d = new Date(now)
+  d.setDate(d.getDate() - 30)
+  return d
+}
 
 export function ClientsTab() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [cohort, setCohort] = useState<Cohort>('all_paid')
+  const [period, setPeriod] = useState<Period>('all')
   const [selectedUser, setSelectedUser] = useState<PaidUser | null>(null)
   const [activeModalTab, setActiveModalTab] = useState<'info' | 'payments'>('info')
 
@@ -271,13 +288,22 @@ export function ClientsTab() {
   const filteredUsers = useMemo(() => {
     let list = paidUsers
 
+    // Период
+    const periodStart = getPeriodStart(period)
+    if (periodStart) {
+      const startStr = periodStart.toISOString()
+      list = list.filter(u => {
+        const date = u.lastPaymentAt || u.firstPaymentAt || ''
+        return date >= startStr
+      })
+    }
+
     // Когорта
     if (cohort === 'active_subs') {
       list = list.filter(u => u.activeSub !== null)
     } else if (cohort === 'premium') {
       list = list.filter(u => u.premiumPlan !== null)
     }
-    // 'all_paid' — все кто есть в пуле
 
     // Поиск
     if (search) {
@@ -290,21 +316,24 @@ export function ClientsTab() {
     }
 
     return list
-  }, [paidUsers, cohort, search])
+  }, [paidUsers, cohort, search, period])
 
   // ========== STATS ==========
 
   const stats = useMemo(() => {
-    const activeSubs = paidUsers.filter(u => u.activeSub !== null).length
-    const totalRevenue = paidUsers.reduce((sum, u) => sum + u.totalPaid, 0)
-    const avgCheck = paidUsers.length > 0 ? Math.round(totalRevenue / paidUsers.filter(u => u.totalPaid > 0).length) : 0
+    const activeSubs = filteredUsers.filter(u => u.activeSub !== null).length
+    const totalRevenue = filteredUsers.reduce((sum, u) => sum + u.totalPaid, 0)
+    const payingUsers = filteredUsers.filter(u => u.totalPaid > 0)
+    const avgCheck = payingUsers.length > 0 ? Math.round(totalRevenue / payingUsers.length) : 0
+    const totalPayments = filteredUsers.reduce((sum, u) => sum + u.paymentsCount, 0)
     return {
-      totalPaidUsers: paidUsers.length,
+      totalPaidUsers: filteredUsers.length,
       activeSubs,
       totalRevenue,
       avgCheck,
+      totalPayments,
     }
-  }, [paidUsers])
+  }, [filteredUsers])
 
   // ========== MUTATIONS ==========
 
@@ -440,47 +469,68 @@ export function ClientsTab() {
   // ========== RENDER ==========
 
   return (
-    <div className="space-y-4">
-      {/* Статистика карточки */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl p-4 text-white shadow-lg shadow-orange-500/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-          <div className="text-orange-100 text-xs mb-1">Общий доход</div>
-          <div className="text-2xl font-bold">{formatAmount(stats.totalRevenue)}</div>
-          <div className="text-orange-100/80 text-xs mt-1">ср. чек {formatAmount(stats.avgCheck)}</div>
+    <div className="space-y-3">
+      {/* Период */}
+      <div className="flex gap-1.5 bg-gray-50 rounded-xl p-1">
+        {([
+          ['today', 'Сегодня'],
+          ['week', 'Неделя'],
+          ['month', 'Месяц'],
+          ['all', 'Всё время'],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setPeriod(key)}
+            className={cn(
+              "flex-1 py-2 rounded-lg text-xs font-medium transition-all",
+              period === key
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Статистика */}
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl p-3 text-white shadow-lg shadow-orange-500/20 relative overflow-hidden col-span-2">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+          <div className="text-orange-100 text-[10px] mb-0.5">Доход</div>
+          <div className="text-xl font-bold">{formatAmount(stats.totalRevenue)}</div>
+          <div className="text-orange-100/80 text-[10px] mt-0.5">ср. чек {formatAmount(stats.avgCheck)}</div>
         </div>
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <div className="text-gray-400 text-xs mb-1">Платящих</div>
-              <div className="text-xl font-bold text-gray-900">{stats.totalPaidUsers}</div>
-            </div>
-            <div>
-              <div className="text-gray-400 text-xs mb-1">Активных</div>
-              <div className="text-xl font-bold text-green-600">{stats.activeSubs}</div>
-            </div>
-          </div>
+        <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm">
+          <div className="text-gray-400 text-[10px] mb-0.5">Платежей</div>
+          <div className="text-lg font-bold text-gray-900">{stats.totalPayments}</div>
+          <div className="text-gray-400 text-[10px] mt-0.5">{stats.totalPaidUsers} чел.</div>
+        </div>
+        <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm">
+          <div className="text-gray-400 text-[10px] mb-0.5">Активных</div>
+          <div className="text-lg font-bold text-green-600">{stats.activeSubs}</div>
+          <div className="text-gray-400 text-[10px] mt-0.5">подписок</div>
         </div>
       </div>
 
       {/* Когорты */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+      <div className="flex gap-1.5">
         {([
-          ['all_paid', `Все платившие (${paidUsers.length})`, DollarSign],
-          ['active_subs', `Активные (${paidUsers.filter(u => u.activeSub).length})`, CalendarCheck],
-          ['premium', `Premium (${paidUsers.filter(u => u.premiumPlan).length})`, Crown],
+          ['all_paid', `Все (${filteredUsers.length})`, DollarSign],
+          ['active_subs', `Активные (${filteredUsers.filter(u => u.activeSub).length})`, CalendarCheck],
+          ['premium', `Premium (${filteredUsers.filter(u => u.premiumPlan).length})`, Crown],
         ] as const).map(([key, label, Icon]) => (
           <button
             key={key}
             onClick={() => setCohort(key)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap min-w-fit",
+              "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap",
               cohort === key
-                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-orange-500 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             )}
           >
-            <Icon size={14} />
+            <Icon size={12} />
             <span>{label}</span>
           </button>
         ))}
