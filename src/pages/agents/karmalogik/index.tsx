@@ -514,9 +514,17 @@ export default function KarmalogikChat() {
               </div>
 
               {message.role === 'user' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <User size={16} className="text-white" />
-                </div>
+                telegramUser?.photo_url ? (
+                  <img
+                    src={telegramUser.photo_url}
+                    alt="You"
+                    className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <User size={16} className="text-white" />
+                  </div>
+                )
               )}
             </motion.div>
           ))}
@@ -562,8 +570,8 @@ export default function KarmalogikChat() {
       {/* Input */}
       <div className="sticky bottom-0 bg-gradient-to-t from-amber-50 via-amber-50/95 to-transparent px-4 py-3 pb-safe">
         <div className={`border rounded-2xl bg-white/95 backdrop-blur-sm transition-all duration-200 ${isRecording
-            ? 'border-red-300 bg-red-50/50'
-            : 'border-amber-200 focus-within:border-amber-400 focus-within:shadow-lg focus-within:shadow-amber-500/10'
+          ? 'border-red-300 bg-red-50/50'
+          : 'border-amber-200 focus-within:border-amber-400 focus-within:shadow-lg focus-within:shadow-amber-500/10'
           }`}>
           {isRecording ? (
             <div className="px-4 py-4 flex items-center gap-3">
@@ -596,8 +604,8 @@ export default function KarmalogikChat() {
             <button
               onClick={toggleRecording}
               className={`p-2 rounded-xl transition-all cursor-pointer ${isRecording
-                  ? 'bg-red-500 text-white'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                ? 'bg-red-500 text-white'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                 }`}
             >
               {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
