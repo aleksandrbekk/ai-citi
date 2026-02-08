@@ -1,12 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, Bot } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Bot, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
+import { isAdmin } from '@/config/admins'
+import { getTelegramUser } from '@/lib/telegram'
 
 // Персонажи привязаны к разделам
-const characters = [
+const getCharacters = (userIsAdmin: boolean) => [
   {
     id: 'designer',
     skin: '/images/skins/skin_2.png',
@@ -28,8 +30,8 @@ const characters = [
     task: 'Задать вопрос',
     defaultSpeech: 'Спроси меня о чём угодно!\nЯ помогу 🤖',
     icon: Bot,
-    disabled: false,
-    comingSoon: false
+    disabled: !userIsAdmin,
+    comingSoon: !userIsAdmin
   },
 ]
 
@@ -55,6 +57,9 @@ const swipePower = (offset: number, velocity: number) => Math.abs(offset) * velo
 
 export default function Home() {
   const navigate = useNavigate()
+  const telegramUser = getTelegramUser()
+  const userIsAdmin = isAdmin(telegramUser?.id)
+  const characters = getCharacters(userIsAdmin)
   const [[currentIndex, direction], setPage] = useState([0, 0]);
   const [greetings, setGreetings] = useState<Record<string, string>>({})
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
@@ -291,7 +296,7 @@ export default function Home() {
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <ChevronRight size={10} />
+                    <Lock size={10} />
                     СКОРО
                   </motion.div>
                 </div>
