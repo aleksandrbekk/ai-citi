@@ -137,11 +137,11 @@ serve(async (req) => {
                         Deno.env.get('SUPABASE_URL')!,
                         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
                     )
-                    const refCode = promoCode.replace('ref_', '')
+                    // Сохраняем полный promoCode (ref_CODE_src_TAG) для парсинга UTM в auth-telegram
                     await supabase
                         .from('pending_referrals')
-                        .upsert({ telegram_id: chatId, referral_code: refCode }, { onConflict: 'telegram_id' })
-                    console.log('Saved pending referral:', chatId, '->', refCode)
+                        .upsert({ telegram_id: chatId, referral_code: promoCode }, { onConflict: 'telegram_id' })
+                    console.log('Saved pending referral:', chatId, '->', promoCode)
                 } catch (e) {
                     console.error('Failed to save pending referral:', e)
                 }
