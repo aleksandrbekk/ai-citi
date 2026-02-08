@@ -87,9 +87,9 @@ serve(async (req) => {
         const trimmedText = text.slice(0, 5000)
 
         // Получаем GCP credentials
-        const credentialsJson = Deno.env.get('GCP_CREDENTIALS')
+        const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
         if (!credentialsJson) {
-            throw new Error('GCP_CREDENTIALS not configured')
+            throw new Error('GOOGLE_SERVICE_ACCOUNT not configured')
         }
         const credentials = JSON.parse(credentialsJson)
 
