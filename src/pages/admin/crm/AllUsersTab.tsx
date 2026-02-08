@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
 import {
   Search, X, ChevronDown, CreditCard, Calendar, Gift, Loader2,
-  Coins, Globe, User as UserIcon, Check, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2, Users, Link2, Unlink
+  Coins, Globe, User as UserIcon, Check, Star, Palette, ArrowUpCircle, ArrowDownCircle, Crown, Clock, Zap, Plus, Minus, Trash2, Users, Link2, Unlink, Activity, Eye, MessageSquare, ShoppingCart
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '../../../lib/utils'
@@ -81,7 +81,7 @@ export function AllUsersTab() {
   const [coinsAmount, setCoinsAmount] = useState('')
   const [coinsReason, setCoinsReason] = useState('')
   const [isAddingCoins, setIsAddingCoins] = useState(false)
-  const [activeTab, setActiveTab] = useState<'info' | 'coins' | 'subscription' | 'styles' | 'referral'>('info')
+  const [activeTab, setActiveTab] = useState<'info' | 'coins' | 'subscription' | 'styles' | 'referral' | 'activity'>('info')
   const [subscriptionPlan, setSubscriptionPlan] = useState<'pro' | 'elite'>('pro')
   const [subscriptionMonths, setSubscriptionMonths] = useState(1)
   const [referrerInput, setReferrerInput] = useState('')
@@ -631,7 +631,8 @@ export function AllUsersTab() {
                   { id: 'coins', label: 'Монеты', icon: Coins },
                   { id: 'subscription', label: 'Подписка', icon: Crown },
                   { id: 'styles', label: 'Стили', icon: Palette },
-                  { id: 'referral', label: 'Реферал', icon: Users }
+                  { id: 'referral', label: 'Реферал', icon: Users },
+                  { id: 'activity', label: 'Активность', icon: Activity }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -906,14 +907,14 @@ export function AllUsersTab() {
                                 userStats.subscription.status === 'active'
                                   ? "bg-green-500/20 text-green-500 ring-1 ring-green-500/40"
                                   : userStats.subscription.status === 'cancelled'
-                                  ? "bg-amber-500/20 text-amber-600 ring-1 ring-amber-500/40"
-                                  : "bg-red-500/20 text-red-500"
+                                    ? "bg-amber-500/20 text-amber-600 ring-1 ring-amber-500/40"
+                                    : "bg-red-500/20 text-red-500"
                               )}>
                                 {userStats.subscription.status === 'active'
                                   ? 'Active'
                                   : userStats.subscription.status === 'cancelled'
-                                  ? 'Отменена'
-                                  : 'Expired'}
+                                    ? 'Отменена'
+                                    : 'Expired'}
                               </span>
                             </div>
 
@@ -1221,6 +1222,11 @@ export function AllUsersTab() {
                   )}
                 </div>
               )}
+
+              {/* ========== TAB: ACTIVITY ========== */}
+              {activeTab === 'activity' && (
+                <UserActivityTimeline telegramId={selectedUser.telegram_id} />
+              )}
             </div>
           </div>
         </div>
@@ -1307,6 +1313,145 @@ function GrantStyleSelector({ telegramId, ownedStyleIds, onSuccess }: { telegram
         {isGranting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Gift className="w-3 h-3" />}
         Выдать
       </button>
+    </div>
+  )
+}
+
+// ========== TIMELINE АКТИВНОСТИ ПОЛЬЗОВАТЕЛЯ ==========
+function UserActivityTimeline({ telegramId }: { telegramId: number }) {
+  const { data: events, isLoading } = useQuery({
+    queryKey: ['user_activity', telegramId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_events')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (error) { console.error('User events error:', error); return [] }
+      return data as {
+        id: string
+        event_name: string
+        event_category: string
+        event_data: Record<string, unknown> | null
+        page_path: string | null
+        created_at: string
+      }[]
+    },
+    refetchInterval: 15000
+  })
+
+  const eventConfig: Record<string, { icon: typeof Activity; color: string; label: string }> = {
+    page_view: { icon: Eye, color: 'text-blue-500 bg-blue-50', label: 'Просмотр' },
+    carousel_start: { icon: Palette, color: 'text-orange-500 bg-orange-50', label: 'Генерация карусели' },
+    shop_buy_coins: { icon: ShoppingCart, color: 'text-green-500 bg-green-50', label: 'Покупка монет' },
+    shop_buy_subscription: { icon: Star, color: 'text-amber-500 bg-amber-50', label: 'Покупка подписки' },
+    coach_message_sent: { icon: MessageSquare, color: 'text-cyan-500 bg-cyan-50', label: 'Сообщение AI Коучу' },
+    coach_tts_played: { icon: Zap, color: 'text-purple-500 bg-purple-50', label: 'Озвучка TTS' },
+  }
+
+  const pageNames: Record<string, string> = {
+    '/': 'Главная',
+    '/agents': 'Агенты',
+    '/agents/carousel': 'Нейропостер',
+    '/agents/karmalogik': 'AI Коуч',
+    '/shop': 'Магазин',
+    '/school': 'Школа',
+    '/referrals': 'Рефералы',
+    '/profile': 'Профиль',
+    '/tools': 'Инструменты',
+  }
+
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr)
+    const now = new Date()
+    const diff = now.getTime() - d.getTime()
+    const mins = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (mins < 1) return 'только что'
+    if (mins < 60) return `${mins} мин назад`
+    if (hours < 24) return `${hours} ч назад`
+    if (days < 7) return `${days} дн назад`
+    return d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+      </div>
+    )
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <div className="text-center py-12 space-y-2">
+        <Activity className="w-10 h-10 mx-auto text-gray-300" />
+        <p className="text-gray-500 text-sm">Нет данных об активности</p>
+        <p className="text-gray-400 text-xs">Данные появятся после следующего посещения TMA</p>
+      </div>
+    )
+  }
+
+  // Группировка по дням
+  const grouped = new Map<string, typeof events>()
+  events.forEach(e => {
+    const dayKey = new Date(e.created_at).toLocaleDateString('ru', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    })
+    if (!grouped.has(dayKey)) grouped.set(dayKey, [])
+    grouped.get(dayKey)!.push(e)
+  })
+
+  return (
+    <div className="space-y-4 p-4">
+      {/* Счётчик */}
+      <div className="flex items-center gap-2 text-sm text-gray-500">
+        <Activity className="w-4 h-4" />
+        <span>Последние {events.length} событий</span>
+      </div>
+
+      {/* Timeline по дням */}
+      {Array.from(grouped.entries()).map(([day, dayEvents]) => (
+        <div key={day}>
+          <div className="text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">{day}</div>
+          <div className="space-y-1">
+            {dayEvents.map(event => {
+              const config = eventConfig[event.event_name] || {
+                icon: Activity,
+                color: 'text-gray-500 bg-gray-50',
+                label: event.event_name
+              }
+              const Icon = config.icon
+              const detail = event.event_name === 'page_view'
+                ? (pageNames[event.page_path || ''] || event.page_path || '')
+                : event.event_data
+                  ? Object.entries(event.event_data).slice(0, 2).map(([k, v]) => `${k}: ${v}`).join(', ')
+                  : ''
+
+              return (
+                <div key={event.id} className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className={`p-1.5 rounded-lg flex-shrink-0 ${config.color}`}>
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-gray-900">{config.label}</span>
+                      <span className="text-xs text-gray-400 flex-shrink-0">{formatTime(event.created_at)}</span>
+                    </div>
+                    {detail && (
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{detail}</p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
