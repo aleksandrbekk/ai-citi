@@ -134,6 +134,35 @@ export default function Profile() {
           onHistory={handleHistory}
           onQRCode={() => setShowQRCode(true)}
         />
+
+        {/* Support */}
+        <div className="mt-2 bg-white/70 backdrop-blur-sm border border-gray-100 rounded-2xl p-4">
+          <p className="text-xs text-gray-400 mb-2.5 font-medium">Техподдержка</p>
+          <div className="flex gap-2">
+            <a
+              href="https://t.me/dmbekk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition-colors text-sm text-gray-600 font-medium"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              @dmbekk
+            </a>
+            <a
+              href="https://t.me/aleksandrbekk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition-colors text-sm text-gray-600 font-medium"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              @aleksandrbekk
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* QR Code Modal */}
