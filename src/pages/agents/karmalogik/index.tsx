@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Loader2, User, Trash2, Sparkles, BookOpen } from 'lucide-react'
+import { Send, Loader2, User, Trash2, Sparkles } from 'lucide-react'
 import { supabase, checkPremiumSubscription } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 // authStore используется для user
@@ -224,14 +224,16 @@ export default function KarmalogikChat() {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-xl border-b border-amber-100 px-4 py-3 flex items-center gap-3">
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <BookOpen size={20} className="text-white" />
-          </div>
+          <img
+            src="/images/ai-coach-avatar.png"
+            alt="AI-Coach"
+            className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-orange-500/20"
+          />
           <div>
             <h1 className="text-base font-semibold text-gray-900">AI-Coach</h1>
             <p className="text-xs text-amber-600 flex items-center gap-1">
               <Sparkles size={10} />
-              Персональный коуч-трансформер
+              Твой внутренний компас ✨
             </p>
           </div>
         </div>
@@ -259,13 +261,18 @@ export default function KarmalogikChat() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-10 px-4"
           >
-            <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-orange-500/30">
-              <Sparkles size={36} className="text-white" />
-            </div>
+            <motion.img
+              src="/images/ai-coach-avatar.png"
+              alt="AI-Coach"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+              className="w-28 h-28 rounded-2xl object-cover mx-auto mb-4 shadow-xl shadow-orange-500/20"
+            />
             <h2 className="text-xl font-bold text-gray-900 mb-1">
               AI-Coach
             </h2>
-            <p className="text-xs text-amber-600 mb-4">Персональный коуч-трансформер</p>
+            <p className="text-xs text-amber-600 mb-4">Твой внутренний компас ✨</p>
 
             {/* Coach welcome message */}
             <div className="text-left bg-white/80 backdrop-blur-xl border border-amber-100 rounded-2xl p-4 max-w-sm mx-auto mb-5 shadow-sm">
@@ -321,9 +328,11 @@ export default function KarmalogikChat() {
               className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {message.role === 'assistant' && (
-                <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <BookOpen size={16} className="text-white" />
-                </div>
+                <img
+                  src="/images/ai-coach-avatar.png"
+                  alt="Coach"
+                  className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
+                />
               )}
 
               <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : ''}`}>
@@ -352,12 +361,14 @@ export default function KarmalogikChat() {
             animate={{ opacity: 1, y: 0 }}
             className="flex gap-3"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
-              <BookOpen size={16} className="text-white" />
-            </div>
+            <img
+              src="/images/ai-coach-avatar.png"
+              alt="Coach"
+              className="w-8 h-8 rounded-lg object-cover"
+            />
             <div className="bg-white border border-amber-100 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm">
               <div className="flex gap-1.5 items-center">
-                <span className="text-sm text-amber-600 mr-2">Изучаю Сутры</span>
+                <span className="text-sm text-amber-600 mr-2">Размышляю...</span>
                 <motion.span
                   className="w-1.5 h-1.5 bg-amber-500 rounded-full"
                   animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
