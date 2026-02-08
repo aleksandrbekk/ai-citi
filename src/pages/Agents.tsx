@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/ui/icons'
-import { BookOpen } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 
 const OWNER_TELEGRAM_ID = 190202791
@@ -49,9 +48,8 @@ export function Agents() {
           {/* Карусели - только для платных пользователей */}
           <div
             onClick={() => hasPaidAccess && navigate('/agents/carousel')}
-            className={`glass-card p-5 transition-all group relative ${
-              hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
-            }`}
+            className={`glass-card p-5 transition-all group relative ${hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
+              }`}
           >
             {!hasPaidAccess && (
               <div className="absolute top-3 right-3">
@@ -72,11 +70,13 @@ export function Agents() {
             to="/agents/karmalogik"
             className="glass-card p-5 hover:scale-[1.02] transition-all group"
           >
-            <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
-              <BookOpen className="w-7 h-7 text-white" />
-            </div>
-            <h3 className="text-gray-900 font-semibold mb-1">ИИ КОУЧ</h3>
-            <p className="text-gray-500 text-sm">Персональный коучинг</p>
+            <img
+              src="/images/ai-coach-avatar.png"
+              alt="AI-Coach"
+              className="w-14 h-14 rounded-2xl object-cover mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow"
+            />
+            <h3 className="text-gray-900 font-semibold mb-1">AI-Coach</h3>
+            <p className="text-gray-500 text-sm">Твой внутренний компас ✨</p>
           </Link>
 
           {/* Нейропостер - только для владельца */}

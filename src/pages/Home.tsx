@@ -1,14 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, Bot, Lock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
 import { isAdmin } from '@/config/admins'
 import { getTelegramUser } from '@/lib/telegram'
 
 // Персонажи привязаны к разделам
-const getCharacters = (userIsAdmin: boolean) => [
+const getCharacters = (_userIsAdmin: boolean) => [
   {
     id: 'designer',
     skin: '/images/skins/skin_2.png',
@@ -22,16 +22,16 @@ const getCharacters = (userIsAdmin: boolean) => [
     comingSoon: false
   },
   {
-    id: 'assistant',
-    skin: '/images/skins/skin_1.png',
-    name: 'Ассистент',
-    label: 'AI Помощник',
-    path: '/chat',
-    task: 'Задать вопрос',
-    defaultSpeech: 'Спроси меня о чём угодно!\nЯ помогу 🤖',
-    icon: Bot,
-    disabled: !userIsAdmin,
-    comingSoon: !userIsAdmin
+    id: 'coach',
+    skin: '/images/ai-coach-avatar.png',
+    name: 'AI-Coach',
+    label: 'Твой внутренний компас',
+    path: '/agents/karmalogik',
+    task: 'Начать сессию',
+    defaultSpeech: 'Готов к переменам?\nДавай разберёмся вместе 🧘',
+    icon: Sparkles,
+    disabled: false,
+    comingSoon: false
   },
 ]
 
