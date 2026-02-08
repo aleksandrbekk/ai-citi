@@ -19,6 +19,7 @@ import {
 import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 import UtmTab from './crm/UtmTab'
 import StatsTab from './crm/StatsTab'
+import { useMaintenanceMode, toggleMaintenanceMode, updateMaintenanceMessage } from '@/hooks/useMaintenanceMode'
 
 type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'carousel-styles' | 'settings'
 
@@ -106,11 +107,10 @@ function SidebarItem({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-        active
-          ? 'bg-[#3B82F6] text-white'
-          : 'text-[#94A3B8] hover:text-white hover:bg-[#334155]'
-      }`}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${active
+        ? 'bg-[#3B82F6] text-white'
+        : 'text-[#94A3B8] hover:text-white hover:bg-[#334155]'
+        }`}
     >
       <Icon className="w-5 h-5" />
       <span className="font-medium">{label}</span>
@@ -243,11 +243,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
-        active
-          ? 'border-[#3B82F6] text-white'
-          : 'border-transparent text-[#94A3B8] hover:text-white'
-      }`}
+      className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${active
+        ? 'border-[#3B82F6] text-white'
+        : 'border-transparent text-[#94A3B8] hover:text-white'
+        }`}
     >
       <Icon className="w-4 h-4" />
       <span className="font-medium">{label}</span>
@@ -447,14 +446,82 @@ function CarouselStylesSection({ navigate }: { navigate: any }) {
 }
 
 function SettingsSection() {
+  const { isMaintenanceEnabled, message } = useMaintenanceMode()
+  const [localMessage, setLocalMessage] = useState(message)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    setLocalMessage(message)
+  }, [message])
+
+  const handleToggle = async () => {
+    setSaving(true)
+    await toggleMaintenanceMode(!isMaintenanceEnabled)
+    setSaving(false)
+  }
+
+  const handleSaveMessage = async () => {
+    setSaving(true)
+    await updateMaintenanceMessage(localMessage)
+    setSaving(false)
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <Settings className="w-6 h-6" />
         Настройки
       </h2>
-      <div className="bg-[#1E293B] rounded-lg border border-[#334155] p-6">
-        <p className="text-[#94A3B8]">Раздел в разработке</p>
+
+      {/* Maintenance Mode */}
+      <div className="bg-[#1E293B] rounded-lg border border-[#334155] p-6 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              🛠 Технические работы
+            </h3>
+            <p className="text-sm text-[#94A3B8] mt-1">
+              Блокирует доступ всем пользователям кроме админов
+            </p>
+          </div>
+          <button
+            onClick={handleToggle}
+            disabled={saving}
+            className={`relative w-14 h-7 rounded-full transition-colors ${isMaintenanceEnabled ? 'bg-orange-500' : 'bg-[#334155]'
+              }`}
+          >
+            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${isMaintenanceEnabled ? 'translate-x-7' : 'translate-x-0.5'
+              }`} />
+          </button>
+        </div>
+
+        {isMaintenanceEnabled && (
+          <div className="mt-4 pt-4 border-t border-[#334155]">
+            <label className="text-sm text-[#94A3B8] mb-2 block">Сообщение для пользователей:</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={localMessage}
+                onChange={(e) => setLocalMessage(e.target.value)}
+                className="flex-1 px-4 py-2.5 bg-[#0F172A] border border-[#334155] rounded-lg text-white placeholder-[#64748B] focus:outline-none focus:border-[#3B82F6]"
+              />
+              <button
+                onClick={handleSaveMessage}
+                disabled={saving || localMessage === message}
+                className="px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] disabled:opacity-50 rounded-lg transition-colors text-sm font-medium"
+              >
+                Сохранить
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isMaintenanceEnabled && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-orange-400">
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+            Тех. работы активны — пользователи видят заглушку
+          </div>
+        )}
       </div>
     </div>
   )
