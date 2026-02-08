@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Save, RefreshCw, Bot, Zap, MessageSquare, Users, Sliders, Info, Crown, Sparkles } from 'lucide-react'
+import { Settings, Save, RefreshCw, Bot, Zap, MessageSquare, Users, Sliders, Info, Crown, Sparkles, Database } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface ChatSettings {
@@ -19,6 +19,8 @@ interface ChatSettings {
   history_enabled: boolean
   max_history: number
   max_retries: number
+  rag_enabled: boolean
+  rag_engine_id: string
   updated_at: string
 }
 
@@ -29,13 +31,13 @@ const MODELS = [
 ]
 
 // Компонент для числового поля без бага с 0
-function NumberInput({ 
-  value, 
-  onChange, 
-  min = 0, 
+function NumberInput({
+  value,
+  onChange,
+  min = 0,
   max = 99999,
   className = ''
-}: { 
+}: {
   value: number
   onChange: (v: number) => void
   min?: number
@@ -43,23 +45,23 @@ function NumberInput({
   className?: string
 }) {
   const [localValue, setLocalValue] = useState(value.toString())
-  
+
   useEffect(() => {
     setLocalValue(value.toString())
   }, [value])
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^0-9]/g, '')
     setLocalValue(raw)
   }
-  
+
   const handleBlur = () => {
     let num = parseInt(localValue) || min
     num = Math.max(min, Math.min(max, num))
     setLocalValue(num.toString())
     onChange(num)
   }
-  
+
   return (
     <input
       type="text"
@@ -94,7 +96,9 @@ export function AdminSettings() {
     limit_elite: 300,
     history_enabled: true,
     max_history: 20,
-    max_retries: 2
+    max_retries: 2,
+    rag_enabled: false,
+    rag_engine_id: ''
   })
 
   useEffect(() => {
@@ -104,7 +108,7 @@ export function AdminSettings() {
   const loadSettings = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const { data, error } = await supabase
         .from('chat_settings')
@@ -129,7 +133,9 @@ export function AdminSettings() {
         limit_elite: data.limit_elite || 300,
         history_enabled: data.history_enabled ?? true,
         max_history: data.max_history || 20,
-        max_retries: data.max_retries || 2
+        max_retries: data.max_retries || 2,
+        rag_enabled: data.rag_enabled ?? false,
+        rag_engine_id: data.rag_engine_id || ''
       })
     } catch (e: any) {
       setError(e.message)
@@ -140,7 +146,7 @@ export function AdminSettings() {
 
   const saveSettings = async () => {
     if (!settings?.id) return
-    
+
     setSaving(true)
     setError(null)
     setSuccess(false)
@@ -225,11 +231,10 @@ export function AdminSettings() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all cursor-pointer ${
-              activeTab === tab.id
-                ? 'bg-white text-orange-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all cursor-pointer ${activeTab === tab.id
+              ? 'bg-white text-orange-600 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             <tab.icon className="w-4 h-4" />
             <span className="hidden sm:inline">{tab.label}</span>
@@ -239,7 +244,7 @@ export function AdminSettings() {
 
       {/* Content */}
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        
+
         {/* Tab: Prompt */}
         {activeTab === 'prompt' && (
           <div className="p-6 space-y-6">
@@ -292,7 +297,7 @@ export function AdminSettings() {
                 <div>
                   <h3 className="font-semibold text-blue-900">Как работает</h3>
                   <p className="text-sm text-blue-700 mt-1">
-                    Premium пользователи (Starter, Pro, Elite) получают умную модель.<br/>
+                    Premium пользователи (Starter, Pro, Elite) получают умную модель.<br />
                     Бесплатные пользователи (Basic) — быструю модель.
                   </p>
                 </div>
@@ -506,16 +511,14 @@ export function AdminSettings() {
                 </div>
                 <button
                   onClick={() => setForm(f => ({ ...f, history_enabled: !f.history_enabled }))}
-                  className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${
-                    form.history_enabled ? 'bg-orange-500' : 'bg-gray-300'
-                  }`}
+                  className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${form.history_enabled ? 'bg-orange-500' : 'bg-gray-300'
+                    }`}
                 >
-                  <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                    form.history_enabled ? 'left-6' : 'left-1'
-                  }`} />
+                  <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.history_enabled ? 'left-6' : 'left-1'
+                    }`} />
                 </button>
               </div>
-              
+
               {form.history_enabled && (
                 <div className="pt-4 border-t">
                   <label className="block text-sm text-gray-700 mb-2">Максимум сообщений в памяти</label>
@@ -542,6 +545,43 @@ export function AdminSettings() {
                 className="w-32 border-gray-200"
               />
             </div>
+
+            {/* RAG Settings */}
+            <div className="p-5 border-2 border-cyan-200 rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <Database className="w-5 h-5 text-cyan-600" />
+                    RAG режим (Agent Builder)
+                  </label>
+                  <p className="text-xs text-cyan-600 mt-0.5">Ответы на основе загруженных документов (покрывается кредитом ฿32k)</p>
+                </div>
+                <button
+                  onClick={() => setForm(f => ({ ...f, rag_enabled: !f.rag_enabled }))}
+                  className={`relative w-12 h-7 rounded-full transition-colors cursor-pointer ${form.rag_enabled ? 'bg-cyan-500' : 'bg-gray-300'
+                    }`}
+                >
+                  <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.rag_enabled ? 'left-6' : 'left-1'
+                    }`} />
+                </button>
+              </div>
+
+              {form.rag_enabled && (
+                <div className="pt-4 border-t border-cyan-200">
+                  <label className="block text-sm text-gray-700 mb-2">Engine ID (из Agent Builder)</label>
+                  <input
+                    type="text"
+                    value={form.rag_engine_id}
+                    onChange={(e) => setForm(f => ({ ...f, rag_engine_id: e.target.value }))}
+                    placeholder="assistant-search"
+                    className="w-full px-4 py-3 border border-cyan-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all bg-white font-mono text-sm"
+                  />
+                  <p className="mt-2 text-xs text-cyan-600">
+                    Создайте Engine в <a href="https://console.cloud.google.com/gen-app-builder/engines" target="_blank" rel="noopener" className="underline">Agent Builder Console</a>
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -553,7 +593,7 @@ export function AdminSettings() {
                 Обновлено: {new Date(settings.updated_at).toLocaleString('ru-RU')}
               </p>
             )}
-            
+
             <div className="flex gap-3 ml-auto">
               <button
                 onClick={loadSettings}
@@ -563,7 +603,7 @@ export function AdminSettings() {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">Обновить</span>
               </button>
-              
+
               <button
                 onClick={saveSettings}
                 disabled={saving}

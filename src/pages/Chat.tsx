@@ -98,14 +98,15 @@ export default function Chat() {
     toggleDrawer
   } = useChatStore()
 
-  // Welcome message из БД
+  // Welcome message и RAG настройки из БД
   const [welcomeMessage, setWelcomeMessage] = useState<string>('')
+  const [ragSettings, setRagSettings] = useState<{ enabled: boolean; engineId: string }>({ enabled: false, engineId: '' })
 
   useEffect(() => {
-    const loadWelcome = async () => {
+    const loadSettings = async () => {
       const { data } = await supabase
         .from('chat_settings')
-        .select('welcome_message')
+        .select('welcome_message, rag_enabled, rag_engine_id')
         .limit(1)
         .single()
       if (data?.welcome_message) {
@@ -113,8 +114,11 @@ export default function Chat() {
         const name = telegramUser?.first_name || 'друг'
         setWelcomeMessage(data.welcome_message.replace('{name}', name))
       }
+      if (data?.rag_enabled && data?.rag_engine_id) {
+        setRagSettings({ enabled: true, engineId: data.rag_engine_id })
+      }
     }
-    loadWelcome()
+    loadSettings()
   }, [telegramUser, user])
 
   // Состояние лимита
@@ -287,7 +291,11 @@ export default function Chat() {
           message: userMessageContent,
           history,
           images: images.length > 0 ? images : undefined,
-          userId: user?.id
+          userId: user?.id,
+          ...(ragSettings.enabled && ragSettings.engineId ? {
+            useRAG: true,
+            ragEngineId: ragSettings.engineId
+          } : {})
         }
       })
 
