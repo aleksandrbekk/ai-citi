@@ -120,6 +120,7 @@ const AdminQuizImageEditor = lazy(() => import('./pages/admin/quizzes/QuizImageE
 const CarouselStylesList = lazy(() => import('./pages/admin/carousel/StylesList'))
 const CarouselStyleEditor = lazy(() => import('./pages/admin/carousel/StyleEditor'))
 const CarouselSettingsPage = lazy(() => import('./pages/admin/carousel/CarouselSettings'))
+const ProductAnalytics = lazy(() => import('./pages/admin/ProductAnalytics'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -266,6 +267,7 @@ function AppContent() {
             <Route element={<AdminLayout />}>
               {/* CRM */}
               <Route path="crm" element={<AdminCRM />} />
+              <Route path="analytics" element={<ProductAnalytics />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="whitelist" element={<AdminWhitelist />} />
               <Route path="quizzes" element={<QuizzesList />} />

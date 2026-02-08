@@ -6,6 +6,7 @@ import {
     GraduationCap,
     Settings,
     Home,
+    BarChart3,
     type LucideIcon
 } from 'lucide-react'
 
@@ -83,6 +84,12 @@ export function AdminDashboard() {
             label: 'Настройки',
             gradient: 'bg-gradient-to-br from-gray-400 to-gray-600',
         },
+        {
+            to: '/admin/analytics',
+            icon: BarChart3,
+            label: 'Аналитика',
+            gradient: 'bg-gradient-to-br from-emerald-400 to-emerald-600',
+        },
     ]
 
     return (
@@ -103,15 +110,9 @@ export function AdminDashboard() {
             {/* Сетка плиток */}
             <div className="w-full max-w-md lg:max-w-lg">
                 <div className="grid grid-cols-2 gap-4 lg:gap-6">
-                    {/* Первые 4 плитки в сетке 2x2 */}
-                    {tiles.slice(0, 4).map((tile) => (
+                    {tiles.map((tile) => (
                         <DashboardTile key={tile.to} {...tile} />
                     ))}
-                </div>
-
-                {/* Настройки по центру снизу */}
-                <div className="flex justify-center mt-4 lg:mt-6 px-[calc(25%-4px)] lg:px-[calc(25%-6px)]">
-                    <DashboardTile {...tiles[4]} />
                 </div>
             </div>
         </div>
