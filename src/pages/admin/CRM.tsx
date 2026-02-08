@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Users, Send, CreditCard, Link2, UserPlus } from 'lucide-react'
+import { Users, Send, CreditCard, Link2, UserPlus, Palette } from 'lucide-react'
 import { ClientsTab } from './crm/ClientsTab'
 import { AllUsersTab } from './crm/AllUsersTab'
 import { BroadcastTab } from './crm/BroadcastTab'
 import UtmTab from './crm/UtmTab'
 import { ReferralsTab } from './crm/ReferralsTab'
+import { StylesTab } from './crm/StylesTab'
 
 const tabs = [
   { id: 'all', label: 'Все пользователи', icon: Users },
   { id: 'paid', label: 'Платные клиенты', icon: CreditCard },
+  { id: 'styles', label: 'Стили', icon: Palette },
   { id: 'referrals', label: 'Рефералы', icon: UserPlus },
   { id: 'utm', label: 'UTM Ссылки', icon: Link2 },
   { id: 'broadcast', label: 'Рассылка', icon: Send },
@@ -43,6 +45,7 @@ export function AdminCRM() {
 
       {activeTab === 'all' && <AllUsersTab />}
       {activeTab === 'paid' && <ClientsTab />}
+      {activeTab === 'styles' && <StylesTab />}
       {activeTab === 'referrals' && <ReferralsTab />}
       {activeTab === 'broadcast' && <BroadcastTab />}
       {activeTab === 'utm' && <UtmTab />}
