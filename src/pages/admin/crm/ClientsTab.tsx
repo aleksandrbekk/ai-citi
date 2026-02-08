@@ -439,7 +439,7 @@ export function ClientsTab() {
       </div>
 
       {/* Когорты */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
         {([
           ['all_paid', `Все платившие (${paidUsers.length})`, DollarSign],
           ['active_subs', `Активные (${paidUsers.filter(u => u.activeSub).length})`, CalendarCheck],
@@ -449,14 +449,14 @@ export function ClientsTab() {
             key={key}
             onClick={() => setCohort(key)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all flex-1 justify-center",
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap min-w-fit",
               cohort === key
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             )}
           >
             <Icon size={14} />
-            <span className="truncate">{label}</span>
+            <span>{label}</span>
           </button>
         ))}
       </div>
@@ -593,8 +593,8 @@ export function ClientsTab() {
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 >
                   <option value="FREE">FREE (бесплатно)</option>
-                  <option value="PRO">PRO (1499₽/мес)</option>
-                  <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
+                  <option value="PRO">PRO (2 900₽/мес)</option>
+                  <option value="ELITE">ELITE (9 900₽/мес)</option>
                 </select>
               </div>
               <button
@@ -708,8 +708,8 @@ export function ClientsTab() {
                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                           >
                             <option value="FREE">FREE (бесплатно)</option>
-                            <option value="PRO">PRO (1499₽/мес)</option>
-                            <option value="BUSINESS">BUSINESS (4999₽/мес)</option>
+                            <option value="PRO">PRO (2 900₽/мес)</option>
+                            <option value="ELITE">ELITE (9 900₽/мес)</option>
                           </select>
                         </div>
                         <div>
