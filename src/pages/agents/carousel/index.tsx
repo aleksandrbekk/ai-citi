@@ -607,7 +607,8 @@ function CarouselIndexInner() {
       navigate('/agents/carousel/generating')
     } catch (err) {
       console.error('[Carousel] Generation error:', err)
-      setError('Не удалось отправить запрос')
+      const errMsg = err instanceof Error ? err.message : String(err)
+      setError('Ошибка: ' + errMsg)
       isGeneratingRef.current = false
     } finally {
       setIsSubmitting(false)
