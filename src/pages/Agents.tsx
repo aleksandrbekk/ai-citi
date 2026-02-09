@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/ui/icons'
 import { useAuthStore } from '@/store/authStore'
 
-const OWNER_TELEGRAM_ID = 190202791
+const OWNER_TELEGRAM_ID = 643763835
 
 export function Agents() {
   const navigate = useNavigate()
@@ -85,7 +85,7 @@ export function Agents() {
               to="/tools/poster"
               className="glass-card p-5 hover:scale-[1.02] transition-all group"
             >
-              <div className="w-14 h-14 bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/30 transition-shadow">
+              <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/30 transition-shadow">
                 <CalendarIcon className="w-7 h-7 text-white" />
               </div>
               <h3 className="text-gray-900 font-semibold mb-1">Нейропостер</h3>
