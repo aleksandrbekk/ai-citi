@@ -1052,17 +1052,26 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
   const selectedMeta = activeStylesIndex?.[styleIndex]
   const examples = getExamples(selectedStyle)
 
-  // Preload next/prev style images
+  // Preload current + adjacent style images
   useEffect(() => {
     if (!activeStylesIndex?.length) return
 
     const preloadImages = (styleId: string) => {
       const images = getExamples(styleId)
-      images.slice(0, 3).forEach(src => {
+      images.forEach(src => {
         const img = new Image()
         img.src = src
+        img.onload = () => {
+          // Mark current style images as loaded immediately
+          if (styleId === selectedStyle) {
+            setLoadedImages(prev => new Set(prev).add(src))
+          }
+        }
       })
     }
+
+    // Preload CURRENT style first
+    preloadImages(selectedStyle)
 
     // Preload adjacent styles
     const nextIndex = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
@@ -1070,7 +1079,7 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
 
     preloadImages(activeStylesIndex[nextIndex].id)
     preloadImages(activeStylesIndex[prevIndex].id)
-  }, [styleIndex, totalStyles, activeStylesIndex, getExamples])
+  }, [selectedStyle, styleIndex, totalStyles, activeStylesIndex, getExamples])
 
   // Handle navigation with smooth transition
   const navigateToStyle = (newIndex: number) => {
@@ -1216,7 +1225,10 @@ function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleM
           {activeStylesIndex?.map((s, i) => (
             <button
               key={s.id}
-              onClick={() => setSelectedStyle(activeStylesIndex[i].id)}
+              onClick={() => {
+                setSelectedStyle(activeStylesIndex[i].id)
+                setLoadedImages(new Set())
+              }}
               className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === styleIndex
                 ? 'w-6 bg-gradient-to-r from-orange-500 to-pink-500'
                 : 'w-1.5 bg-gray-200 hover:bg-gray-300'
