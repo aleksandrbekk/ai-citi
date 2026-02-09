@@ -9,6 +9,8 @@ import { trackCarouselEvent } from '@/lib/analytics'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
+import { ColorPickerModal } from '@/components/carousel/ColorPickerModal'
+import { isAdmin } from '@/config/admins'
 
 // Error Boundary для отлова ошибок
 class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -114,7 +116,7 @@ function CarouselIndexInner() {
     throw e
   }
 
-  const { setStatus, userPhoto, setUserPhoto, style, setStyle } = storeData
+  const { setStatus, userPhoto, setUserPhoto, style, setStyle, primaryColor, setPrimaryColor } = storeData
 
   const [topic, setTopic] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -133,6 +135,9 @@ function CarouselIndexInner() {
 
   // Tips modal state
   const [showTipsModal, setShowTipsModal] = useState(false)
+
+  // Color picker state (admin only)
+  const [showColorModal, setShowColorModal] = useState(false)
 
   // Защита от двойных кликов
   const isGeneratingRef = useRef(false)
@@ -153,6 +158,7 @@ function CarouselIndexInner() {
 
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
+  const userIsAdmin = telegramUser?.id ? isAdmin(telegramUser.id) : false
 
   // Стоимость одной генерации
   const GENERATION_COST = 30
@@ -554,6 +560,8 @@ function CarouselIndexInner() {
         globalSystemPrompt,
         vasiaCore: VASIA_CORE,
         formatConfig: FORMAT_UNIVERSAL,
+        // Кастомный акцентный цвет (admin-only фича)
+        ...(primaryColor ? { primaryColor } : {}),
       }
       console.log('[Carousel] ========== SENDING TO N8N ==========')
       console.log('[Carousel] Payload styleId:', payload.styleId)
@@ -878,6 +886,29 @@ function CarouselIndexInner() {
             </div>
           </button>
 
+          {/* Color Picker - Admin Only */}
+          {userIsAdmin && (
+            <button
+              onClick={() => setShowColorModal(true)}
+              className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
+            >
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center ${primaryColor ? '' : 'bg-gradient-to-br from-orange-100 to-pink-100'}`}
+                style={primaryColor ? { backgroundColor: primaryColor } : undefined}
+              >
+                {!primaryColor && <span className="text-sm">🎨</span>}
+              </div>
+              <div className="text-left min-w-0">
+                <span className="font-medium text-gray-900 text-xs block">Цвет</span>
+                {primaryColor ? (
+                  <span className="text-[10px] text-green-600">✓</span>
+                ) : (
+                  <span className="text-[10px] text-gray-400">авто</span>
+                )}
+              </div>
+            </button>
+          )}
+
           {/* Gender - Обязательный выбор */}
           <div
             data-onboarding="gender"
@@ -950,6 +981,15 @@ function CarouselIndexInner() {
       {/* Tips Modal */}
       {showTipsModal && (
         <TipsModal onClose={() => setShowTipsModal(false)} />
+      )}
+
+      {/* Color Picker Modal - Admin Only */}
+      {showColorModal && (
+        <ColorPickerModal
+          currentColor={primaryColor}
+          onSelect={setPrimaryColor}
+          onClose={() => setShowColorModal(false)}
+        />
       )}
 
       {/* Onboarding Coach Marks */}

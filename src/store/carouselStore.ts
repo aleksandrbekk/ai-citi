@@ -34,6 +34,7 @@ interface CarouselState {
   style: StylePreset
   mode: CarouselMode
   gender: Gender
+  primaryColor: string | null
   enabledBundles: BundleId[]
 
   // Контент
@@ -56,6 +57,7 @@ interface CarouselState {
   setStyle: (style: StylePreset) => void
   setMode: (mode: CarouselMode) => void
   setGender: (gender: Gender) => void
+  setPrimaryColor: (color: string | null) => void
   setEnabledBundles: (bundles: BundleId[]) => void
   toggleBundle: (bundleId: BundleId) => void
   setCtaText: (text: string) => void
@@ -78,6 +80,7 @@ const initialState = {
   style: getDefaultStyle(),
   mode: 'ai' as CarouselMode,
   gender: null as Gender,
+  primaryColor: null as string | null,
   enabledBundles: ['base'] as BundleId[],
   variables: {},
   ctaText: '',
@@ -101,6 +104,7 @@ export const useCarouselStore = create<CarouselState>()(
       setStyle: (style) => set({ style }),
       setMode: (mode) => set({ mode }),
       setGender: (gender) => set({ gender }),
+      setPrimaryColor: (color) => set({ primaryColor: color }),
       setEnabledBundles: (bundles) => set({ enabledBundles: bundles }),
       toggleBundle: (bundleId) => set((state) => {
         const isEnabled = state.enabledBundles.includes(bundleId)
@@ -135,6 +139,7 @@ export const useCarouselStore = create<CarouselState>()(
         style: state.style,
         mode: state.mode,
         gender: state.gender,
+        primaryColor: state.primaryColor,
         enabledBundles: state.enabledBundles,
         variables: state.variables,
         ctaText: state.ctaText,
