@@ -327,7 +327,7 @@ export function AdminSettings() {
                   ))}
                 </select>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {['Starter', 'Pro', 'Elite'].map(t => (
+                  {['PRO', 'ELITE'].map(t => (
                     <span key={t} className="px-2 py-1 bg-amber-200/50 text-amber-700 text-xs font-medium rounded-lg">{t}</span>
                   ))}
                 </div>
@@ -349,7 +349,7 @@ export function AdminSettings() {
                   ))}
                 </select>
                 <div className="mt-3">
-                  <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-lg">Basic</span>
+                  <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-lg">Free</span>
                 </div>
               </div>
             </div>
