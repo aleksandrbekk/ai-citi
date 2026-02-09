@@ -886,29 +886,6 @@ function CarouselIndexInner() {
             </div>
           </button>
 
-          {/* Color Picker - Admin Only */}
-          {userIsAdmin && (
-            <button
-              onClick={() => setShowColorModal(true)}
-              className="bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
-            >
-              <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center ${primaryColor ? '' : 'bg-gradient-to-br from-orange-100 to-pink-100'}`}
-                style={primaryColor ? { backgroundColor: primaryColor } : undefined}
-              >
-                {!primaryColor && <span className="text-sm">🎨</span>}
-              </div>
-              <div className="text-left min-w-0">
-                <span className="font-medium text-gray-900 text-xs block">Цвет</span>
-                {primaryColor ? (
-                  <span className="text-[10px] text-green-600">✓</span>
-                ) : (
-                  <span className="text-[10px] text-gray-400">авто</span>
-                )}
-              </div>
-            </button>
-          )}
-
           {/* Gender - Обязательный выбор */}
           <div
             data-onboarding="gender"
@@ -936,6 +913,43 @@ function CarouselIndexInner() {
             </button>
           </div>
         </div>
+
+        {/* Admin-only: Accent Color Selector */}
+        {userIsAdmin && (
+          <button
+            onClick={() => setShowColorModal(true)}
+            className="w-full mb-4 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-orange-200 transition-all active:scale-[0.99] cursor-pointer"
+          >
+            <div
+              className={`w-8 h-8 rounded-lg flex-shrink-0 shadow-sm ${primaryColor ? 'ring-2 ring-offset-1 ring-orange-300' : 'bg-gradient-to-br from-orange-100 to-pink-100'}`}
+              style={primaryColor ? { backgroundColor: primaryColor } : undefined}
+            >
+              {!primaryColor && (
+                <svg className="w-full h-full p-1.5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="13.5" cy="6.5" r="2.5" />
+                  <circle cx="17.5" cy="10.5" r="2.5" />
+                  <circle cx="8.5" cy="7.5" r="2.5" />
+                  <circle cx="6.5" cy="12.5" r="2.5" />
+                  <path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10c0 2-1 3.5-3 3.5h-2.5c-1.5 0-2.5 1-2.5 2.5 0 .5.5 1 .5 1.5s-.5 2.5-2.5 2.5z" />
+                </svg>
+              )}
+            </div>
+            <div className="flex-1 text-left">
+              <span className="text-sm font-medium text-gray-900">Акцентный цвет</span>
+              {primaryColor ? (
+                <span className="text-xs text-gray-400 ml-2 font-mono">{primaryColor}</span>
+              ) : (
+                <span className="text-xs text-gray-400 ml-2">по стилю</span>
+              )}
+            </div>
+            {primaryColor && (
+              <span className="text-xs text-orange-500 font-medium">✓</span>
+            )}
+            <svg className="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        )}
 
         {/* Error */}
         {error && (
