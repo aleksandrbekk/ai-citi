@@ -297,7 +297,7 @@ export function usePosts() {
   }
 }
 
-// Публикация в Instagram через n8n
+// Публикация в Instagram — через свой аккаунт (direct API) или n8n (fallback)
 export const usePublishToInstagram = () => {
   const queryClient = useQueryClient()
 
@@ -313,43 +313,72 @@ export const usePublishToInstagram = () => {
       if (postError || !post) throw new Error('Post not found')
       if (!post.post_media?.length) throw new Error('No media in post')
 
-      // Собираем URL изображений
-      const imageUrls = post.post_media
-        .sort((a: any, b: any) => a.order_index - b.order_index)
-        .map((m: any) => m.public_url)
+      // Проверяем есть ли подключённый Instagram аккаунт
+      const tg = window.Telegram?.WebApp
+      const telegramId = tg?.initDataUnsafe?.user?.id || null
 
-      // Отправляем через Edge Function (URL n8n скрыт)
-      const { data: result, error } = await supabase.functions.invoke('n8n-publish-proxy', {
-        body: {
-          postId: post.id,
-          caption: post.caption || '',
-          imageUrls
+      let hasConnectedAccount = false
+      if (telegramId) {
+        try {
+          const { data: accountData } = await supabase.functions.invoke('get-instagram-account', {
+            body: { telegram_id: telegramId }
+          })
+          hasConnectedAccount = !!accountData?.account?.is_active
+        } catch {
+          hasConnectedAccount = false
         }
-      })
-
-      if (error) {
-        throw new Error(`Publish failed: ${error.message}`)
       }
 
-      // Обновляем статус поста
-      await supabase
-        .from('scheduled_posts')
-        .update({
-          status: 'published',
-          published_at: new Date().toISOString(),
-          instagram_post_id: result.instagram_post_id
+      if (hasConnectedAccount && telegramId) {
+        // --- НОВЫЙ FLOW: Прямой Instagram API через токен пользователя ---
+        const { data: result, error } = await supabase.functions.invoke('instagram-publish', {
+          body: { postId: post.id, telegramId }
         })
-        .eq('id', postId)
 
-      // Логируем успех
-      await supabase.from('publish_logs').insert({
-        post_id: postId,
-        action: 'success',
-        message: 'Published to Instagram',
-        details: result
-      })
+        if (error) throw new Error(`Publish failed: ${error.message}`)
+        if (!result?.success) throw new Error(result?.error || 'Publish failed')
 
-      return result
+        // Edge function сама обновляет статус и логи в БД
+        return result
+
+      } else {
+        // --- СТАРЫЙ FLOW: n8n proxy (Александр) — НЕ ТРОГАЕМ ---
+        const imageUrls = post.post_media
+          .sort((a: any, b: any) => a.order_index - b.order_index)
+          .map((m: any) => m.public_url)
+
+        const { data: result, error } = await supabase.functions.invoke('n8n-publish-proxy', {
+          body: {
+            postId: post.id,
+            caption: post.caption || '',
+            imageUrls
+          }
+        })
+
+        if (error) {
+          throw new Error(`Publish failed: ${error.message}`)
+        }
+
+        // Обновляем статус поста
+        await supabase
+          .from('scheduled_posts')
+          .update({
+            status: 'published',
+            published_at: new Date().toISOString(),
+            instagram_post_id: result.instagram_post_id
+          })
+          .eq('id', postId)
+
+        // Логируем успех
+        await supabase.from('publish_logs').insert({
+          post_id: postId,
+          action: 'success',
+          message: 'Published to Instagram via n8n',
+          details: result
+        })
+
+        return result
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] })
