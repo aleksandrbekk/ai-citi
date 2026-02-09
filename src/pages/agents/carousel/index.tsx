@@ -549,9 +549,13 @@ function CarouselIndexInner() {
       // Получаем системный промпт формата если не expert
       let formatSystemPrompt = ''
       if (format && format !== 'expert') {
-        const formatData = await getFormatByFormatId(format)
-        if (formatData) {
-          formatSystemPrompt = formatData.content_system_prompt
+        try {
+          const formatData = await getFormatByFormatId(format)
+          if (formatData) {
+            formatSystemPrompt = formatData.content_system_prompt
+          }
+        } catch (fmtErr) {
+          console.warn('[Carousel] Failed to fetch format, using default:', fmtErr)
         }
       }
 
@@ -601,7 +605,8 @@ function CarouselIndexInner() {
 
       setStatus('generating')
       navigate('/agents/carousel/generating')
-    } catch {
+    } catch (err) {
+      console.error('[Carousel] Generation error:', err)
       setError('Не удалось отправить запрос')
       isGeneratingRef.current = false
     } finally {
