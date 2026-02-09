@@ -112,18 +112,10 @@ async function checkUserLimit(userId: string | undefined, settings: ChatSettings
   try {
     const supabase = getSupabaseClient()
 
-    const { data: userTariffs } = await supabase
-      .from('user_tariffs')
-      .select('tariff_slug')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-
-    // Определяем лучший тариф
-    let bestTariff = 'basic'
-    let isPremium = false
-
+    // Маппинг тарифов на лимиты
     const tariffLimits: Record<string, number> = {
       'basic': settings.limit_basic,
+      'free': settings.limit_basic,
       'pro': settings.limit_pro,
       'standard': settings.limit_pro,
       'vip': settings.limit_vip,
@@ -131,9 +123,39 @@ async function checkUserLimit(userId: string | undefined, settings: ChatSettings
       'platinum': settings.limit_elite
     }
 
-    const premiumTariffs = ['pro', 'standard', 'vip', 'elite', 'platinum']
+    const premiumSlugs = ['pro', 'standard', 'vip', 'elite', 'platinum']
 
+    let bestTariff = 'basic'
+    let isPremium = false
     let limit = tariffLimits['basic']
+
+    // 1. Проверяем user_subscriptions (Lava-подписки PRO/ELITE)
+    const { data: subscriptions } = await supabase
+      .from('user_subscriptions')
+      .select('plan')
+      .eq('telegram_id', userId)
+      .eq('status', 'active')
+
+    if (subscriptions && subscriptions.length > 0) {
+      for (const sub of subscriptions) {
+        const plan = (sub.plan || '').toLowerCase()
+        const planLimit = tariffLimits[plan] || settings.limit_basic
+        if (planLimit > limit) {
+          limit = planLimit
+          bestTariff = plan
+        }
+        if (premiumSlugs.includes(plan)) {
+          isPremium = true
+        }
+      }
+    }
+
+    // 2. Проверяем user_tariffs (тарифы школы — для совместимости)
+    const { data: userTariffs } = await supabase
+      .from('user_tariffs')
+      .select('tariff_slug')
+      .eq('user_id', userId)
+      .eq('is_active', true)
 
     if (userTariffs && userTariffs.length > 0) {
       for (const t of userTariffs) {
@@ -142,11 +164,13 @@ async function checkUserLimit(userId: string | undefined, settings: ChatSettings
           limit = tariffLimit
           bestTariff = t.tariff_slug
         }
-        if (premiumTariffs.includes(t.tariff_slug)) {
+        if (premiumSlugs.includes(t.tariff_slug)) {
           isPremium = true
         }
       }
     }
+
+    console.log(`User ${userId}: bestTariff=${bestTariff}, isPremium=${isPremium}, limit=${limit}`)
 
     // Считаем использование за сегодня
     const today = new Date()

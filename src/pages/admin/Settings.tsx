@@ -26,6 +26,8 @@ interface ChatSettings {
 }
 
 const MODELS = [
+  { value: 'gemini-3.0-pro', label: 'Gemini 3.0 Pro', desc: 'Новейшая, топ', tier: 'premium' },
+  { value: 'gemini-3.0-flash', label: 'Gemini 3.0 Flash', desc: 'Новая, быстрая', tier: 'fast' },
   { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', desc: 'Умнее, дороже', tier: 'premium' },
   { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', desc: 'Быстрее, дешевле', tier: 'fast' },
   { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', desc: 'Самая быстрая', tier: 'fast' },
@@ -301,8 +303,8 @@ export function AdminSettings() {
                 <div>
                   <h3 className="font-semibold text-blue-900">Как работает</h3>
                   <p className="text-sm text-blue-700 mt-1">
-                    Premium пользователи (Starter, Pro, Elite) получают умную модель.<br />
-                    Бесплатные пользователи (Basic) — быструю модель.
+                    Подписчики (PRO, ELITE) получают умную модель.<br />
+                    Без подписки (Free) — быструю модель.
                   </p>
                 </div>
               </div>
@@ -388,11 +390,11 @@ export function AdminSettings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Basic */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Free */}
               <div className="p-4 border border-gray-200 rounded-2xl">
                 <div className="text-center mb-3">
-                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">BASIC</span>
+                  <span className="inline-block px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">FREE</span>
                 </div>
                 <NumberInput
                   value={form.limit_basic}
@@ -405,33 +407,18 @@ export function AdminSettings() {
               </div>
 
               {/* Pro */}
-              <div className="p-4 border-2 border-blue-200 rounded-2xl bg-blue-50/50">
+              <div className="p-4 border-2 border-orange-200 rounded-2xl bg-orange-50/50">
                 <div className="text-center mb-3">
-                  <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">PRO</span>
+                  <span className="inline-block px-3 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">PRO</span>
                 </div>
                 <NumberInput
                   value={form.limit_pro}
                   onChange={(v) => setForm(f => ({ ...f, limit_pro: v }))}
                   min={0}
                   max={1000}
-                  className="text-center text-lg font-semibold border-blue-200 bg-white"
+                  className="text-center text-lg font-semibold border-orange-200 bg-white"
                 />
-                <p className="text-center text-xs text-blue-600 mt-2">сообщений/день</p>
-              </div>
-
-              {/* STARTER */}
-              <div className="p-4 border-2 border-cyan-200 rounded-2xl bg-cyan-50/50">
-                <div className="text-center mb-3">
-                  <span className="inline-block px-3 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded-full">STARTER</span>
-                </div>
-                <NumberInput
-                  value={form.limit_vip}
-                  onChange={(v) => setForm(f => ({ ...f, limit_vip: v }))}
-                  min={0}
-                  max={1000}
-                  className="text-center text-lg font-semibold border-cyan-200 bg-white"
-                />
-                <p className="text-center text-xs text-cyan-600 mt-2">сообщений/день</p>
+                <p className="text-center text-xs text-orange-600 mt-2">сообщений/день</p>
               </div>
 
               {/* Elite */}
@@ -717,8 +704,8 @@ function MaintenanceToggleCard() {
             <div
               onClick={onSaveMsg}
               className={`px-3 py-2 rounded-xl text-sm font-medium cursor-pointer select-none transition-colors ${localMsg !== message
-                  ? 'bg-orange-500 text-white active:bg-orange-600'
-                  : 'bg-gray-200 text-gray-400'
+                ? 'bg-orange-500 text-white active:bg-orange-600'
+                : 'bg-gray-200 text-gray-400'
                 }`}
             >
               <Save className="w-4 h-4" />
