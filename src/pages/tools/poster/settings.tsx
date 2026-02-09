@@ -1,37 +1,122 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Instagram, CheckCircle, Link2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Instagram, CheckCircle, Link2, LogOut, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
+import { getTelegramUser } from '@/lib/telegram'
+
+const INSTAGRAM_APP_ID = '4450547015181166'
+const REDIRECT_URI = 'https://debcwvxlvozjlqkhnauy.supabase.co/functions/v1/instagram-oauth-callback'
+const SCOPES = 'instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish,instagram_business_manage_insights'
 
 export default function PosterSettings() {
   const navigate = useNavigate()
-  const [username, setUsername] = useState('')
-  const [isConnected, setIsConnected] = useState(false)
-  const [connectedUsername, setConnectedUsername] = useState('')
-  const [isConnecting, setIsConnecting] = useState(false)
+  const [searchParams] = useSearchParams()
+  const [isLoading, setIsLoading] = useState(true)
+  const [connectedAccount, setConnectedAccount] = useState<{
+    username: string
+    instagram_user_id: string
+    is_active: boolean
+  } | null>(null)
 
-  const handleConnect = async () => {
-    if (!username.trim()) {
-      toast.error('Введите имя аккаунта')
-      return
-    }
+  // Получаем user_id из БД по telegram_id
+  const getUserId = async (): Promise<string | null> => {
+    const tgUser = getTelegramUser()
+    if (!tgUser?.id) return null
 
-    setIsConnecting(true)
-    // TODO: Реальное подключение
-    setTimeout(() => {
-      setIsConnecting(false)
-      setConnectedUsername(username.replace('@', ''))
-      setIsConnected(true)
-      setUsername('')
-      toast.success('Instagram подключён!')
-    }, 1500)
+    const { data } = await supabase
+      .from('users')
+      .select('id')
+      .eq('telegram_id', tgUser.id)
+      .single()
+
+    return data?.id || null
   }
 
-  const handleDisconnect = () => {
-    setIsConnected(false)
-    setConnectedUsername('')
-    toast.success('Аккаунт отключён')
+  // Загрузка подключённого аккаунта
+  const loadAccount = async () => {
+    setIsLoading(true)
+    try {
+      const userId = await getUserId()
+      if (!userId) return
+
+      const { data } = await supabase
+        .from('instagram_accounts')
+        .select('username, instagram_user_id, is_active')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single()
+
+      if (data) {
+        setConnectedAccount(data)
+      }
+    } catch (err) {
+      console.error('Error loading account:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Обработка параметров из OAuth callback
+  useEffect(() => {
+    const connected = searchParams.get('connected')
+    const username = searchParams.get('username')
+    const error = searchParams.get('error')
+
+    if (connected === 'true' && username) {
+      toast.success(`Instagram @${username} подключён!`)
+      setConnectedAccount({
+        username,
+        instagram_user_id: '',
+        is_active: true,
+      })
+    } else if (error) {
+      if (error === 'denied') {
+        toast.error('Вы отменили подключение')
+      } else {
+        toast.error('Ошибка подключения: ' + error)
+      }
+    }
+
+    loadAccount()
+  }, [])
+
+  // Подключение — редирект на Instagram OAuth
+  const handleConnect = () => {
+    const tgUser = getTelegramUser()
+    const state = tgUser?.id ? String(tgUser.id) : ''
+
+    const oauthUrl = `https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=${INSTAGRAM_APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPES)}&state=${state}`
+
+    window.location.href = oauthUrl
+  }
+
+  // Отключение аккаунта
+  const handleDisconnect = async () => {
+    try {
+      const userId = await getUserId()
+      if (!userId) return
+
+      await supabase
+        .from('instagram_accounts')
+        .update({ is_active: false })
+        .eq('user_id', userId)
+
+      setConnectedAccount(null)
+      toast.success('Аккаунт отключён')
+    } catch (err) {
+      console.error('Disconnect error:', err)
+      toast.error('Ошибка отключения')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -49,7 +134,7 @@ export default function PosterSettings() {
       </div>
 
       {/* Подключённый аккаунт */}
-      {isConnected ? (
+      {connectedAccount ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,7 +146,7 @@ export default function PosterSettings() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="text-lg font-semibold text-gray-900">@{connectedUsername}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">@{connectedAccount.username}</h3>
                 <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
               <p className="text-sm text-green-600 font-medium">Подключён</p>
@@ -76,13 +161,14 @@ export default function PosterSettings() {
 
           <button
             onClick={handleDisconnect}
-            className="w-full px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-medium transition-colors cursor-pointer text-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-medium transition-colors cursor-pointer text-sm"
           >
-            Отключить
+            <LogOut className="w-4 h-4" />
+            Отключить аккаунт
           </button>
         </motion.div>
       ) : (
-        /* Форма подключения */
+        /* Кнопка подключения */
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,44 +178,19 @@ export default function PosterSettings() {
             <Instagram className="w-8 h-8 text-white" />
           </div>
 
-          <h2 className="text-lg font-bold text-gray-900 text-center mb-1">Укажите ваш Instagram</h2>
+          <h2 className="text-lg font-bold text-gray-900 text-center mb-1">Подключите Instagram</h2>
           <p className="text-sm text-gray-500 text-center mb-6">
-            Введите имя аккаунта для публикации постов
+            Войдите в свой аккаунт для автопубликации постов
           </p>
 
-          {/* Поле ввода */}
-          <div className="relative mb-4">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base">@</span>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="ваш_аккаунт"
-              className="w-full pl-9 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all text-base"
-            />
-          </div>
-
-          {/* Кнопка */}
           <button
             onClick={handleConnect}
-            disabled={isConnecting || !username.trim()}
-            className="w-full px-6 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full px-6 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all cursor-pointer"
           >
-            {isConnecting ? (
-              <span className="flex items-center justify-center gap-2">
-                <motion.div
-                  className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                />
-                Подключаю...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <Link2 className="w-5 h-5" />
-                Подключить
-              </span>
-            )}
+            <span className="flex items-center justify-center gap-2">
+              <Link2 className="w-5 h-5" />
+              Войти через Instagram
+            </span>
           </button>
         </motion.div>
       )}
@@ -140,15 +201,15 @@ export default function PosterSettings() {
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-cyan-600 border border-cyan-200">1</div>
-            <p className="text-sm text-gray-700">Укажите ваш Instagram аккаунт</p>
+            <p className="text-sm text-gray-700">Нажмите кнопку и войдите в Instagram</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-cyan-600 border border-cyan-200">2</div>
-            <p className="text-sm text-gray-700">Создайте пост и выберите время</p>
+            <p className="text-sm text-gray-700">Разрешите доступ для публикации постов</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold text-cyan-600 border border-cyan-200">3</div>
-            <p className="text-sm text-gray-700">Нейропостер опубликует автоматически</p>
+            <p className="text-sm text-gray-700">Создавайте посты — они опубликуются автоматически</p>
           </div>
         </div>
       </div>
