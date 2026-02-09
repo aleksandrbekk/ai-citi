@@ -38,6 +38,7 @@ interface PartnerTransaction {
 export function ReferralsTab() {
   const [search, setSearch] = useState('')
   const [expandedPartner, setExpandedPartner] = useState<string | null>(null)
+  const [expandedReferrer, setExpandedReferrer] = useState<number | null>(null)
   const [utmTag, setUtmTag] = useState('')
   const [utmCopied, setUtmCopied] = useState(false)
 
@@ -265,7 +266,10 @@ export function ReferralsTab() {
             {groupedReferrers.map((referrer) => (
               <div key={referrer.referrer_telegram_id} className="bg-white border border-gray-200 rounded-xl p-4">
                 {/* Реферер (кто пригласил) */}
-                <div className="flex items-center justify-between mb-3">
+                <div
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setExpandedReferrer(expandedReferrer === referrer.referrer_telegram_id ? null : referrer.referrer_telegram_id)}
+                >
                   <div className="min-w-0 flex-1">
                     <div className="font-medium text-gray-900 truncate">
                       {referrer.referrer_first_name || 'Без имени'}
@@ -274,13 +278,21 @@ export function ReferralsTab() {
                       {referrer.referrer_username ? `@${referrer.referrer_username}` : referrer.referrer_telegram_id}
                     </div>
                   </div>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-sm flex-shrink-0">
-                    {referrer.partners.length} партн.
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-sm">
+                      {referrer.partners.length} партн.
+                    </span>
+                    {expandedReferrer === referrer.referrer_telegram_id ? (
+                      <ChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
+                  </div>
                 </div>
 
-                {/* Список партнёров */}
-                <div className="space-y-2 pl-3 border-l-2 border-green-300">
+                {/* Список партнёров — по клику */}
+                {expandedReferrer === referrer.referrer_telegram_id && (
+                <div className="space-y-2 pl-3 border-l-2 border-green-300 mt-3">
                   {referrer.partners.map((partner) => {
                     const partnerKey = `${referrer.referrer_telegram_id}-${partner.telegram_id}`
                     const isExpanded = expandedPartner === partnerKey
@@ -332,6 +344,7 @@ export function ReferralsTab() {
                     )
                   })}
                 </div>
+                )}
               </div>
             ))}
           </div>
