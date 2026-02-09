@@ -98,6 +98,21 @@ export async function getFormatByFormatId(formatId: string): Promise<CarouselFor
 // ========== АДМИНСКИЕ ОПЕРАЦИИ (CRUD) ==========
 
 /**
+ * Получить формат по UUID id (для редактора)
+ */
+export async function getFormatById(id: string): Promise<CarouselFormatDB | null> {
+    try {
+        const response = await formatsFetch(`?id=eq.${id}`, {}, true)
+        if (!response.ok) return null
+        const data = await response.json()
+        return data?.[0] || null
+    } catch (error) {
+        console.error('Error fetching format by id:', error)
+        return null
+    }
+}
+
+/**
  * Получить ВСЕ форматы (для админки)
  */
 export async function getAllFormats(): Promise<CarouselFormatDB[]> {

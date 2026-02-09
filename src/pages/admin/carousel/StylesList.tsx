@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle, Settings, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Eye, EyeOff, Loader2, Palette, Image, Download, AlertCircle, Settings, LayoutGrid, X } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getAllCarouselStyles,
@@ -111,6 +111,13 @@ export default function CarouselStylesList() {
             <Settings className="w-5 h-5" />
           </button>
           <button
+            onClick={() => navigate('/admin/carousel-formats')}
+            className="p-2.5 bg-cyan-100 text-cyan-600 rounded-xl hover:bg-cyan-200 transition-colors"
+            title="Форматы каруселей"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => navigate('/admin/carousel-styles/new')}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl hover:shadow-lg hover:shadow-orange-500/25 transition-all font-medium"
           >
@@ -176,9 +183,8 @@ export default function CarouselStylesList() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
-                        styleMeta.audience === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${styleMeta.audience === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-600'
+                        }`}>
                         {styleMeta.audience === 'female' ? 'Женский' : 'Универсальный'}
                       </span>
                       <span className="text-[10px] text-blue-500 font-medium">Встроенный</span>
@@ -306,9 +312,8 @@ function StyleCard({
 
   return (
     <div
-      className={`bg-white border-2 rounded-2xl p-4 transition-all cursor-pointer hover:shadow-md ${
-        style.is_active ? 'border-gray-100' : 'border-gray-100 opacity-50'
-      }`}
+      className={`bg-white border-2 rounded-2xl p-4 transition-all cursor-pointer hover:shadow-md ${style.is_active ? 'border-gray-100' : 'border-gray-100 opacity-50'
+        }`}
       onClick={onEdit}
     >
       {/* Основной контент */}
@@ -343,13 +348,12 @@ function StyleCard({
 
           {/* Аудитория */}
           <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${
-              style.audience === 'female'
-                ? 'bg-pink-100 text-pink-600'
-                : style.audience === 'male'
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'bg-gray-100 text-gray-600'
-            }`}>
+            <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${style.audience === 'female'
+              ? 'bg-pink-100 text-pink-600'
+              : style.audience === 'male'
+                ? 'bg-blue-100 text-blue-600'
+                : 'bg-gray-100 text-gray-600'
+              }`}>
               {style.audience === 'female' ? 'Женский' :
                 style.audience === 'male' ? 'Мужской' : 'Универсальный'}
             </span>
@@ -377,11 +381,10 @@ function StyleCard({
           <button
             onClick={onToggle}
             disabled={isToggling}
-            className={`p-2 rounded-xl transition-all ${
-              style.is_active
-                ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-            }`}
+            className={`p-2 rounded-xl transition-all ${style.is_active
+              ? 'bg-green-100 text-green-600 hover:bg-green-200'
+              : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+              }`}
             title={style.is_active ? 'Отключить' : 'Включить'}
           >
             {style.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
