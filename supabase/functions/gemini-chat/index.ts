@@ -40,6 +40,8 @@ interface ChatSettings {
   limit_pro: number
   limit_vip: number
   limit_elite: number
+  rag_enabled: boolean
+  rag_engine_id: string | null
 }
 
 // Supabase клиент
@@ -74,7 +76,9 @@ async function getChatSettings(): Promise<ChatSettings> {
       limit_basic: data.limit_basic || DEFAULTS.limitBasic,
       limit_pro: data.limit_pro || DEFAULTS.limitPro,
       limit_vip: data.limit_vip || DEFAULTS.limitVip,
-      limit_elite: data.limit_elite || DEFAULTS.limitElite
+      limit_elite: data.limit_elite || DEFAULTS.limitElite,
+      rag_enabled: data.rag_enabled ?? false,
+      rag_engine_id: data.rag_engine_id || null
     }
   } catch (e) {
     console.warn('Failed to get chat settings:', e)
@@ -91,7 +95,9 @@ async function getChatSettings(): Promise<ChatSettings> {
       limit_basic: DEFAULTS.limitBasic,
       limit_pro: DEFAULTS.limitPro,
       limit_vip: DEFAULTS.limitVip,
-      limit_elite: DEFAULTS.limitElite
+      limit_elite: DEFAULTS.limitElite,
+      rag_enabled: false,
+      rag_engine_id: null
     }
   }
 }
@@ -514,15 +520,18 @@ serve(async (req) => {
       { role: "user", parts: currentMessageParts }
     ]
 
-    // Проверяем, нужен ли RAG
+    // RAG: решаем на бэкенде (не зависим от фронтенда)
+    const ragEnabled = settings.rag_enabled && !!settings.rag_engine_id
+    const ragEngineIdFinal = settings.rag_engine_id
+
     let ragResult: { answer: string; sources: any[]; ragUsed: boolean } | null = null
     let result: { reply: string; inputTokens: number; outputTokens: number }
 
-    if (useRAG && ragEngineId) {
+    if (ragEnabled && ragEngineIdFinal) {
       try {
-        console.log('Using RAG mode with engineId:', ragEngineId)
-        ragResult = await searchRAG(token, message, ragEngineId)
-        console.log('RAG result:', { answer: ragResult.answer.substring(0, 100), sourcesCount: ragResult.sources.length })
+        console.log('RAG enabled from settings, engineId:', ragEngineIdFinal)
+        ragResult = await searchRAG(token, message, ragEngineIdFinal)
+        console.log('RAG result:', { answer: ragResult.answer?.substring(0, 100), sourcesCount: ragResult.sources?.length || 0 })
 
         // Если RAG нашел ответ, используем его
         if (ragResult.answer && ragResult.answer !== 'Не нашел ответа в документах.') {
