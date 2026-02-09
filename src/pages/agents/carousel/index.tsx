@@ -585,7 +585,13 @@ function CarouselIndexInner() {
       console.log('[Carousel] Payload styleId:', payload.styleId)
       console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
 
-      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
+      // Admin-gate: админы → тестовый webhook, юзеры → прод
+      const webhookUrl = isAdmin(user.id)
+        ? 'https://n8n.iferma.pro/webhook/carousel-test'
+        : 'https://n8n.iferma.pro/webhook/carousel-v2'
+      console.log('[Carousel] Webhook:', isAdmin(user.id) ? 'TEST' : 'PROD')
+
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
