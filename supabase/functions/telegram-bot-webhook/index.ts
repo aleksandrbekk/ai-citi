@@ -143,6 +143,17 @@ serve(async (req) => {
                         .from('pending_referrals')
                         .upsert({ telegram_id: chatId, referral_code: promoCode }, { onConflict: 'telegram_id' })
                     console.log('Saved pending referral:', chatId, '->', promoCode)
+
+                    // UTM статистика: инкремент кликов
+                    const srcIndex = promoCode.indexOf('_src_')
+                    if (srcIndex !== -1) {
+                        const srcTag = promoCode.slice(srcIndex + 5)
+                        if (srcTag) {
+                            // Инкремент clicks
+                            await supabase.rpc('increment_utm_clicks', { p_short_code: srcTag, p_telegram_id: chatId })
+                            console.log('UTM click tracked:', srcTag, chatId)
+                        }
+                    }
                 } catch (e) {
                     console.error('Failed to save pending referral:', e)
                 }

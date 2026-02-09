@@ -228,6 +228,16 @@ serve(async (req) => {
         user = newUser
       }
 
+      // UTM статистика: инкремент registrations
+      if (utmSource) {
+        try {
+          await supabase.rpc('increment_utm_registrations', { p_short_code: utmSource })
+          console.log('UTM registration tracked:', utmSource)
+        } catch (e) {
+          console.error('UTM registration tracking failed (non-fatal):', e)
+        }
+      }
+
       // Notify referrer for new user
       // DB trigger `process_referral_on_user_create` already creates referral record on INSERT
       // We just need to check it exists and send notification
