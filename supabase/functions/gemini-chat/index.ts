@@ -381,9 +381,7 @@ async function searchRAG(
           referenceOnly: false,
         },
         summarySpec: {
-          summaryPromptSpec: {
-            promptTemplate: "Извлеки ключевую информацию из документов, которая поможет ответить на вопрос. НЕ упоминай названия документов, файлов или источников. Просто изложи суть знаний."
-          }
+          summaryResultCount: 3
         }
       }
     }),
