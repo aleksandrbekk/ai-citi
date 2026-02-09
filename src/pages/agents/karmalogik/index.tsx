@@ -8,6 +8,7 @@ import { trackCoachEvent } from '@/lib/analytics'
 import Paywall from '@/components/Paywall'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { toast } from 'sonner'
+import MaintenanceOverlay from '@/components/MaintenanceOverlay'
 
 // Системный промпт для AI-Коуча (v2 — усиленный)
 const COACH_SYSTEM_PROMPT = `ТЫ — AI-COACH, персональный коуч для глубокого самопознания и жизненной трансформации.
@@ -406,6 +407,7 @@ export default function KarmalogikChat() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col">
+      <MaintenanceOverlay />
       {/* Sessions Drawer */}
       <AnimatePresence>
         {isDrawerOpen && (

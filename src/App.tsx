@@ -12,7 +12,6 @@ import { Layout } from '@/components/layout/Layout'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { usePromoCode } from '@/hooks/usePromoCode'
 import { CoinRewardProvider } from '@/components/CoinReward'
-import MaintenanceOverlay from '@/components/MaintenanceOverlay'
 
 // Миграция localStorage v4 — полная очистка carousel данных
 const MIGRATION_VERSION = 'v20260131-v4'
@@ -255,7 +254,6 @@ function AppContent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <MaintenanceOverlay />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/curator" element={<CuratorReview />} />

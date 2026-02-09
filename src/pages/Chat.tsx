@@ -10,6 +10,7 @@ import ChatListDrawer from '@/components/chat/ChatListDrawer'
 import Paywall from '@/components/Paywall'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { toast } from 'sonner'
+import MaintenanceOverlay from '@/components/MaintenanceOverlay'
 
 // Типы лимитов
 interface LimitInfo {
@@ -413,6 +414,7 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      <MaintenanceOverlay />
       {/* Chat List Drawer */}
       <ChatListDrawer isOpen={isDrawerOpen} onClose={() => setDrawerOpen(false)} />
 

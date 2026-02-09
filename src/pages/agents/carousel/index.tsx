@@ -12,6 +12,7 @@ import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
 import { SettingsPanel } from '@/components/carousel/SettingsPanel'
 import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
+import MaintenanceOverlay from '@/components/MaintenanceOverlay'
 
 // Error Boundary для отлова ошибок
 class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -97,6 +98,7 @@ const MessageIcon = ({ className = '' }: { className?: string }) => (
 export default function CarouselIndex() {
   return (
     <CarouselErrorBoundary>
+      <MaintenanceOverlay />
       <CarouselIndexInner />
     </CarouselErrorBoundary>
   )

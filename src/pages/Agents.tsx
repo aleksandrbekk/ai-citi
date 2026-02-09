@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/ui/icons'
 import { useAuthStore } from '@/store/authStore'
+import { useMaintenanceMode } from '@/hooks/useMaintenanceMode'
+import { toast } from 'sonner'
 
 const OWNER_TELEGRAM_ID = 643763835
 
@@ -9,6 +11,7 @@ export function Agents() {
   const navigate = useNavigate()
   const [isOwner, setIsOwner] = useState(false)
   const tariffs = useAuthStore((state) => state.tariffs)
+  const { isMaintenanceMode, message } = useMaintenanceMode()
 
   // Проверяем есть ли платный тариф
   const hasPaidAccess = tariffs.length > 0
@@ -47,11 +50,20 @@ export function Agents() {
         <div className="grid grid-cols-2 gap-4">
           {/* Карусели - только для платных пользователей */}
           <div
-            onClick={() => hasPaidAccess && navigate('/agents/carousel')}
-            className={`glass-card p-5 transition-all group relative ${hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
-              }`}
+            onClick={() => {
+              if (isMaintenanceMode) {
+                toast.info(message || 'Технические работы. Скоро всё заработает!')
+                return
+              }
+              if (hasPaidAccess) navigate('/agents/carousel')
+            }}
+            className={`glass-card p-5 transition-all group relative ${
+              isMaintenanceMode
+                ? 'opacity-60 cursor-pointer'
+                : hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
+            }`}
           >
-            {!hasPaidAccess && (
+            {(isMaintenanceMode || !hasPaidAccess) && (
               <div className="absolute top-3 right-3">
                 <LockIcon className="w-5 h-5 text-gray-400" />
               </div>
@@ -61,23 +73,36 @@ export function Agents() {
             </div>
             <h3 className="text-gray-900 font-semibold mb-1">Карусели</h3>
             <p className="text-gray-500 text-sm">
-              {hasPaidAccess ? 'AI-генератор для Instagram' : 'Требуется подписка'}
+              {isMaintenanceMode ? 'Тех. работы' : hasPaidAccess ? 'AI-генератор для Instagram' : 'Требуется подписка'}
             </p>
           </div>
 
           {/* ИИ КОУЧ */}
-          <Link
-            to="/agents/karmalogik"
-            className="glass-card p-5 hover:scale-[1.02] transition-all group"
+          <div
+            onClick={() => {
+              if (isMaintenanceMode) {
+                toast.info(message || 'Технические работы. Скоро всё заработает!')
+                return
+              }
+              navigate('/agents/karmalogik')
+            }}
+            className={`glass-card p-5 transition-all group ${
+              isMaintenanceMode ? 'opacity-60 cursor-pointer' : 'cursor-pointer hover:scale-[1.02]'
+            }`}
           >
+            {isMaintenanceMode && (
+              <div className="absolute top-3 right-3">
+                <LockIcon className="w-5 h-5 text-gray-400" />
+              </div>
+            )}
             <img
               src="/images/ai-coach-avatar.png"
               alt="AI-Coach"
               className="w-14 h-14 rounded-2xl object-cover mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow"
             />
             <h3 className="text-gray-900 font-semibold mb-1">AI-Coach</h3>
-            <p className="text-gray-500 text-sm">Твой внутренний компас ✨</p>
-          </Link>
+            <p className="text-gray-500 text-sm">{isMaintenanceMode ? 'Тех. работы' : 'Твой внутренний компас'}</p>
+          </div>
 
           {/* Нейропостер - только для владельца */}
           {isOwner && (
