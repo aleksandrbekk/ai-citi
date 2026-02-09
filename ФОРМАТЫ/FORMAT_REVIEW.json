@@ -1,0 +1,378 @@
+{
+  "id": "REVIEW",
+  "name": "Обзор / Разбор",
+  "description": "Полный обзор одного объекта: HOOK → Что это → Продукт → Деньги → Плюсы → Минусы → Вердикт → CTA → VIRAL",
+  "total_slides": 9,
+  "trigger_keywords": ["обзор", "разбор", "что такое", "review", "стоит ли", "честный обзор", "подробно о", "всё о"],
+  
+  "applicable_niches": {
+    "MLM_COMPANIES": {
+      "examples": ["EWA обзор", "Siberian Health разбор", "Greenway что это"],
+      "review_aspects": ["компания", "продукт", "маркетинг-план", "плюсы", "минусы"]
+    },
+    "CRYPTO": {
+      "examples": ["TON обзор", "Bitcoin для новичков", "Что такое Ethereum"],
+      "review_aspects": ["технология", "применение", "как заработать", "риски"]
+    },
+    "AI_TOOLS": {
+      "examples": ["ChatGPT обзор", "Midjourney разбор", "Claude что это"],
+      "review_aspects": ["возможности", "цены", "ограничения", "для кого"]
+    },
+    "COURSES": {
+      "examples": ["Курс X обзор", "Стоит ли покупать Y"],
+      "review_aspects": ["содержание", "автор", "цена", "результаты"]
+    },
+    "SERVICES": {
+      "examples": ["Notion обзор", "Canva разбор", "Tilda что это"],
+      "review_aspects": ["функции", "тарифы", "альтернативы", "для кого"]
+    },
+    "BRANDS": {
+      "examples": ["Tesla обзор", "Apple честно", "Xiaomi стоит ли"],
+      "review_aspects": ["продукция", "цены", "качество", "сервис"]
+    },
+    "METHODS": {
+      "examples": ["Автоворонки обзор", "Reels маркетинг разбор"],
+      "review_aspects": ["как работает", "сложность", "результаты", "подводные камни"]
+    }
+  },
+
+  "rating_system": {
+    "enabled": true,
+    "scale": "1-10 или 1-5 звёзд",
+    "categories": ["Продукт", "Деньги", "Простота", "Поддержка", "Итого"]
+  },
+
+  "cta_types": {
+    "PRODUCT": {
+      "description": "Продажа — пользователь указывает своё кодовое слово",
+      "cta_label": "ПИШИ:",
+      "cta_value": "{USER_KEYWORD}"
+    },
+    "ENGAGEMENT": {
+      "description": "Охват — рост аудитории",
+      "variants": [
+        {
+          "id": "QUESTION",
+          "cta_label": "НАПИШИ В КОММЕНТАХ",
+          "cta_value": "👇 ПРОБОВАЛ [X]?"
+        },
+        {
+          "id": "REQUEST",
+          "cta_label": "КАКОЙ ОБЗОР СЛЕДУЮЩИЙ?",
+          "cta_value": "👇 ПИШИ НАЗВАНИЕ"
+        },
+        {
+          "id": "SUBSCRIBE",
+          "cta_label": "ПОДПИШИСЬ",
+          "cta_value": "🔔 ЕЩЁ ОБЗОРЫ"
+        },
+        {
+          "id": "SAVE",
+          "cta_label": "СОХРАНИ",
+          "cta_value": "💾"
+        }
+      ]
+    }
+  },
+  
+  "slides": [
+    {
+      "position": 1,
+      "type": "HOOK",
+      "human_mode": "FACE",
+      "purpose": "Интрига обзора — что это, честный разбор",
+      "layout": {
+        "headline": "TOP_LEFT",
+        "logo_object": "TOP_RIGHT_FLOATING",
+        "person": "CENTER_RIGHT_40_PERCENT",
+        "bottom_card": "BOTTOM_CENTER",
+        "navigation": "BOTTOM_RIGHT"
+      },
+      "content_slots": {
+        "headline_1": "[НАЗВАНИЕ]",
+        "headline_2": "ЧЕСТНЫЙ ОБЗОР",
+        "rating_teaser": "Оценка внутри",
+        "bottom_text": "Разобрал всё: от [аспект] до [аспект]",
+        "navigation": "Листай →"
+      },
+      "suggested_poses": {
+        "ANALYST": "hand on chin, analytical look, studying something",
+        "PRESENTER": "open palm gesture toward logo, presenting",
+        "MAGNIFIER": "holding magnifying glass, investigator look",
+        "CLIPBOARD": "holding clipboard or tablet, reviewer pose"
+      },
+      "suggested_props": [
+        "3D logo of the object floating",
+        "Magnifying glass",
+        "Clipboard with checklist",
+        "Star ratings floating",
+        "Document/report papers"
+      ],
+      "color_accent": "BRAND_COLOR_OR_ORANGE"
+    },
+    {
+      "position": 2,
+      "type": "OVERVIEW",
+      "human_mode": "NONE",
+      "purpose": "Что это — базовая информация, история, масштаб",
+      "suggested_layouts": ["INFO_CARD", "PROFILE_WITH_STATS"],
+      "layout": {
+        "logo": "TOP_CENTER",
+        "headline": "BELOW_LOGO",
+        "info_grid": "CENTER",
+        "tagline": "BOTTOM"
+      },
+      "content_slots": {
+        "logo_placeholder": "[Лого объекта]",
+        "headline": "ЧТО ЭТО?",
+        "fact_1": "📅 Основан: [год]",
+        "fact_2": "🌍 Страна: [где]",
+        "fact_3": "👥 Масштаб: [цифра пользователей/партнёров]",
+        "fact_4": "💼 Сфера: [ниша/категория]",
+        "tagline": "[Позиционирование / миссия]",
+        "transition": "Что предлагают →"
+      },
+      "color_scheme": "BRAND_COLOR_SOFT",
+      "research_required": true
+    },
+    {
+      "position": 3,
+      "type": "PRODUCT",
+      "human_mode": "NONE",
+      "purpose": "Продукт/услуга — что конкретно предлагают",
+      "suggested_layouts": ["PRODUCT_GRID", "FEATURES_LIST", "CATEGORIES_CARDS"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "product_cards": "CENTER_GRID",
+        "highlight": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "ЧТО ПРЕДЛАГАЮТ?",
+        "category_1": "[Категория/продукт 1]",
+        "desc_1": "[Краткое описание]",
+        "category_2": "[Категория/продукт 2]",
+        "desc_2": "[Краткое описание]",
+        "category_3": "[Категория/продукт 3]",
+        "desc_3": "[Краткое описание]",
+        "highlight": "Главная фишка: [УТП]",
+        "transition": "А как с деньгами? →"
+      },
+      "color_scheme": "BRAND_COLOR_ACCENT",
+      "research_required": true
+    },
+    {
+      "position": 4,
+      "type": "MONEY",
+      "human_mode": "NONE",
+      "purpose": "Деньги — цены, заработок, маркетинг-план, тарифы",
+      "suggested_layouts": ["PRICING_TABLE", "MONEY_BREAKDOWN", "EARNINGS_SCHEME"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "money_info": "CENTER",
+        "note": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "ПРО ДЕНЬГИ",
+        "subheadline": "[Цены / Заработок / Тарифы]",
+        "item_1": "💰 [Вход/старт: цена или бесплатно]",
+        "item_2": "📊 [Заработок/комиссия: как и сколько]",
+        "item_3": "💳 [Подписка/тарифы: если есть]",
+        "item_4": "🎁 [Бонусы/акции: если есть]",
+        "note": "[Важная оговорка или средний чек]",
+        "transition": "Теперь плюсы →"
+      },
+      "money_templates": {
+        "MLM": ["Вход", "Маркетинг-план", "Средний чек", "Выплаты"],
+        "SAAS": ["Бесплатный план", "Платные тарифы", "Enterprise"],
+        "CRYPTO": ["Минимальный вход", "Комиссии", "Потенциал роста"],
+        "COURSE": ["Цена", "Рассрочка", "Гарантия возврата"]
+      },
+      "color_scheme": "GREEN_MONEY",
+      "research_required": true
+    },
+    {
+      "position": 5,
+      "type": "PROS",
+      "human_mode": "NONE",
+      "purpose": "Плюсы — 4-5 главных преимуществ",
+      "suggested_layouts": ["PROS_LIST", "CHECKMARKS_GRID", "BENEFITS_CARDS"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "pros_list": "CENTER",
+        "transition": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "ПЛЮСЫ ✓",
+        "pro_1": "✓ [Плюс 1 — главное преимущество]",
+        "pro_2": "✓ [Плюс 2]",
+        "pro_3": "✓ [Плюс 3]",
+        "pro_4": "✓ [Плюс 4]",
+        "pro_5": "✓ [Плюс 5 — если есть]",
+        "transition": "Но есть и минусы →"
+      },
+      "color_scheme": "GREEN_POSITIVE",
+      "research_required": true
+    },
+    {
+      "position": 6,
+      "type": "CONS",
+      "human_mode": "NONE",
+      "purpose": "Минусы — 2-4 честных недостатка",
+      "suggested_layouts": ["CONS_LIST", "WARNING_CARDS", "HONEST_ISSUES"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "cons_list": "CENTER",
+        "note": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "МИНУСЫ ✗",
+        "con_1": "✗ [Минус 1 — главный недостаток]",
+        "con_2": "✗ [Минус 2]",
+        "con_3": "✗ [Минус 3]",
+        "con_4": "✗ [Минус 4 — если есть]",
+        "note": "[Оговорка: но это решаемо / не для всех критично]",
+        "transition": "Итоговый вердикт →"
+      },
+      "color_scheme": "RED_SOFT_WARNING",
+      "research_required": true
+    },
+    {
+      "position": 7,
+      "type": "VERDICT",
+      "human_mode": "NONE",
+      "purpose": "Финальный вердикт — оценка, для кого подходит",
+      "suggested_layouts": ["VERDICT_RATING", "VERDICT_RECOMMENDATION", "SCORECARD"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "rating_block": "CENTER_TOP",
+        "recommendation": "CENTER_BOTTOM",
+        "final_note": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "ВЕРДИКТ",
+        "object_name": "[НАЗВАНИЕ]",
+        "overall_rating": "[X/10] или [★★★★☆]",
+        "rating_breakdown": {
+          "category_1": "[Аспект 1]: [оценка]",
+          "category_2": "[Аспект 2]: [оценка]",
+          "category_3": "[Аспект 3]: [оценка]"
+        },
+        "recommendation_yes": "✓ ПОДОЙДЁТ: [для кого]",
+        "recommendation_no": "✗ НЕ ПОДОЙДЁТ: [для кого]",
+        "final_verdict": "[Одно предложение — главный вывод]"
+      },
+      "verdict_templates": {
+        "POSITIVE": "Рекомендую для [аудитория]",
+        "NEUTRAL": "Подойдёт не всем, но для [аудитория] — ок",
+        "NEGATIVE": "Не рекомендую, есть варианты лучше",
+        "CONDITIONAL": "Если [условие] — да, иначе — нет"
+      },
+      "color_scheme": "GOLD_VERDICT"
+    },
+    {
+      "position": 8,
+      "type": "CTA",
+      "human_mode": "FACE",
+      "purpose": "Призыв к действию — другая одежда, тёплая подача",
+      "layout": {
+        "headline": "TOP_LEFT",
+        "person": "LEFT_40_PERCENT",
+        "cta_card": "CENTER_RIGHT",
+        "benefit": "BOTTOM"
+      },
+      "content_slots": {
+        "cta_headline": "Хочешь разобраться в [теме]?",
+        "cta_label": "ПИШИ:",
+        "product_code": "{USER_KEYWORD}",
+        "benefit_text": "Что получит (1 строка)"
+      },
+      "alternative_cta": {
+        "question": "Пробовал [X]? Пиши в комментах 👇",
+        "request": "Какой обзор сделать следующим? 👇",
+        "subscribe": "Подпишись — ещё обзоры будут 🔔"
+      },
+      "suggested_pose": "FRIENDLY_INVITING",
+      "outfit_rule": "DIFFERENT_FROM_SLIDE_1",
+      "outfit_recommendation": "WHITE_SHIRT_OR_LIGHT_CASUAL"
+    },
+    {
+      "position": 9,
+      "type": "VIRAL",
+      "human_mode": "NONE",
+      "purpose": "Вирусное распространение — отправь тому кто думает о [X]",
+      "layout": {
+        "main_card": "CENTER",
+        "share_icons": "FLOATING",
+        "save_button": "BOTTOM"
+      },
+      "content_slots": {
+        "viral_action": "ОТПРАВЬ ЭТО",
+        "viral_target": "ТОМУ КТО ДУМАЕТ О [ОБЪЕКТ]",
+        "save_button": "💾 СОХРАНИ"
+      },
+      "viral_templates": {
+        "MLM": "ТОМУ КТО ДУМАЕТ О [КОМПАНИЯ]",
+        "CRYPTO": "ДРУГУ КОТОРЫЙ СПРАШИВАЛ ПРО [X]",
+        "AI": "КТО ХОЧЕТ ПОПРОБОВАТЬ [TOOL]",
+        "COURSE": "ТОМУ КТО ДУМАЕТ КУПИТЬ",
+        "SERVICE": "КТО ИЩЕТ [КАТЕГОРИЯ] СЕРВИС",
+        "BRAND": "ДРУГУ КОТОРЫЙ ВЫБИРАЕТ"
+      }
+    }
+  ],
+  
+  "layout_types": {
+    "INFO_CARD": "Карточка с базовой информацией об объекте",
+    "PROFILE_WITH_STATS": "Профиль с ключевыми цифрами",
+    "PRODUCT_GRID": "Сетка продуктов/услуг (2-4 карточки)",
+    "FEATURES_LIST": "Список функций/возможностей",
+    "PRICING_TABLE": "Таблица цен/тарифов",
+    "MONEY_BREAKDOWN": "Разбивка по деньгам: вход, заработок, комиссии",
+    "PROS_LIST": "Список плюсов с галочками",
+    "CONS_LIST": "Список минусов с крестиками",
+    "VERDICT_RATING": "Вердикт с числовой оценкой и звёздами",
+    "VERDICT_RECOMMENDATION": "Вердикт с рекомендацией для кого",
+    "SCORECARD": "Карточка оценок по категориям"
+  },
+  
+  "color_coding": {
+    "HOOK": { "accent": "{BRAND_COLOR}", "vibe": "PROFESSIONAL_REVIEW" },
+    "OVERVIEW": { "accent": "{BRAND_COLOR}_SOFT", "vibe": "INFORMATIVE" },
+    "PRODUCT": { "accent": "{BRAND_COLOR}", "vibe": "SHOWCASE" },
+    "MONEY": { "accent": "#22C55E", "vibe": "MONEY_GREEN" },
+    "PROS": { "accent": "#22C55E", "vibe": "POSITIVE_GREEN" },
+    "CONS": { "accent": "#EF4444", "vibe": "WARNING_RED_SOFT" },
+    "VERDICT": { "accent": "#F59E0B", "vibe": "GOLD_CONCLUSION" },
+    "CTA": { "accent": "#FF5A1F", "vibe": "WARM_ORANGE" },
+    "VIRAL": { "accent": "#FF5A1F", "vibe": "SHAREABLE_BRIGHT" }
+  },
+  
+  "rules": {
+    "web_research_required": "ОБЯЗАТЕЛЬНО искать актуальные факты об объекте",
+    "objectivity": "Показывать И плюсы И минусы честно",
+    "specificity": "Конкретные цифры, не общие фразы",
+    "person_only_1_and_8": true,
+    "different_outfit": "Слайд 1: аналитик/эксперт, Слайд 8: дружелюбный",
+    "brand_colors": "Использовать цвета объекта обзора",
+    "rating_required": "В вердикте обязательна оценка (числовая или звёзды)"
+  },
+  
+  "web_research_guide": {
+    "search_1": {
+      "query_template": "[Объект] что это официальный сайт",
+      "goal": "Базовая информация: год, страна, основатели"
+    },
+    "search_2": {
+      "query_template": "[Объект] продукты услуги цены тарифы {current_year}",
+      "goal": "Что предлагают и почём"
+    },
+    "search_3": {
+      "query_template": "[Объект] отзывы плюсы минусы {current_year}",
+      "goal": "Реальные плюсы и минусы от пользователей"
+    },
+    "search_4": {
+      "query_template": "[Объект] стоит ли рекомендации для кого",
+      "goal": "Понять целевую аудиторию и рекомендации"
+    }
+  }
+}

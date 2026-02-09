@@ -1,0 +1,264 @@
+{
+  "id": "RATING",
+  "name": "ТОП-5 Рейтинг",
+  "description": "Структура карусели с рейтингом: HOOK → 5 позиций (от худшего к лучшему) → SUMMARY → CTA → VIRAL",
+  "total_slides": 9,
+  "trigger_keywords": ["топ", "рейтинг", "лучшие", "худшие", "сравнение", "top", "ranking"],
+  
+  "cta_types": {
+    "PRODUCT": {
+      "description": "Продажа — пользователь указывает своё кодовое слово",
+      "cta_label": "ПИШИ:",
+      "cta_value": "{USER_KEYWORD}"
+    },
+    "ENGAGEMENT": {
+      "description": "Охват — рост аудитории",
+      "variants": [
+        {
+          "id": "SUBSCRIBE",
+          "cta_label": "ПОДПИШИСЬ",
+          "cta_value": "🔔"
+        },
+        {
+          "id": "COMMENT",
+          "cta_label": "НАПИШИ В КОММЕНТАХ",
+          "cta_value": "👇"
+        },
+        {
+          "id": "SAVE",
+          "cta_label": "СОХРАНИ",
+          "cta_value": "💾"
+        }
+      ]
+    }
+  },
+  
+  "slides": [
+    {
+      "position": 1,
+      "type": "HOOK",
+      "human_mode": "FACE",
+      "purpose": "Захват внимания. ТОП-5 [тема] + персонаж с жестом счёта (5 пальцев)",
+      "layout": {
+        "headline": "TOP_LEFT",
+        "person": "RIGHT_40_PERCENT",
+        "props": "FLOATING_AROUND_PERSON",
+        "bottom_card": "BOTTOM_CENTER",
+        "navigation": "BOTTOM_RIGHT"
+      },
+      "content_slots": {
+        "headline_1": "ТОП-5 [ТЕМА]",
+        "headline_2": "Подзаголовок с интригой",
+        "bottom_text": "Интригующая фраза",
+        "navigation": "Листай →"
+      },
+      "suggested_pose": "COUNTING_FIVE",
+      "color_accent": "ORANGE"
+    },
+    {
+      "position": 2,
+      "type": "POSITION_5",
+      "human_mode": "NONE",
+      "purpose": "5-е место — худший/слабый вариант",
+      "suggested_layouts": ["RATING_CARD"],
+      "layout": {
+        "position_badge": "TOP_CENTER",
+        "title": "BELOW_BADGE",
+        "pros_card": "CENTER_LEFT",
+        "cons_card": "CENTER_RIGHT",
+        "target_card": "BOTTOM"
+      },
+      "content_slots": {
+        "position_number": "5",
+        "position_icon": "⚠️",
+        "title": "Название",
+        "subtitle": "Характеристика",
+        "pros": "✓ Плюс",
+        "cons": "✗ Минусы (2-3)",
+        "target": "→ Для кого",
+        "transition": "Дальше лучше →"
+      },
+      "color_scheme": "GRAY_MUTED"
+    },
+    {
+      "position": 3,
+      "type": "POSITION_4",
+      "human_mode": "NONE",
+      "purpose": "4-е место — ниже среднего",
+      "suggested_layouts": ["RATING_CARD"],
+      "layout": {
+        "position_badge": "TOP_CENTER",
+        "title": "BELOW_BADGE",
+        "pros_card": "CENTER_LEFT",
+        "cons_card": "CENTER_RIGHT",
+        "target_card": "BOTTOM"
+      },
+      "content_slots": {
+        "position_number": "4",
+        "position_icon": "😐",
+        "title": "Название",
+        "subtitle": "Характеристика",
+        "pros": "✓ Плюсы (1-2)",
+        "cons": "✗ Минусы (1-2)",
+        "target": "→ Для кого",
+        "transition": "Ещё лучше →"
+      },
+      "color_scheme": "ORANGE_SOFT"
+    },
+    {
+      "position": 4,
+      "type": "POSITION_3",
+      "human_mode": "NONE",
+      "purpose": "3-е место — середина",
+      "suggested_layouts": ["RATING_CARD"],
+      "layout": {
+        "position_badge": "TOP_CENTER",
+        "title": "BELOW_BADGE",
+        "pros_card": "CENTER_LEFT",
+        "cons_card": "CENTER_RIGHT",
+        "target_card": "BOTTOM"
+      },
+      "content_slots": {
+        "position_number": "3",
+        "position_icon": "👍",
+        "title": "Название",
+        "subtitle": "Характеристика",
+        "pros": "✓ Плюсы (2-3)",
+        "cons": "✗ Минус (1)",
+        "target": "→ Для кого",
+        "transition": "Почти топ →"
+      },
+      "color_scheme": "YELLOW_WARM"
+    },
+    {
+      "position": 5,
+      "type": "POSITION_2",
+      "human_mode": "NONE",
+      "purpose": "2-е место — очень хороший",
+      "suggested_layouts": ["RATING_CARD"],
+      "layout": {
+        "position_badge": "TOP_CENTER",
+        "title": "BELOW_BADGE",
+        "pros_card": "CENTER_LEFT",
+        "cons_card": "CENTER_RIGHT",
+        "target_card": "BOTTOM"
+      },
+      "content_slots": {
+        "position_number": "2",
+        "position_icon": "🔥",
+        "title": "Название",
+        "subtitle": "Характеристика",
+        "pros": "✓ Плюсы (3-4)",
+        "cons": "✗ Минус (1)",
+        "target": "→ Для кого",
+        "transition": "А теперь #1 →"
+      },
+      "color_scheme": "GREEN_VIBRANT"
+    },
+    {
+      "position": 6,
+      "type": "POSITION_1",
+      "human_mode": "NONE",
+      "purpose": "1-е место — ПОБЕДИТЕЛЬ",
+      "suggested_layouts": ["RATING_CARD_WINNER"],
+      "layout": {
+        "crown_icon": "TOP_CENTER",
+        "position_badge": "BELOW_CROWN",
+        "title": "BELOW_BADGE",
+        "pros_card": "CENTER_FULL_WIDTH",
+        "target_card": "BOTTOM"
+      },
+      "content_slots": {
+        "position_number": "1",
+        "position_icon": "👑",
+        "title": "ПОБЕДИТЕЛЬ",
+        "subtitle": "Почему лучший",
+        "pros": "✓ Преимущества (4-5)",
+        "target": "→ Для ВСЕХ",
+        "transition": "Итоговый рейтинг →"
+      },
+      "color_scheme": "GOLD_PREMIUM",
+      "effects": ["GLOW", "SPARKLES"]
+    },
+    {
+      "position": 7,
+      "type": "SUMMARY",
+      "human_mode": "NONE",
+      "purpose": "Итоговая таблица рейтинга",
+      "suggested_layouts": ["RANKING_TABLE"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "table": "CENTER_FULL",
+        "insight_card": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "ИТОГОВЫЙ РЕЙТИНГ",
+        "row_1": "👑 1. [Название] | Преимущество",
+        "row_2": "🔥 2. [Название] | Описание",
+        "row_3": "👍 3. [Название] | Описание",
+        "row_4": "😐 4. [Название] | Описание",
+        "row_5": "⚠️ 5. [Название] | Описание",
+        "insight": "ИНСАЙТ: Главный вывод"
+      },
+      "color_scheme": "GRADIENT_GOLD_TO_GRAY"
+    },
+    {
+      "position": 8,
+      "type": "CTA",
+      "human_mode": "FACE",
+      "purpose": "Призыв к действию + код продукта",
+      "layout": {
+        "headline": "TOP_LEFT",
+        "person": "LEFT_40_PERCENT",
+        "cta_card": "CENTER_RIGHT",
+        "benefit": "BOTTOM"
+      },
+      "content_slots": {
+        "cta_headline": "Хочешь [результат]?",
+        "cta_label": "ПИШИ:",
+        "product_code": "{USER_KEYWORD}",
+        "benefit_text": "Что получит"
+      },
+      "suggested_pose": "POINTING_TO_CTA",
+      "outfit_rule": "DIFFERENT_FROM_SLIDE_1"
+    },
+    {
+      "position": 9,
+      "type": "VIRAL",
+      "human_mode": "NONE",
+      "purpose": "Вирусное распространение",
+      "layout": {
+        "main_card": "CENTER",
+        "share_icons": "FLOATING",
+        "save_button": "BOTTOM"
+      },
+      "content_slots": {
+        "viral_action": "ОТПРАВЬ ЭТО",
+        "viral_target": "[КОМУ]",
+        "save_button": "💾 СОХРАНИ"
+      }
+    }
+  ],
+  
+  "layout_types": {
+    "RATING_CARD": "Карточка позиции: badge + название + плюсы/минусы",
+    "RATING_CARD_WINNER": "Премиум карточка с короной и свечением",
+    "RANKING_TABLE": "Итоговая таблица 5 строк"
+  },
+  
+  "color_coding": {
+    "position_5": { "color": "#9CA3AF", "icon": "⚠️" },
+    "position_4": { "color": "#FB923C", "icon": "😐" },
+    "position_3": { "color": "#FACC15", "icon": "👍" },
+    "position_2": { "color": "#22C55E", "icon": "🔥" },
+    "position_1": { "color": "#F59E0B", "icon": "👑" }
+  },
+  
+  "rules": {
+    "direction": "От худшего к лучшему (5→1)",
+    "person_only_1_and_8": true,
+    "different_outfit": true,
+    "winner_emphasis": "Слайд 6 выделяется визуально",
+    "summary_required": "Слайд 7 — итоговая таблица"
+  }
+}

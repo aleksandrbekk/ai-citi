@@ -36,6 +36,9 @@ interface CarouselState {
   gender: Gender
   primaryColor: string | null
   enabledBundles: BundleId[]
+  format: string
+  objectImage: string | null
+  objectPlacement: string
 
   // Контент
   variables: Record<string, string>
@@ -59,6 +62,9 @@ interface CarouselState {
   setGender: (gender: Gender) => void
   setPrimaryColor: (color: string | null) => void
   setEnabledBundles: (bundles: BundleId[]) => void
+  setFormat: (format: string) => void
+  setObjectImage: (image: string | null) => void
+  setObjectPlacement: (placement: string) => void
   toggleBundle: (bundleId: BundleId) => void
   setCtaText: (text: string) => void
   setCtaQuestion: (text: string) => void
@@ -82,6 +88,9 @@ const initialState = {
   gender: null as Gender,
   primaryColor: null as string | null,
   enabledBundles: ['base'] as BundleId[],
+  format: 'expert',
+  objectImage: null as string | null,
+  objectPlacement: '',
   variables: {},
   ctaText: '',
   ctaQuestion: 'Хочешь так же?',
@@ -106,6 +115,9 @@ export const useCarouselStore = create<CarouselState>()(
       setGender: (gender) => set({ gender }),
       setPrimaryColor: (color) => set({ primaryColor: color }),
       setEnabledBundles: (bundles) => set({ enabledBundles: bundles }),
+      setFormat: (format) => set({ format }),
+      setObjectImage: (image) => set({ objectImage: image }),
+      setObjectPlacement: (placement) => set({ objectPlacement: placement }),
       toggleBundle: (bundleId) => set((state) => {
         const isEnabled = state.enabledBundles.includes(bundleId)
         if (isEnabled) {
@@ -141,6 +153,9 @@ export const useCarouselStore = create<CarouselState>()(
         gender: state.gender,
         primaryColor: state.primaryColor,
         enabledBundles: state.enabledBundles,
+        format: state.format,
+        objectImage: state.objectImage,
+        objectPlacement: state.objectPlacement,
         variables: state.variables,
         ctaText: state.ctaText,
         ctaQuestion: state.ctaQuestion,

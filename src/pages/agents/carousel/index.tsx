@@ -9,8 +9,8 @@ import { trackCarouselEvent } from '@/lib/analytics'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
-import { ColorPickerModal } from '@/components/carousel/ColorPickerModal'
-import { isAdmin } from '@/config/admins'
+import { SettingsPanel } from '@/components/carousel/SettingsPanel'
+import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 
 // Error Boundary для отлова ошибок
 class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -116,7 +116,7 @@ function CarouselIndexInner() {
     throw e
   }
 
-  const { setStatus, userPhoto, setUserPhoto, style, setStyle, primaryColor, setPrimaryColor } = storeData
+  const { setStatus, userPhoto, setUserPhoto, style, setStyle, primaryColor, setPrimaryColor, format, setFormat, objectImage, setObjectImage, objectPlacement, setObjectPlacement } = storeData
 
   const [topic, setTopic] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -136,8 +136,8 @@ function CarouselIndexInner() {
   // Tips modal state
   const [showTipsModal, setShowTipsModal] = useState(false)
 
-  // Color picker state (admin only)
-  const [showColorModal, setShowColorModal] = useState(false)
+  // Settings panel state
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false)
 
   // Защита от двойных кликов
   const isGeneratingRef = useRef(false)
@@ -158,8 +158,6 @@ function CarouselIndexInner() {
 
   // Получаем telegram_id пользователя
   const telegramUser = getTelegramUser()
-  const userIsAdmin = telegramUser?.id ? isAdmin(telegramUser.id) : false
-
   // Стоимость одной генерации
   const GENERATION_COST = 30
 
@@ -547,6 +545,15 @@ function CarouselIndexInner() {
       console.log('[Carousel] styleConfig.name:', (styleConfig as any)?.name)
       console.log('[Carousel] Has style_prompt:', !!(styleConfig as any)?.style_prompt)
 
+      // Получаем системный промпт формата если не expert
+      let formatSystemPrompt = ''
+      if (format && format !== 'expert') {
+        const formatData = await getFormatByFormatId(format)
+        if (formatData) {
+          formatSystemPrompt = formatData.content_system_prompt
+        }
+      }
+
       const payload = {
         chatId: user.id,
         topic: topic.trim(),
@@ -560,8 +567,14 @@ function CarouselIndexInner() {
         globalSystemPrompt,
         vasiaCore: VASIA_CORE,
         formatConfig: FORMAT_UNIVERSAL,
-        // Кастомный акцентный цвет (admin-only фича)
+        // Формат карусели
+        formatId: format || 'expert',
+        ...(formatSystemPrompt ? { formatSystemPrompt } : {}),
+        // Кастомный акцентный цвет
         ...(primaryColor ? { primaryColor } : {}),
+        // Объект на слайдах
+        ...(objectImage ? { objectImage } : {}),
+        ...(objectPlacement ? { objectPlacement } : {}),
       }
       console.log('[Carousel] ========== SENDING TO N8N ==========')
       console.log('[Carousel] Payload styleId:', payload.styleId)
@@ -914,42 +927,28 @@ function CarouselIndexInner() {
           </div>
         </div>
 
-        {/* Admin-only: Accent Color Selector */}
-        {userIsAdmin && (
-          <button
-            onClick={() => setShowColorModal(true)}
-            className="w-full mb-4 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-orange-200 transition-all active:scale-[0.99] cursor-pointer"
-          >
-            <div
-              className={`w-8 h-8 rounded-lg flex-shrink-0 shadow-sm ${primaryColor ? 'ring-2 ring-offset-1 ring-orange-300' : 'bg-gradient-to-br from-orange-100 to-pink-100'}`}
-              style={primaryColor ? { backgroundColor: primaryColor } : undefined}
-            >
-              {!primaryColor && (
-                <svg className="w-full h-full p-1.5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="13.5" cy="6.5" r="2.5" />
-                  <circle cx="17.5" cy="10.5" r="2.5" />
-                  <circle cx="8.5" cy="7.5" r="2.5" />
-                  <circle cx="6.5" cy="12.5" r="2.5" />
-                  <path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10c0 2-1 3.5-3 3.5h-2.5c-1.5 0-2.5 1-2.5 2.5 0 .5.5 1 .5 1.5s-.5 2.5-2.5 2.5z" />
-                </svg>
-              )}
-            </div>
-            <div className="flex-1 text-left">
-              <span className="text-sm font-medium text-gray-900">Акцентный цвет</span>
-              {primaryColor ? (
-                <span className="text-xs text-gray-400 ml-2 font-mono">{primaryColor}</span>
-              ) : (
-                <span className="text-xs text-gray-400 ml-2">по стилю</span>
-              )}
-            </div>
-            {primaryColor && (
-              <span className="text-xs text-orange-500 font-medium">✓</span>
-            )}
-            <svg className="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 18l6-6-6-6" />
+        {/* Settings Button — for all users */}
+        <button
+          onClick={() => setShowSettingsPanel(true)}
+          className="w-full mb-4 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-orange-200 transition-all active:scale-[0.99] cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
             </svg>
-          </button>
-        )}
+          </div>
+          <div className="flex-1 text-left">
+            <span className="text-sm font-medium text-gray-900">Настройки</span>
+            <span className="text-xs text-gray-400 ml-2">цвет, формат, объект</span>
+          </div>
+          {(primaryColor || format !== 'expert' || objectImage) && (
+            <span className="text-xs text-orange-500 font-medium">✓</span>
+          )}
+          <svg className="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
 
         {/* Error */}
         {error && (
@@ -997,14 +996,19 @@ function CarouselIndexInner() {
         <TipsModal onClose={() => setShowTipsModal(false)} />
       )}
 
-      {/* Color Picker Modal - Admin Only */}
-      {showColorModal && (
-        <ColorPickerModal
-          currentColor={primaryColor}
-          onSelect={setPrimaryColor}
-          onClose={() => setShowColorModal(false)}
-        />
-      )}
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={showSettingsPanel}
+        onClose={() => setShowSettingsPanel(false)}
+        primaryColor={primaryColor}
+        onColorChange={setPrimaryColor}
+        selectedFormat={format}
+        onFormatChange={setFormat}
+        objectImage={objectImage}
+        objectPlacement={objectPlacement}
+        onObjectImageChange={setObjectImage}
+        onObjectPlacementChange={setObjectPlacement}
+      />
 
       {/* Onboarding Coach Marks */}
       {showOnboarding && (

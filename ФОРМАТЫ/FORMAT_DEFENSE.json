@@ -1,0 +1,349 @@
+{
+  "id": "DEFENSE",
+  "name": "Защита от хейта",
+  "description": "Формат для защиты от негативных отзывов: HOOK → Цитата хейтера → Чеклист проверки → 3 факта → Вердикт → CTA → VIRAL",
+  "total_slides": 9,
+  "trigger_keywords": ["защита", "хейт", "развод", "скам", "пирамида", "мошенники", "обман", "разоблачение", "негативные отзывы", "правда о"],
+  
+  "applicable_niches": {
+    "MLM": {
+      "examples": ["EWA развод", "Siberian Health пирамида", "Greenway скам"],
+      "typical_accusations": ["пирамида", "развод", "кинули на деньги", "никто не зарабатывает"]
+    },
+    "CRYPTO": {
+      "examples": ["Bitcoin скам", "NFT развод", "Ton пирамида"],
+      "typical_accusations": ["скам", "понци", "пузырь", "отмывание денег"]
+    },
+    "INFOBIZ": {
+      "examples": ["Курсы развод", "Коучинг скам", "Марафоны обман"],
+      "typical_accusations": ["инфоцыгане", "вода", "не работает", "деньги на ветер"]
+    },
+    "AI": {
+      "examples": ["ChatGPT опасен", "AI заберёт работу", "Нейросети зло"],
+      "typical_accusations": ["убьёт профессии", "опасно", "галлюцинации", "нельзя доверять"]
+    },
+    "BRANDS": {
+      "examples": ["Apple переоценён", "Tesla развод", "Xiaomi китайщина"],
+      "typical_accusations": ["переоценённый", "качество упало", "маркетинг", "не стоит денег"]
+    },
+    "PERSONS": {
+      "examples": ["Блогер X мошенник", "Эксперт Y фейк"],
+      "typical_accusations": ["фейковые результаты", "врёт", "купленные отзывы"]
+    }
+  },
+
+  "cta_types": {
+    "PRODUCT": {
+      "description": "Продажа — пользователь указывает своё кодовое слово",
+      "cta_label": "ПИШИ:",
+      "cta_value": "{USER_KEYWORD}"
+    },
+    "ENGAGEMENT": {
+      "description": "Охват — рост аудитории",
+      "variants": [
+        {
+          "id": "COMMENT",
+          "cta_label": "НАПИШИ В КОММЕНТАХ",
+          "cta_value": "👇 ЧТО ДУМАЕШЬ?"
+        },
+        {
+          "id": "SUBSCRIBE",
+          "cta_label": "ПОДПИШИСЬ",
+          "cta_value": "🔔 ЕЩЁ РАЗБОРЫ"
+        },
+        {
+          "id": "SAVE",
+          "cta_label": "СОХРАНИ",
+          "cta_value": "💾 ПРИГОДИТСЯ"
+        }
+      ]
+    }
+  },
+  
+  "slides": [
+    {
+      "position": 1,
+      "type": "HOOK",
+      "human_mode": "FACE",
+      "purpose": "Шок от негативного отзыва — персонаж в шоке читает хейт",
+      "layout": {
+        "headline": "TOP_LEFT",
+        "person": "RIGHT_40_PERCENT",
+        "props": "FLOATING_NEGATIVE_ELEMENTS",
+        "bottom_card": "BOTTOM_CENTER",
+        "navigation": "BOTTOM_RIGHT"
+      },
+      "content_slots": {
+        "headline_1": "[ОБЪЕКТ] — РАЗВОД?",
+        "headline_2": "ПРОВЕРИЛ ЛИЧНО",
+        "bottom_text": "Интрига (что нашёл)",
+        "navigation": "Листай →"
+      },
+      "suggested_poses": {
+        "PHONE_SHOCK": "holding phone, looking at screen with shock, mouth open",
+        "HEAD_GRAB": "hands on head, shocked expression, disbelief",
+        "ARMS_WIDE": "arms spread wide, palms up, questioning look",
+        "FACEPALM": "hand covering part of face, disappointed"
+      },
+      "suggested_props": [
+        "Phone glowing red with negative review",
+        "Floating angry emojis 😠",
+        "Warning triangles ⚠️",
+        "One-star rating ★☆☆☆☆",
+        "Red X marks ❌"
+      ],
+      "outfit_vibe": "INVESTIGATOR",
+      "color_accent": "RED_WARNING"
+    },
+    {
+      "position": 2,
+      "type": "QUOTE_HATER",
+      "human_mode": "NONE",
+      "purpose": "Самая жёсткая цитата хейтера (из web research!)",
+      "suggested_layouts": ["TORN_PAPER_QUOTE"],
+      "layout": {
+        "quote_card": "CENTER",
+        "quote_marks": "LARGE_RED",
+        "rating": "BOTTOM_LEFT",
+        "emoji": "BOTTOM_RIGHT"
+      },
+      "content_slots": {
+        "quote_text": "«[РЕАЛЬНАЯ ЦИТАТА ХЕЙТЕРА ИЗ WEB RESEARCH]»",
+        "source_hint": "Отзыв из интернета",
+        "rating": "★☆☆☆☆",
+        "emoji": "😠"
+      },
+      "visual_style": {
+        "background": "DARK_VIGNETTE",
+        "card": "TORN_PAPER_RED_BORDER",
+        "text_highlight": "KEY_WORDS_IN_RED_CAPS"
+      },
+      "research_required": true
+    },
+    {
+      "position": 3,
+      "type": "CHECKLIST",
+      "human_mode": "NONE",
+      "purpose": "Что проверил — список действий расследования",
+      "suggested_layouts": ["CHECKLIST_GLASS"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "checklist": "CENTER_VERTICAL",
+        "transition": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "РЕШИЛ РАЗОБРАТЬСЯ",
+        "subheadline": "Что проверил:",
+        "item_1": "✓ [Действие 1 — документы/сертификаты]",
+        "item_2": "✓ [Действие 2 — производство/история]",
+        "item_3": "✓ [Действие 3 — отзывы/кейсы]",
+        "item_4": "✓ [Действие 4 — финансы/выплаты]",
+        "item_5": "✓ [Действие 5 — сравнение с конкурентами]",
+        "transition": "Вот что нашёл →"
+      },
+      "color_scheme": "NEUTRAL_PROFESSIONAL"
+    },
+    {
+      "position": 4,
+      "type": "FACT_1",
+      "human_mode": "NONE",
+      "purpose": "Первый факт — производство/история/основа",
+      "suggested_layouts": ["FACT_CARD_WITH_ICON"],
+      "layout": {
+        "fact_number": "TOP_LEFT",
+        "headline": "TOP_CENTER",
+        "main_card": "CENTER",
+        "source": "BOTTOM"
+      },
+      "content_slots": {
+        "fact_label": "ФАКТ №1",
+        "headline": "[Заголовок факта]",
+        "fact_content": "[Конкретные данные из web research]",
+        "supporting_detail": "[Дополнительная информация]",
+        "source_hint": "Источник (опционально)"
+      },
+      "fact_types": {
+        "PRODUCTION": "Где производится, какой завод, страна",
+        "HISTORY": "Сколько лет на рынке, основатели",
+        "SCALE": "Количество клиентов/партнёров/пользователей",
+        "TECHNOLOGY": "Технологии, патенты, инновации"
+      },
+      "color_scheme": "GREEN_TRUST",
+      "research_required": true
+    },
+    {
+      "position": 5,
+      "type": "FACT_2",
+      "human_mode": "NONE",
+      "purpose": "Второй факт — сертификаты/документы/признание",
+      "suggested_layouts": ["CERTIFICATES_GRID", "FACT_CARD_WITH_ICON"],
+      "layout": {
+        "fact_number": "TOP_LEFT",
+        "headline": "TOP_CENTER",
+        "certificates_grid": "CENTER",
+        "source": "BOTTOM"
+      },
+      "content_slots": {
+        "fact_label": "ФАКТ №2",
+        "headline": "[Заголовок — документы/признание]",
+        "cert_1": "[Сертификат/награда 1]",
+        "cert_2": "[Сертификат/награда 2]",
+        "cert_3": "[Сертификат/награда 3]",
+        "source_hint": "Источник (опционально)"
+      },
+      "fact_types": {
+        "CERTIFICATES": "ISO, GMP, ГОСТ, лицензии",
+        "AWARDS": "Награды, рейтинги, признание",
+        "PARTNERSHIPS": "Партнёрства с известными брендами",
+        "LEGAL": "Юридический статус, регистрации"
+      },
+      "color_scheme": "BLUE_AUTHORITY",
+      "research_required": true
+    },
+    {
+      "position": 6,
+      "type": "FACT_3",
+      "human_mode": "NONE",
+      "purpose": "Третий факт — сравнение хейтеры vs реальность",
+      "suggested_layouts": ["COMPARISON_TWO_COLUMNS", "MYTH_VS_REALITY"],
+      "layout": {
+        "fact_number": "TOP_LEFT",
+        "headline": "TOP_CENTER",
+        "left_column": "HATERS_SAY",
+        "right_column": "REALITY",
+        "transition": "BOTTOM"
+      },
+      "content_slots": {
+        "fact_label": "ФАКТ №3",
+        "headline": "ХЕЙТЕРЫ vs РЕАЛЬНОСТЬ",
+        "hater_claim_1": "❌ [Что говорят хейтеры 1]",
+        "reality_1": "✓ [Как на самом деле 1]",
+        "hater_claim_2": "❌ [Что говорят хейтеры 2]",
+        "reality_2": "✓ [Как на самом деле 2]",
+        "hater_claim_3": "❌ [Что говорят хейтеры 3]",
+        "reality_3": "✓ [Как на самом деле 3]",
+        "transition": "Вердикт →"
+      },
+      "color_scheme": "CONTRAST_RED_GREEN",
+      "research_required": true
+    },
+    {
+      "position": 7,
+      "type": "VERDICT",
+      "human_mode": "NONE",
+      "purpose": "Финальный вердикт — объект оправдан, хейтеры виноваты",
+      "suggested_layouts": ["VERDICT_SCALES", "TWO_VERDICTS"],
+      "layout": {
+        "headline": "TOP_CENTER",
+        "verdict_object": "CENTER_LEFT",
+        "verdict_haters": "CENTER_RIGHT",
+        "scales_icon": "CENTER",
+        "conclusion": "BOTTOM"
+      },
+      "content_slots": {
+        "headline": "ВЕРДИКТ",
+        "object_name": "[ОБЪЕКТ]",
+        "object_verdict": "НЕ ВИНОВЕН ✓",
+        "object_reasons": ["✓ Факт 1", "✓ Факт 2", "✓ Факт 3"],
+        "haters_label": "ХЕЙТЕРЫ",
+        "haters_verdict": "ВИНОВНЫ ✗",
+        "haters_reasons": ["✗ Не проверили факты", "✗ Копируют друг друга", "✗ Эмоции вместо логики"],
+        "conclusion": "Делай выводы сам"
+      },
+      "visual_elements": ["GOLDEN_SCALES", "JUDGE_GAVEL", "GREEN_CHECKMARK_GLOW"],
+      "color_scheme": "JUSTICE_GOLD_GREEN"
+    },
+    {
+      "position": 8,
+      "type": "CTA",
+      "human_mode": "FACE",
+      "purpose": "Призыв к действию — другая одежда, тёплая подача",
+      "layout": {
+        "headline": "TOP_LEFT",
+        "person": "LEFT_40_PERCENT",
+        "cta_card": "CENTER_RIGHT",
+        "benefit": "BOTTOM"
+      },
+      "content_slots": {
+        "cta_headline": "Хочешь разбираться в [теме]?",
+        "cta_label": "ПИШИ:",
+        "product_code": "{USER_KEYWORD}",
+        "benefit_text": "Что получит (1 строка)"
+      },
+      "suggested_pose": "CONFIDENT_INVITING",
+      "outfit_rule": "DIFFERENT_FROM_SLIDE_1",
+      "outfit_recommendation": "WHITE_SHIRT_TRUST"
+    },
+    {
+      "position": 9,
+      "type": "VIRAL",
+      "human_mode": "NONE",
+      "purpose": "Вирусное распространение — отправь тому кто боится",
+      "layout": {
+        "main_card": "CENTER",
+        "share_icons": "FLOATING",
+        "save_button": "BOTTOM"
+      },
+      "content_slots": {
+        "viral_action": "ОТПРАВЬ ЭТО",
+        "viral_target": "ТОМУ КТО БОИТСЯ [ОБЪЕКТ]",
+        "save_button": "💾 СОХРАНИ"
+      },
+      "viral_templates": {
+        "MLM": "ТОМУ КТО БОИТСЯ [КОМПАНИЯ]",
+        "CRYPTO": "ДРУГУ КОТОРЫЙ НЕ ВЕРИТ В КРИПТУ",
+        "INFOBIZ": "ТОМУ КТО СЧИТАЕТ КУРСЫ РАЗВОДОМ",
+        "AI": "КТО БОИТСЯ НЕЙРОСЕТЕЙ",
+        "BRAND": "ХЕЙТЕРУ [БРЕНД]",
+        "PERSON": "КТО СОМНЕВАЕТСЯ В [ИМЯ]"
+      }
+    }
+  ],
+  
+  "layout_types": {
+    "TORN_PAPER_QUOTE": "Рваная бумага с красной рамкой для цитаты хейтера",
+    "CHECKLIST_GLASS": "Стеклянная карточка с чеклистом ✓",
+    "FACT_CARD_WITH_ICON": "Карточка факта с иконкой и номером",
+    "CERTIFICATES_GRID": "Сетка сертификатов/наград",
+    "COMPARISON_TWO_COLUMNS": "Две колонки: хейтеры vs реальность",
+    "MYTH_VS_REALITY": "Миф → Реальность (построчно)",
+    "VERDICT_SCALES": "Весы правосудия с двумя вердиктами",
+    "TWO_VERDICTS": "Два блока: оправдан / виновны"
+  },
+  
+  "color_coding": {
+    "HOOK": { "accent": "#EF4444", "vibe": "WARNING_RED" },
+    "QUOTE": { "accent": "#DC2626", "vibe": "DANGER_DARK" },
+    "CHECKLIST": { "accent": "#6B7280", "vibe": "NEUTRAL_GRAY" },
+    "FACT_1": { "accent": "#22C55E", "vibe": "TRUST_GREEN" },
+    "FACT_2": { "accent": "#3B82F6", "vibe": "AUTHORITY_BLUE" },
+    "FACT_3": { "accent": "#22C55E", "vibe": "CONTRAST_GREEN_RED" },
+    "VERDICT": { "accent": "#F59E0B", "vibe": "JUSTICE_GOLD" },
+    "CTA": { "accent": "#FF5A1F", "vibe": "WARM_ORANGE" },
+    "VIRAL": { "accent": "#FF5A1F", "vibe": "SHAREABLE_BRIGHT" }
+  },
+  
+  "rules": {
+    "web_research_required": "ОБЯЗАТЕЛЬНО 2-3 поиска перед созданием",
+    "real_quote": "Цитата хейтера должна быть РЕАЛЬНОЙ из интернета",
+    "real_facts": "Факты должны быть ПРОВЕРЯЕМЫМИ, не выдуманными",
+    "person_only_1_and_8": true,
+    "different_outfit": "Слайд 1: investigator vibe, Слайд 8: white shirt trust",
+    "brand_colors": "Использовать цвета защищаемого объекта в слайдах 4-7"
+  },
+  
+  "web_research_guide": {
+    "search_1": {
+      "query_template": "[Объект] отзывы развод скам {current_year}",
+      "goal": "Найти самую жёсткую цитату хейтера"
+    },
+    "search_2": {
+      "query_template": "[Объект] производство сертификаты история официальный",
+      "goal": "Собрать проверяемые факты для опровержения"
+    },
+    "search_3": {
+      "query_template": "[Объект] новости {current_year} награды достижения",
+      "goal": "Актуальная позитивная информация"
+    }
+  }
+}
