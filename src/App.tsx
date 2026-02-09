@@ -65,6 +65,7 @@ const PosterDashboard = lazy(() => import('@/pages/tools/poster'))
 const PosterCreate = lazy(() => import('@/pages/tools/poster/create'))
 const PosterEdit = lazy(() => import('@/pages/tools/poster/edit'))
 const PosterCalendar = lazy(() => import('@/pages/tools/poster/calendar'))
+const PosterSettings = lazy(() => import('@/pages/tools/poster/settings'))
 
 // School
 const SchoolIndex = lazy(() => import('@/pages/school/index'))
@@ -319,6 +320,7 @@ function AppContent() {
             <Route path="tools/poster/create" element={<PosterCreate />} />
             <Route path="tools/poster/calendar" element={<PosterCalendar />} />
             <Route path="tools/poster/:id/edit" element={<PosterEdit />} />
+            <Route path="tools/poster/settings" element={<PosterSettings />} />
             <Route path="agents/carousel" element={<CarouselIndex />} />
             <Route path="agents/carousel/settings" element={<CarouselSettings />} />
             <Route path="agents/carousel/content" element={<CarouselContent />} />

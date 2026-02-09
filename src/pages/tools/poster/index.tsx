@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Calendar, Image, Trash2, Edit, Send, Lock } from 'lucide-react'
+import { Plus, Calendar, Image, Trash2, Edit, Send, Lock, Settings, Instagram } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { usePosts, usePublishToInstagram } from '@/hooks/usePosts'
 import { toast } from 'sonner'
@@ -135,15 +135,24 @@ export default function PosterDashboard() {
         <h1 className="text-2xl font-bold text-gray-900">НЕЙРОПОСТЕР</h1>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => navigate('/tools/poster/settings')}
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors border border-gray-200 cursor-pointer"
+            title="Настройки Instagram"
+            aria-label="Настройки Instagram"
+          >
+            <Settings className="w-5 h-5 text-gray-700" />
+          </button>
+          <button
             onClick={() => navigate('/tools/poster/calendar')}
-            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors border border-gray-200"
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors border border-gray-200 cursor-pointer"
             title="Календарь"
+            aria-label="Календарь"
           >
             <Calendar className="w-5 h-5 text-gray-700" />
           </button>
           <button
             onClick={() => navigate('/tools/poster/create')}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500 rounded-xl text-white font-medium hover:bg-orange-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-orange-500 rounded-xl text-white font-medium hover:bg-orange-600 transition-colors cursor-pointer"
           >
             <Plus className="w-5 h-5" />
             Новый
@@ -164,6 +173,23 @@ export default function PosterDashboard() {
         <div className="bg-white rounded-xl p-4 text-center border border-gray-200 shadow-sm">
           <div className="text-2xl font-bold text-green-500">{published.length}</div>
           <div className="text-xs text-gray-500">Опубликовано</div>
+        </div>
+      </div>
+
+      {/* Баннер подключения Instagram */}
+      <div
+        onClick={() => navigate('/tools/poster/settings')}
+        className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-4 mb-6 cursor-pointer hover:shadow-md transition-all"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
+            <Instagram className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-sm">Подключите Instagram</h3>
+            <p className="text-xs text-gray-500">Для автопубликации постов</p>
+          </div>
+          <div className="text-orange-500 text-sm font-medium">Подключить →</div>
         </div>
       </div>
 
