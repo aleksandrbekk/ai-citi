@@ -19,7 +19,7 @@ const GENERATION_STEPS = [
   { text: 'Анализируем тему...', duration: 3000 },
   { text: 'Пишем тексты слайдов...', duration: 5000 },
   { text: 'Генерируем дизайн...', duration: 4000 },
-  { text: 'Создаём 9 слайдов...', duration: 5000 },
+  { text: 'Создаём слайды...', duration: 5000 },
   { text: 'Финальная обработка...', duration: 3000 },
 ]
 
@@ -199,7 +199,7 @@ export default function CarouselGenerating() {
 
             <div className="flex items-center justify-center gap-2 mt-3 text-white/80 text-sm">
               <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span>AI генерирует 9 слайдов специально для вас</span>
+              <span>AI генерирует слайды специально для вас</span>
             </div>
           </div>
         </div>
