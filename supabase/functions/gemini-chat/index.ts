@@ -524,6 +524,7 @@ serve(async (req) => {
 
     let ragResult: { answer: string; sources: any[]; ragUsed: boolean } | null = null
     let result: { reply: string; inputTokens: number; outputTokens: number }
+    let ragDebugError: string | null = null
 
     if (ragEnabled && ragEngineIdFinal) {
       try {
@@ -592,13 +593,26 @@ ${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((
             ]
           }
 
-          result = await callGemini(
-            token,
-            usedModel,
-            enhancedContents,
-            settings.temperature,
-            settings.max_tokens
-          )
+          try {
+            result = await callGemini(
+              token,
+              usedModel,
+              enhancedContents,
+              settings.temperature,
+              settings.max_tokens
+            )
+          } catch (modelError) {
+            // Модель не найдена — пробуем fallback модель с тем же RAG-контекстом 
+            console.warn(`RAG callGemini failed with ${usedModel}, trying fallback ${settings.fallback_model}:`, modelError)
+            usedModel = settings.fallback_model
+            result = await callGemini(
+              token,
+              usedModel,
+              enhancedContents,
+              settings.temperature,
+              settings.max_tokens
+            )
+          }
 
           // Добавляем источники к ответу ТОЛЬКО если нет кастомного промпта
           if (!systemPrompt && ragResult.sources.length > 0) {
@@ -607,11 +621,14 @@ ${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((
         } else {
           // RAG не нашел ответ, используем обычный Gemini
           console.log('RAG не нашел ответ, используем обычный Gemini')
+          ragDebugError = 'RAG returned no results'
           ragResult = null
           throw new Error('RAG не нашел ответ')
         }
       } catch (ragError) {
-        console.error('RAG error, falling back to regular Gemini:', ragError)
+        const errMsg = ragError instanceof Error ? ragError.message : String(ragError)
+        console.error('RAG error, falling back to regular Gemini:', errMsg)
+        ragDebugError = ragDebugError || errMsg
         ragResult = null
         // Продолжаем с обычным Gemini
       }
@@ -675,7 +692,7 @@ ${ragResult.sources.length > 0 ? `Источники:\n${ragResult.sources.map((
           used: true,
           sources: ragResult.sources,
           answer: ragResult.answer
-        } : { used: false },
+        } : { used: false, error: ragDebugError },
         limit: {
           tariff: limitInfo.tariff,
           daily: limitInfo.limit,
