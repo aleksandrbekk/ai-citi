@@ -1,39 +1,61 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, Lock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Lock, CalendarDays } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
-import { isAdmin } from '@/config/admins'
 import { getTelegramUser } from '@/lib/telegram'
 
+// ID владельца Нейропостера
+const POSTER_OWNER_ID = 643763835
+
 // Персонажи привязаны к разделам
-const getCharacters = (_userIsAdmin: boolean) => [
-  {
-    id: 'designer',
-    skin: '/images/skins/skin_2.png',
-    name: 'Дизайнер',
-    label: 'Создатель карусели',
-    path: '/agents/carousel',
-    task: 'Создать карусель',
-    defaultSpeech: 'Карусель за 2 минуты?\nЛегко! 🎨',
-    icon: Sparkles,
-    disabled: false,
-    comingSoon: false
-  },
-  {
-    id: 'coach',
-    skin: '/images/ai-coach-avatar.png',
-    name: 'AI-Coach',
-    label: 'Твой внутренний компас',
-    path: '/agents/karmalogik',
-    task: 'Начать сессию',
-    defaultSpeech: 'Готов к переменам?\nДавай разберёмся вместе 🧘',
-    icon: Sparkles,
-    disabled: false,
-    comingSoon: false
-  },
-]
+const getCharacters = (telegramId: number | null) => {
+  const chars = [
+    {
+      id: 'designer',
+      skin: '/images/skins/skin_2.png',
+      name: 'Дизайнер',
+      label: 'Создатель карусели',
+      path: '/agents/carousel',
+      task: 'Создать карусель',
+      defaultSpeech: 'Карусель за 2 минуты?\nЛегко! 🎨',
+      icon: Sparkles,
+      disabled: false,
+      comingSoon: false
+    },
+    {
+      id: 'coach',
+      skin: '/images/ai-coach-avatar.png',
+      name: 'AI-Coach',
+      label: 'Твой внутренний компас',
+      path: '/agents/karmalogik',
+      task: 'Начать сессию',
+      defaultSpeech: 'Готов к переменам?\nДавай разберёмся вместе 🧘',
+      icon: Sparkles,
+      disabled: false,
+      comingSoon: false
+    },
+  ]
+
+  // Нейропостер — только для владельца
+  if (telegramId === POSTER_OWNER_ID) {
+    chars.push({
+      id: 'poster',
+      skin: '/images/skins/skin_3.png',
+      name: 'Нейропостер',
+      label: 'Планировщик Instagram',
+      path: '/tools/poster',
+      task: 'Запланировать пост',
+      defaultSpeech: 'Запланируй посты в Instagram\nи я опубликую вовремя 📅',
+      icon: CalendarDays,
+      disabled: false,
+      comingSoon: false
+    })
+  }
+
+  return chars
+}
 
 const slideVariants = {
   enter: (direction: number) => ({
@@ -58,8 +80,7 @@ const swipePower = (offset: number, velocity: number) => Math.abs(offset) * velo
 export default function Home() {
   const navigate = useNavigate()
   const telegramUser = getTelegramUser()
-  const userIsAdmin = isAdmin(telegramUser?.id)
-  const characters = getCharacters(userIsAdmin)
+  const characters = getCharacters(telegramUser?.id ?? null)
   const [[currentIndex, direction], setPage] = useState([0, 0]);
   const [greetings, setGreetings] = useState<Record<string, string>>({})
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
