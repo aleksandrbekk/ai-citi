@@ -6,6 +6,7 @@ import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGenera
 import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles, getCarouselStylesByIds } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCarouselEvent } from '@/lib/analytics'
+import { isAdmin } from '@/config/admins'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
@@ -927,28 +928,30 @@ function CarouselIndexInner() {
           </div>
         </div>
 
-        {/* Settings Button — for all users */}
-        <button
-          onClick={() => setShowSettingsPanel(true)}
-          className="w-full mb-4 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-orange-200 transition-all active:scale-[0.99] cursor-pointer"
-        >
-          <div className="w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-              <circle cx="12" cy="12" r="3" />
+        {/* Settings Button — admin only */}
+        {telegramUser?.id && isAdmin(telegramUser.id) && (
+          <button
+            onClick={() => setShowSettingsPanel(true)}
+            className="w-full mb-4 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-orange-200 transition-all active:scale-[0.99] cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </div>
+            <div className="flex-1 text-left">
+              <span className="text-sm font-medium text-gray-900">Настройки</span>
+              <span className="text-xs text-gray-400 ml-2">цвет, формат, объект</span>
+            </div>
+            {(primaryColor || format !== 'expert' || objectImage) && (
+              <span className="text-xs text-orange-500 font-medium">✓</span>
+            )}
+            <svg className="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6" />
             </svg>
-          </div>
-          <div className="flex-1 text-left">
-            <span className="text-sm font-medium text-gray-900">Настройки</span>
-            <span className="text-xs text-gray-400 ml-2">цвет, формат, объект</span>
-          </div>
-          {(primaryColor || format !== 'expert' || objectImage) && (
-            <span className="text-xs text-orange-500 font-medium">✓</span>
-          )}
-          <svg className="w-4 h-4 text-gray-300 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </button>
+          </button>
+        )}
 
         {/* Error */}
         {error && (
