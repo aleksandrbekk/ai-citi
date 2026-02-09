@@ -137,13 +137,13 @@ export function RevenueTab({
                     <div className="bg-green-50 rounded-lg p-3 text-center">
                         <div className="text-xs text-gray-500 mb-1">PRO</div>
                         <div className="text-2xl font-bold text-gray-900">
-                            {subscriptions.filter((s: any) => s.tier === 'pro').length}
+                            {subscriptions.filter((s: any) => s.plan === 'pro').length}
                         </div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-3 text-center">
                         <div className="text-xs text-gray-500 mb-1">ELITE</div>
                         <div className="text-2xl font-bold text-gray-900">
-                            {subscriptions.filter((s: any) => s.tier === 'elite').length}
+                            {subscriptions.filter((s: any) => s.plan === 'elite').length}
                         </div>
                     </div>
                 </div>
@@ -265,7 +265,7 @@ export function RevenueTab({
                 {activeSubs.map((s: any) => (
                     <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                         <div>
-                            <span className="text-gray-900 text-sm font-medium">{(s.tier || s.plan || '').toUpperCase()}</span>
+                            <span className="text-gray-900 text-sm font-medium">{(s.plan || '').toUpperCase()}</span>
                             <span className="text-gray-500 text-xs ml-2">
                                 {s.username ? `@${s.username}` : `ID ${s.telegram_id}`}
                             </span>
@@ -291,7 +291,7 @@ export function RevenueTab({
                 {cancelledSubs.map((s: any) => (
                     <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                         <div>
-                            <span className="text-gray-900 text-sm font-medium">{(s.tier || s.plan || '').toUpperCase()}</span>
+                            <span className="text-gray-900 text-sm font-medium">{(s.plan || '').toUpperCase()}</span>
                             <span className="text-gray-500 text-xs ml-2">
                                 {s.username ? `@${s.username}` : `ID ${s.telegram_id}`}
                             </span>

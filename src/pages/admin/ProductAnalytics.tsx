@@ -77,7 +77,7 @@ export function ProductAnalytics() {
         queryFn: async () => {
             const { data } = await supabase
                 .from('user_subscriptions')
-                .select('tier, status, created_at')
+                .select('plan, status, created_at')
                 .eq('status', 'active')
             return data || []
         }
@@ -142,7 +142,7 @@ export function ProductAnalytics() {
         queryFn: async () => {
             const { data } = await supabase
                 .from('user_subscriptions')
-                .select('id, telegram_id, plan, tier, status, amount_rub, neurons_per_month, started_at, expires_at, cancelled_at')
+                .select('id, telegram_id, plan, status, amount_rub, neurons_per_month, started_at, expires_at, cancelled_at')
                 .order('created_at', { ascending: false })
             if (!data) return []
             const tgIds = [...new Set(data.map((s: any) => s.telegram_id))]
