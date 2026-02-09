@@ -20,36 +20,21 @@ export default function PosterSettings() {
     is_active: boolean
   } | null>(null)
 
-  // Получаем user_id из БД по telegram_id
-  const getUserId = async (): Promise<string | null> => {
-    const tgUser = getTelegramUser()
-    if (!tgUser?.id) return null
-
-    const { data } = await supabase
-      .from('users')
-      .select('id')
-      .eq('telegram_id', tgUser.id)
-      .single()
-
-    return data?.id || null
-  }
-
-  // Загрузка подключённого аккаунта
+  // Загрузка подключённого аккаунта через edge function (без прямого доступа к токенам)
   const loadAccount = async () => {
     setIsLoading(true)
     try {
-      const userId = await getUserId()
-      if (!userId) return
+      const tgUser = getTelegramUser()
+      if (!tgUser?.id) return
 
-      const { data } = await supabase
-        .from('instagram_accounts')
-        .select('username, instagram_user_id, is_active')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .single()
+      const { data, error } = await supabase.functions.invoke('get-instagram-account', {
+        body: { telegram_id: tgUser.id }
+      })
 
-      if (data) {
-        setConnectedAccount(data)
+      if (error) throw error
+
+      if (data?.account) {
+        setConnectedAccount(data.account)
       }
     } catch (err) {
       console.error('Error loading account:', err)
@@ -92,16 +77,17 @@ export default function PosterSettings() {
     window.location.href = oauthUrl
   }
 
-  // Отключение аккаунта
+  // Отключение аккаунта через edge function
   const handleDisconnect = async () => {
     try {
-      const userId = await getUserId()
-      if (!userId) return
+      const tgUser = getTelegramUser()
+      if (!tgUser?.id) return
 
-      await supabase
-        .from('instagram_accounts')
-        .update({ is_active: false })
-        .eq('user_id', userId)
+      const { error } = await supabase.functions.invoke('get-instagram-account', {
+        body: { telegram_id: tgUser.id, action: 'disconnect' }
+      })
+
+      if (error) throw error
 
       setConnectedAccount(null)
       toast.success('Аккаунт отключён')
