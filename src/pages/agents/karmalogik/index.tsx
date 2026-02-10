@@ -790,7 +790,7 @@ export default function KarmalogikChat() {
               onKeyDown={handleKeyDown}
               placeholder="Задай вопрос о жизни, отношениях, выборе..."
               className="w-full px-4 pt-3 pb-2 bg-transparent resize-none focus:outline-none text-gray-800 placeholder:text-gray-400 max-h-[120px] caret-amber-500"
-              rows={1}
+              rows={2}
               disabled={isLoading}
             />
           )}
