@@ -14,14 +14,16 @@ import {
   BarChart3,
   Search,
   Link2,
-  Palette
+  Palette,
+  Zap
 } from 'lucide-react'
 import { useQuizzes, useQuizAnalytics, type Quiz } from '@/hooks/useQuizzes'
 import UtmTab from './crm/UtmTab'
 import StatsTab from './crm/StatsTab'
 import { useMaintenanceMode, toggleMaintenanceMode, updateMaintenanceMessage } from '@/hooks/useMaintenanceMode'
+import { AIEngineSettings } from './ai-engine/AIEngineSettings'
 
-type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'carousel-styles' | 'settings'
+type AdminSection = 'crm' | 'mlm-camp' | 'quizzes' | 'carousel-styles' | 'ai-engine' | 'settings'
 
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<AdminSection>('crm')
@@ -62,6 +64,12 @@ export default function AdminPanel() {
             onClick={() => setActiveSection('carousel-styles')}
           />
           <SidebarItem
+            icon={Zap}
+            label="AI Engine"
+            active={activeSection === 'ai-engine'}
+            onClick={() => setActiveSection('ai-engine')}
+          />
+          <SidebarItem
             icon={Settings}
             label="Настройки"
             active={activeSection === 'settings'}
@@ -86,6 +94,7 @@ export default function AdminPanel() {
           {activeSection === 'mlm-camp' && <MLMCampSection />}
           {activeSection === 'quizzes' && <QuizzesSection navigate={navigate} />}
           {activeSection === 'carousel-styles' && <CarouselStylesSection navigate={navigate} />}
+          {activeSection === 'ai-engine' && <AIEngineSettings />}
           {activeSection === 'settings' && <SettingsSection />}
         </div>
       </main>

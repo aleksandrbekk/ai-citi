@@ -78,6 +78,7 @@ const CuratorReview = lazy(() => import('./pages/CuratorReview'))
 // Carousel
 const CarouselIndex = lazy(() => import('./pages/agents/carousel/index'))
 const CarouselSettings = lazy(() => import('./pages/agents/carousel/settings'))
+const CarouselTest = lazy(() => import('./pages/agents/carousel-test/CarouselTest'))
 const CarouselContent = lazy(() => import('./pages/agents/carousel/content'))
 const CarouselGenerating = lazy(() => import('./pages/agents/carousel/generating'))
 const CarouselResult = lazy(() => import('./pages/agents/carousel/result'))
@@ -329,6 +330,7 @@ function AppContent() {
             <Route path="agents/carousel/content" element={<CarouselContent />} />
             <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
             <Route path="agents/carousel/result" element={<CarouselResult />} />
+            <Route path="agents/carousel-test" element={<CarouselTest />} />
             <Route path="agents/karmalogik" element={<KarmalogikChat />} />
             <Route path="quizzes" element={<QuizzesDashboard />} />
             <Route path="quizzes/builder" element={<QuizBuilder />} />
