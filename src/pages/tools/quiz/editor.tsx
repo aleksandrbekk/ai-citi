@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
@@ -62,31 +62,35 @@ export default function QuizEditor() {
     cta_url: null,
   })
 
-  // Load quiz
-  const loadQuiz = useCallback(async () => {
+  // Load quiz — один раз при монтировании
+  useEffect(() => {
     if (!id) return
-    setIsLoading(true)
+    let cancelled = false
 
-    const data = await getQuizWithQuestions(id)
-    if (data) {
-      setTitle(data.title || '')
-      setDescription(data.description || '')
-      setCoverImageUrl(data.cover_image_url)
-      setCtaText(data.cta_text || 'Начать')
-      setIsPublished(data.is_published)
-      setSlug(data.slug)
-      setQuestions(data.questions || [])
-      if (data.contact_config) setContactConfig(data.contact_config)
-      if (data.result_config) setResultConfig(data.result_config)
-      if (data.thank_you_config) setThankYouConfig(data.thank_you_config)
+    const load = async () => {
+      setIsLoading(true)
+      const data = await getQuizWithQuestions(id)
+      if (cancelled) return
+
+      if (data) {
+        setTitle(data.title || '')
+        setDescription(data.description || '')
+        setCoverImageUrl(data.cover_image_url)
+        setCtaText(data.cta_text || 'Начать')
+        setIsPublished(data.is_published)
+        setSlug(data.slug)
+        setQuestions(data.questions || [])
+        if (data.contact_config) setContactConfig(data.contact_config)
+        if (data.result_config) setResultConfig(data.result_config)
+        if (data.thank_you_config) setThankYouConfig(data.thank_you_config)
+      }
+
+      setIsLoading(false)
     }
 
-    setIsLoading(false)
-  }, [id, getQuizWithQuestions])
-
-  useEffect(() => {
-    loadQuiz()
-  }, [loadQuiz])
+    load()
+    return () => { cancelled = true }
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save
   const handleSave = async () => {

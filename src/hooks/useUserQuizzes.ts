@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 
@@ -101,12 +101,15 @@ export function useUserQuizzes() {
 
   const telegramUser = getTelegramUser()
   const telegramId = telegramUser?.id || null
+  const telegramIdRef = useRef(telegramId)
+  telegramIdRef.current = telegramId
 
   const loadQuizzes = useCallback(async () => {
-    if (!telegramId) return
+    const tgId = telegramIdRef.current
+    if (!tgId) return
 
     const { data, error } = await supabase.rpc('nq_get_user_quizzes', {
-      p_telegram_id: telegramId,
+      p_telegram_id: tgId,
     })
 
     if (error) {
@@ -115,17 +118,18 @@ export function useUserQuizzes() {
       setQuizzes(data || [])
     }
     setIsInitialized(true)
-  }, [telegramId])
+  }, [])
 
   useEffect(() => {
-    loadQuizzes()
-  }, [loadQuizzes])
+    if (telegramId) loadQuizzes()
+  }, [telegramId, loadQuizzes])
 
-  const createQuiz = async (title: string = 'Новый квиз'): Promise<{ id: string; slug: string } | null> => {
-    if (!telegramId) return null
+  const createQuiz = useCallback(async (title: string = 'Новый квиз'): Promise<{ id: string; slug: string } | null> => {
+    const tgId = telegramIdRef.current
+    if (!tgId) return null
 
     const { data, error } = await supabase.rpc('nq_create_quiz', {
-      p_telegram_id: telegramId,
+      p_telegram_id: tgId,
       p_title: title,
     })
 
@@ -136,13 +140,14 @@ export function useUserQuizzes() {
 
     await loadQuizzes()
     return data?.[0] || null
-  }
+  }, [loadQuizzes])
 
-  const updateQuiz = async (quizId: string, updates: Record<string, unknown>): Promise<boolean> => {
-    if (!telegramId) return false
+  const updateQuiz = useCallback(async (quizId: string, updates: Record<string, unknown>): Promise<boolean> => {
+    const tgId = telegramIdRef.current
+    if (!tgId) return false
 
     const { error } = await supabase.rpc('nq_update_quiz', {
-      p_telegram_id: telegramId,
+      p_telegram_id: tgId,
       p_quiz_id: quizId,
       p_updates: updates,
     })
@@ -154,13 +159,14 @@ export function useUserQuizzes() {
 
     await loadQuizzes()
     return true
-  }
+  }, [loadQuizzes])
 
-  const deleteQuiz = async (quizId: string): Promise<boolean> => {
-    if (!telegramId) return false
+  const deleteQuiz = useCallback(async (quizId: string): Promise<boolean> => {
+    const tgId = telegramIdRef.current
+    if (!tgId) return false
 
     const { data, error } = await supabase.rpc('nq_delete_quiz', {
-      p_telegram_id: telegramId,
+      p_telegram_id: tgId,
       p_quiz_id: quizId,
     })
 
@@ -171,13 +177,14 @@ export function useUserQuizzes() {
 
     await loadQuizzes()
     return !!data
-  }
+  }, [loadQuizzes])
 
-  const saveQuestions = async (quizId: string, questions: QuizQuestionItem[]): Promise<boolean> => {
-    if (!telegramId) return false
+  const saveQuestions = useCallback(async (quizId: string, questions: QuizQuestionItem[]): Promise<boolean> => {
+    const tgId = telegramIdRef.current
+    if (!tgId) return false
 
     const { error } = await supabase.rpc('nq_save_questions', {
-      p_telegram_id: telegramId,
+      p_telegram_id: tgId,
       p_quiz_id: quizId,
       p_questions: questions,
     })
@@ -188,9 +195,9 @@ export function useUserQuizzes() {
     }
 
     return true
-  }
+  }, [])
 
-  const getQuizWithQuestions = async (quizId: string): Promise<QuizWithQuestions | null> => {
+  const getQuizWithQuestions = useCallback(async (quizId: string): Promise<QuizWithQuestions | null> => {
     const { data, error } = await supabase.rpc('nq_get_quiz_with_questions', {
       p_quiz_id: quizId,
     })
@@ -201,13 +208,14 @@ export function useUserQuizzes() {
     }
 
     return data as QuizWithQuestions | null
-  }
+  }, [])
 
-  const getLeads = async (quizId: string): Promise<QuizLead[]> => {
-    if (!telegramId) return []
+  const getLeads = useCallback(async (quizId: string): Promise<QuizLead[]> => {
+    const tgId = telegramIdRef.current
+    if (!tgId) return []
 
     const { data, error } = await supabase.rpc('nq_get_quiz_leads', {
-      p_telegram_id: telegramId,
+      p_telegram_id: tgId,
       p_quiz_id: quizId,
     })
 
@@ -217,7 +225,7 @@ export function useUserQuizzes() {
     }
 
     return data || []
-  }
+  }, [])
 
   return {
     quizzes,
@@ -242,41 +250,47 @@ export function usePublicQuiz(slug: string | undefined) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadQuiz = useCallback(async () => {
+  useEffect(() => {
     if (!slug) {
       setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
-    setError(null)
+    let cancelled = false
 
-    const { data, error: rpcError } = await supabase.rpc('nq_get_quiz_by_slug', {
-      p_slug: slug,
-    })
+    const load = async () => {
+      setIsLoading(true)
+      setError(null)
 
-    if (rpcError) {
-      console.error('Error loading public quiz:', rpcError)
-      setError('Ошибка загрузки квиза')
-    } else if (!data) {
-      setError('Квиз не найден')
-    } else {
-      setQuiz(data as QuizWithQuestions)
-
-      // Инкремент просмотров
-      await supabase.rpc('nq_increment_views', {
-        p_quiz_id: (data as QuizWithQuestions).id,
+      const { data, error: rpcError } = await supabase.rpc('nq_get_quiz_by_slug', {
+        p_slug: slug,
       })
+
+      if (cancelled) return
+
+      if (rpcError) {
+        console.error('Error loading public quiz:', rpcError)
+        setError('Ошибка загрузки квиза')
+      } else if (!data) {
+        setError('Квиз не найден')
+      } else {
+        setQuiz(data as QuizWithQuestions)
+
+        // Инкремент просмотров
+        supabase.rpc('nq_increment_views', {
+          p_quiz_id: (data as QuizWithQuestions).id,
+        })
+      }
+
+      setIsLoading(false)
     }
 
-    setIsLoading(false)
+    load()
+
+    return () => { cancelled = true }
   }, [slug])
 
-  useEffect(() => {
-    loadQuiz()
-  }, [loadQuiz])
-
-  const submitLead = async (data: {
+  const submitLead = useCallback(async (leadData: {
     name?: string
     phone?: string
     email?: string
@@ -289,10 +303,10 @@ export function usePublicQuiz(slug: string | undefined) {
     const { data: leadId, error: submitError } = await supabase.rpc('nq_submit_lead', {
       p_quiz_id: quiz.id,
       p_session_id: sessionId,
-      p_name: data.name || null,
-      p_phone: data.phone || null,
-      p_email: data.email || null,
-      p_answers: data.answers,
+      p_name: leadData.name || null,
+      p_phone: leadData.phone || null,
+      p_email: leadData.email || null,
+      p_answers: leadData.answers,
     })
 
     if (submitError) {
@@ -305,18 +319,17 @@ export function usePublicQuiz(slug: string | undefined) {
       await supabase.functions.invoke('quiz-lead-notify', {
         body: {
           quiz_id: quiz.id,
-          lead_name: data.name,
-          lead_phone: data.phone,
-          lead_email: data.email,
+          lead_name: leadData.name,
+          lead_phone: leadData.phone,
+          lead_email: leadData.email,
         },
       })
     } catch (notifyError) {
-      // Не блокируем если уведомление не отправилось
       console.error('Notification error:', notifyError)
     }
 
     return leadId as string
-  }
+  }, [quiz])
 
   return {
     quiz,
