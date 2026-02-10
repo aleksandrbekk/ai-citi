@@ -273,8 +273,13 @@ export default function KarmalogikChat() {
         }
       }
 
-      recognitionRef.current.onerror = () => {
+      recognitionRef.current.onerror = (event: any) => {
         setIsRecording(false)
+        if (event.error === 'not-allowed') {
+          toast.error('Разреши доступ к микрофону в настройках')
+        } else if (event.error !== 'aborted') {
+          toast.error('Голосовой ввод недоступен на этом устройстве')
+        }
       }
 
       recognitionRef.current.onend = () => {
@@ -298,8 +303,13 @@ export default function KarmalogikChat() {
       recognitionRef.current.stop()
       setIsRecording(false)
     } else {
-      recognitionRef.current.start()
-      setIsRecording(true)
+      try {
+        recognitionRef.current.start()
+        setIsRecording(true)
+      } catch {
+        toast.error('Голосовой ввод недоступен на этом устройстве')
+        setIsRecording(false)
+      }
     }
   }
 
