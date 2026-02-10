@@ -262,19 +262,14 @@ export default function KarmalogikChat() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = true
-      recognitionRef.current.interimResults = true
+      recognitionRef.current.continuous = false
+      recognitionRef.current.interimResults = false
       recognitionRef.current.lang = 'ru-RU'
 
       recognitionRef.current.onresult = (event: any) => {
-        let finalTranscript = ''
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript
-          }
-        }
-        if (finalTranscript) {
-          setInput(prev => prev + finalTranscript)
+        const transcript = event.results[0]?.[0]?.transcript || ''
+        if (transcript) {
+          setInput(prev => prev ? prev + ' ' + transcript : transcript)
         }
       }
 
