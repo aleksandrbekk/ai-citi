@@ -102,13 +102,13 @@ export function useUserQuizzes() {
   const telegramUser = getTelegramUser()
   const telegramId = telegramUser?.id || null
 
-  const loadQuizzes = useCallback(async () => {
+  const loadQuizzes = useCallback(async (silent = false) => {
     if (!telegramId) {
       setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
+    if (!silent) setIsLoading(true)
     const { data, error } = await supabase.rpc('nq_get_user_quizzes', {
       p_telegram_id: telegramId,
     })
@@ -118,11 +118,11 @@ export function useUserQuizzes() {
     } else {
       setQuizzes(data || [])
     }
-    setIsLoading(false)
+    if (!silent) setIsLoading(false)
   }, [telegramId])
 
   useEffect(() => {
-    loadQuizzes()
+    loadQuizzes(false)
   }, [loadQuizzes])
 
   const createQuiz = async (title: string = 'Новый квиз'): Promise<{ id: string; slug: string } | null> => {
@@ -138,7 +138,7 @@ export function useUserQuizzes() {
       return null
     }
 
-    await loadQuizzes()
+    await loadQuizzes(true)
     return data?.[0] || null
   }
 
@@ -156,7 +156,7 @@ export function useUserQuizzes() {
       return false
     }
 
-    await loadQuizzes()
+    await loadQuizzes(true)
     return true
   }
 
@@ -173,7 +173,7 @@ export function useUserQuizzes() {
       return false
     }
 
-    await loadQuizzes()
+    await loadQuizzes(true)
     return !!data
   }
 
