@@ -77,6 +77,8 @@ const TEXT_MODELS = [
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', provider: 'gemini' },
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', provider: 'gemini' },
+    { value: 'google/gemini-2.5-flash-preview', label: 'Gemini 2.5 Flash (OR)', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-pro-preview', label: 'Gemini 2.5 Pro (OR)', provider: 'openrouter' },
     { value: 'anthropic/claude-sonnet-4-20250514', label: 'Claude Sonnet 4', provider: 'openrouter' },
     { value: 'openai/gpt-4o', label: 'GPT-4o', provider: 'openrouter' },
     { value: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick', provider: 'openrouter' },
@@ -87,14 +89,14 @@ const IMAGE_PROVIDERS = [
     { value: 'ideogram', label: 'Ideogram', desc: 'Хороший текст на картинках' },
 ]
 
-const STATUS_COLORS: Record<string, string> = {
-    pending: 'bg-yellow-500/20 text-yellow-400',
-    generating_text: 'bg-blue-500/20 text-blue-400',
-    generating_images: 'bg-purple-500/20 text-purple-400',
-    uploading: 'bg-cyan-500/20 text-cyan-400',
-    sending: 'bg-orange-500/20 text-orange-400',
-    success: 'bg-green-500/20 text-green-400',
-    error: 'bg-red-500/20 text-red-400',
+const STATUS_BADGE: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-700',
+    generating_text: 'bg-blue-100 text-blue-700',
+    generating_images: 'bg-violet-100 text-violet-700',
+    uploading: 'bg-cyan-100 text-cyan-700',
+    sending: 'bg-orange-100 text-orange-700',
+    success: 'bg-emerald-100 text-emerald-700',
+    error: 'bg-red-100 text-red-700',
 }
 
 // ============================================================
@@ -219,7 +221,7 @@ export function AIEngineSettings() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <RefreshCw className="w-8 h-8 animate-spin text-[#94A3B8]" />
+                <RefreshCw className="w-8 h-8 animate-spin text-orange-400" />
             </div>
         )
     }
@@ -229,26 +231,31 @@ export function AIEngineSettings() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                        <Zap className="w-7 h-7 text-orange-500" />
+                    <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center">
+                            <Zap className="w-5 h-5 text-white" />
+                        </div>
                         AI Engine
                     </h2>
-                    <p className="text-[#94A3B8] mt-1">Настройки генерации каруселей без n8n</p>
+                    <p className="text-gray-500 mt-1">Настройки генерации каруселей без n8n</p>
                 </div>
 
                 {/* Feature flag toggle */}
                 <div className="flex items-center gap-3">
-                    <span className="text-sm text-[#94A3B8]">
-                        {config?.use_internal_engine ? '🟢 Свой движок' : '🔵 n8n'}
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${config?.use_internal_engine
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-blue-100 text-blue-700'
+                        }`}>
+                        {config?.use_internal_engine ? '⚡ AI Engine' : '🔵 n8n'}
                     </span>
                     <button
                         onClick={() => updateConfig('use_internal_engine', !config?.use_internal_engine)}
-                        className="transition-all"
+                        className="transition-all hover:scale-105"
                     >
                         {config?.use_internal_engine ? (
-                            <ToggleRight className="w-10 h-10 text-green-500" />
+                            <ToggleRight className="w-10 h-10 text-emerald-500" />
                         ) : (
-                            <ToggleLeft className="w-10 h-10 text-[#94A3B8]" />
+                            <ToggleLeft className="w-10 h-10 text-gray-400" />
                         )}
                     </button>
                 </div>
@@ -258,9 +265,9 @@ export function AIEngineSettings() {
             <div className="flex gap-2 mb-6">
                 <button
                     onClick={() => setActiveTab('config')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'config'
-                            ? 'bg-orange-500 text-white'
-                            : 'bg-[#1E293B] text-[#94A3B8] hover:text-white'
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${activeTab === 'config'
+                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+                        : 'bg-white/80 text-gray-500 hover:text-gray-900 border border-gray-200'
                         }`}
                 >
                     <Sliders className="w-4 h-4 inline mr-2" />
@@ -268,9 +275,9 @@ export function AIEngineSettings() {
                 </button>
                 <button
                     onClick={() => { setActiveTab('logs'); loadLogs() }}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${activeTab === 'logs'
-                            ? 'bg-orange-500 text-white'
-                            : 'bg-[#1E293B] text-[#94A3B8] hover:text-white'
+                    className={`px-4 py-2 rounded-xl font-medium transition-all ${activeTab === 'logs'
+                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+                        : 'bg-white/80 text-gray-500 hover:text-gray-900 border border-gray-200'
                         }`}
                 >
                     <Activity className="w-4 h-4 inline mr-2" />
@@ -280,16 +287,16 @@ export function AIEngineSettings() {
 
             {/* === CONFIG TAB === */}
             {activeTab === 'config' && config && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                     {/* Text Generation */}
-                    <Section title="Генерация текста" icon={<Cpu className="w-5 h-5 text-blue-400" />}>
+                    <Section title="Генерация текста" icon={<Cpu className="w-5 h-5 text-orange-500" />}>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Провайдер</Label>
                                 <select
                                     value={config.text_provider}
                                     onChange={e => updateConfig('text_provider', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                 >
                                     {TEXT_PROVIDERS.map(p => (
                                         <option key={p.value} value={p.value}>{p.label}</option>
@@ -301,7 +308,7 @@ export function AIEngineSettings() {
                                 <select
                                     value={config.text_model}
                                     onChange={e => updateConfig('text_model', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                 >
                                     {TEXT_MODELS.filter(m => m.provider === config.text_provider).map(m => (
                                         <option key={m.value} value={m.value}>{m.label}</option>
@@ -328,21 +335,21 @@ export function AIEngineSettings() {
                                     type="checkbox"
                                     checked={config.use_search_grounding}
                                     onChange={e => updateConfig('use_search_grounding', e.target.checked)}
-                                    className="w-4 h-4 rounded border-[#334155] text-orange-500 focus:ring-orange-500"
+                                    className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
                                 />
-                                <span className="text-[#94A3B8] text-sm">Google Search Grounding (актуальные данные)</span>
+                                <span className="text-gray-600 text-sm">Google Search Grounding (актуальные данные)</span>
                             </div>
                         )}
 
                         {/* Fallback */}
-                        <div className="mt-4 p-4 bg-[#0F172A]/50 rounded-xl border border-[#334155]/50">
-                            <p className="text-sm text-[#94A3B8] mb-3">⚡ Резервный провайдер (fallback)</p>
+                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200/80">
+                            <p className="text-sm text-gray-500 mb-3">⚡ Резервный провайдер (fallback)</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <select
                                         value={config.text_fallback_provider || ''}
                                         onChange={e => updateConfig('text_fallback_provider', e.target.value || null)}
-                                        className="w-full px-3 py-2 bg-[#0F172A] border border-[#334155] rounded-lg text-white text-sm"
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                     >
                                         <option value="">Нет</option>
                                         {TEXT_PROVIDERS.filter(p => p.value !== config.text_provider).map(p => (
@@ -368,14 +375,14 @@ export function AIEngineSettings() {
                     </Section>
 
                     {/* Image Generation */}
-                    <Section title="Генерация изображений" icon={<Image className="w-5 h-5 text-purple-400" />}>
+                    <Section title="Генерация изображений" icon={<Image className="w-5 h-5 text-cyan-500" />}>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Провайдер</Label>
                                 <select
                                     value={config.image_provider}
                                     onChange={e => updateConfig('image_provider', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                 >
                                     {IMAGE_PROVIDERS.map(p => (
                                         <option key={p.value} value={p.value}>{p.label} — {p.desc}</option>
@@ -388,7 +395,7 @@ export function AIEngineSettings() {
                                     type="text"
                                     value={config.image_model}
                                     onChange={e => updateConfig('image_model', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                     placeholder="imagen-4"
                                 />
                             </div>
@@ -410,7 +417,7 @@ export function AIEngineSettings() {
                     </Section>
 
                     {/* Delivery */}
-                    <Section title="Доставка" icon={<Send className="w-5 h-5 text-green-400" />}>
+                    <Section title="Доставка" icon={<Send className="w-5 h-5 text-emerald-500" />}>
                         <div>
                             <Label>Telegram Bot Token</Label>
                             <ApiKeyInput
@@ -429,7 +436,7 @@ export function AIEngineSettings() {
                                     type="text"
                                     value={config.cloudinary_cloud}
                                     onChange={e => updateConfig('cloudinary_cloud', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                     placeholder="ds8ylsl2x"
                                 />
                             </div>
@@ -439,7 +446,7 @@ export function AIEngineSettings() {
                                     type="text"
                                     value={config.cloudinary_preset}
                                     onChange={e => updateConfig('cloudinary_preset', e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                     placeholder="carousel_unsigned"
                                 />
                             </div>
@@ -447,7 +454,7 @@ export function AIEngineSettings() {
                     </Section>
 
                     {/* Settings */}
-                    <Section title="Настройки" icon={<Sliders className="w-5 h-5 text-orange-400" />}>
+                    <Section title="Настройки" icon={<Sliders className="w-5 h-5 text-orange-500" />}>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Макс. повторов при ошибке</Label>
@@ -457,18 +464,18 @@ export function AIEngineSettings() {
                                     onChange={e => updateConfig('max_retries', parseInt(e.target.value) || 0)}
                                     min={0}
                                     max={5}
-                                    className="w-full px-4 py-3 bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                 />
                             </div>
                         </div>
                     </Section>
 
                     {/* Save Button */}
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-2">
                         <button
                             onClick={saveConfig}
                             disabled={saving}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50"
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-200 disabled:opacity-50 active:scale-[0.98]"
                         >
                             {saving ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             {saving ? 'Сохранение...' : 'Сохранить'}
@@ -481,19 +488,19 @@ export function AIEngineSettings() {
             {activeTab === 'logs' && (
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                        <p className="text-[#94A3B8] text-sm">Последние 50 генераций</p>
+                        <p className="text-gray-500 text-sm">Последние 50 генераций</p>
                         <button
                             onClick={loadLogs}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-[#1E293B] text-[#94A3B8] rounded-lg hover:text-white transition-all text-sm"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 text-gray-500 rounded-xl hover:text-gray-900 hover:border-gray-300 transition-all text-sm"
                         >
                             <RefreshCw className="w-4 h-4" /> Обновить
                         </button>
                     </div>
 
                     {logs.length === 0 ? (
-                        <div className="text-center py-16 text-[#94A3B8]">
+                        <div className="text-center py-16 text-gray-400">
                             <Activity className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                            <p>Нет логов генераций</p>
+                            <p className="text-gray-500">Нет логов генераций</p>
                             <p className="text-sm mt-1">Они появятся после первой генерации через AI Engine</p>
                         </div>
                     ) : (
@@ -501,28 +508,28 @@ export function AIEngineSettings() {
                             {logs.map(log => (
                                 <div
                                     key={log.id}
-                                    className="bg-[#1E293B] rounded-xl p-4 border border-[#334155] hover:border-[#475569] transition-all"
+                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 hover:border-orange-300 hover:shadow-sm transition-all duration-200"
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
                                                 {log.status === 'success' ? (
-                                                    <CheckCircle className="w-5 h-5 text-green-400" />
+                                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
                                                 ) : log.status === 'error' ? (
-                                                    <XCircle className="w-5 h-5 text-red-400" />
+                                                    <XCircle className="w-5 h-5 text-red-500" />
                                                 ) : (
-                                                    <Clock className="w-5 h-5 text-yellow-400" />
+                                                    <Clock className="w-5 h-5 text-amber-500" />
                                                 )}
-                                                <span className="font-medium text-white">
+                                                <span className="font-medium text-gray-900">
                                                     {log.topic?.substring(0, 60) || 'Без темы'}
                                                     {(log.topic?.length || 0) > 60 ? '...' : ''}
                                                 </span>
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[log.status] || 'bg-gray-500/20 text-gray-400'}`}>
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[log.status] || 'bg-gray-100 text-gray-500'}`}>
                                                     {log.status}
                                                 </span>
                                             </div>
 
-                                            <div className="flex items-center gap-4 text-xs text-[#64748B]">
+                                            <div className="flex items-center gap-4 text-xs text-gray-400">
                                                 <span>👤 {log.user_id}</span>
                                                 <span>🎨 {log.style_id || '—'}</span>
                                                 <span>📝 {log.text_provider}/{log.text_model}</span>
@@ -533,24 +540,24 @@ export function AIEngineSettings() {
                                             {/* Timings */}
                                             {log.total_ms && (
                                                 <div className="flex items-center gap-3 mt-2 text-xs">
-                                                    <span className="text-blue-400">📝 {formatMs(log.text_gen_ms)}</span>
-                                                    <span className="text-purple-400">🖼 {formatMs(log.image_gen_ms)}</span>
-                                                    <span className="text-cyan-400">☁️ {formatMs(log.upload_ms)}</span>
-                                                    <span className="text-orange-400">📤 {formatMs(log.telegram_ms)}</span>
-                                                    <span className="text-green-400 font-medium">Σ {formatMs(log.total_ms)}</span>
+                                                    <span className="text-blue-500">📝 {formatMs(log.text_gen_ms)}</span>
+                                                    <span className="text-violet-500">🖼 {formatMs(log.image_gen_ms)}</span>
+                                                    <span className="text-cyan-500">☁️ {formatMs(log.upload_ms)}</span>
+                                                    <span className="text-orange-500">📤 {formatMs(log.telegram_ms)}</span>
+                                                    <span className="text-emerald-600 font-medium">Σ {formatMs(log.total_ms)}</span>
                                                 </div>
                                             )}
 
                                             {/* Error */}
                                             {log.error_message && (
-                                                <div className="mt-2 px-3 py-2 bg-red-500/10 rounded-lg text-red-400 text-xs">
+                                                <div className="mt-2 px-3 py-2 bg-red-50 rounded-lg text-red-600 text-xs border border-red-100">
                                                     {log.error_stage && <span className="font-medium">Этап: {log.error_stage} — </span>}
                                                     {log.error_message}
                                                 </div>
                                             )}
                                         </div>
 
-                                        <span className="text-xs text-[#64748B] whitespace-nowrap ml-4">
+                                        <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
                                             {new Date(log.created_at).toLocaleString('ru-RU', {
                                                 day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
                                             })}
@@ -572,8 +579,8 @@ export function AIEngineSettings() {
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
     return (
-        <div className="bg-[#1E293B] rounded-2xl p-6 border border-[#334155]">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
                 {icon}
                 {title}
             </h3>
@@ -583,7 +590,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-    return <label className="block text-sm font-medium text-[#94A3B8] mb-1.5">{children}</label>
+    return <label className="block text-sm font-medium text-gray-600 mb-1.5">{children}</label>
 }
 
 function ApiKeyInput({
@@ -610,17 +617,21 @@ function ApiKeyInput({
                 value={visible ? value : masked}
                 onChange={e => onChange(e.target.value)}
                 onFocus={() => { if (!visible) onToggle() }}
-                className={`w-full bg-[#0F172A] border border-[#334155] rounded-xl text-white focus:ring-2 focus:ring-orange-500 pr-12 ${small ? 'px-3 py-2 text-sm' : 'px-4 py-3'
+                className={`w-full bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 pr-12 transition-all ${small ? 'px-3 py-2 text-sm' : 'px-4 py-3'
                     }`}
                 placeholder={placeholder}
             />
             <button
                 type="button"
                 onClick={onToggle}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
                 {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
         </div>
     )
 }
+
+// Tailwind utility classes used inline in this component:
+// input-field = "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+// input-field-sm = "w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
