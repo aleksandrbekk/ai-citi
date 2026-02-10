@@ -788,15 +788,17 @@ export default function KarmalogikChat() {
           )}
 
           <div className="flex items-center justify-end px-3 pb-3 gap-2">
-            <button
-              onClick={toggleRecording}
-              className={`p-2 rounded-xl transition-all cursor-pointer ${isRecording
-                ? 'bg-red-500 text-white'
-                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                }`}
-            >
-              {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-            </button>
+            {recognitionRef.current && (
+              <button
+                onClick={toggleRecording}
+                className={`p-2 rounded-xl transition-all cursor-pointer ${isRecording
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+              </button>
+            )}
 
             <button
               onClick={sendMessage}
