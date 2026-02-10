@@ -229,25 +229,40 @@ function CarouselIndexInner() {
 
   // Формируем список доступных стилей:
   // 1. Базовые стили (STYLES_INDEX) — всегда доступны
-  // 2. Купленные стили из БД (загруженные напрямую по ID)
+  // 2. Бесплатные стили из БД (is_free=true)
+  // 3. Купленные стили из БД (загруженные напрямую по ID)
   const mergedStylesIndex = (() => {
-    // Начинаем с базовых стилей
     const result = [...STYLES_INDEX]
+    const addedIds = new Set(result.map(s => s.id))
+
+    // Добавляем бесплатные стили из БД (которых нет в базовых)
+    for (const dbStyle of dbStyles) {
+      if (dbStyle.is_free && !addedIds.has(dbStyle.style_id as StyleId)) {
+        result.push({
+          id: dbStyle.style_id as StyleId,
+          name: dbStyle.name,
+          emoji: dbStyle.emoji,
+          audience: (dbStyle.audience || 'universal') as 'universal' | 'female',
+          previewColor: dbStyle.preview_color,
+          description: dbStyle.description || ''
+        })
+        addedIds.add(dbStyle.style_id as StyleId)
+      }
+    }
 
     // Добавляем купленные стили из БД
     for (const dbStyle of purchasedStylesData) {
-      result.push({
-        id: dbStyle.style_id as StyleId,
-        name: dbStyle.name,
-        emoji: dbStyle.emoji,
-        audience: dbStyle.audience as 'universal' | 'female',
-        previewColor: dbStyle.preview_color,
-        description: dbStyle.description || ''
-      })
-    }
-
-    if (purchasedStylesData.length > 0) {
-      console.log('[Carousel] Added purchased styles:', purchasedStylesData.map(s => s.style_id))
+      if (!addedIds.has(dbStyle.style_id as StyleId)) {
+        result.push({
+          id: dbStyle.style_id as StyleId,
+          name: dbStyle.name,
+          emoji: dbStyle.emoji,
+          audience: (dbStyle.audience || 'universal') as 'universal' | 'female',
+          previewColor: dbStyle.preview_color,
+          description: dbStyle.description || ''
+        })
+        addedIds.add(dbStyle.style_id as StyleId)
+      }
     }
 
     return result
