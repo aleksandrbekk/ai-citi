@@ -138,7 +138,7 @@ curl -s -X PUT https://n8n.iferma.pro/api/v1/workflows/{WORKFLOW_ID} \
 | Workflow | ID | Webhook path |
 |---|---|---|
 | **ПРОД** | `RgapTTGAu6acuaGc` | `/webhook/carousel-v2` |
-| **ТЕСТ** | *создать* | `/webhook/carousel-test` |
+| **ТЕСТ** | `I9pEkJfO0lN9Khhl` | `/webhook/carousel-test` |
 
 ---
 
