@@ -86,11 +86,14 @@ const CarouselDesignsPage = lazy(() => import('./pages/carousel-designs/index'))
 // Karmalogik
 const KarmalogikChat = lazy(() => import('./pages/agents/karmalogik'))
 
-// Quizzes
-const QuizzesDashboard = lazy(() => import('./pages/quizzes/index'))
-const QuizBuilder = lazy(() => import('./pages/quizzes/builder'))
+// Quizzes (old - admin take quiz)
 const TakeQuiz = lazy(() => import('./pages/quizzes/take'))
-const QuizAnalytics = lazy(() => import('./pages/quizzes/analytics'))
+
+// НЕЙРОКВИЗ (new)
+const QuizDashboard = lazy(() => import('./pages/tools/quiz/index'))
+const QuizEditor = lazy(() => import('./pages/tools/quiz/editor'))
+const QuizLeads = lazy(() => import('./pages/tools/quiz/leads'))
+const PublicQuiz = lazy(() => import('./pages/quiz-public/index'))
 
 // Admin (самая тяжёлая часть)
 const AdminPanel = lazy(() => import('./pages/admin/index'))
@@ -145,7 +148,7 @@ function AppContent() {
   usePromoCode()
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
-  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral' || location.pathname === '/payment-success' || location.pathname === '/privacy' || location.pathname === '/terms' || location.pathname === '/data-deletion'
+  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/q/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral' || location.pathname === '/payment-success' || location.pathname === '/privacy' || location.pathname === '/terms' || location.pathname === '/data-deletion'
 
   useEffect(() => {
     expandWebApp()
@@ -229,6 +232,7 @@ function AppContent() {
           <Routes>
             <Route path="/offer" element={<Offer />} />
             <Route path="/quiz/:id" element={<TakeQuiz />} />
+            <Route path="/q/:slug" element={<PublicQuiz />} />
             <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
             <Route path="/debug-referral" element={<DebugReferral />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
@@ -330,10 +334,9 @@ function AppContent() {
             <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
             <Route path="agents/carousel/result" element={<CarouselResult />} />
             <Route path="agents/karmalogik" element={<KarmalogikChat />} />
-            <Route path="quizzes" element={<QuizzesDashboard />} />
-            <Route path="quizzes/builder" element={<QuizBuilder />} />
-            <Route path="quizzes/builder/:id" element={<QuizBuilder />} />
-            <Route path="quizzes/:id/analytics" element={<QuizAnalytics />} />
+            <Route path="tools/quiz" element={<QuizDashboard />} />
+            <Route path="tools/quiz/:id/edit" element={<QuizEditor />} />
+            <Route path="tools/quiz/:id/leads" element={<QuizLeads />} />
           </Route>
         </Routes>
       </Suspense>
