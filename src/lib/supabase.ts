@@ -841,31 +841,19 @@ export interface TransactionStats {
  */
 export async function getCoinTransactions(
   telegramId: number,
-  limit: number = 50,
-  offset: number = 0
+  limit: number = 50
 ): Promise<CoinTransaction[]> {
-  // Сначала получаем user_id по telegram_id
-  const { data: user } = await supabase
-    .from('users')
-    .select('id')
-    .eq('telegram_id', telegramId)
-    .single()
-
-  if (!user) return []
-
-  const { data, error } = await supabase
-    .from('coin_transactions')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+  const { data, error } = await supabase.rpc('admin_get_user_coin_transactions', {
+    p_telegram_id: telegramId,
+    p_limit: limit
+  })
 
   if (error) {
     console.error('Error fetching transactions:', error)
     return []
   }
 
-  return data || []
+  return (data as CoinTransaction[]) || []
 }
 
 /**
