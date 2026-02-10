@@ -572,6 +572,8 @@ function CarouselIndexInner() {
         styleConfig,
         // Глобальный промпт для Копирайтера (один на все стили)
         globalSystemPrompt,
+        // Визуальный промпт стиля (n8n читает это поле отдельно)
+        stylePrompt: (styleConfig as Record<string, unknown>)?.style_prompt as string || '',
         vasiaCore: VASIA_CORE,
         formatConfig: FORMAT_UNIVERSAL,
         // Формат карусели
@@ -586,6 +588,7 @@ function CarouselIndexInner() {
       console.log('[Carousel] ========== SENDING TO N8N ==========')
       console.log('[Carousel] Payload styleId:', payload.styleId)
       console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
+      console.log('[Carousel] Payload stylePrompt length:', payload.stylePrompt.length)
 
       const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
         method: 'POST',
