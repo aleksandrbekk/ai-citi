@@ -764,7 +764,7 @@ function CarouselIndexInner() {
             disabled={isSubmitting}
             className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer ${coinBalance < GENERATION_COST
               ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-green-500/30'
-              : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white shadow-pink-500/30'
+              : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-orange-500/30'
               }`}
           >
             {isSubmitting ? (

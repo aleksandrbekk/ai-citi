@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, Target, Megaphone, Gift } from 'lucide-react'
 import { useCarouselStore } from '@/store/carouselStore'
-import { STYLE_CONFIGS, VASIA_CORE } from '@/lib/carouselStyles'
+import { STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL } from '@/lib/carouselStyles'
+import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 import { getCarouselStyleByStyleId, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
 import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
@@ -11,7 +12,7 @@ import { haptic } from '@/lib/haptic'
 
 export default function CarouselContent() {
   const navigate = useNavigate()
-  const { variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, customAudience, gender } = useCarouselStore()
+  const { variables, setVariable, setStatus, userPhoto, setUserPhoto, ctaText, setCtaText, ctaQuestion, setCtaQuestion, ctaBenefits, setCtaBenefits, style, audience, gender, primaryColor, format, objectImage, objectPlacement } = useCarouselStore()
   const [coinBalance, setCoinBalance] = useState<number>(0)
   const [hasSubscription, setHasSubscription] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -118,38 +119,50 @@ export default function CarouselContent() {
     const globalSystemPrompt = await getGlobalSystemPrompt()
     console.log('Global system prompt length:', globalSystemPrompt.length)
 
-    // Подготовка данных для отправки
+    // Получаем системный промпт формата если не expert
+    let formatSystemPrompt = ''
+    if (format && format !== 'expert') {
+      try {
+        const formatData = await getFormatByFormatId(format)
+        if (formatData) {
+          formatSystemPrompt = formatData.content_system_prompt
+        }
+      } catch (fmtErr) {
+        console.warn('[CarouselContent] Failed to fetch format:', fmtErr)
+      }
+    }
+
+    // Подготовка данных для отправки (синхронизировано с index.tsx)
     const requestData = {
-      chatId: chatId, // ОБЯЗАТЕЛЬНО число, telegram user id
-      templateId: 'custom', // Всегда custom режим
-      userPhoto: finalUserPhoto || '',
-      mode: 'ai', // Всегда AI режим
+      chatId: chatId,
       topic: variables.topic || '',
-      style: currentStyleId, // Стиль дизайна
-      audience: audience || 'networkers', // Целевая аудитория
-      customAudience: customAudience || '', // Своя ЦА
-      gender: gender || 'male', // Пол для склонения текста (дефолт для обратной совместимости)
-      cta: ctaText?.split(/[—\-]/)[0]?.trim() || 'МАГИЯ', // CTA код для Copywriter
-      cta_text: ctaText,
-      cta_question: ctaQuestion,
-      cta_benefits: ctaBenefits,
+      userPhoto: finalUserPhoto || null,
+      cta: ctaText?.split(/[—\-]/)[0]?.trim() || 'МАГИЯ',
+      ctaType: 'PRODUCT',
+      gender: gender || 'male',
+      styleId: currentStyleId,
       styleConfig: styleConfig,
-      vasiaCore: VASIA_CORE,
       // Глобальный промпт для Копирайтера (один на все стили)
       globalSystemPrompt: globalSystemPrompt,
-      // Визуальный промпт (индивидуальный для каждого стиля)
+      // Визуальный промпт стиля (n8n читает это поле отдельно)
       stylePrompt: stylePrompt,
-      variables: {},
+      vasiaCore: VASIA_CORE,
+      formatConfig: FORMAT_UNIVERSAL,
+      // Формат карусели
+      formatId: format || 'expert',
+      ...(formatSystemPrompt ? { formatSystemPrompt } : {}),
+      // Кастомный акцентный цвет
+      ...(primaryColor ? { primaryColor } : {}),
+      // Объект на слайдах
+      ...(objectImage ? { objectImage } : {}),
+      ...(objectPlacement ? { objectPlacement } : {}),
     }
 
     // Логирование перед отправкой
-    console.log('Sending carousel request:', {
+    console.log('[CarouselContent] Sending carousel request:', {
       chatId,
-      templateId: requestData.templateId,
-      mode: requestData.mode,
       topic: requestData.topic,
-      style: requestData.style,
-      cta_text: requestData.cta_text,
+      styleId: requestData.styleId,
       hasUserPhoto: !!finalUserPhoto,
       hasSubscription,
       coinsSpent,
