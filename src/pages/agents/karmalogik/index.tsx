@@ -542,18 +542,13 @@ export default function KarmalogikChat() {
           {messagesRemaining} сообщ.
         </div>
 
-        {messages.length > 0 && (
-          <button
-            onClick={() => {
-              if (confirm('Начать новую сессию?')) {
-                startNewSession()
-              }
-            }}
-            className="p-2 hover:bg-amber-50 rounded-xl transition-colors text-gray-400 hover:text-amber-500 cursor-pointer"
-          >
-            <Plus size={20} />
-          </button>
-        )}
+        <button
+          onClick={() => setShowBuyModal(true)}
+          className="p-2 hover:bg-amber-50 rounded-xl transition-colors text-gray-400 hover:text-amber-500 cursor-pointer"
+          aria-label="Купить сообщения"
+        >
+          <Plus size={20} />
+        </button>
       </div>
 
       {/* Messages */}
