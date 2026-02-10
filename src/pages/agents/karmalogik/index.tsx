@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, MessageSquare, X, Volume2, Square } from 'lucide-react'
 import { supabase, getCoachLimit, spendCoachMessage, buyCoachMessages, spendCoinsForGeneration, getCoinBalance, getCoachSessions, upsertCoachSession, deleteCoachSession as deleteCoachSessionDB } from '@/lib/supabase'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCoachEvent } from '@/lib/analytics'
@@ -84,12 +85,14 @@ interface Message {
 export default function KarmalogikChat() {
   const user = useAuthStore((state) => state.user)
   const telegramUser = getTelegramUser()
+  const navigate = useNavigate()
 
   // Лимит сообщений
   const [isLoadingLimit, setIsLoadingLimit] = useState(true)
   const [messagesRemaining, setMessagesRemaining] = useState(0)
   const [showBuyModal, setShowBuyModal] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
+  const [coinBalance, setCoinBalance] = useState(0)
 
   // Чат и сессии
   const [messages, setMessages] = useState<Message[]>([])
@@ -105,12 +108,14 @@ export default function KarmalogikChat() {
   useEffect(() => {
     const loadData = async () => {
       if (telegramUser?.id) {
-        // Параллельно грузим лимит и сессии
-        const [limit, dbSessions] = await Promise.all([
+        // Параллельно грузим лимит, сессии и баланс
+        const [limit, dbSessions, balance] = await Promise.all([
           getCoachLimit(telegramUser.id),
-          getCoachSessions(telegramUser.id)
+          getCoachSessions(telegramUser.id),
+          getCoinBalance(telegramUser.id)
         ])
         setMessagesRemaining(limit.messages_remaining)
+        setCoinBalance(balance)
 
         if (dbSessions.length > 0) {
           // Найти активную сессию
@@ -455,10 +460,12 @@ export default function KarmalogikChat() {
     if (!telegramUser?.id) return
     setIsBuying(true)
     try {
-      const balance = await getCoinBalance(telegramUser.id)
-      if (balance < 30) {
-        toast.error('Недостаточно нейронов. Нужно 30.')
-        setIsBuying(false)
+      // Обновляем баланс перед покупкой
+      const freshBalance = await getCoinBalance(telegramUser.id)
+      setCoinBalance(freshBalance)
+      if (freshBalance < 30) {
+        setShowBuyModal(false)
+        navigate('/shop')
         return
       }
       const spendResult = await spendCoinsForGeneration(telegramUser.id, 30, 'Покупка 20 сообщений AI-Coach', { type: 'coach_messages' })
@@ -467,6 +474,7 @@ export default function KarmalogikChat() {
         setIsBuying(false)
         return
       }
+      setCoinBalance(prev => prev - 30)
       const buyResult = await buyCoachMessages(telegramUser.id, 20)
       if (buyResult.success) {
         setMessagesRemaining(buyResult.messages_remaining)
@@ -823,24 +831,38 @@ export default function KarmalogikChat() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                 <MessageSquare className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Сообщения закончились</h3>
-              <p className="text-sm text-gray-500">Купи ещё 20 сообщений для AI-Coach</p>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Купи ещё запросы</h3>
+              {/* Баланс нейронов */}
+              <div className="flex items-center justify-center gap-2 mt-3">
+                <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+                <span className="font-bold text-orange-600 text-lg">{coinBalance} нейронов</span>
+              </div>
             </div>
             <div className="bg-orange-50 rounded-2xl p-4 mb-5 text-center">
               <p className="text-2xl font-bold text-orange-600">30 нейронов</p>
               <p className="text-xs text-orange-400 mt-1">= 20 сообщений</p>
             </div>
-            <button
-              onClick={handleBuyMessages}
-              disabled={isBuying}
-              className="w-full py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl font-semibold hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
-            >
-              {isBuying ? (
-                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-              ) : (
-                'Купить 20 сообщений'
-              )}
-            </button>
+            {coinBalance >= 30 ? (
+              <button
+                onClick={handleBuyMessages}
+                disabled={isBuying}
+                className="w-full py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl font-semibold hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isBuying ? (
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                ) : (
+                  'Купить 20 сообщений'
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => { setShowBuyModal(false); navigate('/shop') }}
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-2xl font-semibold hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                Пополнить баланс
+                <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
+              </button>
+            )}
             <button
               onClick={() => setShowBuyModal(false)}
               className="w-full py-2.5 mt-2 text-gray-400 text-sm cursor-pointer"
