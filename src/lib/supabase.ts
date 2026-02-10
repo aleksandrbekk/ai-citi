@@ -996,3 +996,58 @@ export async function buyCoachMessages(telegramId: number, count: number = 20): 
   const row = Array.isArray(data) ? data[0] : data
   return row || { success: false, messages_remaining: 0 }
 }
+
+// === Coach Chat Sessions (синхронизация через БД) ===
+
+export interface CoachSession {
+  session_id: string
+  title: string
+  messages: Array<{ id: string; role: 'user' | 'assistant'; content: string }>
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function getCoachSessions(telegramId: number): Promise<CoachSession[]> {
+  const { data, error } = await supabase.rpc('get_coach_sessions', {
+    p_telegram_id: telegramId
+  })
+  if (error) {
+    console.error('Error getting coach sessions:', error)
+    return []
+  }
+  return Array.isArray(data) ? data : []
+}
+
+export async function upsertCoachSession(
+  telegramId: number,
+  sessionId: string,
+  title: string,
+  messages: Array<{ id: string; role: string; content: string }>,
+  isActive: boolean = false
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc('upsert_coach_session', {
+    p_telegram_id: telegramId,
+    p_session_id: sessionId,
+    p_title: title,
+    p_messages: messages,
+    p_is_active: isActive
+  })
+  if (error) {
+    console.error('Error upserting coach session:', error)
+    return null
+  }
+  return data
+}
+
+export async function deleteCoachSession(telegramId: number, sessionId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('delete_coach_session', {
+    p_telegram_id: telegramId,
+    p_session_id: sessionId
+  })
+  if (error) {
+    console.error('Error deleting coach session:', error)
+    return false
+  }
+  return !!data
+}

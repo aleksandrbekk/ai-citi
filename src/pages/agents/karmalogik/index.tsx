@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, MessageSquare, X, Volume2, Square } from 'lucide-react'
-import { supabase, getCoachLimit, spendCoachMessage, buyCoachMessages, spendCoinsForGeneration, getCoinBalance } from '@/lib/supabase'
+import { supabase, getCoachLimit, spendCoachMessage, buyCoachMessages, spendCoinsForGeneration, getCoinBalance, getCoachSessions, upsertCoachSession, deleteCoachSession as deleteCoachSessionDB } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCoachEvent } from '@/lib/analytics'
@@ -91,37 +91,50 @@ export default function KarmalogikChat() {
   const [showBuyModal, setShowBuyModal] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
 
-  useEffect(() => {
-    const loadLimit = async () => {
-      if (telegramUser?.id) {
-        const limit = await getCoachLimit(telegramUser.id)
-        setMessagesRemaining(limit.messages_remaining)
-      }
-      setIsLoadingLimit(false)
-    }
-    loadLimit()
-  }, [telegramUser?.id])
-
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const saved = localStorage.getItem('karmalogik-chat-history')
-      if (saved) return JSON.parse(saved)
-    } catch (e) {
-      console.error('Failed to load chat history:', e)
-    }
-    return []
-  })
+  // Чат и сессии
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [isDrawerOpen, setDrawerOpen] = useState(false)
-  const [sessions, setSessions] = useState<{ id: string; title: string; date: string; messages: Message[] }[]>(() => {
-    try {
-      const saved = localStorage.getItem('coach-sessions')
-      if (saved) return JSON.parse(saved)
-    } catch { /* ignore */ }
-    return []
-  })
+  const [sessions, setSessions] = useState<{ id: string; title: string; date: string; messages: Message[] }[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string>(() => crypto.randomUUID())
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Загрузка лимита + сессий из БД
+  useEffect(() => {
+    const loadData = async () => {
+      if (telegramUser?.id) {
+        // Параллельно грузим лимит и сессии
+        const [limit, dbSessions] = await Promise.all([
+          getCoachLimit(telegramUser.id),
+          getCoachSessions(telegramUser.id)
+        ])
+        setMessagesRemaining(limit.messages_remaining)
+
+        if (dbSessions.length > 0) {
+          // Найти активную сессию
+          const active = dbSessions.find(s => s.is_active)
+          if (active) {
+            setActiveSessionId(active.session_id)
+            setMessages(active.messages || [])
+          }
+          // Остальные — в список сессий
+          const otherSessions = dbSessions
+            .filter(s => !s.is_active && s.messages && (s.messages as Message[]).length > 0)
+            .map(s => ({
+              id: s.session_id,
+              title: s.title || 'Сессия',
+              date: new Date(s.updated_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
+              messages: s.messages as Message[]
+            }))
+          setSessions(otherSessions)
+        }
+      }
+      setIsLoadingLimit(false)
+    }
+    loadData()
+  }, [telegramUser?.id])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -219,12 +232,18 @@ export default function KarmalogikChat() {
     }
   }, [])
 
-  // Сохранение истории
+  // Дебаунс-сохранение в БД после изменения сообщений
   useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('karmalogik-chat-history', JSON.stringify(messages))
+    if (messages.length > 0 && telegramUser?.id) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = setTimeout(() => {
+        const firstMsg = messages.find(m => m.role === 'user')
+        const title = firstMsg ? firstMsg.content.slice(0, 40) + (firstMsg.content.length > 40 ? '...' : '') : 'Новая сессия'
+        upsertCoachSession(telegramUser.id, activeSessionId, title, messages, true)
+      }, 2000)
     }
-  }, [messages])
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
+  }, [messages, activeSessionId, telegramUser?.id])
 
   useEffect(() => {
     scrollToBottom()
@@ -289,39 +308,54 @@ export default function KarmalogikChat() {
     }
   }
 
-  // Сессии
-  const saveCurrentSession = () => {
-    if (messages.length === 0) return
+  // Сессии — синхронизация через БД
+  const saveCurrentSession = async () => {
+    if (messages.length === 0 || !telegramUser?.id) return
     const firstMsg = messages.find(m => m.role === 'user')
     const title = firstMsg ? firstMsg.content.slice(0, 40) + (firstMsg.content.length > 40 ? '...' : '') : 'Сессия'
+    await upsertCoachSession(telegramUser.id, activeSessionId, title, messages, false)
+    // Добавить в локальный список
     const newSession = {
-      id: Date.now().toString(),
+      id: activeSessionId,
       title,
       date: new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }),
       messages: [...messages]
     }
-    const updated = [newSession, ...sessions].slice(0, 20)
-    setSessions(updated)
-    localStorage.setItem('coach-sessions', JSON.stringify(updated))
+    setSessions(prev => [newSession, ...prev.filter(s => s.id !== activeSessionId)].slice(0, 20))
   }
 
-  const startNewSession = () => {
-    saveCurrentSession()
+  const startNewSession = async () => {
+    await saveCurrentSession()
+    const newId = crypto.randomUUID()
+    setActiveSessionId(newId)
     setMessages([])
-    localStorage.removeItem('karmalogik-chat-history')
     setDrawerOpen(false)
   }
 
-  const loadSession = (session: { messages: Message[] }) => {
+  const loadSession = async (session: { id: string; messages: Message[] }) => {
+    // Сохранить текущую как неактивную
+    if (messages.length > 0 && telegramUser?.id) {
+      const firstMsg = messages.find(m => m.role === 'user')
+      const title = firstMsg ? firstMsg.content.slice(0, 40) + (firstMsg.content.length > 40 ? '...' : '') : 'Сессия'
+      await upsertCoachSession(telegramUser.id, activeSessionId, title, messages, false)
+    }
+    // Загрузить выбранную как активную
+    setActiveSessionId(session.id)
     setMessages(session.messages)
-    localStorage.setItem('karmalogik-chat-history', JSON.stringify(session.messages))
+    setSessions(prev => prev.filter(s => s.id !== session.id))
+    if (telegramUser?.id) {
+      const firstMsg = session.messages.find(m => m.role === 'user')
+      const title = firstMsg ? firstMsg.content.slice(0, 40) + (firstMsg.content.length > 40 ? '...' : '') : 'Сессия'
+      await upsertCoachSession(telegramUser.id, session.id, title, session.messages, true)
+    }
     setDrawerOpen(false)
   }
 
-  const deleteSession = (id: string) => {
-    const updated = sessions.filter(s => s.id !== id)
-    setSessions(updated)
-    localStorage.setItem('coach-sessions', JSON.stringify(updated))
+  const deleteSession = async (id: string) => {
+    setSessions(prev => prev.filter(s => s.id !== id))
+    if (telegramUser?.id) {
+      await deleteCoachSessionDB(telegramUser.id, id)
+    }
   }
 
   const sendMessage = async () => {
