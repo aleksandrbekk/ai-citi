@@ -115,12 +115,7 @@ export default function QuizDashboard() {
         </div>
 
         {/* Quizzes List */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-gray-400">Загрузка...</p>
-          </div>
-        ) : quizzes.length === 0 ? (
+        {!isLoading && quizzes.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ClipboardList className="w-8 h-8 text-orange-500" />

@@ -97,18 +97,14 @@ export interface QuizLead {
 
 export function useUserQuizzes() {
   const [quizzes, setQuizzes] = useState<UserQuiz[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const telegramUser = getTelegramUser()
   const telegramId = telegramUser?.id || null
 
-  const loadQuizzes = useCallback(async (silent = false) => {
-    if (!telegramId) {
-      setIsLoading(false)
-      return
-    }
+  const loadQuizzes = useCallback(async () => {
+    if (!telegramId) return
 
-    if (!silent) setIsLoading(true)
     const { data, error } = await supabase.rpc('nq_get_user_quizzes', {
       p_telegram_id: telegramId,
     })
@@ -118,11 +114,11 @@ export function useUserQuizzes() {
     } else {
       setQuizzes(data || [])
     }
-    if (!silent) setIsLoading(false)
+    setIsInitialized(true)
   }, [telegramId])
 
   useEffect(() => {
-    loadQuizzes(false)
+    loadQuizzes()
   }, [loadQuizzes])
 
   const createQuiz = async (title: string = 'Новый квиз'): Promise<{ id: string; slug: string } | null> => {
@@ -138,7 +134,7 @@ export function useUserQuizzes() {
       return null
     }
 
-    await loadQuizzes(true)
+    await loadQuizzes()
     return data?.[0] || null
   }
 
@@ -156,7 +152,7 @@ export function useUserQuizzes() {
       return false
     }
 
-    await loadQuizzes(true)
+    await loadQuizzes()
     return true
   }
 
@@ -173,7 +169,7 @@ export function useUserQuizzes() {
       return false
     }
 
-    await loadQuizzes(true)
+    await loadQuizzes()
     return !!data
   }
 
@@ -225,7 +221,7 @@ export function useUserQuizzes() {
 
   return {
     quizzes,
-    isLoading,
+    isLoading: !isInitialized,
     telegramId,
     loadQuizzes,
     createQuiz,
