@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, getCoinBalance, addCoins } from '../../../lib/supabase'
 import {
@@ -74,7 +74,7 @@ interface UserFullStats {
   }
 }
 
-export function AllUsersTab() {
+export function AllUsersTab({ autoOpenUserId, onAutoOpenHandled }: { autoOpenUserId?: number | null; onAutoOpenHandled?: () => void } = {}) {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -116,6 +116,18 @@ export function AllUsersTab() {
   const premiumMap = new Map(
     premiumClients?.map(c => [c.telegram_id, c.plan]) || []
   )
+
+  // Автооткрытие юзера из другого таба (например из Платных клиентов)
+  useEffect(() => {
+    if (autoOpenUserId && users?.length) {
+      const user = users.find(u => u.telegram_id === autoOpenUserId)
+      if (user) {
+        setSelectedUser(user)
+        setActiveTab('info')
+      }
+      onAutoOpenHandled?.()
+    }
+  }, [autoOpenUserId, users])
 
   // Баланс монет выбранного юзера
   const { data: userCoins, refetch: refetchCoins } = useQuery({

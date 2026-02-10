@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
 import {
   Plus, Search, X, CreditCard, Pencil, Save, Crown, Loader2, Coins, Trash2,
-  DollarSign, Clock, CalendarCheck
+  DollarSign, Clock, CalendarCheck, ExternalLink
 } from 'lucide-react'
 import { cn } from '../../../lib/utils'
 
@@ -88,7 +88,7 @@ const getPeriodStart = (period: Period): Date | null => {
   return d
 }
 
-export function ClientsTab() {
+export function ClientsTab({ onOpenFullProfile }: { onOpenFullProfile?: (telegramId: number) => void }) {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [cohort, setCohort] = useState<Cohort>('all_paid')
@@ -729,12 +729,27 @@ export function ClientsTab() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => { setSelectedUser(null); setIsEditMode(false) }}
-                  className="p-2 bg-gray-100/50 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-900"
-                >
-                  <X size={24} />
-                </button>
+                <div className="flex items-center gap-2">
+                  {onOpenFullProfile && (
+                    <button
+                      onClick={() => {
+                        onOpenFullProfile(selectedUser.telegram_id)
+                        setSelectedUser(null)
+                        setIsEditMode(false)
+                      }}
+                      className="p-2 bg-orange-50 hover:bg-orange-100 rounded-full transition-colors text-orange-500 hover:text-orange-600 cursor-pointer"
+                      title="Полная карточка"
+                    >
+                      <ExternalLink size={20} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setSelectedUser(null); setIsEditMode(false) }}
+                    className="p-2 bg-gray-100/50 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-900 cursor-pointer"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
             </div>
 

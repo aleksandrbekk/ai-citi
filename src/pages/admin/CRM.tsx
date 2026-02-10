@@ -18,6 +18,12 @@ const tabs = [
 
 export function AdminCRM() {
   const [activeTab, setActiveTab] = useState('all')
+  const [openUserTelegramId, setOpenUserTelegramId] = useState<number | null>(null)
+
+  const handleOpenFullProfile = (telegramId: number) => {
+    setOpenUserTelegramId(telegramId)
+    setActiveTab('all')
+  }
 
   return (
     <div className="overflow-x-hidden">
@@ -43,8 +49,8 @@ export function AdminCRM() {
         ))}
       </div>
 
-      {activeTab === 'all' && <AllUsersTab />}
-      {activeTab === 'paid' && <ClientsTab />}
+      {activeTab === 'all' && <AllUsersTab autoOpenUserId={openUserTelegramId} onAutoOpenHandled={() => setOpenUserTelegramId(null)} />}
+      {activeTab === 'paid' && <ClientsTab onOpenFullProfile={handleOpenFullProfile} />}
       {activeTab === 'styles' && <StylesTab />}
       {activeTab === 'referrals' && <ReferralsTab />}
       {activeTab === 'broadcast' && <BroadcastTab />}
