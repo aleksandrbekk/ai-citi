@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Loader2, User, Trash2, Sparkles, Mic, MicOff, Menu, Plus, MessageSquare, X, Volume2, Square } from 'lucide-react'
-import { supabase, checkPremiumSubscription } from '@/lib/supabase'
+import { supabase, getCoachLimit, spendCoachMessage, buyCoachMessages, spendCoinsForGeneration, getCoinBalance } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCoachEvent } from '@/lib/analytics'
-import Paywall from '@/components/Paywall'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { toast } from 'sonner'
 import MaintenanceOverlay from '@/components/MaintenanceOverlay'
@@ -86,20 +85,21 @@ export default function KarmalogikChat() {
   const user = useAuthStore((state) => state.user)
   const telegramUser = getTelegramUser()
 
-  // Проверка подписки (только premium_clients)
-  const [isCheckingSubscription, setIsCheckingSubscription] = useState(true)
-  const [hasSubscription, setHasSubscription] = useState(false)
+  // Лимит сообщений
+  const [isLoadingLimit, setIsLoadingLimit] = useState(true)
+  const [messagesRemaining, setMessagesRemaining] = useState(0)
+  const [showBuyModal, setShowBuyModal] = useState(false)
+  const [isBuying, setIsBuying] = useState(false)
 
   useEffect(() => {
-    const checkSubscription = async () => {
+    const loadLimit = async () => {
       if (telegramUser?.id) {
-        const isPremium = await checkPremiumSubscription(telegramUser.id)
-        setHasSubscription(isPremium)
+        const limit = await getCoachLimit(telegramUser.id)
+        setMessagesRemaining(limit.messages_remaining)
       }
-      setIsCheckingSubscription(false)
+      setIsLoadingLimit(false)
     }
-
-    checkSubscription()
+    loadLimit()
   }, [telegramUser?.id])
 
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -327,6 +327,22 @@ export default function KarmalogikChat() {
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
 
+    // Проверка лимита сообщений
+    if (messagesRemaining <= 0) {
+      setShowBuyModal(true)
+      return
+    }
+
+    // Списываем сообщение
+    if (telegramUser?.id) {
+      const spendResult = await spendCoachMessage(telegramUser.id)
+      if (!spendResult.success) {
+        setShowBuyModal(true)
+        return
+      }
+      setMessagesRemaining(spendResult.messages_remaining)
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -390,19 +406,38 @@ export default function KarmalogikChat() {
     }
   }
 
-  // Загрузка проверки подписки
-  if (isCheckingSubscription) {
+  // Загрузка лимита
+  if (isLoadingLimit) {
     return <PageLoader />
   }
 
-  // Нет подписки — показываем Paywall
-  if (!hasSubscription) {
-    return (
-      <Paywall
-        title="AI-Коуч"
-        description="AI-Коуч доступен для пользователей с активной подпиской."
-      />
-    )
+  // Покупка сообщений за нейроны
+  const handleBuyMessages = async () => {
+    if (!telegramUser?.id) return
+    setIsBuying(true)
+    try {
+      const balance = await getCoinBalance(telegramUser.id)
+      if (balance < 30) {
+        toast.error('Недостаточно нейронов. Нужно 30.')
+        setIsBuying(false)
+        return
+      }
+      const spendResult = await spendCoinsForGeneration(telegramUser.id, 30, 'Покупка 20 сообщений AI-Coach', { type: 'coach_messages' })
+      if (!spendResult.success) {
+        toast.error('Не удалось списать нейроны')
+        setIsBuying(false)
+        return
+      }
+      const buyResult = await buyCoachMessages(telegramUser.id, 20)
+      if (buyResult.success) {
+        setMessagesRemaining(buyResult.messages_remaining)
+        setShowBuyModal(false)
+        toast.success('Готово! +20 сообщений')
+      }
+    } catch {
+      toast.error('Ошибка при покупке')
+    }
+    setIsBuying(false)
   }
 
   return (
@@ -496,6 +531,15 @@ export default function KarmalogikChat() {
               Твой внутренний компас ✨
             </p>
           </div>
+        </div>
+
+        {/* Счётчик сообщений */}
+        <div className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+          messagesRemaining <= 0 ? 'bg-red-100 text-red-600' :
+          messagesRemaining <= 5 ? 'bg-amber-100 text-amber-600' :
+          'bg-green-100 text-green-600'
+        }`}>
+          {messagesRemaining} сообщ.
         </div>
 
         {messages.length > 0 && (
@@ -734,6 +778,42 @@ export default function KarmalogikChat() {
           </div>
         </div>
       </div>
+
+      {/* Модалка покупки сообщений */}
+      {showBuyModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowBuyModal(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-5">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                <MessageSquare className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Сообщения закончились</h3>
+              <p className="text-sm text-gray-500">Купи ещё 20 сообщений для AI-Coach</p>
+            </div>
+            <div className="bg-orange-50 rounded-2xl p-4 mb-5 text-center">
+              <p className="text-2xl font-bold text-orange-600">30 нейронов</p>
+              <p className="text-xs text-orange-400 mt-1">= 20 сообщений</p>
+            </div>
+            <button
+              onClick={handleBuyMessages}
+              disabled={isBuying}
+              className="w-full py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl font-semibold hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isBuying ? (
+                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+              ) : (
+                'Купить 20 сообщений'
+              )}
+            </button>
+            <button
+              onClick={() => setShowBuyModal(false)}
+              className="w-full py-2.5 mt-2 text-gray-400 text-sm cursor-pointer"
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

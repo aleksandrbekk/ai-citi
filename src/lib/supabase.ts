@@ -952,3 +952,47 @@ export async function getTransactionStats(telegramId: number): Promise<Transacti
     generations_count: 0
   }
 }
+
+// ========== AI-Coach лимиты ==========
+
+export interface CoachLimit {
+  messages_remaining: number
+  messages_total_purchased: number
+}
+
+export async function getCoachLimit(telegramId: number): Promise<CoachLimit> {
+  const { data, error } = await supabase.rpc('get_coach_limit', {
+    p_telegram_id: telegramId
+  })
+  if (error) {
+    console.error('Error getting coach limit:', error)
+    return { messages_remaining: 0, messages_total_purchased: 0 }
+  }
+  const row = Array.isArray(data) ? data[0] : data
+  return row || { messages_remaining: 0, messages_total_purchased: 0 }
+}
+
+export async function spendCoachMessage(telegramId: number): Promise<{ success: boolean; messages_remaining: number }> {
+  const { data, error } = await supabase.rpc('spend_coach_message', {
+    p_telegram_id: telegramId
+  })
+  if (error) {
+    console.error('Error spending coach message:', error)
+    return { success: false, messages_remaining: 0 }
+  }
+  const row = Array.isArray(data) ? data[0] : data
+  return row || { success: false, messages_remaining: 0 }
+}
+
+export async function buyCoachMessages(telegramId: number, count: number = 20): Promise<{ success: boolean; messages_remaining: number }> {
+  const { data, error } = await supabase.rpc('buy_coach_messages', {
+    p_telegram_id: telegramId,
+    p_count: count
+  })
+  if (error) {
+    console.error('Error buying coach messages:', error)
+    return { success: false, messages_remaining: 0 }
+  }
+  const row = Array.isArray(data) ? data[0] : data
+  return row || { success: false, messages_remaining: 0 }
+}
