@@ -7,6 +7,7 @@ import {
     Settings,
     Home,
     BarChart3,
+    Zap,
     type LucideIcon
 } from 'lucide-react'
 
@@ -83,6 +84,12 @@ export function AdminDashboard() {
             icon: Settings,
             label: 'Настройки',
             gradient: 'bg-gradient-to-br from-gray-400 to-gray-600',
+        },
+        {
+            to: '/admin/ai-engine',
+            icon: Zap,
+            label: 'AI Engine',
+            gradient: 'bg-gradient-to-br from-amber-400 to-orange-600',
         },
         {
             to: '/admin/analytics',

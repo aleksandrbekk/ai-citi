@@ -127,6 +127,7 @@ const CarouselStyleEditor = lazy(() => import('./pages/admin/carousel/StyleEdito
 const CarouselSettingsPage = lazy(() => import('./pages/admin/carousel/CarouselSettings'))
 const CarouselFormatsList = lazy(() => import('./pages/admin/carousel/FormatsList'))
 const CarouselFormatEditor = lazy(() => import('./pages/admin/carousel/FormatEditor'))
+const AIEngineSettings = lazy(() => import('./pages/admin/ai-engine/AIEngineSettings').then(m => ({ default: m.AIEngineSettings })))
 const ProductAnalytics = lazy(() => import('./pages/admin/ProductAnalytics'))
 
 const queryClient = new QueryClient({
@@ -293,6 +294,9 @@ function AppContent() {
               <Route path="carousel-formats" element={<CarouselFormatsList />} />
               <Route path="carousel-formats/new" element={<CarouselFormatEditor />} />
               <Route path="carousel-formats/:id" element={<CarouselFormatEditor />} />
+
+              {/* AI Engine */}
+              <Route path="ai-engine" element={<AIEngineSettings />} />
 
               {/* МЛМ Лагерь */}
               <Route path="mlm" element={<MlmDashboard />} />
