@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, Lock, CalendarDays } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Lock, CalendarDays, HelpCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
 import { getTelegramUser } from '@/lib/telegram'
@@ -9,8 +9,13 @@ import { getTelegramUser } from '@/lib/telegram'
 // ID владельца Нейропостера
 const POSTER_OWNER_ID = 643763835
 
+// ID пользователей с доступом к квизам (Дмитрий и Александр)
+const QUIZ_ACCESS_IDS = [643763835, 190202791]
+
 // Персонажи привязаны к разделам
 const getCharacters = (telegramId: number | null) => {
+  const hasQuizAccess = telegramId !== null && QUIZ_ACCESS_IDS.includes(telegramId)
+
   const chars = [
     {
       id: 'designer',
@@ -35,6 +40,20 @@ const getCharacters = (telegramId: number | null) => {
       icon: Sparkles,
       disabled: false,
       comingSoon: false
+    },
+    {
+      id: 'quizmaster',
+      skin: '/images/skins/skin_quiz.png',
+      name: 'Квизмастер',
+      label: 'Создатель квизов',
+      path: '/quizzes',
+      task: hasQuizAccess ? 'Создать квиз' : 'Скоро будет доступен',
+      defaultSpeech: hasQuizAccess
+        ? 'Создай интерактивный квиз\nдля своей аудитории! 🎓'
+        : 'Скоро я помогу тебе\nсоздавать крутые квизы! 🎓',
+      icon: HelpCircle,
+      disabled: !hasQuizAccess,
+      comingSoon: !hasQuizAccess
     },
   ]
 
