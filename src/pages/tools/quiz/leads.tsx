@@ -50,7 +50,7 @@ export default function QuizLeads() {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => navigate('/tools/quiz')}
-            className="p-2 rounded-xl bg-white/80 border border-gray-200 hover:bg-white transition-colors"
+            className="p-2 rounded-xl bg-white/80 backdrop-blur-xl border border-white/60 hover:bg-white transition-colors shadow-sm"
             aria-label="Назад"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -78,8 +78,8 @@ export default function QuizLeads() {
           </div>
         ) : leads.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 bg-gradient-to-br from-cyan-100 to-cyan-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-cyan-500" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Нет заявок</h2>
             <p className="text-gray-500">Заявки появятся после прохождения квиза</p>
@@ -127,10 +127,10 @@ export default function QuizLeads() {
 
                 {expandedLead === lead.id && lead.answers && lead.answers.length > 0 && (
                   <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">Ответы:</p>
+                    <p className="text-xs text-orange-500 mb-2 font-medium">Ответы:</p>
                     <div className="space-y-2">
                       {lead.answers.map((answer, i) => (
-                        <div key={i} className="text-sm">
+                        <div key={i} className="text-sm bg-[#FFF8F5] rounded-xl p-3">
                           <p className="text-gray-500">{answer.question_text}</p>
                           <p className="text-gray-900 font-medium">{answer.answer_text}</p>
                         </div>

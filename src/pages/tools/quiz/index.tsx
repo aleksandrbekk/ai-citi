@@ -70,7 +70,7 @@ export default function QuizDashboard() {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={() => navigate('/')}
-            className="p-2 rounded-xl bg-white/80 border border-gray-200 hover:bg-white transition-colors"
+            className="p-2 rounded-xl bg-white/80 backdrop-blur-xl border border-white/60 hover:bg-white transition-colors shadow-sm"
             aria-label="На главную"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />

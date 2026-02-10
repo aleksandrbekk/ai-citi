@@ -226,10 +226,10 @@ export default function QuizEditor() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'bg-white/60 text-gray-600 hover:bg-white'
+                  ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-sm'
+                  : 'bg-white/60 text-gray-600 hover:bg-white hover:shadow-sm'
               }`}
             >
               <span>{tab.emoji}</span>
