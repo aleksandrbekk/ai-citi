@@ -833,7 +833,8 @@ export default function KarmalogikChat() {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">Купи ещё запросы</h3>
               {/* Баланс нейронов */}
-              <div className="flex items-center justify-center gap-2 mt-3">
+              <p className="text-sm text-gray-500 mt-3">Ваш баланс:</p>
+              <div className="flex items-center justify-center gap-2 mt-1">
                 <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
                 <span className="font-bold text-orange-600 text-lg">{coinBalance} нейронов</span>
               </div>
