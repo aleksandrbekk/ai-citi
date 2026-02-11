@@ -128,6 +128,7 @@ const CarouselSettingsPage = lazy(() => import('./pages/admin/carousel/CarouselS
 const CarouselFormatsList = lazy(() => import('./pages/admin/carousel/FormatsList'))
 const CarouselFormatEditor = lazy(() => import('./pages/admin/carousel/FormatEditor'))
 const AIEngineSettings = lazy(() => import('./pages/admin/ai-engine/AIEngineSettings').then(m => ({ default: m.AIEngineSettings })))
+const CarouselAI = lazy(() => import('./pages/agents/carousel-ai'))
 const ProductAnalytics = lazy(() => import('./pages/admin/ProductAnalytics'))
 
 const queryClient = new QueryClient({
@@ -339,6 +340,7 @@ function AppContent() {
             <Route path="agents/carousel/generating" element={<CarouselGenerating />} />
             <Route path="agents/carousel/result" element={<CarouselResult />} />
             <Route path="agents/carousel-test" element={<CarouselTest />} />
+            <Route path="agents/carousel-ai" element={<CarouselAI />} />
             <Route path="agents/karmalogik" element={<KarmalogikChat />} />
             <Route path="tools/quiz" element={<QuizDashboard />} />
             <Route path="tools/quiz/:id/edit" element={<QuizEditor />} />

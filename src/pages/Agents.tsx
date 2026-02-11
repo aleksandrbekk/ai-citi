@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/ui/icons'
 import { useAuthStore } from '@/store/authStore'
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode'
+import { isAdmin } from '@/config/admins'
+import { getTelegramUser } from '@/lib/telegram'
+import { Zap } from 'lucide-react'
 import { toast } from 'sonner'
 
 const OWNER_TELEGRAM_ID = 643763835
@@ -12,6 +15,8 @@ export function Agents() {
   const [isOwner, setIsOwner] = useState(false)
   const tariffs = useAuthStore((state) => state.tariffs)
   const { isMaintenanceMode, message } = useMaintenanceMode()
+  const telegramUser = getTelegramUser()
+  const isAdminUser = isAdmin(telegramUser?.id)
 
   // Проверяем есть ли платный тариф
   const hasPaidAccess = tariffs.length > 0
@@ -57,11 +62,10 @@ export function Agents() {
               }
               if (hasPaidAccess) navigate('/agents/carousel')
             }}
-            className={`glass-card p-5 transition-all group relative ${
-              isMaintenanceMode
+            className={`glass-card p-5 transition-all group relative ${isMaintenanceMode
                 ? 'opacity-60 cursor-pointer'
                 : hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
-            }`}
+              }`}
           >
             {(isMaintenanceMode || !hasPaidAccess) && (
               <div className="absolute top-3 right-3">
@@ -86,9 +90,8 @@ export function Agents() {
               }
               navigate('/agents/karmalogik')
             }}
-            className={`glass-card p-5 transition-all group ${
-              isMaintenanceMode ? 'opacity-60 cursor-pointer' : 'cursor-pointer hover:scale-[1.02]'
-            }`}
+            className={`glass-card p-5 transition-all group ${isMaintenanceMode ? 'opacity-60 cursor-pointer' : 'cursor-pointer hover:scale-[1.02]'
+              }`}
           >
             {isMaintenanceMode && (
               <div className="absolute top-3 right-3">
@@ -115,6 +118,23 @@ export function Agents() {
               </div>
               <h3 className="text-gray-900 font-semibold mb-1">Нейропостер</h3>
               <p className="text-gray-500 text-sm">Планировщик Instagram</p>
+            </Link>
+          )}
+
+          {/* AI Карусель — только для админов */}
+          {isAdminUser && (
+            <Link
+              to="/agents/carousel-ai"
+              className="glass-card p-5 hover:scale-[1.02] transition-all group relative"
+            >
+              <div className="absolute top-3 right-3">
+                <span className="text-[10px] bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">MVP</span>
+              </div>
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
+                <Zap className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-gray-900 font-semibold mb-1">AI Карусель</h3>
+              <p className="text-gray-500 text-sm">Engine MVP</p>
             </Link>
           )}
         </div>
