@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Sparkles, Lock, CalendarDays, HelpCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Lock, CalendarDays, HelpCircle, Zap } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { isAdmin } from '@/config/admins'
 import { OnboardingOverlay, useOnboarding } from '@/components/OnboardingOverlay'
 import { getTelegramUser } from '@/lib/telegram'
 
@@ -56,6 +57,22 @@ const getCharacters = (telegramId: number | null) => {
       comingSoon: !hasQuizAccess
     },
   ]
+
+  // AI Карусель — только для админов (тестирование Edge Function)
+  if (isAdmin(telegramId)) {
+    chars.push({
+      id: 'ai-carousel',
+      skin: '/images/skins/skin_2.png',
+      name: 'AI Карусель',
+      label: 'AI Engine MVP',
+      path: '/agents/carousel-ai',
+      task: 'Создать AI карусель',
+      defaultSpeech: 'Тестируем AI Engine!\nСоздай карусель через Gemini 🚀',
+      icon: Zap,
+      disabled: false,
+      comingSoon: false
+    })
+  }
 
   // Нейропостер — только для владельца
   if (telegramId === POSTER_OWNER_ID) {

@@ -3,9 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/ui/icons'
 import { useAuthStore } from '@/store/authStore'
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode'
-import { isAdmin } from '@/config/admins'
-
-import { Zap } from 'lucide-react'
 import { toast } from 'sonner'
 
 const OWNER_TELEGRAM_ID = 643763835
@@ -13,7 +10,6 @@ const OWNER_TELEGRAM_ID = 643763835
 export function Agents() {
   const navigate = useNavigate()
   const [isOwner, setIsOwner] = useState(false)
-  const [isAdminUser, setIsAdminUser] = useState(false)
   const tariffs = useAuthStore((state) => state.tariffs)
   const { isMaintenanceMode, message } = useMaintenanceMode()
 
@@ -36,7 +32,6 @@ export function Agents() {
     }
 
     setIsOwner(telegramId === OWNER_TELEGRAM_ID)
-    setIsAdminUser(isAdmin(telegramId))
   }, [])
 
   return (
@@ -118,23 +113,6 @@ export function Agents() {
               </div>
               <h3 className="text-gray-900 font-semibold mb-1">Нейропостер</h3>
               <p className="text-gray-500 text-sm">Планировщик Instagram</p>
-            </Link>
-          )}
-
-          {/* AI Карусель — только для админов */}
-          {isAdminUser && (
-            <Link
-              to="/agents/carousel-ai"
-              className="glass-card p-5 hover:scale-[1.02] transition-all group relative"
-            >
-              <div className="absolute top-3 right-3">
-                <span className="text-[10px] bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">MVP</span>
-              </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/30 group-hover:shadow-orange-500/40 transition-shadow">
-                <Zap className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-gray-900 font-semibold mb-1">AI Карусель</h3>
-              <p className="text-gray-500 text-sm">Engine MVP</p>
             </Link>
           )}
         </div>
