@@ -184,21 +184,23 @@ export default function PublicQuiz() {
   }
 
   // ==========================================
-  // Start Screen
+  // Start Screen — split layout (image + text)
   // ==========================================
   if (step === 'start') {
     return (
-      <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
+      <div className="min-h-screen bg-[#FFF8F5] flex flex-col sm:flex-row">
+        {/* Image side */}
         {quiz.cover_image_url && (
-          <div className="w-full h-48 sm:h-64 relative">
+          <div className="w-full sm:w-1/2 h-56 sm:h-auto sm:min-h-screen relative flex-shrink-0">
             <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FFF8F5] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-l from-[#FFF8F5] via-transparent to-transparent sm:from-[#FFF8F5] sm:via-transparent sm:to-transparent" />
           </div>
         )}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-8 shadow-sm max-w-md w-full">
+        {/* Text + button side */}
+        <div className={`flex-1 flex flex-col items-start justify-center px-6 sm:px-10 py-8 ${!quiz.cover_image_url ? 'items-center text-center' : ''}`}>
+          <div className="max-w-md w-full">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">{quiz.title}</h1>
-            {quiz.description && <p className="text-gray-600 mb-8">{quiz.description}</p>}
+            {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed">{quiz.description}</p>}
             <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
               {quiz.cta_text || 'Начать'}
             </button>
