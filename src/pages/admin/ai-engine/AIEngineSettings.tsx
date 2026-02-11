@@ -775,6 +775,7 @@ function MultiKeyEditor({
     placeholder: string
 }) {
     const list = keys || []
+    const [visibleKeys, setVisibleKeys] = useState<Record<number, boolean>>({})
 
     const addKey = () => {
         onChange([...list, { key: '', label: `Key ${list.length + 1}`, enabled: true }])
@@ -788,6 +789,10 @@ function MultiKeyEditor({
         const updated = [...list]
         updated[index] = { ...updated[index], [field]: value }
         onChange(updated)
+    }
+
+    const toggleVisible = (index: number) => {
+        setVisibleKeys(prev => ({ ...prev, [index]: !prev[index] }))
     }
 
     return (
@@ -807,13 +812,23 @@ function MultiKeyEditor({
                         className="w-28 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm shrink-0"
                         placeholder="Label"
                     />
-                    <input
-                        type="password"
-                        value={entry.key}
-                        onChange={e => updateKey(i, 'key', e.target.value)}
-                        className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono"
-                        placeholder={placeholder}
-                    />
+                    <div className="flex-1 relative">
+                        <input
+                            type={visibleKeys[i] ? 'text' : 'password'}
+                            value={entry.key}
+                            onChange={e => updateKey(i, 'key', e.target.value)}
+                            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono pr-10"
+                            placeholder={placeholder}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => toggleVisible(i)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            aria-label={visibleKeys[i] ? 'Скрыть ключ' : 'Показать ключ'}
+                        >
+                            {visibleKeys[i] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                    </div>
                     <button
                         onClick={() => removeKey(i)}
                         className="text-red-400 hover:text-red-600 transition-colors shrink-0 cursor-pointer"
