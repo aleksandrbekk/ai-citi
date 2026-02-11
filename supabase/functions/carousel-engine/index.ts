@@ -16,6 +16,87 @@ const VERTEX_PROJECT_ID = "gen-lang-client-0102901194"
 const VERTEX_LOCATION = "us-central1"
 
 // ============================================================
+// FETCH WITH TIMEOUT (фикс #1: все fetch с таймаутами)
+// ============================================================
+
+async function fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeoutMs: number = 60000
+): Promise<Response> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        })
+        return response
+    } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            throw new Error(`Request timed out after ${timeoutMs}ms: ${url.substring(0, 80)}`)
+        }
+        throw err
+    } finally {
+        clearTimeout(timer)
+    }
+}
+
+// ============================================================
+// API KEY ROTATION (ротация ключей)
+// ============================================================
+
+interface ApiKeyEntry {
+    key: string
+    label?: string
+    enabled?: boolean
+}
+
+function getRotatedKeys(
+    keysJson: ApiKeyEntry[] | null | undefined,
+    singleKey: string | null
+): string[] {
+    // JSONB array takes priority
+    if (keysJson && Array.isArray(keysJson) && keysJson.length > 0) {
+        const enabled = keysJson.filter(k => k.enabled !== false && k.key)
+        if (enabled.length > 0) {
+            // Round-robin: rotate based on current minute to spread load
+            const offset = Math.floor(Date.now() / 60000) % enabled.length
+            const rotated = [...enabled.slice(offset), ...enabled.slice(0, offset)]
+            return rotated.map(k => k.key)
+        }
+    }
+    // Fallback to single key
+    if (singleKey) return [singleKey]
+    return []
+}
+
+async function tryWithKeyRotation<T>(
+    keys: string[],
+    fn: (key: string, index: number) => Promise<T>,
+    providerName: string
+): Promise<T> {
+    let lastError: Error | null = null
+    for (let i = 0; i < keys.length; i++) {
+        try {
+            return await fn(keys[i], i)
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : String(err)
+            console.warn(`[Engine] Key ${i + 1}/${keys.length} for ${providerName} failed: ${errMsg}`)
+            // Only retry on rate limit / auth errors
+            if (errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate') ||
+                errMsg.includes('401') || errMsg.includes('403') || errMsg.includes('billing')) {
+                lastError = err instanceof Error ? err : new Error(errMsg)
+                continue
+            }
+            // Non-retryable error — throw immediately
+            throw err
+        }
+    }
+    throw lastError || new Error(`All ${keys.length} keys exhausted for ${providerName}`)
+}
+
+// ============================================================
 // TYPES
 // ============================================================
 
@@ -25,9 +106,17 @@ interface EngineConfig {
     text_model: string
     text_fallback_provider: string | null
     text_fallback_key: string | null
+    text_fallback_model: string | null
+    text_api_keys: ApiKeyEntry[] | null
+    text_fallback_keys: ApiKeyEntry[] | null
     image_provider: 'gemini' | 'imagen' | 'ideogram'
     image_api_key: string
     image_model: string
+    image_api_keys: ApiKeyEntry[] | null
+    image_fallback_provider: string | null
+    image_fallback_model: string | null
+    image_fallback_key: string | null
+    image_fallback_keys: ApiKeyEntry[] | null
     telegram_bot_token: string
     cloudinary_cloud: string
     cloudinary_preset: string
@@ -193,11 +282,11 @@ async function createJWT(credentials: { client_email: string; private_key: strin
 
 async function getAccessToken(credentials: { client_email: string; private_key: string }): Promise<string> {
     const jwt = await createJWT(credentials)
-    const response = await fetch("https://oauth2.googleapis.com/token", {
+    const response = await fetchWithTimeout("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
-    })
+    }, 15000)
 
     if (!response.ok) {
         const error = await response.text()
@@ -259,14 +348,14 @@ async function generateTextGemini(
         ]
     }
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
-    })
+    }, 90000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -284,7 +373,7 @@ async function generateTextOpenRouter(
     model: string,
     apiKey: string
 ): Promise<string> {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -300,7 +389,7 @@ async function generateTextOpenRouter(
             temperature: 0.8,
             max_tokens: 8192,
         }),
-    })
+    }, 90000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -311,28 +400,50 @@ async function generateTextOpenRouter(
     return data.choices?.[0]?.message?.content || ''
 }
 
-// --- Unified text generation ---
+// --- Unified text generation (с ротацией ключей + фикс fallback) ---
 async function generateText(
     systemPrompt: string,
     userPrompt: string,
     config: EngineConfig
-): Promise<string> {
+): Promise<{ text: string; keyIndex: number }> {
+    // Primary provider with key rotation
     try {
         if (config.text_provider === 'gemini') {
-            return await generateTextGemini(systemPrompt, userPrompt, config.text_model, config.use_search_grounding)
+            // Gemini uses service account, no API key rotation
+            const text = await generateTextGemini(systemPrompt, userPrompt, config.text_model, config.use_search_grounding)
+            return { text, keyIndex: 0 }
         } else {
-            return await generateTextOpenRouter(systemPrompt, userPrompt, config.text_model, config.text_api_key)
+            // OpenRouter — rotate API keys
+            const keys = getRotatedKeys(config.text_api_keys, config.text_api_key)
+            if (keys.length === 0) throw new Error('No text API keys configured')
+            let resultText = ''
+            let resultIdx = 0
+            await tryWithKeyRotation(keys, async (key, idx) => {
+                resultText = await generateTextOpenRouter(systemPrompt, userPrompt, config.text_model, key)
+                resultIdx = idx
+            }, 'text-openrouter')
+            return { text: resultText, keyIndex: resultIdx }
         }
     } catch (err) {
-        console.error(`[Engine] Primary text provider (${config.text_provider}) failed:`, err)
+        console.error(`[Engine] Primary text (${config.text_provider}) failed:`, err)
 
-        // Fallback
-        if (config.text_fallback_provider && config.text_fallback_key) {
-            console.log(`[Engine] Trying fallback: ${config.text_fallback_provider}`)
+        // Fallback: use text_fallback_model (FIX: раньше использовалась text_model от основного провайдера)
+        if (config.text_fallback_provider) {
+            const fallbackModel = config.text_fallback_model || config.text_model
+            console.log(`[Engine] Trying fallback: ${config.text_fallback_provider} / ${fallbackModel}`)
+
             if (config.text_fallback_provider === 'openrouter') {
-                return await generateTextOpenRouter(systemPrompt, userPrompt, config.text_model, config.text_fallback_key)
+                const fallbackKeys = getRotatedKeys(config.text_fallback_keys, config.text_fallback_key)
+                if (fallbackKeys.length === 0) throw err
+                let resultText = ''
+                await tryWithKeyRotation(fallbackKeys, async (key) => {
+                    resultText = await generateTextOpenRouter(systemPrompt, userPrompt, fallbackModel, key)
+                }, 'text-fallback-openrouter')
+                return { text: resultText, keyIndex: -1 }
             } else if (config.text_fallback_provider === 'gemini') {
-                return await generateTextGemini(systemPrompt, userPrompt, config.text_model, config.use_search_grounding)
+                // FIX: use fallbackModel, not primary text_model
+                const text = await generateTextGemini(systemPrompt, userPrompt, fallbackModel, config.use_search_grounding)
+                return { text, keyIndex: -1 }
             }
         }
 
@@ -360,7 +471,7 @@ async function generateImageImagen(
     console.log(`[Engine] Using image model: ${modelId}`)
     const endpoint = `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:predict`
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -376,7 +487,7 @@ async function generateImageImagen(
                 safetySetting: "block_only_high",
             }
         }),
-    })
+    }, 120000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -402,7 +513,7 @@ async function generateImageIdeogram(
     _model: string,
     apiKey: string
 ): Promise<Uint8Array> {
-    const response = await fetch('https://api.ideogram.ai/generate', {
+    const response = await fetchWithTimeout('https://api.ideogram.ai/generate', {
         method: 'POST',
         headers: {
             'Api-Key': apiKey,
@@ -416,7 +527,7 @@ async function generateImageIdeogram(
                 magic_prompt_option: "AUTO",
             }
         }),
-    })
+    }, 120000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -428,7 +539,7 @@ async function generateImageIdeogram(
     if (!imageUrl) throw new Error('No image URL from Ideogram')
 
     // Download the image
-    const imgResponse = await fetch(imageUrl)
+    const imgResponse = await fetchWithTimeout(imageUrl, {}, 30000)
     const imgBuffer = await imgResponse.arrayBuffer()
     return new Uint8Array(imgBuffer)
 }
@@ -443,7 +554,7 @@ async function fetchPhotoAsBase64(photoUrl: string): Promise<string | null> {
         }
 
         console.log(`[Engine] Fetching user photo: ${url.substring(0, 80)}...`)
-        const response = await fetch(url)
+        const response = await fetchWithTimeout(url, {}, 30000)
         if (!response.ok) {
             console.error(`[Engine] Photo fetch failed: ${response.status}`)
             return null
@@ -495,7 +606,7 @@ async function generateImageGemini(
 
     parts.push({ text: prompt })
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -515,7 +626,7 @@ async function generateImageGemini(
                 { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
             ],
         }),
-    })
+    }, 120000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -541,18 +652,66 @@ async function generateImageGemini(
     throw new Error('Gemini did not return an image in response')
 }
 
-// --- Unified image generation ---
+// --- Image generation by provider (с ротацией ключей) ---
+async function generateImageWithProvider(
+    prompt: string,
+    provider: string,
+    model: string,
+    singleKey: string | null,
+    keysJson: ApiKeyEntry[] | null | undefined,
+    referenceImageBase64?: string | null
+): Promise<Uint8Array> {
+    if (provider === 'gemini') {
+        const keys = getRotatedKeys(keysJson, singleKey)
+        if (keys.length === 0) throw new Error('No Gemini image API keys configured')
+        let result: Uint8Array = new Uint8Array()
+        await tryWithKeyRotation(keys, async (key) => {
+            result = await generateImageGemini(prompt, model, key, referenceImageBase64)
+        }, 'image-gemini')
+        return result
+    } else if (provider === 'imagen') {
+        // Imagen uses service account (no API key rotation needed)
+        return await generateImageImagen(prompt, model)
+    } else {
+        // ideogram
+        const keys = getRotatedKeys(keysJson, singleKey)
+        if (keys.length === 0) throw new Error('No Ideogram API keys configured')
+        let result: Uint8Array = new Uint8Array()
+        await tryWithKeyRotation(keys, async (key) => {
+            result = await generateImageIdeogram(prompt, model, key)
+        }, 'image-ideogram')
+        return result
+    }
+}
+
+// --- Unified image generation (с fallback на другой провайдер) ---
 async function generateImage(
     prompt: string,
     config: EngineConfig,
     referenceImageBase64?: string | null
 ): Promise<Uint8Array> {
-    if (config.image_provider === 'gemini') {
-        return await generateImageGemini(prompt, config.image_model, config.image_api_key, referenceImageBase64)
-    } else if (config.image_provider === 'imagen') {
-        return await generateImageImagen(prompt, config.image_model)
-    } else {
-        return await generateImageIdeogram(prompt, config.image_model, config.image_api_key)
+    // Primary provider
+    try {
+        return await generateImageWithProvider(
+            prompt, config.image_provider, config.image_model,
+            config.image_api_key, config.image_api_keys,
+            referenceImageBase64
+        )
+    } catch (err) {
+        console.error(`[Engine] Primary image (${config.image_provider}) failed:`, err)
+
+        // Image fallback (NEW: раньше не было)
+        if (config.image_fallback_provider) {
+            console.log(`[Engine] Trying image fallback: ${config.image_fallback_provider}`)
+            return await generateImageWithProvider(
+                prompt, config.image_fallback_provider,
+                config.image_fallback_model || config.image_model,
+                config.image_fallback_key,
+                config.image_fallback_keys,
+                referenceImageBase64
+            )
+        }
+        throw err
     }
 }
 
@@ -580,10 +739,10 @@ async function uploadToCloudinary(
     formData.append('folder', 'carousels')
     formData.append('public_id', `slide_${slideIndex}_${Date.now()}`)
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    const response = await fetchWithTimeout(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
         method: 'POST',
         body: formData,
-    })
+    }, 60000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -600,7 +759,7 @@ async function uploadToCloudinary(
 
 async function sendStatusToTelegram(chatId: number, text: string, botToken: string): Promise<void> {
     try {
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -608,7 +767,7 @@ async function sendStatusToTelegram(chatId: number, text: string, botToken: stri
                 text,
                 parse_mode: 'HTML',
             }),
-        })
+        }, 15000)
     } catch {
         // Не критично — статусное сообщение
     }
@@ -634,14 +793,14 @@ async function sendToTelegram(
             ...(i === 0 ? { caption } : {}),
         }))
 
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
+        const response = await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: chatId,
                 media,
             }),
-        })
+        }, 15000)
 
         if (!response.ok) {
             const errorText = await response.text()
@@ -649,28 +808,28 @@ async function sendToTelegram(
 
             // Fallback: отправляем по одной
             for (const url of imageUrls) {
-                await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: chatId,
                         photo: url,
                     }),
-                })
+                }, 15000)
             }
         }
     }
 }
 
 async function sendErrorToTelegram(chatId: number, error: string, botToken: string) {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             chat_id: chatId,
-            text: `❌ Ошибка генерации карусели:\n${error}\n\nПопробуйте ещё раз.`,
+            text: `❌ Ошибка генерации карусели:\n${error}\n\n💰 Монеты возвращены на баланс.\nПопробуйте ещё раз.`,
         }),
-    })
+    }, 15000)
 }
 
 // ============================================================
@@ -995,6 +1154,18 @@ No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is no
 
 async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
     const startTime = Date.now()
+
+    // === Очистка зависших генераций (фикс #5) ===
+    try {
+        const supabase = getSupabaseClient()
+        const { data: cleanedCount } = await supabase.rpc('cleanup_hung_generations', { p_timeout_minutes: 5 })
+        if (cleanedCount && cleanedCount > 0) {
+            console.log(`[Engine] Cleaned up ${cleanedCount} hung generations`)
+        }
+    } catch {
+        // Non-critical
+    }
+
     const logId = await createGenLog(payload.chatId, payload.topic, payload.styleId, config)
 
     try {
@@ -1011,11 +1182,11 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         const textStart = Date.now()
         const { systemPrompt, userPrompt } = buildCopywriterPrompt(payload)
-        const rawText = await generateText(systemPrompt, userPrompt, config)
+        const { text: rawText, keyIndex: textKeyIndex } = await generateText(systemPrompt, userPrompt, config)
         const textMs = Date.now() - textStart
 
-        console.log(`[Engine] Text generated in ${textMs}ms, length: ${rawText.length}`)
-        await updateGenLog(logId, { text_gen_ms: textMs })
+        console.log(`[Engine] Text generated in ${textMs}ms, length: ${rawText.length}, keyIndex: ${textKeyIndex}`)
+        await updateGenLog(logId, { text_gen_ms: textMs, text_key_index: textKeyIndex })
 
         // Парсим JSON из ответа
         let slides: SlideContent[]
@@ -1056,6 +1227,23 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         }
 
         console.log(`[Engine] Parsed ${slides.length} slides, post_text length: ${postText.length}`)
+
+        // === CTA KEYWORD ENFORCEMENT (фикс #6) ===
+        const ctaKeyword = payload.cta || 'ПОДПИШИСЬ'
+        const ctaSlide = slides.find(s => s.type === 'CTA') || slides[slides.length - 2] // CTA обычно предпоследний
+        if (ctaSlide && ctaKeyword) {
+            const headline = ctaSlide.headline || ''
+            if (!headline.toUpperCase().includes(ctaKeyword.toUpperCase())) {
+                console.warn(`[Engine] CTA keyword "${ctaKeyword}" missing from CTA slide headline: "${headline}"`)
+                // Inject: заменяем headline, сохраняем оригинал в subheadline
+                const originalHeadline = headline
+                ctaSlide.headline = `ПИШИ: ${ctaKeyword}`
+                if (originalHeadline && !originalHeadline.toUpperCase().startsWith('ПИШИ')) {
+                    ctaSlide.subheadline = originalHeadline
+                }
+                console.log(`[Engine] CTA keyword injected: "${ctaSlide.headline}"`)
+            }
+        }
 
         // === СТАТУС: Тексты готовы ===
         const faceCount = slides.filter(s => s.human_mode === 'FACE' || s.type === 'HOOK' || s.type === 'CTA').length
@@ -1161,13 +1349,33 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         const totalMs = Date.now() - startTime
         console.error(`[Engine] ❌ Pipeline failed after ${totalMs}ms:`, errorMessage)
 
+        // === ВОЗВРАТ МОНЕТ (фикс #2) ===
+        try {
+            const supabase = getSupabaseClient()
+            const refundResult = await supabase.rpc('add_coins', {
+                p_telegram_id: payload.chatId,
+                p_amount: 30,
+                p_type: 'bonus',
+                p_description: 'Возврат за ошибку генерации карусели',
+                p_metadata: { source: 'refund', reason: 'carousel_engine_error', error: errorMessage.substring(0, 200) }
+            })
+            if (refundResult.error) {
+                console.error('[Engine] Refund failed:', refundResult.error)
+            } else {
+                console.log(`[Engine] Refunded 30 coins to user ${payload.chatId}`)
+                await updateGenLog(logId, { coins_refunded: true })
+            }
+        } catch (refundErr) {
+            console.error('[Engine] Refund error:', refundErr)
+        }
+
         await updateGenLog(logId, {
             status: 'error',
             error_message: errorMessage,
             total_ms: totalMs,
         })
 
-        // Уведомляем пользователя об ошибке
+        // Уведомляем пользователя об ошибке (+ текст про возврат монет)
         try {
             await sendErrorToTelegram(payload.chatId, errorMessage, config.telegram_bot_token)
         } catch {

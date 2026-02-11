@@ -14,13 +14,21 @@ import {
     EyeOff,
     Zap,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    Plus,
+    Trash2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ============================================================
 // TYPES
 // ============================================================
+
+interface ApiKeyEntry {
+    key: string
+    label: string
+    enabled: boolean
+}
 
 interface AIEngineConfig {
     id: string
@@ -29,9 +37,17 @@ interface AIEngineConfig {
     text_model: string
     text_fallback_provider: string | null
     text_fallback_key: string | null
+    text_fallback_model: string | null
+    text_api_keys: ApiKeyEntry[] | null
+    text_fallback_keys: ApiKeyEntry[] | null
     image_provider: string
     image_api_key: string
     image_model: string
+    image_api_keys: ApiKeyEntry[] | null
+    image_fallback_provider: string | null
+    image_fallback_model: string | null
+    image_fallback_key: string | null
+    image_fallback_keys: ApiKeyEntry[] | null
     telegram_bot_token: string
     cloudinary_cloud: string
     cloudinary_preset: string
@@ -85,6 +101,7 @@ const TEXT_MODELS = [
 ]
 
 const IMAGE_PROVIDERS = [
+    { value: 'gemini', label: 'Gemini Image', desc: 'Google AI Studio, нативная генерация' },
     { value: 'imagen', label: 'Google Imagen', desc: 'Vertex AI, лучшее качество' },
     { value: 'ideogram', label: 'Ideogram', desc: 'Хороший текст на картинках' },
 ]
@@ -173,9 +190,17 @@ export function AIEngineSettings() {
                     text_model: config.text_model,
                     text_fallback_provider: config.text_fallback_provider,
                     text_fallback_key: config.text_fallback_key,
+                    text_fallback_model: config.text_fallback_model,
+                    text_api_keys: config.text_api_keys,
+                    text_fallback_keys: config.text_fallback_keys,
                     image_provider: config.image_provider,
                     image_api_key: config.image_api_key,
                     image_model: config.image_model,
+                    image_api_keys: config.image_api_keys,
+                    image_fallback_provider: config.image_fallback_provider,
+                    image_fallback_model: config.image_fallback_model,
+                    image_fallback_key: config.image_fallback_key,
+                    image_fallback_keys: config.image_fallback_keys,
                     telegram_bot_token: config.telegram_bot_token,
                     cloudinary_cloud: config.cloudinary_cloud,
                     cloudinary_preset: config.cloudinary_preset,
@@ -341,11 +366,25 @@ export function AIEngineSettings() {
                             </div>
                         )}
 
+                        {/* Multi-key rotation */}
+                        {config.text_provider !== 'gemini' && (
+                            <div className="mt-4">
+                                <Label>Ротация ключей (текст)</Label>
+                                <p className="text-xs text-gray-400 mb-2">Если один ключ упирается в лимит, следующий подхватывает</p>
+                                <MultiKeyEditor
+                                    keys={config.text_api_keys}
+                                    onChange={keys => updateConfig('text_api_keys', keys)}
+                                    placeholder="API key для текстового провайдера"
+                                />
+                            </div>
+                        )}
+
                         {/* Fallback */}
                         <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200/80">
                             <p className="text-sm text-gray-500 mb-3">⚡ Резервный провайдер (fallback)</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
+                                    <Label>Провайдер</Label>
                                     <select
                                         value={config.text_fallback_provider || ''}
                                         onChange={e => updateConfig('text_fallback_provider', e.target.value || null)}
@@ -359,18 +398,43 @@ export function AIEngineSettings() {
                                 </div>
                                 {config.text_fallback_provider && (
                                     <div>
-                                        <ApiKeyInput
-                                            value={config.text_fallback_key || ''}
-                                            onChange={v => updateConfig('text_fallback_key', v)}
-                                            visible={showKeys['text_fallback_key'] || false}
-                                            onToggle={() => toggleKeyVisibility('text_fallback_key')}
-                                            masked={maskKey(config.text_fallback_key || '')}
-                                            placeholder="Fallback API key"
-                                            small
-                                        />
+                                        <Label>Модель fallback</Label>
+                                        <select
+                                            value={config.text_fallback_model || ''}
+                                            onChange={e => updateConfig('text_fallback_model', e.target.value || null)}
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                                        >
+                                            <option value="">Та же что основная</option>
+                                            {TEXT_MODELS.filter(m => m.provider === config.text_fallback_provider).map(m => (
+                                                <option key={m.value} value={m.value}>{m.label}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
                             </div>
+                            {config.text_fallback_provider && (
+                                <div className="mt-3">
+                                    <ApiKeyInput
+                                        value={config.text_fallback_key || ''}
+                                        onChange={v => updateConfig('text_fallback_key', v)}
+                                        visible={showKeys['text_fallback_key'] || false}
+                                        onToggle={() => toggleKeyVisibility('text_fallback_key')}
+                                        masked={maskKey(config.text_fallback_key || '')}
+                                        placeholder="Fallback API key"
+                                        small
+                                    />
+                                </div>
+                            )}
+                            {config.text_fallback_provider && config.text_fallback_provider !== 'gemini' && (
+                                <div className="mt-3">
+                                    <p className="text-xs text-gray-400 mb-2">Ротация fallback ключей</p>
+                                    <MultiKeyEditor
+                                        keys={config.text_fallback_keys}
+                                        onChange={keys => updateConfig('text_fallback_keys', keys)}
+                                        placeholder="Fallback API key"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </Section>
 
@@ -401,19 +465,87 @@ export function AIEngineSettings() {
                             </div>
                         </div>
 
-                        {config.image_provider === 'ideogram' && (
+                        {(config.image_provider === 'ideogram' || config.image_provider === 'gemini') && (
                             <div className="mt-4">
-                                <Label>API ключ Ideogram</Label>
+                                <Label>API ключ {config.image_provider === 'gemini' ? 'Google AI Studio' : 'Ideogram'}</Label>
                                 <ApiKeyInput
                                     value={config.image_api_key}
                                     onChange={v => updateConfig('image_api_key', v)}
                                     visible={showKeys['image_api_key'] || false}
                                     onToggle={() => toggleKeyVisibility('image_api_key')}
                                     masked={maskKey(config.image_api_key)}
-                                    placeholder="Ideogram API key"
+                                    placeholder={config.image_provider === 'gemini' ? 'Google AI Studio API key' : 'Ideogram API key'}
                                 />
                             </div>
                         )}
+
+                        {/* Multi-key rotation for images */}
+                        {config.image_provider !== 'imagen' && (
+                            <div className="mt-4">
+                                <Label>Ротация ключей (картинки)</Label>
+                                <p className="text-xs text-gray-400 mb-2">Если один ключ упирается в лимит, следующий подхватывает</p>
+                                <MultiKeyEditor
+                                    keys={config.image_api_keys}
+                                    onChange={keys => updateConfig('image_api_keys', keys)}
+                                    placeholder="API key для провайдера картинок"
+                                />
+                            </div>
+                        )}
+
+                        {/* Image Fallback */}
+                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200/80">
+                            <p className="text-sm text-gray-500 mb-3">⚡ Резервный провайдер картинок (fallback)</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Провайдер</Label>
+                                    <select
+                                        value={config.image_fallback_provider || ''}
+                                        onChange={e => updateConfig('image_fallback_provider', e.target.value || null)}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                                    >
+                                        <option value="">Нет</option>
+                                        {IMAGE_PROVIDERS.filter(p => p.value !== config.image_provider).map(p => (
+                                            <option key={p.value} value={p.value}>{p.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {config.image_fallback_provider && (
+                                    <div>
+                                        <Label>Модель fallback</Label>
+                                        <input
+                                            type="text"
+                                            value={config.image_fallback_model || ''}
+                                            onChange={e => updateConfig('image_fallback_model', e.target.value || null)}
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                                            placeholder="Та же модель"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            {config.image_fallback_provider && config.image_fallback_provider !== 'imagen' && (
+                                <div className="mt-3">
+                                    <ApiKeyInput
+                                        value={config.image_fallback_key || ''}
+                                        onChange={v => updateConfig('image_fallback_key', v)}
+                                        visible={showKeys['image_fallback_key'] || false}
+                                        onToggle={() => toggleKeyVisibility('image_fallback_key')}
+                                        masked={maskKey(config.image_fallback_key || '')}
+                                        placeholder="Fallback image API key"
+                                        small
+                                    />
+                                </div>
+                            )}
+                            {config.image_fallback_provider && config.image_fallback_provider !== 'imagen' && (
+                                <div className="mt-3">
+                                    <p className="text-xs text-gray-400 mb-2">Ротация fallback ключей (картинки)</p>
+                                    <MultiKeyEditor
+                                        keys={config.image_fallback_keys}
+                                        onChange={keys => updateConfig('image_fallback_keys', keys)}
+                                        placeholder="Fallback image API key"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </Section>
 
                     {/* Delivery */}
@@ -632,6 +764,71 @@ function ApiKeyInput({
     )
 }
 
-// Tailwind utility classes used inline in this component:
-// input-field = "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-// input-field-sm = "w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+function MultiKeyEditor({
+    keys,
+    onChange,
+    placeholder,
+}: {
+    keys: ApiKeyEntry[] | null
+    onChange: (keys: ApiKeyEntry[]) => void
+    placeholder: string
+}) {
+    const list = keys || []
+
+    const addKey = () => {
+        onChange([...list, { key: '', label: `Key ${list.length + 1}`, enabled: true }])
+    }
+
+    const removeKey = (index: number) => {
+        onChange(list.filter((_, i) => i !== index))
+    }
+
+    const updateKey = (index: number, field: keyof ApiKeyEntry, value: unknown) => {
+        const updated = [...list]
+        updated[index] = { ...updated[index], [field]: value }
+        onChange(updated)
+    }
+
+    return (
+        <div className="space-y-2">
+            {list.map((entry, i) => (
+                <div key={i} className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={entry.enabled}
+                        onChange={e => updateKey(i, 'enabled', e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 shrink-0"
+                    />
+                    <input
+                        type="text"
+                        value={entry.label}
+                        onChange={e => updateKey(i, 'label', e.target.value)}
+                        className="w-28 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm shrink-0"
+                        placeholder="Label"
+                    />
+                    <input
+                        type="password"
+                        value={entry.key}
+                        onChange={e => updateKey(i, 'key', e.target.value)}
+                        className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono"
+                        placeholder={placeholder}
+                    />
+                    <button
+                        onClick={() => removeKey(i)}
+                        className="text-red-400 hover:text-red-600 transition-colors shrink-0 cursor-pointer"
+                        aria-label="Удалить ключ"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            ))}
+            <button
+                onClick={addKey}
+                className="flex items-center gap-1.5 text-sm text-orange-500 hover:text-orange-600 font-medium cursor-pointer transition-colors"
+            >
+                <Plus className="w-4 h-4" />
+                Добавить ключ
+            </button>
+        </div>
+    )
+}
