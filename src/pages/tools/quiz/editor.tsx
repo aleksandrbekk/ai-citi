@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Monitor, Smartphone } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { toast } from 'sonner'
@@ -317,6 +317,8 @@ function StartTab({
   footerText: string; setFooterText: (v: string) => void
   coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
 }) {
+  const [mobileView, setMobileView] = useState<'phone' | 'browser'>('phone')
+
   // Desktop preview renderer
   const renderDesktopPreview = () => {
     const titleEl = <h2 className={`font-bold text-gray-900 mb-2 ${startLayout === 'center' ? 'text-xl' : 'text-lg'}`}>{title || 'Заголовок квиза'}</h2>
@@ -392,19 +394,30 @@ function StartTab({
     <div className="space-y-5">
       {/* Preview area — desktop + phone mockup side by side */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
-          <Eye className="w-4 h-4 text-gray-400" />
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью</span>
+        <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-gray-400" />
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью</span>
+          </div>
+          {/* Mobile-only toggle: phone / browser */}
+          <div className="flex md:hidden bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <button type="button" onClick={() => setMobileView('phone')} className={`p-1.5 transition-colors cursor-pointer ${mobileView === 'phone' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`} title="Телефон">
+              <Smartphone className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => setMobileView('browser')} className={`p-1.5 transition-colors cursor-pointer ${mobileView === 'browser' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`} title="Браузер">
+              <Monitor className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row">
-          {/* Desktop preview — visible on md+ */}
-          <div className="hidden md:block flex-1 bg-[#FFF8F5] min-w-0">
+          {/* Desktop preview — always on md+, toggle on mobile */}
+          <div className={`flex-1 bg-[#FFF8F5] min-w-0 ${mobileView === 'browser' ? 'block' : 'hidden md:block'}`}>
             {renderDesktopPreview()}
           </div>
 
-          {/* Mobile phone mockup */}
-          <div className="flex flex-col items-center px-4 py-5 md:px-6 md:border-l border-gray-200 bg-gray-50/80">
+          {/* Mobile phone mockup — always on md+, toggle on mobile */}
+          <div className={`flex-col items-center px-4 py-5 md:px-6 md:border-l border-gray-200 bg-gray-50/80 ${mobileView === 'phone' ? 'flex' : 'hidden md:flex'}`}>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-3">Мобильная версия</p>
             <div className="w-[200px] h-[380px] bg-gray-900 rounded-[32px] p-2 shadow-xl flex-shrink-0">
               <div className="w-full h-full bg-white rounded-[26px] overflow-hidden flex flex-col">
