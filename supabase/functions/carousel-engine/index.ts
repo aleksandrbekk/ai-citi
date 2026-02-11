@@ -22,7 +22,7 @@ const VERTEX_LOCATION = "us-central1"
 async function fetchWithTimeout(
     url: string,
     options: RequestInit,
-    timeoutMs: number = 60000
+    timeoutMs: number = 120000
 ): Promise<Response> {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)

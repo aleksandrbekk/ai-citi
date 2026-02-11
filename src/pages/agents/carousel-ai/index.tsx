@@ -389,10 +389,10 @@ function CarouselAIInner() {
 
     const GENERATION_STEPS = [
         'Анализируем тему...',
-        'Пишем тексты слайдов...',
+        'AI пишет тексты слайдов...',
         'Генерируем дизайн...',
-        'Создаём слайды...',
-        'Финальная обработка...',
+        'Создаём 9 уникальных слайдов...',
+        'Загружаем и отправляем...',
     ]
 
     // ==================== GENERATING VIEW ====================
@@ -440,7 +440,7 @@ function CarouselAIInner() {
                         </span>
                         <div className="flex items-center gap-1 text-xs text-gray-400">
                             <Clock className="w-3 h-3" />
-                            <span>~2 мин</span>
+                            <span>~2-4 мин</span>
                         </div>
                     </div>
                 </div>
@@ -483,7 +483,7 @@ function CarouselAIInner() {
                             </div>
                             <div className="flex-1">
                                 <p className="font-semibold text-emerald-800">Можно закрыть приложение</p>
-                                <p className="text-emerald-600 text-sm">Карусель придёт автоматически через 1-2 минуты</p>
+                                <p className="text-emerald-600 text-sm">Карусель придёт автоматически через 2-4 минуты</p>
                             </div>
                         </div>
                     </div>
