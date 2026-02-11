@@ -707,27 +707,59 @@ async function generateImageOpenRouter(
 
     const data = await response.json()
 
-    // OpenRouter returns image as base64 in content parts
-    const messageParts = data.choices?.[0]?.message?.content
-    if (Array.isArray(messageParts)) {
-        for (const part of messageParts) {
-            if (part.type === 'image_url' && part.image_url?.url) {
-                // data:image/png;base64,... format
-                const base64Match = part.image_url.url.match(/^data:image\/[^;]+;base64,(.+)$/)
-                if (base64Match) {
-                    const base64Image = base64Match[1]
-                    const binaryStr = atob(base64Image)
-                    const bytes = new Uint8Array(binaryStr.length)
-                    for (let i = 0; i < binaryStr.length; i++) {
-                        bytes[i] = binaryStr.charCodeAt(i)
-                    }
-                    return bytes
+    let imageBase64: string | null = null
+
+    try {
+        const msg = data.choices?.[0]?.message
+
+        // Attempt 1: OpenRouter images field — message.images[0].image_url.url
+        if (msg?.images?.[0]?.image_url?.url) {
+            const imageUrl = msg.images[0].image_url.url
+            if (imageUrl.startsWith('data:image/')) {
+                imageBase64 = imageUrl.replace(/^data:image\/\w+;base64,/, '')
+            }
+        }
+
+        // Attempt 2: OpenRouter multipart content — message.content[] with image_url
+        if (!imageBase64 && Array.isArray(msg?.content)) {
+            for (const part of msg.content) {
+                if (part.image_url?.url?.startsWith('data:image/')) {
+                    imageBase64 = part.image_url.url.replace(/^data:image\/\w+;base64,/, '')
+                    break
                 }
             }
         }
+
+        // Attempt 3: Native Gemini format — candidates[0].content.parts[].inlineData.data
+        if (!imageBase64 && data.candidates?.[0]?.content?.parts) {
+            for (const part of data.candidates[0].content.parts) {
+                if (part.inlineData?.data) {
+                    imageBase64 = part.inlineData.data
+                    break
+                }
+            }
+        }
+    } catch (e) {
+        console.error('[Engine] Error extracting image from response:', e)
     }
 
-    throw new Error('OpenRouter did not return an image in response')
+    if (imageBase64) {
+        const binaryStr = atob(imageBase64)
+        const bytes = new Uint8Array(binaryStr.length)
+        for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i)
+        }
+        return bytes
+    }
+
+    // Log response structure for debugging
+    const responseKeys = JSON.stringify({
+        hasChoices: !!data.choices,
+        messageKeys: data.choices?.[0]?.message ? Object.keys(data.choices[0].message) : [],
+        hasCandidates: !!data.candidates,
+        contentType: typeof data.choices?.[0]?.message?.content,
+    })
+    throw new Error(`OpenRouter did not return an image. Response structure: ${responseKeys}`)
 }
 
 // --- Image generation by provider (с ротацией ключей) ---
