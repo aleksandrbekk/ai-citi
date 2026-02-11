@@ -840,6 +840,94 @@ async function uploadToCloudinary(
 }
 
 // ============================================================
+// CLOUDINARY CLEANUP (auto-delete after 24h)
+// ============================================================
+
+async function sha1(message: string): Promise<string> {
+    const data = new TextEncoder().encode(message)
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+function extractPublicId(url: string): string | null {
+    const match = url.match(/\/upload\/(?:v\d+\/|[^/]*\/)?(.+)\.\w+$/)
+    return match ? match[1] : null
+}
+
+async function destroyCloudinaryImage(publicId: string, cloudName: string, apiKey: string, apiSecret: string): Promise<boolean> {
+    try {
+        const timestamp = Math.floor(Date.now() / 1000)
+        const signature = await sha1(`public_id=${publicId}&timestamp=${timestamp}${apiSecret}`)
+
+        const formData = new URLSearchParams()
+        formData.append('public_id', publicId)
+        formData.append('api_key', apiKey)
+        formData.append('timestamp', timestamp.toString())
+        formData.append('signature', signature)
+
+        const response = await fetchWithTimeout(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`,
+            { method: 'POST', body: formData },
+            15000
+        )
+        const result = await response.json()
+        return result.result === 'ok' || result.result === 'not found'
+    } catch (err) {
+        console.error(`[Cloudinary] Failed to delete ${publicId}:`, err)
+        return false
+    }
+}
+
+async function cleanupOldCloudinaryImages(config: EngineConfig): Promise<number> {
+    const apiKey = Deno.env.get('CLOUDINARY_API_KEY')
+    const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET')
+    if (!apiKey || !apiSecret) {
+        console.log('[Cloudinary] No API_KEY/SECRET — skipping cleanup')
+        return 0
+    }
+
+    const supabase = getSupabaseClient()
+
+    // Find logs older than 24h with images that haven't been cleaned
+    const { data: oldLogs, error } = await supabase
+        .from('ai_generation_logs')
+        .select('id, image_urls')
+        .eq('cloudinary_cleaned', false)
+        .not('image_urls', 'is', null)
+        .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .limit(10) // Process max 10 per run to avoid timeouts
+
+    if (error || !oldLogs || oldLogs.length === 0) return 0
+
+    let totalDeleted = 0
+
+    for (const log of oldLogs) {
+        const urls: string[] = log.image_urls || []
+        let allDeleted = true
+
+        for (const url of urls) {
+            const publicId = extractPublicId(url)
+            if (!publicId) continue
+            const ok = await destroyCloudinaryImage(publicId, config.cloudinary_cloud, apiKey, apiSecret)
+            if (ok) totalDeleted++
+            else allDeleted = false
+        }
+
+        // Mark as cleaned even if some failed (to avoid infinite retry)
+        await supabase
+            .from('ai_generation_logs')
+            .update({ cloudinary_cleaned: true })
+            .eq('id', log.id)
+
+        if (!allDeleted) {
+            console.warn(`[Cloudinary] Some images failed to delete for log ${log.id}`)
+        }
+    }
+
+    return totalDeleted
+}
+
+// ============================================================
 // TELEGRAM DELIVERY
 // ============================================================
 
@@ -1247,6 +1335,16 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         const { data: cleanedCount } = await supabase.rpc('cleanup_hung_generations', { p_timeout_minutes: 5 })
         if (cleanedCount && cleanedCount > 0) {
             console.log(`[Engine] Cleaned up ${cleanedCount} hung generations`)
+        }
+    } catch {
+        // Non-critical
+    }
+
+    // === Автоочистка Cloudinary (удаление картинок старше 24ч) ===
+    try {
+        const deletedCount = await cleanupOldCloudinaryImages(config)
+        if (deletedCount > 0) {
+            console.log(`[Engine] Cloudinary cleanup: deleted ${deletedCount} old images`)
         }
     } catch {
         // Non-critical
