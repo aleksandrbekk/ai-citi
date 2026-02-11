@@ -250,16 +250,11 @@ async function generateTextGemini(
         ],
     }
 
-    // Google Search Grounding
+    // Google Search Grounding (Gemini 2.5+ uses google_search)
     if (useGrounding) {
         requestBody.tools = [
             {
-                googleSearchRetrieval: {
-                    dynamicRetrievalConfig: {
-                        mode: "MODE_DYNAMIC",
-                        dynamicThreshold: 0.3,
-                    }
-                }
+                google_search: {}
             }
         ]
     }
