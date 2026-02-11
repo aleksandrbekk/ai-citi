@@ -1506,27 +1506,17 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             const slidePhotoRef = isFaceSlide ? photoBase64 : null
             const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
 
-            // Генерация с ретраем (до 2 попыток)
-            const tryGenerate = async (): Promise<Uint8Array | null> => {
-                for (let attempt = 1; attempt <= 2; attempt++) {
-                    try {
-                        const img = await generateImage(prompt, config, slidePhotoRef)
-                        console.log(`[Engine] Image ${i + 1}/${slides.length} OK${attempt > 1 ? ` (retry ${attempt})` : ''}`)
-                        return img
-                    } catch (err) {
-                        const errMsg = err instanceof Error ? err.message : String(err)
-                        if (attempt < 2) {
-                            console.warn(`[Engine] Image ${i + 1}/${slides.length} attempt ${attempt} failed, retrying...`)
-                            continue
-                        }
-                        console.error(`[Engine] Image ${i + 1}/${slides.length} FAILED after ${attempt} attempts:`, errMsg)
-                        if (!firstImageError) firstImageError = errMsg
-                        return null
-                    }
-                }
-                return null
-            }
-            return tryGenerate()
+            return generateImage(prompt, config, slidePhotoRef)
+                .then(img => {
+                    console.log(`[Engine] Image ${i + 1}/${slides.length} OK`)
+                    return img
+                })
+                .catch((err) => {
+                    const errMsg = err instanceof Error ? err.message : String(err)
+                    console.error(`[Engine] Image ${i + 1}/${slides.length} FAILED:`, errMsg)
+                    if (!firstImageError) firstImageError = errMsg
+                    return null
+                })
         })
 
         const imageResults = await Promise.all(imagePromises)
