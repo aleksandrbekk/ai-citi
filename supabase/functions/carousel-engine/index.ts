@@ -109,7 +109,7 @@ interface EngineConfig {
     text_fallback_model: string | null
     text_api_keys: ApiKeyEntry[] | null
     text_fallback_keys: ApiKeyEntry[] | null
-    image_provider: 'gemini' | 'imagen' | 'ideogram'
+    image_provider: 'openrouter' | 'gemini' | 'imagen' | 'ideogram'
     image_api_key: string
     image_model: string
     image_api_keys: ApiKeyEntry[] | null
@@ -652,6 +652,79 @@ async function generateImageGemini(
     throw new Error('Gemini did not return an image in response')
 }
 
+// --- OpenRouter Image Generation (как в n8n) ---
+async function generateImageOpenRouter(
+    prompt: string,
+    model: string,
+    apiKey: string,
+    referenceImageBase64?: string | null
+): Promise<Uint8Array> {
+    const modelId = model || 'google/gemini-3-pro-image-preview'
+    console.log(`[Engine] Using OpenRouter image model: ${modelId}${referenceImageBase64 ? ' + reference photo' : ''}`)
+
+    // Build messages: reference image (if provided) + text prompt
+    const contentParts: Record<string, unknown>[] = []
+
+    if (referenceImageBase64) {
+        contentParts.push({
+            type: 'image_url',
+            image_url: {
+                url: `data:image/jpeg;base64,${referenceImageBase64}`,
+            }
+        })
+    }
+
+    contentParts.push({ type: 'text', text: prompt })
+
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://aiciti.pro',
+        },
+        body: JSON.stringify({
+            model: modelId,
+            messages: [
+                {
+                    role: 'user',
+                    content: contentParts,
+                }
+            ],
+            modalities: ['image', 'text'],
+        }),
+    }, 120000)
+
+    if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`OpenRouter Image error ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    // OpenRouter returns image as base64 in content parts
+    const messageParts = data.choices?.[0]?.message?.content
+    if (Array.isArray(messageParts)) {
+        for (const part of messageParts) {
+            if (part.type === 'image_url' && part.image_url?.url) {
+                // data:image/png;base64,... format
+                const base64Match = part.image_url.url.match(/^data:image\/[^;]+;base64,(.+)$/)
+                if (base64Match) {
+                    const base64Image = base64Match[1]
+                    const binaryStr = atob(base64Image)
+                    const bytes = new Uint8Array(binaryStr.length)
+                    for (let i = 0; i < binaryStr.length; i++) {
+                        bytes[i] = binaryStr.charCodeAt(i)
+                    }
+                    return bytes
+                }
+            }
+        }
+    }
+
+    throw new Error('OpenRouter did not return an image in response')
+}
+
 // --- Image generation by provider (с ротацией ключей) ---
 async function generateImageWithProvider(
     prompt: string,
@@ -661,7 +734,15 @@ async function generateImageWithProvider(
     keysJson: ApiKeyEntry[] | null | undefined,
     referenceImageBase64?: string | null
 ): Promise<Uint8Array> {
-    if (provider === 'gemini') {
+    if (provider === 'openrouter') {
+        const keys = getRotatedKeys(keysJson, singleKey)
+        if (keys.length === 0) throw new Error('No OpenRouter image API keys configured')
+        let result: Uint8Array = new Uint8Array()
+        await tryWithKeyRotation(keys, async (key) => {
+            result = await generateImageOpenRouter(prompt, model, key, referenceImageBase64)
+        }, 'image-openrouter')
+        return result
+    } else if (provider === 'gemini') {
         const keys = getRotatedKeys(keysJson, singleKey)
         if (keys.length === 0) throw new Error('No Gemini image API keys configured')
         let result: Uint8Array = new Uint8Array()

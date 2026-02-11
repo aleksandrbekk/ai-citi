@@ -101,6 +101,7 @@ const TEXT_MODELS = [
 ]
 
 const IMAGE_PROVIDERS = [
+    { value: 'openrouter', label: 'OpenRouter', desc: 'Gemini, Claude и другие модели для картинок' },
     { value: 'gemini', label: 'Gemini Image', desc: 'Google AI Studio, нативная генерация' },
     { value: 'imagen', label: 'Google Imagen', desc: 'Vertex AI, лучшее качество' },
     { value: 'ideogram', label: 'Ideogram', desc: 'Хороший текст на картинках' },
