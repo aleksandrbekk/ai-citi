@@ -525,8 +525,8 @@ async function generateImageGemini(
     const data = await response.json()
 
     // Gemini returns image in parts as inlineData
-    const parts = data.candidates?.[0]?.content?.parts || []
-    for (const part of parts) {
+    const responseParts = data.candidates?.[0]?.content?.parts || []
+    for (const part of responseParts) {
         if (part.inlineData?.mimeType?.startsWith('image/') && part.inlineData?.data) {
             const base64Image = part.inlineData.data
             const binaryStr = atob(base64Image)
@@ -597,6 +597,22 @@ async function uploadToCloudinary(
 // ============================================================
 // TELEGRAM DELIVERY
 // ============================================================
+
+async function sendStatusToTelegram(chatId: number, text: string, botToken: string): Promise<void> {
+    try {
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text,
+                parse_mode: 'HTML',
+            }),
+        })
+    } catch {
+        // Не критично — статусное сообщение
+    }
+}
 
 async function sendToTelegram(
     chatId: number,
@@ -974,6 +990,13 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
     const logId = await createGenLog(payload.chatId, payload.topic, payload.styleId, config)
 
     try {
+        // === СТАТУС: Начало генерации ===
+        await sendStatusToTelegram(
+            payload.chatId,
+            `🎨 <b>Карусель запущена!</b>\n\n📝 Тема: «${payload.topic}»\n🤖 Копирайтер пишет тексты слайдов...\n\n⏱ Обычно это занимает 1-2 минуты`,
+            config.telegram_bot_token
+        )
+
         // === ШАГ 1: Копирайтинг ===
         console.log('[Engine] Step 1: Generating text...')
         await updateGenLog(logId, { status: 'generating_text' })
@@ -1026,6 +1049,14 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         console.log(`[Engine] Parsed ${slides.length} slides, post_text length: ${postText.length}`)
 
+        // === СТАТУС: Тексты готовы ===
+        const faceCount = slides.filter(s => s.human_mode === 'FACE' || s.type === 'HOOK' || s.type === 'CTA').length
+        await sendStatusToTelegram(
+            payload.chatId,
+            `✅ <b>Тексты готовы!</b> (${(textMs / 1000).toFixed(1)}с)\n\n📊 ${slides.length} слайдов создано\n🎨 Генерирую ${slides.length} изображений${payload.userPhoto ? `\n📸 Использую ваше фото для ${faceCount} слайдов` : ''}...\n\n⏱ Это самый долгий этап — подождите ещё минутку`,
+            config.telegram_bot_token
+        )
+
         // === ШАГ 1.5: Скачиваем фото пользователя (для FACE-слайдов) ===
         let photoBase64: string | null = null
         if (payload.userPhoto) {
@@ -1071,6 +1102,13 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         // Фильтруем null (провалившиеся слайды)
         const validImages = imageResults.filter((img): img is Uint8Array => img !== null)
         console.log(`[Engine] ${validImages.length}/${slides.length} images generated successfully`)
+
+        // === СТАТУС: Картинки готовы ===
+        await sendStatusToTelegram(
+            payload.chatId,
+            `🖼 <b>Изображения готовы!</b> (${(imageMs / 1000).toFixed(0)}с)\n\n✅ ${validImages.length}/${slides.length} слайдов отрисовано\n📤 Загружаю и отправляю вам...`,
+            config.telegram_bot_token
+        )
 
         // === ШАГ 3: Upload на Cloudinary (ПАРАЛЛЕЛЬНО!) ===
         console.log('[Engine] Step 3: Uploading to Cloudinary (parallel)...')
