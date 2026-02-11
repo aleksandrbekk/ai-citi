@@ -433,25 +433,23 @@ async function generateImageIdeogram(
     return new Uint8Array(imgBuffer)
 }
 
-// --- Gemini Native Image Generation (generateContent with responseModalities) ---
+// --- Gemini Native Image Generation (Google AI Studio API) ---
 async function generateImageGemini(
     prompt: string,
-    model: string
+    model: string,
+    apiKey: string
 ): Promise<Uint8Array> {
-    const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
-    if (!credentialsJson) throw new Error('GOOGLE_SERVICE_ACCOUNT not set')
+    if (!apiKey || apiKey === 'via_service_account') {
+        throw new Error('Gemini image requires a Google AI Studio API key in image_api_key')
+    }
 
-    const credentials = JSON.parse(credentialsJson)
-    const token = await getAccessToken(credentials)
-
-    const modelId = model || 'gemini-2.0-flash-preview-image-generation'
-    console.log(`[Engine] Using Gemini image model: ${modelId}`)
-    const endpoint = `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:generateContent`
+    const modelId = model || 'gemini-3-pro-image-preview'
+    console.log(`[Engine] Using Gemini image model: ${modelId} (AI Studio)`)
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`
 
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -461,7 +459,6 @@ async function generateImageGemini(
             }],
             generationConfig: {
                 responseModalities: ['IMAGE', 'TEXT'],
-                responseMimeType: 'image/png',
             },
             safetySettings: [
                 { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
@@ -502,7 +499,7 @@ async function generateImage(
     config: EngineConfig
 ): Promise<Uint8Array> {
     if (config.image_provider === 'gemini') {
-        return await generateImageGemini(prompt, config.image_model)
+        return await generateImageGemini(prompt, config.image_model, config.image_api_key)
     } else if (config.image_provider === 'imagen') {
         return await generateImageImagen(prompt, config.image_model)
     } else {
@@ -981,15 +978,21 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         const stylePrompt = payload.stylePrompt || (payload.styleConfig?.style_prompt as string) || ''
         const imageStart = Date.now()
 
+        let firstImageError = ''
         const imagePromises = slides.map((slide) => {
             const prompt = buildImagePrompt(slide, stylePrompt, payload)
             return generateImage(prompt, config).catch((err) => {
-                console.error(`[Engine] Image gen failed for slide ${slide.slideNumber}:`, err)
+                const errMsg = err instanceof Error ? err.message : String(err)
+                console.error(`[Engine] Image gen failed for slide ${slide.slideNumber}:`, errMsg)
+                if (!firstImageError) firstImageError = errMsg
                 return null
             })
         })
 
         const imageResults = await Promise.all(imagePromises)
+        if (firstImageError) {
+            await updateGenLog(logId, { error_message: `Image errors: ${firstImageError}` })
+        }
         const imageMs = Date.now() - imageStart
         console.log(`[Engine] Images generated in ${imageMs}ms`)
         await updateGenLog(logId, { image_gen_ms: imageMs })
