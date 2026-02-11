@@ -37,10 +37,26 @@ interface EngineConfig {
 
 interface SlideContent {
     slideNumber: number
-    type: string  // HOOK, CONTENT, CTA, etc.
-    content: string
-    visualTask: string
+    type: 'HOOK' | 'CONTENT' | 'CTA' | 'VIRAL'
+    headline: string
+    subheadline?: string
+    body_text?: string
+    transition?: string
+    pose?: string
+    emotion?: string
+    human_mode: 'FACE' | 'NONE'
+    overlay_text?: string[]
+    content_layout?: string
+    content_details?: string
+    // Legacy fields (backward compat)
+    content?: string
+    visualTask?: string
     emoji?: string
+}
+
+interface CopywriterResponse {
+    slides: SlideContent[]
+    post_text: string
 }
 
 interface GenerationPayload {
@@ -480,14 +496,20 @@ async function sendToTelegram(
     chatId: number,
     imageUrls: string[],
     topic: string,
-    botToken: string
+    botToken: string,
+    postText?: string
 ): Promise<void> {
     // Отправляем все картинки как media group (альбом)
     if (imageUrls.length > 0) {
+        // Caption: use AI-generated post_text or fallback
+        const caption = postText
+            ? `${postText.substring(0, 900)}\n\n---\n🤖 NEIROCITI AI`
+            : `🎨 Карусель: ${topic}\n\n✅ Готово! ${imageUrls.length} слайдов`
+
         const media = imageUrls.map((url, i) => ({
             type: 'photo',
             media: url,
-            ...(i === 0 ? { caption: `🎨 Карусель: ${topic}\n\n✅ Готово! ${imageUrls.length} слайдов` } : {}),
+            ...(i === 0 ? { caption } : {}),
         }))
 
         const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
@@ -530,6 +552,100 @@ async function sendErrorToTelegram(chatId: number, error: string, botToken: stri
 }
 
 // ============================================================
+// VASIA_CORE HELPERS (ported from carouselStyles.ts)
+// ============================================================
+
+type NicheType = 'business' | 'health' | 'relationships' | 'education' | 'creativity' | 'lifestyle' | 'parenting' | 'cooking' | 'default'
+type ContentTone = 'problem_aware' | 'solution_focused' | 'celebratory' | 'educational'
+type SlideType = 'HOOK' | 'CONTENT' | 'CTA' | 'VIRAL'
+
+function detectNiche(topic: string, vasiaCore: Record<string, unknown>): NicheType {
+    const lower = topic.toLowerCase()
+    const detector = vasiaCore?.niche_detector as Record<string, { keywords: string[] }> | undefined
+    if (!detector) return 'default'
+
+    for (const [niche, config] of Object.entries(detector)) {
+        if (config.keywords?.some((kw: string) => lower.includes(kw.toLowerCase()))) {
+            return niche as NicheType
+        }
+    }
+    return 'default'
+}
+
+function detectTone(headline: string): ContentTone {
+    const lower = headline.toLowerCase()
+    const problemWords = ['ошибк', 'проблем', 'почему не', 'как не', 'что делать', 'помощь', 'сложно', 'трудно']
+    const celebWords = ['достиг', 'успех', 'победа', 'результат', 'сделал', 'получил', 'наконец']
+    const eduWords = ['урок', 'совет', 'факт', 'знай', 'запомни', 'важно', 'правило']
+    const solWords = ['как ', 'способ', 'метод', 'секрет', 'шаг', 'план', 'система']
+
+    if (problemWords.some(w => lower.includes(w))) return 'problem_aware'
+    if (celebWords.some(w => lower.includes(w))) return 'celebratory'
+    if (eduWords.some(w => lower.includes(w))) return 'educational'
+    if (solWords.some(w => lower.includes(w))) return 'solution_focused'
+    return 'solution_focused'
+}
+
+function selectPose(slideType: SlideType, contentTone: ContentTone, vasiaCore: Record<string, unknown>): string {
+    const poses = vasiaCore?.poses_universal as Record<string, { prompt: string }> | undefined
+    const posesByMood = vasiaCore?.poses_by_mood as Record<string, string[]> | undefined
+    if (!poses || !posesByMood) return 'Natural, engaging pose, open and approachable'
+
+    let moodKey = 'professional'
+    if (slideType === 'CTA') moodKey = 'warm_personal'
+    else if (contentTone === 'problem_aware') moodKey = 'problem_aware'
+    else if (contentTone === 'celebratory') moodKey = 'celebratory'
+    else if (contentTone === 'educational') moodKey = 'educational'
+    else moodKey = 'solution_focused'
+
+    const suitableIds = posesByMood[moodKey] || ['PRESENTING', 'CONFIDENT', 'WELCOMING']
+    const poseId = suitableIds[0]
+    return poses[poseId]?.prompt || 'Natural, engaging pose, open and approachable'
+}
+
+function selectEmotion(slideType: SlideType, contentTone: ContentTone, vasiaCore: Record<string, unknown>): string {
+    const emotions = vasiaCore?.emotions_spectrum as Record<string, { prompt: string }> | undefined
+    const emotionsByContent = vasiaCore?.emotions_by_content_type as Record<string, string[]> | undefined
+    if (!emotions || !emotionsByContent) return 'Warm and friendly, genuine expression'
+
+    if (slideType === 'CTA') return emotions['WARM']?.prompt || 'Warm and friendly, genuine expression'
+
+    let contentType = 'personal_story'
+    if (contentTone === 'problem_aware') contentType = 'problem_solution'
+    else if (contentTone === 'solution_focused') contentType = 'how_to_guide'
+    else if (contentTone === 'celebratory') contentType = 'celebration'
+    else if (contentTone === 'educational') contentType = 'tips_tricks'
+
+    const suitableIds = emotionsByContent[contentType] || ['CONFIDENT', 'WARM', 'INSPIRED']
+    const emotionId = suitableIds[slideType === 'HOOK' ? 0 : 1]
+    return emotions[emotionId]?.prompt || 'Warm and friendly, genuine expression'
+}
+
+function selectOutfit(niche: NicheType, slideType: SlideType, vasiaCore: Record<string, unknown>): string {
+    const outfits = vasiaCore?.outfit_by_niche as Record<string, { hook: string; cta: string }> | undefined
+    if (!outfits) return 'Modern smart casual, clean and professional yet approachable'
+    const nicheOutfit = outfits[niche] || outfits['default']
+    if (!nicheOutfit) return 'Modern smart casual, clean and professional yet approachable'
+    return slideType === 'HOOK' ? nicheOutfit.hook : nicheOutfit.cta
+}
+
+function selectProps(niche: NicheType, contentTone: ContentTone, vasiaCore: Record<string, unknown>): string {
+    const propsByNiche = vasiaCore?.props_by_niche as Record<string, Record<string, { props: string }>> | undefined
+    if (!propsByNiche) return 'Modern workspace, laptop, coffee, plants, clean aesthetic'
+    const nicheProps = propsByNiche[niche] || propsByNiche['default']
+    if (!nicheProps) return 'Modern workspace, laptop, coffee, plants, clean aesthetic'
+    const variant = contentTone === 'problem_aware' ? 'challenge' : 'success'
+    return nicheProps[variant]?.props || nicheProps['success']?.props || 'Modern workspace, laptop, coffee, plants, clean aesthetic'
+}
+
+function selectViralTarget(vasiaCore: Record<string, unknown>): string {
+    const targets = vasiaCore?.viral_targets as Record<string, string> | undefined
+    if (!targets) return 'ТОМУ КОМУ ЭТО НУЖНО'
+    const keys = Object.keys(targets)
+    return targets[keys[Math.floor(Math.random() * keys.length)]] || 'ТОМУ КОМУ ЭТО НУЖНО'
+}
+
+// ============================================================
 // PIPELINE: Построение промптов
 // ============================================================
 
@@ -539,15 +655,14 @@ function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: stri
     const globalSystemPrompt = payload.globalSystemPrompt || ''
     const topic = payload.topic || ''
 
-    // Логика приоритетов (как в n8n Copywriter node):
-    // 1. Admin content_system_prompt (если > 20 символов)
-    // 2. Global system prompt
-    // 3. Базовый fallback
+    // Логика приоритетов:
+    // 1. Admin content_system_prompt (если > 20 символов) — уже содержит формат
+    // 2. Global system prompt из БД — уже содержит формат
+    // 3. Базовый fallback с rich JSON форматом
     let systemPrompt = ''
 
     if (contentSystemPrompt && contentSystemPrompt.length > 20) {
         systemPrompt = contentSystemPrompt
-        // Если админ забыл {topic} — вставляем автоматически
         if (!systemPrompt.includes('{topic}')) {
             systemPrompt = `ТЕМА: ${topic}\n\n${systemPrompt}`
         }
@@ -559,55 +674,180 @@ function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: stri
         }
         systemPrompt = systemPrompt.replace(/{topic}/g, topic)
     } else {
-        systemPrompt = `Ты — профессиональный копирайтер для Instagram каруселей. Создай структуру из 9 слайдов на тему "${topic}".`
+        // Fallback: rich JSON format instructions
+        systemPrompt = `Ты — профессиональный копирайтер для Instagram каруселей.
+Создай структуру из 9 слайдов на указанную тему.
+
+ФОРМАТ ОТВЕТА — СТРОГО JSON объект:
+{
+  "slides": [
+    {
+      "slideNumber": 1,
+      "type": "HOOK",
+      "headline": "Главный заголовок (крупный, цепляющий, до 6 слов)",
+      "subheadline": "Подзаголовок (до 10 слов)",
+      "body_text": "Основной текст для нижней карточки",
+      "pose": "описание позы человека на русском",
+      "emotion": "описание эмоции человека на русском",
+      "human_mode": "FACE"
+    },
+    {
+      "slideNumber": 2,
+      "type": "CONTENT",
+      "headline": "Заголовок слайда",
+      "body_text": "Основной контент — список, факты, советы",
+      "transition": "Переходная фраза к следующему слайду",
+      "human_mode": "NONE",
+      "content_layout": "numbered_list | comparison | checklist | infographic | quote",
+      "content_details": "Подробное описание контента для визуализации"
+    },
+    ... (слайды 3-7 — CONTENT, аналогично слайду 2)
+    {
+      "slideNumber": 8,
+      "type": "CTA",
+      "headline": "Призыв к действию",
+      "body_text": "Выгода для подписчика",
+      "pose": "описание позы",
+      "emotion": "описание эмоции",
+      "human_mode": "FACE"
+    },
+    {
+      "slideNumber": 9,
+      "type": "VIRAL",
+      "headline": "ОТПРАВЬ ЭТО",
+      "subheadline": "кому именно отправить",
+      "human_mode": "NONE"
+    }
+  ],
+  "post_text": "Текст для Instagram caption (200-300 слов, хэштеги, эмодзи)"
+}
+
+ПРАВИЛА:
+- Слайд 1 (HOOK) и 8 (CTA): human_mode="FACE" — с человеком
+- Слайды 2-7 (CONTENT) и 9 (VIRAL): human_mode="NONE" — без человека
+- headline: короткий, крупный текст (до 6 слов)
+- content_layout: выбери из вариантов для каждого CONTENT слайда
+- Чередуй content_layout: не повторяй один и тот же два раза подряд
+- post_text: полноценный Instagram caption с CTA и хэштегами
+- Верни ТОЛЬКО JSON, без markdown, без пояснений`
     }
 
-    const userPrompt = `Создай Instagram карусель из 9 слайдов на тему: "${topic}".
-
-Верни СТРОГО JSON массив из 9 объектов:
-[
-  {
-    "slideNumber": 1,
-    "type": "HOOK",
-    "content": "Текст слайда (короткий, цепляющий)",
-    "visualTask": "Описание что должно быть на картинке",
-    "emoji": "🔥"
-  },
-  ...
-]
-
-Типы слайдов: HOOK (1), CONTENT (2-7), BRIDGE (8), CTA (9).
-Пол для склонения: ${payload.gender || 'male'}.
-CTA текст: ${payload.cta || 'ПОДПИШИСЬ'}.
-ВАЖНО: Верни ТОЛЬКО JSON, без markdown, без пояснений.`
+    // userPrompt: ТОЛЬКО тема, пол, CTA — БЕЗ описания формата (формат уже в systemPrompt)
+    const userPrompt = `Тема: "${topic}".
+Пол для склонений: ${payload.gender || 'male'}.
+CTA: "${payload.cta || 'ПОДПИШИСЬ'}".
+Верни ТОЛЬКО JSON.`
 
     return { systemPrompt, userPrompt }
 }
 
 function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: GenerationPayload): string {
-    let prompt = slide.visualTask || `Instagram carousel slide about: ${slide.content}`
+    const styleConfig = payload.styleConfig || {}
+    const slideTemplates = styleConfig.slide_templates as Record<string, string> | undefined
+    const vasiaCore = payload.vasiaCore || {}
+    const slideType = (slide.type || 'CONTENT') as SlideType
+    const topic = payload.topic || ''
 
-    // Добавляем style prompt
-    if (stylePrompt) {
-        prompt += ` [STYLE_INSTRUCTION: ${stylePrompt}]`
+    // Detect niche and tone for VASIA_CORE helpers
+    const niche = detectNiche(topic, vasiaCore)
+    const contentTone = detectTone(slide.headline || topic)
+
+    // Try to get slide template from styleConfig
+    const template = slideTemplates?.[slideType]
+
+    if (template) {
+        // Fill placeholders in the template
+        let prompt = template
+
+        // Text placeholders
+        prompt = prompt.replace(/\{HEADLINE_1\}/g, slide.headline || '')
+        prompt = prompt.replace(/\{HEADLINE_2\}/g, slide.subheadline || '')
+        prompt = prompt.replace(/\{HEADLINE\}/g, slide.headline || '')
+        prompt = prompt.replace(/\{BOTTOM_TEXT\}/g, slide.body_text || '')
+        prompt = prompt.replace(/\{TRANSITION\}/g, slide.transition || '')
+        prompt = prompt.replace(/\{CTA_HEADLINE\}/g, slide.headline || '')
+        prompt = prompt.replace(/\{BENEFIT_TEXT\}/g, slide.body_text || '')
+        prompt = prompt.replace(/\{VIRAL_TARGET\}/g, slide.subheadline || selectViralTarget(vasiaCore))
+
+        // VASIA_CORE placeholders — pose and emotion from AI response or helpers
+        const posePrompt = slide.pose
+            ? slide.pose
+            : selectPose(slideType, contentTone, vasiaCore)
+        const emotionPrompt = slide.emotion
+            ? slide.emotion
+            : selectEmotion(slideType, contentTone, vasiaCore)
+
+        prompt = prompt.replace(/\[POSE\]/g, posePrompt)
+        prompt = prompt.replace(/\[EMOTION\]/g, emotionPrompt)
+
+        // Outfit
+        const outfitHook = selectOutfit(niche, 'HOOK', vasiaCore)
+        const outfitCta = selectOutfit(niche, 'CTA', vasiaCore)
+        prompt = prompt.replace(/\[OUTFIT_BY_TOPIC\]/g, outfitHook)
+        prompt = prompt.replace(/\[OUTFIT_CTA\]/g, outfitCta)
+
+        // Props
+        const props = selectProps(niche, contentTone, vasiaCore)
+        prompt = prompt.replace(/\[PROPS\]/g, props)
+
+        // CTA product code
+        prompt = prompt.replace(/\[PRODUCT_CODE\]/g, payload.cta || 'ПОДПИШИСЬ')
+
+        // Content layout
+        prompt = prompt.replace(/\[CONTENT_LAYOUT\]/g, slide.content_layout || 'clean structured layout')
+        prompt = prompt.replace(/\[CONTENT_DETAILS\]/g, slide.content_details || slide.body_text || '')
+
+        // Custom color override
+        if (payload.primaryColor) {
+            prompt += `\n[COLOR_OVERRIDE: Use ${payload.primaryColor} as primary accent color instead of default.]`
+        }
+
+        return prompt
     }
 
-    // Обязательно: текст слайда должен быть на картинке
-    prompt += ` [INSTRUCTION: All text shown on the image must be exactly: "${slide.content}". Russian/Cyrillic only.]`
+    // Fallback: no slide template available — use stylePrompt + basic description
+    let prompt = ''
 
-    // Фото пользователя
-    if (payload.userPhoto) {
-        prompt += ` [USER_PHOTO: Include a person in the image]`
+    if (slideType === 'HOOK' || slideType === 'CTA') {
+        // Slides with person
+        const posePrompt = slide.pose || selectPose(slideType, contentTone, vasiaCore)
+        const emotionPrompt = slide.emotion || selectEmotion(slideType, contentTone, vasiaCore)
+        const outfit = selectOutfit(niche, slideType, vasiaCore)
+        const props = selectProps(niche, contentTone, vasiaCore)
+
+        prompt = `Create a vertical portrait image, taller than wide.
+${stylePrompt ? stylePrompt + '\n' : ''}
+Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}
+
+Person: chest up to waist, fills 85% of frame width.
+Pose: ${posePrompt}
+Expression: ${emotionPrompt}
+Outfit: ${outfit}
+Props around person: ${props}
+
+${slide.body_text ? `Bottom card text: "${slide.body_text}"` : ''}
+
+Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.`
+    } else if (slideType === 'VIRAL') {
+        const viralTarget = slide.subheadline || selectViralTarget(vasiaCore)
+        prompt = `Create a vertical portrait image, taller than wide.
+${stylePrompt ? stylePrompt + '\n' : ''}
+Center: Large card with text "ОТПРАВЬ ЭТО" and "${viralTarget}".
+Share icons, paper airplane, energy particles.
+No person. Bright, viral aesthetic. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.`
+    } else {
+        // CONTENT slides (no person)
+        prompt = `Create a vertical portrait image, taller than wide.
+${stylePrompt ? stylePrompt + '\n' : ''}
+Headline: "${slide.headline || ''}"
+Layout: ${slide.content_layout || 'clean structured layout'}
+Content: ${slide.content_details || slide.body_text || ''}
+${slide.transition ? `Transition text: "${slide.transition}"` : ''}
+No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.`
     }
 
-    // Кастомный цвет
     if (payload.primaryColor) {
-        prompt += ` [PRIMARY_COLOR: ${payload.primaryColor}]`
-    }
-
-    // Объект на слайде
-    if (payload.objectImage) {
-        prompt += ` [OBJECT: ${payload.objectImage}, placement: ${payload.objectPlacement || 'auto'}]`
+        prompt += `\n[COLOR_OVERRIDE: Use ${payload.primaryColor} as primary accent color.]`
     }
 
     return prompt
@@ -636,14 +876,34 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         // Парсим JSON из ответа
         let slides: SlideContent[]
+        let postText = ''
         try {
             // Убираем markdown обертку если есть
             const cleanJson = rawText
                 .replace(/```json\s*/g, '')
                 .replace(/```\s*/g, '')
                 .trim()
-            slides = JSON.parse(cleanJson)
-        } catch {
+            const parsed = JSON.parse(cleanJson)
+
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Array.isArray(parsed.slides)) {
+                // New format: { slides: [...], post_text: "..." }
+                slides = parsed.slides
+                postText = parsed.post_text || ''
+                console.log('[Engine] Parsed CopywriterResponse format (slides + post_text)')
+            } else if (Array.isArray(parsed)) {
+                // Legacy format: flat array — convert to new format
+                slides = parsed.map((s: Record<string, unknown>, i: number) => ({
+                    ...s,
+                    slideNumber: s.slideNumber || i + 1,
+                    headline: s.headline || s.content || '',
+                    human_mode: (s.human_mode as string) || (i === 0 || i === 7 ? 'FACE' : 'NONE'),
+                    type: s.type || 'CONTENT',
+                } as SlideContent))
+                console.log('[Engine] Parsed legacy flat array format, converted to new')
+            } else {
+                throw new Error('Unexpected JSON structure')
+            }
+        } catch (parseErr) {
             console.error('[Engine] Failed to parse slides JSON:', rawText.substring(0, 500))
             throw new Error('AI вернул невалидный JSON. Попробуйте ещё раз.')
         }
@@ -652,7 +912,7 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             throw new Error('AI не сгенерировал слайды')
         }
 
-        console.log(`[Engine] Parsed ${slides.length} slides`)
+        console.log(`[Engine] Parsed ${slides.length} slides, post_text length: ${postText.length}`)
 
         // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО!) ===
         console.log('[Engine] Step 2: Generating images (parallel)...')
@@ -701,7 +961,7 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         await updateGenLog(logId, { status: 'sending' })
 
         const telegramStart = Date.now()
-        await sendToTelegram(payload.chatId, imageUrls, payload.topic, config.telegram_bot_token)
+        await sendToTelegram(payload.chatId, imageUrls, payload.topic, config.telegram_bot_token, postText)
         const telegramMs = Date.now() - telegramStart
         console.log(`[Engine] Sent to Telegram in ${telegramMs}ms`)
 

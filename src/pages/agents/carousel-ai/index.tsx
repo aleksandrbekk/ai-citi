@@ -13,7 +13,7 @@ import { isAdmin } from '@/config/admins'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCarouselStyles, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
-import { getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
+import { getCoinBalance, spendCoinsForGeneration, getFirstUserPhoto } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import { Sparkles, Zap, Send, Clock, ExternalLink, CheckCircle2 } from 'lucide-react'
 import { CheckIcon } from '@/components/ui/icons'
@@ -79,6 +79,7 @@ function CarouselAIInner() {
     const [showSuccess, setShowSuccess] = useState(false)
     const [showCtaPage, setShowCtaPage] = useState(false)
     const [showStyleModal, setShowStyleModal] = useState(false)
+    const [userPhoto, setUserPhoto] = useState<string | null>(null)
     const isGeneratingRef = useRef(false)
 
     // Load styles from DB
@@ -97,6 +98,17 @@ function CarouselAIInner() {
         },
         enabled: !!telegramUser?.id,
     })
+
+    // Load user photo from DB
+    useEffect(() => {
+        const loadPhoto = async () => {
+            if (telegramUser?.id) {
+                const photo = await getFirstUserPhoto(telegramUser.id)
+                if (photo) setUserPhoto(photo)
+            }
+        }
+        loadPhoto()
+    }, [telegramUser?.id])
 
     // Merged styles (DB + hardcoded)
     const allStyles = (() => {
@@ -238,7 +250,7 @@ function CarouselAIInner() {
             const payload = {
                 chatId,
                 topic: topic.trim(),
-                userPhoto: null,
+                userPhoto,
                 cta: ctaValue,
                 ctaType: ctaType === 'keyword' ? 'PRODUCT' : 'ENGAGEMENT',
                 gender,
@@ -418,7 +430,7 @@ function CarouselAIInner() {
                     <div className="space-y-3">
                         <button
                             onClick={() => { setStep('setup'); setShowSuccess(false); setGenerationStep(0); setShowCtaPage(false) }}
-                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl"
+                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl"
                         >
                             <Sparkles className="w-5 h-5" />
                             Создать ещё карусель
@@ -444,9 +456,9 @@ function CarouselAIInner() {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">✓</div>
-                                <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-pink-400" />
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-pink-500/30">2</div>
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">✓</div>
+                                <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-orange-500" />
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">2</div>
                             </div>
                         </div>
                         {/* Balance */}
@@ -458,7 +470,7 @@ function CarouselAIInner() {
 
                     {/* Header */}
                     <div className="flex items-center gap-3 mb-5">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
                             <MegaphoneIcon className="text-white w-6 h-6" />
                         </div>
                         <div>
@@ -499,8 +511,8 @@ function CarouselAIInner() {
                     {ctaType === 'keyword' ? (
                         <>
                             {/* Info Card */}
-                            <div className="bg-gradient-to-br from-orange-50 to-pink-50 rounded-2xl border border-orange-100 p-4 mb-4 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
+                            <div className="bg-gradient-to-br from-orange-50 to-[#FFF8F5] rounded-2xl border border-orange-100 p-4 mb-4 flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
                                     <MessageIcon className="text-white w-5 h-5" />
                                 </div>
                                 <div className="flex-1">
@@ -537,12 +549,12 @@ function CarouselAIInner() {
                                     key={option.id}
                                     onClick={() => setEngagementType(option.id)}
                                     className={`w-full flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl transition-all cursor-pointer ${engagementType === option.id
-                                        ? 'border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg shadow-purple-500/10'
-                                        : 'border-gray-100 bg-white/80 hover:border-purple-200'
+                                        ? 'border-orange-300 bg-gradient-to-r from-orange-50 to-[#FFF8F5] shadow-lg shadow-orange-500/10'
+                                        : 'border-gray-100 bg-white/80 hover:border-orange-200'
                                         }`}
                                 >
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${engagementType === option.id
-                                        ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg'
+                                        ? 'bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg'
                                         : 'bg-gray-100'
                                         }`}>
                                         {engagementType === option.id ? <CheckIcon size={20} className="text-white" /> : option.icon}
@@ -574,7 +586,7 @@ function CarouselAIInner() {
                         disabled={isSubmitting}
                         className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer ${coinBalance < 30
                             ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-green-500/30'
-                            : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white shadow-orange-500/30'
+                            : 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-orange-500/30'
                             }`}
                     >
                         {isSubmitting ? (
@@ -616,7 +628,7 @@ function CarouselAIInner() {
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">1</div>
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">1</div>
                             <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-gray-200" />
                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-medium text-sm">2</div>
                         </div>
@@ -691,7 +703,7 @@ function CarouselAIInner() {
                         <button
                             onClick={() => setGender('female')}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1 ${gender === 'female'
-                                ? 'bg-white text-pink-600 shadow-sm'
+                                ? 'bg-white text-orange-500 shadow-sm'
                                 : 'text-gray-400 hover:text-gray-600'
                                 }`}
                         >
@@ -711,7 +723,7 @@ function CarouselAIInner() {
                 {/* Next Button */}
                 <button
                     onClick={handleNext}
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl hover:shadow-orange-500/40"
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl hover:shadow-orange-500/40"
                 >
                     Далее →
                 </button>
