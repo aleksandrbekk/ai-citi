@@ -9,10 +9,6 @@ import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTari
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
 import { haptic } from '@/lib/haptic'
-import { isAdmin } from '@/config/admins'
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export default function CarouselContent() {
   const navigate = useNavigate()
@@ -178,34 +174,16 @@ export default function CarouselContent() {
     setStatus('generating')
     navigate('/agents/carousel/generating')
 
-    // Админы тестируют carousel-engine, остальные — n8n
+    // Первый агент ВСЕГДА через n8n (carousel-engine только в /agents/carousel-ai/)
     try {
-      const currentUserId = chatId
-      const useEngine = isAdmin(currentUserId)
-
-      let response: Response
-      if (useEngine) {
-        // Админ → carousel-engine (тест нового движка с фото)
-        console.log('[CarouselContent] ADMIN — sending to carousel-engine')
-        response = await fetch(`${SUPABASE_URL}/functions/v1/carousel-engine`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify(requestData),
-        })
-      } else {
-        // Обычные пользователи → n8n (стабильный)
-        console.log('[CarouselContent] USER — sending to n8n')
-        response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestData),
-        })
-      }
+      console.log('[CarouselContent] Sending to n8n (stable)')
+      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      })
 
       if (!response.ok) {
         throw new Error('Ошибка отправки запроса')

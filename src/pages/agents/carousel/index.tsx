@@ -14,8 +14,6 @@ import { SettingsPanel } from '@/components/carousel/SettingsPanel'
 import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 import MaintenanceOverlay from '@/components/MaintenanceOverlay'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Error Boundary для отлова ошибок
 class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -608,28 +606,13 @@ function CarouselIndexInner() {
       console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
       console.log('[Carousel] Payload stylePrompt length:', payload.stylePrompt.length)
 
-      // Админы тестируют carousel-engine, остальные — n8n
-      const useEngine = isAdmin(user?.id)
-
-      let response: Response
-      if (useEngine) {
-        console.log('[Carousel] ADMIN — sending to carousel-engine')
-        response = await fetch(`${SUPABASE_URL}/functions/v1/carousel-engine`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify(payload),
-        })
-      } else {
-        console.log('[Carousel] USER — sending to n8n')
-        response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-      }
+      // Первый агент ВСЕГДА через n8n (carousel-engine только в /agents/carousel-ai/)
+      console.log('[Carousel] Sending to n8n (stable)')
+      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
       if (!response.ok) throw new Error('Network error')
 
