@@ -16,9 +16,11 @@ export interface ContactConfig {
   enabled: boolean
   title: string
   description: string
+  image_url?: string | null
   fields: {
     name: ContactFieldConfig
     phone: ContactFieldConfig
+    telegram: ContactFieldConfig
     email: ContactFieldConfig
   }
 }
@@ -33,6 +35,7 @@ export interface ResultConfig {
 export interface ThankYouConfig {
   title: string
   description: string
+  image_url?: string | null
   cta_text: string | null
   cta_url: string | null
 }
@@ -58,6 +61,7 @@ export interface UserQuiz {
 export interface QuizOptionItem {
   id?: string
   option_text: string
+  option_image_url?: string | null
   is_correct: boolean
   order_index: number
 }
@@ -65,6 +69,7 @@ export interface QuizOptionItem {
 export interface QuizQuestionItem {
   id?: string
   question_text: string
+  question_image_url?: string | null
   question_type: 'single_choice' | 'multiple_choice' | 'text'
   order_index: number
   is_required: boolean
@@ -82,6 +87,7 @@ export interface QuizLead {
   session_id: string | null
   name: string | null
   phone: string | null
+  telegram_username: string | null
   email: string | null
   answers: Array<{
     question_id: string
@@ -293,6 +299,7 @@ export function usePublicQuiz(slug: string | undefined) {
   const submitLead = useCallback(async (leadData: {
     name?: string
     phone?: string
+    telegram_username?: string
     email?: string
     answers: Array<{ question_id: string; question_text: string; answer_text: string }>
   }): Promise<string | null> => {
@@ -306,6 +313,7 @@ export function usePublicQuiz(slug: string | undefined) {
       p_name: leadData.name || null,
       p_phone: leadData.phone || null,
       p_email: leadData.email || null,
+      p_telegram_username: leadData.telegram_username || null,
       p_answers: leadData.answers,
     })
 
@@ -321,7 +329,9 @@ export function usePublicQuiz(slug: string | undefined) {
           quiz_id: quiz.id,
           lead_name: leadData.name,
           lead_phone: leadData.phone,
+          lead_telegram: leadData.telegram_username,
           lead_email: leadData.email,
+          lead_answers: leadData.answers,
         },
       })
     } catch (notifyError) {

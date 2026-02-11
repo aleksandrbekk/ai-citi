@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { quiz_id, lead_name, lead_phone, lead_email } = await req.json()
+    const { quiz_id, lead_name, lead_phone, lead_telegram, lead_email, lead_answers } = await req.json()
 
     if (!quiz_id) {
       return new Response(
@@ -42,11 +42,22 @@ serve(async (req) => {
       )
     }
 
-    // Формируем сообщение
+    // Формируем контактную информацию
     const contactParts: string[] = []
     if (lead_name) contactParts.push(`👤 Имя: ${lead_name}`)
     if (lead_phone) contactParts.push(`📱 Тел: ${lead_phone}`)
+    if (lead_telegram) contactParts.push(`✈️ Telegram: ${lead_telegram}`)
     if (lead_email) contactParts.push(`📧 Email: ${lead_email}`)
+
+    // Формируем ответы
+    const answerParts: string[] = []
+    if (lead_answers && Array.isArray(lead_answers) && lead_answers.length > 0) {
+      for (const answer of lead_answers) {
+        if (answer.question_text && answer.answer_text) {
+          answerParts.push(`❓ ${answer.question_text}\n💬 ${answer.answer_text}`)
+        }
+      }
+    }
 
     const now = new Date().toLocaleString('ru-RU', {
       timeZone: 'Europe/Moscow',
@@ -57,10 +68,18 @@ serve(async (req) => {
       minute: '2-digit',
     })
 
-    const text = `🎯 <b>Новая заявка из квиза!</b>\n\n` +
-      `📝 Квиз: <b>${quiz.title}</b>\n` +
-      (contactParts.length > 0 ? `\n${contactParts.join('\n')}\n` : '') +
-      `\n🕐 ${now} МСК`
+    let text = `🎯 <b>Новая заявка из квиза!</b>\n\n` +
+      `📝 Квиз: <b>${quiz.title}</b>\n`
+
+    if (contactParts.length > 0) {
+      text += `\n<b>📋 Контакты:</b>\n${contactParts.join('\n')}\n`
+    }
+
+    if (answerParts.length > 0) {
+      text += `\n<b>📊 Ответы:</b>\n${answerParts.join('\n\n')}\n`
+    }
+
+    text += `\n🕐 ${now} МСК`
 
     // Отправляем уведомление
     const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
