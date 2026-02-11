@@ -1525,6 +1525,31 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         const imageResults = await Promise.all(imagePromises)
 
+        // === РЕТРАЙ упавших картинок (по одной, чтобы не перегружать API) ===
+        const failedIndices = imageResults
+            .map((img, i) => img === null ? i : -1)
+            .filter(i => i >= 0)
+
+        if (failedIndices.length > 0 && failedIndices.length <= 4) {
+            console.log(`[Engine] Retrying ${failedIndices.length} failed images: [${failedIndices.map(i => i + 1).join(', ')}]`)
+            for (const idx of failedIndices) {
+                try {
+                    const slide = slides[idx]
+                    const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
+                    const slidePhotoRef = isFaceSlide ? photoBase64 : null
+                    const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
+                    const retryImg = await generateImage(prompt, config, slidePhotoRef)
+                    imageResults[idx] = retryImg
+                    console.log(`[Engine] Retry image ${idx + 1} OK`)
+                } catch (retryErr) {
+                    const msg = retryErr instanceof Error ? retryErr.message : String(retryErr)
+                    console.error(`[Engine] Retry image ${idx + 1} FAILED again:`, msg)
+                }
+            }
+        } else if (failedIndices.length > 4) {
+            console.warn(`[Engine] Too many failures (${failedIndices.length}), skipping retry`)
+        }
+
         if (firstImageError) {
             await updateGenLog(logId, { error_message: `Image errors: ${firstImageError}` })
         }
