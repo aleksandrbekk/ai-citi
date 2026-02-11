@@ -77,6 +77,11 @@ interface GenerationLog {
     telegram_ms: number | null
     total_ms: number | null
     slides_count: number | null
+    image_urls: string[] | null
+    text_key_index: number | null
+    image_key_index: number | null
+    coins_refunded: boolean | null
+    cloudinary_cleaned: boolean | null
     created_at: string
 }
 
@@ -139,6 +144,7 @@ export function AIEngineSettings() {
     const [saving, setSaving] = useState(false)
     const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config')
     const [showKeys, setShowKeys] = useState<Record<string, boolean>>({})
+    const [expandedLog, setExpandedLog] = useState<string | null>(null)
 
     // Load config and logs
     useEffect(() => {
@@ -651,66 +657,122 @@ export function AIEngineSettings() {
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            {logs.map(log => (
-                                <div
-                                    key={log.id}
-                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 hover:border-orange-300 hover:shadow-sm transition-all duration-200"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
+                            {logs.map(log => {
+                                const isExpanded = expandedLog === log.id
+                                return (
+                                    <div
+                                        key={log.id}
+                                        className={`bg-white/80 backdrop-blur-sm rounded-xl border transition-all duration-200 cursor-pointer ${isExpanded ? 'border-orange-300 shadow-md' : 'border-gray-200/80 hover:border-orange-300 hover:shadow-sm'}`}
+                                        onClick={() => setExpandedLog(isExpanded ? null : log.id)}
+                                    >
+                                        {/* Compact header */}
+                                        <div className="flex items-center justify-between p-4">
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 {log.status === 'success' ? (
-                                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                                    <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
                                                 ) : log.status === 'error' ? (
-                                                    <XCircle className="w-5 h-5 text-red-500" />
+                                                    <XCircle className="w-5 h-5 text-red-500 shrink-0" />
                                                 ) : (
-                                                    <Clock className="w-5 h-5 text-amber-500" />
+                                                    <Clock className="w-5 h-5 text-amber-500 shrink-0" />
                                                 )}
-                                                <span className="font-medium text-gray-900">
-                                                    {log.topic?.substring(0, 60) || 'Без темы'}
-                                                    {(log.topic?.length || 0) > 60 ? '...' : ''}
+                                                <span className="font-medium text-gray-900 truncate">
+                                                    {log.topic || 'Без темы'}
                                                 </span>
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[log.status] || 'bg-gray-100 text-gray-500'}`}>
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STATUS_BADGE[log.status] || 'bg-gray-100 text-gray-500'}`}>
                                                     {log.status}
                                                 </span>
                                             </div>
-
-                                            <div className="flex items-center gap-4 text-xs text-gray-400">
-                                                <span>👤 {log.user_id}</span>
-                                                <span>🎨 {log.style_id || '—'}</span>
-                                                <span>📝 {log.text_provider}/{log.text_model}</span>
-                                                <span>🖼 {log.image_provider}/{log.image_model}</span>
-                                                {log.slides_count && <span>📊 {log.slides_count} слайдов</span>}
-                                            </div>
-
-                                            {/* Timings */}
-                                            {log.total_ms && (
-                                                <div className="flex items-center gap-3 mt-2 text-xs">
-                                                    <span className="text-blue-500">📝 {formatMs(log.text_gen_ms)}</span>
-                                                    <span className="text-violet-500">🖼 {formatMs(log.image_gen_ms)}</span>
-                                                    <span className="text-cyan-500">☁️ {formatMs(log.upload_ms)}</span>
-                                                    <span className="text-orange-500">📤 {formatMs(log.telegram_ms)}</span>
-                                                    <span className="text-emerald-600 font-medium">Σ {formatMs(log.total_ms)}</span>
-                                                </div>
-                                            )}
-
-                                            {/* Error */}
-                                            {log.error_message && (
-                                                <div className="mt-2 px-3 py-2 bg-red-50 rounded-lg text-red-600 text-xs border border-red-100">
-                                                    {log.error_stage && <span className="font-medium">Этап: {log.error_stage} — </span>}
-                                                    {log.error_message}
-                                                </div>
-                                            )}
+                                            <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                                                {new Date(log.created_at).toLocaleString('ru-RU', {
+                                                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                                                })}
+                                            </span>
                                         </div>
 
-                                        <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                                            {new Date(log.created_at).toLocaleString('ru-RU', {
-                                                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                                            })}
-                                        </span>
+                                        {/* Expanded details */}
+                                        {isExpanded && (
+                                            <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3" onClick={e => e.stopPropagation()}>
+                                                {/* User & Style */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="User ID" value={String(log.user_id)} />
+                                                    <DetailRow label="Стиль" value={log.style_id || '—'} />
+                                                </div>
+
+                                                {/* Providers */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="Текст" value={`${log.text_provider} / ${log.text_model}`} />
+                                                    <DetailRow label="Картинки" value={`${log.image_provider} / ${log.image_model}`} />
+                                                </div>
+
+                                                {/* Key indices */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="Ключ текста" value={log.text_key_index !== null ? `#${log.text_key_index}` : '—'} />
+                                                    <DetailRow label="Ключ картинок" value={log.image_key_index !== null ? `#${log.image_key_index}` : '—'} />
+                                                </div>
+
+                                                {/* Slides */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="Слайдов" value={log.slides_count ? String(log.slides_count) : '—'} />
+                                                    <DetailRow label="Монеты возвращены" value={log.coins_refunded ? 'Да (30)' : 'Нет'} />
+                                                </div>
+
+                                                {/* Timings */}
+                                                {log.total_ms && (
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-2 font-medium">Тайминги</p>
+                                                        <div className="grid grid-cols-5 gap-2 text-xs">
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Текст</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.text_gen_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Картинки</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.image_gen_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Загрузка</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.upload_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Telegram</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.telegram_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Итого</p>
+                                                                <p className="font-mono font-bold text-emerald-600">{formatMs(log.total_ms)}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Cloudinary */}
+                                                <DetailRow label="Cloudinary" value={log.cloudinary_cleaned ? 'Очищено' : log.image_urls?.length ? `${log.image_urls.length} картинок на сервере` : '—'} />
+
+                                                {/* Topic full */}
+                                                {log.topic && log.topic.length > 60 && (
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-1 font-medium">Тема полностью</p>
+                                                        <p className="text-sm text-gray-700">{log.topic}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Error */}
+                                                {log.error_message && (
+                                                    <div className="p-3 bg-red-50 rounded-lg border border-red-100">
+                                                        <p className="text-xs text-red-500 mb-1 font-medium">
+                                                            Ошибка {log.error_stage ? `(этап: ${log.error_stage})` : ''}
+                                                        </p>
+                                                        <p className="text-sm text-red-700">{log.error_message}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Log ID */}
+                                                <p className="text-xs text-gray-300 font-mono select-all">ID: {log.id}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     )}
                 </div>
@@ -737,6 +799,15 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 
 function Label({ children }: { children: React.ReactNode }) {
     return <label className="block text-sm font-medium text-gray-600 mb-1.5">{children}</label>
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-lg">
+            <span className="text-xs text-gray-400">{label}</span>
+            <span className="text-sm text-gray-700 font-medium">{value}</span>
+        </div>
+    )
 }
 
 function ApiKeyInput({
