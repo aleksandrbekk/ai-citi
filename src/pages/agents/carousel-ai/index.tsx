@@ -3,7 +3,7 @@
  * Полный flow генерации каруселей через AI Engine (Edge Function)
  * вместо n8n. Доступен только админам.
  * 
- * Переиспользует тот же store (carouselStore) и стили.
+ * Дизайн полностью повторяет /agents/carousel (step-based, premium UI)
  * Endpoint: /functions/v1/carousel-engine
  */
 import { useState, useEffect, useRef } from 'react'
@@ -15,7 +15,8 @@ import { getCarouselStyles, getGlobalSystemPrompt } from '@/lib/carouselStylesAp
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
 import { getCoinBalance, spendCoinsForGeneration } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
-import { Sparkles, ArrowLeft, Zap, Send, Clock, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Zap, Send, Clock, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { CheckIcon } from '@/components/ui/icons'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://debcwvxlvozjlqkhnauy.supabase.co'
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -26,6 +27,20 @@ type Step = 'setup' | 'generating' | 'done'
 const TelegramIcon = ({ className = '' }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.89.03-.24.38-.49 1.05-.74 4.12-1.79 6.87-2.97 8.26-3.54 3.93-1.62 4.75-1.9 5.28-1.91.12 0 .37.03.54.18.14.12.18.28.2.45-.01.06.01.24 0 .38z" />
+    </svg>
+)
+
+// SVG icons (thin-line, matching reference)
+const MegaphoneIcon = ({ className = '' }: { className?: string }) => (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 11l18-5v12L3 13v-2z" />
+        <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+    </svg>
+)
+
+const MessageIcon = ({ className = '' }: { className?: string }) => (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
 )
 
@@ -62,6 +77,8 @@ function CarouselAIInner() {
     const [error, setError] = useState<string | null>(null)
     const [generationStep, setGenerationStep] = useState(0)
     const [showSuccess, setShowSuccess] = useState(false)
+    const [showCtaPage, setShowCtaPage] = useState(false)
+    const [showStyleModal, setShowStyleModal] = useState(false)
     const isGeneratingRef = useRef(false)
 
     // Load styles from DB
@@ -140,6 +157,19 @@ function CarouselAIInner() {
             return data
         },
     })
+
+    // Current style metadata
+    const currentStyleMeta = allStyles.find(s => s.id === styleId)
+
+    // Handle "Next" from step 1
+    const handleNext = () => {
+        if (!topic.trim()) {
+            setError('Введите тему карусели')
+            return
+        }
+        setError(null)
+        setShowCtaPage(true)
+    }
 
     // Generate handler
     const handleGenerate = async () => {
@@ -387,17 +417,17 @@ function CarouselAIInner() {
                     {/* Bottom */}
                     <div className="space-y-3">
                         <button
-                            onClick={() => { setStep('setup'); setShowSuccess(false); setGenerationStep(0) }}
-                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                            onClick={() => { setStep('setup'); setShowSuccess(false); setGenerationStep(0); setShowCtaPage(false) }}
+                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl"
                         >
                             <Sparkles className="w-5 h-5" />
                             Создать ещё карусель
                         </button>
                         <button
-                            onClick={() => navigate('/agents')}
+                            onClick={() => navigate('/')}
                             className="w-full py-4 rounded-2xl bg-white/80 backdrop-blur border border-gray-200 text-gray-700 font-semibold flex items-center justify-center gap-2 cursor-pointer"
                         >
-                            Назад к агентам
+                            На главную
                         </button>
                     </div>
                 </div>
@@ -405,191 +435,337 @@ function CarouselAIInner() {
         )
     }
 
-    // ==================== SETUP VIEW ====================
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-24">
-            {/* Decorations */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-orange-100/50 rounded-full blur-3xl" />
-
-            {/* Header */}
-            <div className="sticky top-0 z-20 nav-glass px-4 py-3 flex items-center gap-3">
-                <button onClick={() => navigate('/agents')} className="p-1 cursor-pointer">
-                    <ArrowLeft className="w-5 h-5 text-gray-600" />
-                </button>
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <Zap className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                    <h1 className="text-lg font-bold text-gray-900">AI Карусель</h1>
-                    <p className="text-xs text-gray-500">MVP • Edge Function</p>
-                </div>
-                {/* Balance */}
-                <div className="flex items-center gap-1.5">
-                    <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
-                    <span className="text-sm font-bold text-orange-500">{coinBalance}</span>
-                </div>
-            </div>
-
-            {/* Engine Status */}
-            <div className="px-4 pt-3">
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm ${engineConfig?.text_provider
-                    ? 'bg-green-50 text-green-700 border border-green-100'
-                    : 'bg-red-50 text-red-700 border border-red-100'
-                    }`}>
-                    <div className={`w-2 h-2 rounded-full ${engineConfig?.text_provider ? 'bg-green-500' : 'bg-red-500'}`} />
-                    {engineConfig?.text_provider
-                        ? `${engineConfig.text_provider}/${engineConfig.text_model?.split('/').pop()} • ${engineConfig.image_provider}`
-                        : 'Конфиг не найден → /admin/ai-engine'}
-                </div>
-            </div>
-
-            <div className="relative z-10 p-4 space-y-4">
-                {/* Topic */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/80 p-4 shadow-sm">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">📝 Тема карусели</label>
-                    <textarea
-                        value={topic}
-                        onChange={e => setTopic(e.target.value)}
-                        placeholder="Например: 10 ошибок в сетевом бизнесе"
-                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-300"
-                        rows={2}
-                    />
-                </div>
-
-                {/* Gender */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/80 p-4 shadow-sm">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">👤 Склонение</label>
-                    <div className="flex gap-2">
-                        {[
-                            { id: 'male' as const, label: '♂ Он', desc: 'Мужской' },
-                            { id: 'female' as const, label: '♀ Она', desc: 'Женский' },
-                        ].map(g => (
-                            <button
-                                key={g.id}
-                                onClick={() => setGender(g.id)}
-                                className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${gender === g.id
-                                    ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-500/20'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                {g.label}
-                            </button>
-                        ))}
+    // ==================== CTA PAGE (STEP 2) ====================
+    if (showCtaPage) {
+        return (
+            <div className="min-h-screen bg-white">
+                <div className="px-4 pt-3 pb-6">
+                    {/* Step Indicator */}
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">✓</div>
+                                <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-pink-400" />
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-pink-500/30">2</div>
+                            </div>
+                        </div>
+                        {/* Balance */}
+                        <div className="flex items-center gap-1.5">
+                            <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+                            <span className="text-base font-bold text-orange-500">{coinBalance}</span>
+                        </div>
                     </div>
-                </div>
 
-                {/* Style */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/80 p-4 shadow-sm">
-                    <label className="block text-sm font-semibold text-gray-900 mb-3">🎨 Стиль</label>
-                    <div className="grid grid-cols-3 gap-2 max-h-[240px] overflow-y-auto">
-                        {allStyles.map(s => (
-                            <button
-                                key={s.id}
-                                onClick={() => setStyleId(s.id)}
-                                className={`relative overflow-hidden rounded-xl aspect-[3/4] cursor-pointer transition-all ${styleId === s.id
-                                    ? 'ring-2 ring-orange-500 ring-offset-2 shadow-lg'
-                                    : 'hover:shadow-md'
-                                    }`}
-                            >
-                                <img
-                                    src={getPreview(s.id)}
-                                    alt={s.name}
-                                    className="w-full h-full object-cover"
-                                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-1.5">
-                                    <p className="text-[10px] font-semibold text-white truncate">{s.emoji} {s.name}</p>
-                                </div>
-                                {styleId === s.id && (
-                                    <div className="absolute top-1 right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                                        <span className="text-white text-xs">✓</span>
-                                    </div>
-                                )}
-                            </button>
-                        ))}
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                            <MegaphoneIcon className="text-white w-6 h-6" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-900">Призыв к действию</h1>
+                            <p className="text-sm text-gray-500">Шаг 2 — Финальный слайд</p>
+                        </div>
                     </div>
-                </div>
 
-                {/* CTA */}
-                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/80 p-4 shadow-sm">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">📣 Призыв к действию</label>
-                    <div className="flex bg-gray-100 rounded-xl p-1 mb-3">
+                    {/* Explanation */}
+                    <p className="text-xs text-gray-500 text-center mb-3">
+                        Выбери <span className="font-medium">одно</span>: продажа (кодовое слово) или охват (призыв)
+                    </p>
+
+                    {/* Segment Control - Glass */}
+                    <div className="flex bg-gray-100/80 backdrop-blur-xl rounded-2xl p-1 mb-5">
                         <button
                             onClick={() => setCtatType('keyword')}
-                            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${ctaType === 'keyword' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                            className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${ctaType === 'keyword'
+                                ? 'bg-white text-gray-900 shadow-md'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
-                            🛍️ Кодовое слово
+                            🛍️ Продажа
+                            <span className="block text-[10px] font-normal opacity-70">ПИШИ: слово</span>
                         </button>
                         <button
                             onClick={() => setCtatType('engagement')}
-                            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${ctaType === 'engagement' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                            className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all cursor-pointer ${ctaType === 'engagement'
+                                ? 'bg-white text-gray-900 shadow-md'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             📈 Охват
+                            <span className="block text-[10px] font-normal opacity-70">Подпишись и т.д.</span>
                         </button>
                     </div>
 
                     {ctaType === 'keyword' ? (
-                        <input
-                            type="text"
-                            value={ctaKeyword}
-                            onChange={e => setCtaKeyword(e.target.value.toUpperCase())}
-                            placeholder="ХОЧУ"
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-bold tracking-wider focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                        />
+                        <>
+                            {/* Info Card */}
+                            <div className="bg-gradient-to-br from-orange-50 to-pink-50 rounded-2xl border border-orange-100 p-4 mb-4 flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/20">
+                                    <MessageIcon className="text-white w-5 h-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <span className="font-semibold text-gray-900 block mb-0.5">Кодовое слово</span>
+                                    <p className="text-sm text-gray-500">Клиент напишет его вам в директ</p>
+                                </div>
+                            </div>
+
+                            {/* Input Card */}
+                            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100 p-4 shadow-lg shadow-gray-500/5 mb-5">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Введите ваше слово
+                                </label>
+                                <input
+                                    type="text"
+                                    value={ctaKeyword}
+                                    onChange={(e) => setCtaKeyword(e.target.value.toUpperCase())}
+                                    placeholder="ХОЧУ"
+                                    className="w-full px-4 py-3.5 rounded-xl bg-gray-50/80 border border-gray-200/50 text-gray-900 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-200 tracking-wider"
+                                />
+                                <p className="text-xs text-gray-400 mt-2">
+                                    Примеры: СТАРТ, ХОЧУ, VIP • <span className="text-orange-500">Если пусто — будет «МАГИЯ»</span>
+                                </p>
+                            </div>
+                        </>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-3 mb-5">
                             {[
-                                { id: 'SUBSCRIBE' as const, label: '👆 Подпишись' },
-                                { id: 'COMMENT' as const, label: '💬 Комментируй' },
-                                { id: 'SAVE' as const, label: '🔖 Сохрани' },
-                            ].map(o => (
+                                { id: 'SUBSCRIBE' as const, label: 'Подпишись', desc: 'Призыв подписаться', icon: '👆' },
+                                { id: 'COMMENT' as const, label: 'Комментируй', desc: 'Напиши в комментах', icon: '💬' },
+                                { id: 'SAVE' as const, label: 'Сохрани', desc: 'Сохрани себе пост', icon: '🔖' },
+                            ].map(option => (
                                 <button
-                                    key={o.id}
-                                    onClick={() => setEngagementType(o.id)}
-                                    className={`w-full p-3 rounded-xl text-left text-sm font-medium transition-all cursor-pointer ${engagementType === o.id
-                                        ? 'bg-orange-50 border border-orange-200 text-orange-700'
-                                        : 'bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300'
+                                    key={option.id}
+                                    onClick={() => setEngagementType(option.id)}
+                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-xl transition-all cursor-pointer ${engagementType === option.id
+                                        ? 'border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg shadow-purple-500/10'
+                                        : 'border-gray-100 bg-white/80 hover:border-purple-200'
                                         }`}
                                 >
-                                    {o.label}
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${engagementType === option.id
+                                        ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg'
+                                        : 'bg-gray-100'
+                                        }`}>
+                                        {engagementType === option.id ? <CheckIcon size={20} className="text-white" /> : option.icon}
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="font-semibold text-gray-900 block">{option.label}</span>
+                                        <span className="text-sm text-gray-500">{option.desc}</span>
+                                    </div>
                                 </button>
                             ))}
                         </div>
                     )}
+
+                    {error && (
+                        <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Generate Button */}
+                    <button
+                        onClick={() => {
+                            if (coinBalance < 30) {
+                                navigate('/shop')
+                                return
+                            }
+                            handleGenerate()
+                        }}
+                        disabled={isSubmitting}
+                        className={`w-full py-4 rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:shadow-2xl cursor-pointer ${coinBalance < 30
+                            ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-green-500/30'
+                            : 'bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white shadow-orange-500/30'
+                            }`}
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Создание...
+                            </>
+                        ) : coinBalance < 30 ? (
+                            <>
+                                <span>Пополнить баланс</span>
+                                <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
+                            </>
+                        ) : (
+                            <>
+                                <span>Сгенерировать за 30</span>
+                                <img src="/neirocoin.png" alt="Нейро" className="w-6 h-6 object-contain" />
+                            </>
+                        )}
+                    </button>
+
+                    {/* Back link */}
+                    <button
+                        onClick={() => setShowCtaPage(false)}
+                        className="w-full mt-3 py-3 text-gray-500 text-sm font-medium hover:text-gray-700 transition-colors cursor-pointer"
+                    >
+                        ← Вернуться к шагу 1
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    // ==================== SETUP VIEW (STEP 1) ====================
+    return (
+        <div className="min-h-screen bg-white flex flex-col">
+            {/* Compact Header */}
+            <div className="px-4 pt-3 pb-2">
+                {/* Step Indicator */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-orange-500/30">1</div>
+                            <div className="w-12 h-1 rounded-full bg-gradient-to-r from-orange-400 to-gray-200" />
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-medium text-sm">2</div>
+                        </div>
+                    </div>
+                    {/* Balance */}
+                    <div className="flex items-center gap-1.5">
+                        <img src="/neirocoin.png" alt="Нейро" className="w-7 h-7 object-contain drop-shadow-sm" />
+                        <span className="text-base font-bold text-orange-500">{coinBalance}</span>
+                    </div>
+                </div>
+
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <Zap className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Создание AI карусели</h1>
+                        <p className="text-sm text-gray-500">Шаг 1 — Тема и стиль</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="px-4 pb-6 flex-1 flex flex-col">
+                {/* Topic Input */}
+                <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">О чём карусель?</span>
+                    </div>
+                    <textarea
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value.slice(0, 5000))}
+                        placeholder="Например: 10 ошибок в сетевом бизнесе"
+                        maxLength={5000}
+                        className="w-full min-h-[180px] px-4 py-4 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm"
+                    />
+                    <div className="flex justify-end items-center mt-2 px-1">
+                        <span className={`text-xs font-medium ${topic.length > 4500 ? 'text-orange-500' : 'text-gray-400'}`}>{topic.length} / 5000</span>
+                    </div>
+                </div>
+
+                {/* Compact Settings Row: Style + Gender */}
+                <div className="flex items-center gap-2 mb-4">
+                    {/* Style - Compact */}
+                    <button
+                        onClick={() => setShowStyleModal(true)}
+                        className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                        <img
+                            src={getPreview(styleId)}
+                            alt={currentStyleMeta?.name}
+                            className="w-9 h-9 rounded-lg object-cover ring-2 ring-orange-200"
+                        />
+                        <div className="flex-1 text-left min-w-0">
+                            <span className="font-medium text-gray-900 text-xs block">Стиль</span>
+                            <span className="text-[10px] text-orange-500 truncate block">{currentStyleMeta?.name?.split(' ')[0]}</span>
+                        </div>
+                    </button>
+
+                    {/* Gender - Compact */}
+                    <div className="flex rounded-xl p-1 bg-gray-100/80 backdrop-blur">
+                        <button
+                            onClick={() => setGender('male')}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1 ${gender === 'male'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-400 hover:text-gray-600'
+                                }`}
+                        >
+                            {gender === 'male' && <CheckIcon size={12} />}
+                            👨
+                        </button>
+                        <button
+                            onClick={() => setGender('female')}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1 ${gender === 'female'
+                                ? 'bg-white text-pink-600 shadow-sm'
+                                : 'text-gray-400 hover:text-gray-600'
+                                }`}
+                        >
+                            {gender === 'female' && <CheckIcon size={12} />}
+                            👩
+                        </button>
+                    </div>
                 </div>
 
                 {/* Error */}
                 {error && (
-                    <div className="p-3 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
+                    <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-xs border border-red-100">
                         {error}
                     </div>
                 )}
 
-                {/* Generate button */}
+                {/* Next Button */}
                 <button
-                    onClick={handleGenerate}
-                    disabled={isSubmitting || !topic.trim() || coinBalance < 30}
-                    className="w-full py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98] transition-transform"
+                    onClick={handleNext}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-lg shadow-xl shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-transform hover:shadow-2xl hover:shadow-orange-500/40"
                 >
-                    {isSubmitting ? (
-                        <>
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Генерация...
-                        </>
-                    ) : coinBalance < 30 ? (
-                        'Недостаточно нейронов'
-                    ) : (
-                        <>
-                            <Zap className="w-5 h-5" />
-                            Сгенерировать за 30
-                            <img src="/neirocoin.png" alt="" className="w-5 h-5 object-contain" />
-                        </>
-                    )}
+                    Далее →
                 </button>
             </div>
+
+            {/* Style Modal */}
+            {showStyleModal && (
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end">
+                    <div className="w-full bg-white rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col animate-slide-up">
+                        {/* Modal Header */}
+                        <div className="px-4 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-900">Выберите стиль</h2>
+                            <button
+                                onClick={() => setShowStyleModal(false)}
+                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Style Grid */}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                {allStyles.map(s => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => { setStyleId(s.id); setShowStyleModal(false) }}
+                                        className={`relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer transition-all ${styleId === s.id
+                                            ? 'ring-3 ring-orange-500 ring-offset-2 shadow-xl shadow-orange-500/20'
+                                            : 'hover:shadow-lg'
+                                            }`}
+                                    >
+                                        <img
+                                            src={getPreview(s.id)}
+                                            alt={s.name}
+                                            className="w-full h-full object-cover"
+                                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                                            <p className="text-sm font-semibold text-white">{s.emoji} {s.name}</p>
+                                        </div>
+                                        {styleId === s.id && (
+                                            <div className="absolute top-2 right-2 w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                                                <span className="text-white text-sm font-bold">✓</span>
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
