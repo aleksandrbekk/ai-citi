@@ -10,7 +10,9 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  HelpCircle
+  HelpCircle,
+  Zap,
+  Palette
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
@@ -25,6 +27,8 @@ export function AdminSidebar() {
   const mainLinks = [
     { to: '/admin', icon: Users, label: 'CRM' },
     { to: '/admin/quizzes', icon: HelpCircle, label: 'Квизы' },
+    { to: '/admin/carousel-styles', icon: Palette, label: 'Карусели' },
+    { to: '/admin/ai-engine', icon: Zap, label: 'AI Engine' },
   ]
 
   const schoolLinks = [

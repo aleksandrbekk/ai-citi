@@ -14,13 +14,21 @@ import {
     EyeOff,
     Zap,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    Plus,
+    Trash2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 // ============================================================
 // TYPES
 // ============================================================
+
+interface ApiKeyEntry {
+    key: string
+    label: string
+    enabled: boolean
+}
 
 interface AIEngineConfig {
     id: string
@@ -29,9 +37,17 @@ interface AIEngineConfig {
     text_model: string
     text_fallback_provider: string | null
     text_fallback_key: string | null
+    text_fallback_model: string | null
+    text_api_keys: ApiKeyEntry[] | null
+    text_fallback_keys: ApiKeyEntry[] | null
     image_provider: string
     image_api_key: string
     image_model: string
+    image_api_keys: ApiKeyEntry[] | null
+    image_fallback_provider: string | null
+    image_fallback_model: string | null
+    image_fallback_key: string | null
+    image_fallback_keys: ApiKeyEntry[] | null
     telegram_bot_token: string
     cloudinary_cloud: string
     cloudinary_preset: string
@@ -61,6 +77,11 @@ interface GenerationLog {
     telegram_ms: number | null
     total_ms: number | null
     slides_count: number | null
+    image_urls: string[] | null
+    text_key_index: number | null
+    image_key_index: number | null
+    coins_refunded: boolean | null
+    cloudinary_cleaned: boolean | null
     created_at: string
 }
 
@@ -74,17 +95,30 @@ const TEXT_PROVIDERS = [
 ]
 
 const TEXT_MODELS = [
+    { value: 'gemini-3-pro', label: 'Gemini 3 Pro', provider: 'gemini' },
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', provider: 'gemini' },
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', provider: 'gemini' },
-    { value: 'google/gemini-2.5-flash-preview', label: 'Gemini 2.5 Flash (OR)', provider: 'openrouter' },
-    { value: 'google/gemini-2.5-pro-preview', label: 'Gemini 2.5 Pro (OR)', provider: 'openrouter' },
+    { value: 'google/gemini-3-pro-preview', label: 'Gemini 3 Pro', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-pro-preview', label: 'Gemini 2.5 Pro', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-flash-preview', label: 'Gemini 2.5 Flash', provider: 'openrouter' },
     { value: 'anthropic/claude-sonnet-4-20250514', label: 'Claude Sonnet 4', provider: 'openrouter' },
     { value: 'openai/gpt-4o', label: 'GPT-4o', provider: 'openrouter' },
     { value: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick', provider: 'openrouter' },
 ]
 
+const IMAGE_MODELS = [
+    { value: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro Image', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-flash-preview:image', label: 'Gemini 2.5 Flash Image', provider: 'openrouter' },
+    { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (нативный)', provider: 'gemini' },
+    { value: 'imagen-3.0-generate-002', label: 'Imagen 3', provider: 'imagen' },
+    { value: 'imagen-4.0-generate-001', label: 'Imagen 4', provider: 'imagen' },
+    { value: 'ideogram-v2', label: 'Ideogram v2', provider: 'ideogram' },
+]
+
 const IMAGE_PROVIDERS = [
+    { value: 'openrouter', label: 'OpenRouter', desc: 'Gemini, Claude и другие модели для картинок' },
+    { value: 'gemini', label: 'Gemini Image', desc: 'Google AI Studio, нативная генерация' },
     { value: 'imagen', label: 'Google Imagen', desc: 'Vertex AI, лучшее качество' },
     { value: 'ideogram', label: 'Ideogram', desc: 'Хороший текст на картинках' },
 ]
@@ -110,6 +144,7 @@ export function AIEngineSettings() {
     const [saving, setSaving] = useState(false)
     const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config')
     const [showKeys, setShowKeys] = useState<Record<string, boolean>>({})
+    const [expandedLog, setExpandedLog] = useState<string | null>(null)
 
     // Load config and logs
     useEffect(() => {
@@ -173,9 +208,17 @@ export function AIEngineSettings() {
                     text_model: config.text_model,
                     text_fallback_provider: config.text_fallback_provider,
                     text_fallback_key: config.text_fallback_key,
+                    text_fallback_model: config.text_fallback_model,
+                    text_api_keys: config.text_api_keys,
+                    text_fallback_keys: config.text_fallback_keys,
                     image_provider: config.image_provider,
                     image_api_key: config.image_api_key,
                     image_model: config.image_model,
+                    image_api_keys: config.image_api_keys,
+                    image_fallback_provider: config.image_fallback_provider,
+                    image_fallback_model: config.image_fallback_model,
+                    image_fallback_key: config.image_fallback_key,
+                    image_fallback_keys: config.image_fallback_keys,
                     telegram_bot_token: config.telegram_bot_token,
                     cloudinary_cloud: config.cloudinary_cloud,
                     cloudinary_preset: config.cloudinary_preset,
@@ -341,11 +384,25 @@ export function AIEngineSettings() {
                             </div>
                         )}
 
+                        {/* Multi-key rotation */}
+                        {config.text_provider !== 'gemini' && (
+                            <div className="mt-4">
+                                <Label>Ротация ключей (текст)</Label>
+                                <p className="text-xs text-gray-400 mb-2">Если один ключ упирается в лимит, следующий подхватывает</p>
+                                <MultiKeyEditor
+                                    keys={config.text_api_keys}
+                                    onChange={keys => updateConfig('text_api_keys', keys)}
+                                    placeholder="API key для текстового провайдера"
+                                />
+                            </div>
+                        )}
+
                         {/* Fallback */}
                         <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200/80">
                             <p className="text-sm text-gray-500 mb-3">⚡ Резервный провайдер (fallback)</p>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
+                                    <Label>Провайдер</Label>
                                     <select
                                         value={config.text_fallback_provider || ''}
                                         onChange={e => updateConfig('text_fallback_provider', e.target.value || null)}
@@ -359,18 +416,43 @@ export function AIEngineSettings() {
                                 </div>
                                 {config.text_fallback_provider && (
                                     <div>
-                                        <ApiKeyInput
-                                            value={config.text_fallback_key || ''}
-                                            onChange={v => updateConfig('text_fallback_key', v)}
-                                            visible={showKeys['text_fallback_key'] || false}
-                                            onToggle={() => toggleKeyVisibility('text_fallback_key')}
-                                            masked={maskKey(config.text_fallback_key || '')}
-                                            placeholder="Fallback API key"
-                                            small
-                                        />
+                                        <Label>Модель fallback</Label>
+                                        <select
+                                            value={config.text_fallback_model || ''}
+                                            onChange={e => updateConfig('text_fallback_model', e.target.value || null)}
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                                        >
+                                            <option value="">Та же что основная</option>
+                                            {TEXT_MODELS.filter(m => m.provider === config.text_fallback_provider).map(m => (
+                                                <option key={m.value} value={m.value}>{m.label}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
                             </div>
+                            {config.text_fallback_provider && (
+                                <div className="mt-3">
+                                    <ApiKeyInput
+                                        value={config.text_fallback_key || ''}
+                                        onChange={v => updateConfig('text_fallback_key', v)}
+                                        visible={showKeys['text_fallback_key'] || false}
+                                        onToggle={() => toggleKeyVisibility('text_fallback_key')}
+                                        masked={maskKey(config.text_fallback_key || '')}
+                                        placeholder="Fallback API key"
+                                        small
+                                    />
+                                </div>
+                            )}
+                            {config.text_fallback_provider && config.text_fallback_provider !== 'gemini' && (
+                                <div className="mt-3">
+                                    <p className="text-xs text-gray-400 mb-2">Ротация fallback ключей</p>
+                                    <MultiKeyEditor
+                                        keys={config.text_fallback_keys}
+                                        onChange={keys => updateConfig('text_fallback_keys', keys)}
+                                        placeholder="Fallback API key"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </Section>
 
@@ -391,29 +473,99 @@ export function AIEngineSettings() {
                             </div>
                             <div>
                                 <Label>Модель</Label>
-                                <input
-                                    type="text"
+                                <select
                                     value={config.image_model}
                                     onChange={e => updateConfig('image_model', e.target.value)}
                                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-                                    placeholder="imagen-4"
-                                />
+                                >
+                                    {IMAGE_MODELS.filter(m => m.provider === config.image_provider).map(m => (
+                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        {config.image_provider === 'ideogram' && (
+                        {config.image_provider !== 'imagen' && (
                             <div className="mt-4">
-                                <Label>API ключ Ideogram</Label>
+                                <Label>API ключ {config.image_provider === 'gemini' ? 'Google AI Studio' : config.image_provider === 'ideogram' ? 'Ideogram' : 'OpenRouter'}</Label>
                                 <ApiKeyInput
                                     value={config.image_api_key}
                                     onChange={v => updateConfig('image_api_key', v)}
                                     visible={showKeys['image_api_key'] || false}
                                     onToggle={() => toggleKeyVisibility('image_api_key')}
                                     masked={maskKey(config.image_api_key)}
-                                    placeholder="Ideogram API key"
+                                    placeholder="API key для провайдера картинок"
                                 />
                             </div>
                         )}
+
+                        {/* Multi-key rotation for images */}
+                        {config.image_provider !== 'imagen' && (
+                            <div className="mt-4">
+                                <Label>Ротация ключей (картинки)</Label>
+                                <p className="text-xs text-gray-400 mb-2">Если один ключ упирается в лимит, следующий подхватывает</p>
+                                <MultiKeyEditor
+                                    keys={config.image_api_keys}
+                                    onChange={keys => updateConfig('image_api_keys', keys)}
+                                    placeholder="API key для провайдера картинок"
+                                />
+                            </div>
+                        )}
+
+                        {/* Image Fallback */}
+                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200/80">
+                            <p className="text-sm text-gray-500 mb-3">⚡ Резервный провайдер картинок (fallback)</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Провайдер</Label>
+                                    <select
+                                        value={config.image_fallback_provider || ''}
+                                        onChange={e => updateConfig('image_fallback_provider', e.target.value || null)}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                                    >
+                                        <option value="">Нет</option>
+                                        {IMAGE_PROVIDERS.filter(p => p.value !== config.image_provider).map(p => (
+                                            <option key={p.value} value={p.value}>{p.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {config.image_fallback_provider && (
+                                    <div>
+                                        <Label>Модель fallback</Label>
+                                        <input
+                                            type="text"
+                                            value={config.image_fallback_model || ''}
+                                            onChange={e => updateConfig('image_fallback_model', e.target.value || null)}
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                                            placeholder="Та же модель"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            {config.image_fallback_provider && config.image_fallback_provider !== 'imagen' && (
+                                <div className="mt-3">
+                                    <ApiKeyInput
+                                        value={config.image_fallback_key || ''}
+                                        onChange={v => updateConfig('image_fallback_key', v)}
+                                        visible={showKeys['image_fallback_key'] || false}
+                                        onToggle={() => toggleKeyVisibility('image_fallback_key')}
+                                        masked={maskKey(config.image_fallback_key || '')}
+                                        placeholder="Fallback image API key"
+                                        small
+                                    />
+                                </div>
+                            )}
+                            {config.image_fallback_provider && config.image_fallback_provider !== 'imagen' && (
+                                <div className="mt-3">
+                                    <p className="text-xs text-gray-400 mb-2">Ротация fallback ключей (картинки)</p>
+                                    <MultiKeyEditor
+                                        keys={config.image_fallback_keys}
+                                        onChange={keys => updateConfig('image_fallback_keys', keys)}
+                                        placeholder="Fallback image API key"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </Section>
 
                     {/* Delivery */}
@@ -505,66 +657,138 @@ export function AIEngineSettings() {
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            {logs.map(log => (
-                                <div
-                                    key={log.id}
-                                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 hover:border-orange-300 hover:shadow-sm transition-all duration-200"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
+                            {logs.map(log => {
+                                const isExpanded = expandedLog === log.id
+                                return (
+                                    <div
+                                        key={log.id}
+                                        className={`bg-white/80 backdrop-blur-sm rounded-xl border transition-all duration-200 cursor-pointer ${isExpanded ? 'border-orange-300 shadow-md' : 'border-gray-200/80 hover:border-orange-300 hover:shadow-sm'}`}
+                                        onClick={() => setExpandedLog(isExpanded ? null : log.id)}
+                                    >
+                                        {/* Compact header */}
+                                        <div className="flex items-center justify-between p-4">
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 {log.status === 'success' ? (
-                                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                                    <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
                                                 ) : log.status === 'error' ? (
-                                                    <XCircle className="w-5 h-5 text-red-500" />
+                                                    <XCircle className="w-5 h-5 text-red-500 shrink-0" />
                                                 ) : (
-                                                    <Clock className="w-5 h-5 text-amber-500" />
+                                                    <Clock className="w-5 h-5 text-amber-500 shrink-0" />
                                                 )}
-                                                <span className="font-medium text-gray-900">
-                                                    {log.topic?.substring(0, 60) || 'Без темы'}
-                                                    {(log.topic?.length || 0) > 60 ? '...' : ''}
+                                                <span className="font-medium text-gray-900 truncate">
+                                                    {log.topic || 'Без темы'}
                                                 </span>
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[log.status] || 'bg-gray-100 text-gray-500'}`}>
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${STATUS_BADGE[log.status] || 'bg-gray-100 text-gray-500'}`}>
                                                     {log.status}
                                                 </span>
                                             </div>
-
-                                            <div className="flex items-center gap-4 text-xs text-gray-400">
-                                                <span>👤 {log.user_id}</span>
-                                                <span>🎨 {log.style_id || '—'}</span>
-                                                <span>📝 {log.text_provider}/{log.text_model}</span>
-                                                <span>🖼 {log.image_provider}/{log.image_model}</span>
-                                                {log.slides_count && <span>📊 {log.slides_count} слайдов</span>}
-                                            </div>
-
-                                            {/* Timings */}
-                                            {log.total_ms && (
-                                                <div className="flex items-center gap-3 mt-2 text-xs">
-                                                    <span className="text-blue-500">📝 {formatMs(log.text_gen_ms)}</span>
-                                                    <span className="text-violet-500">🖼 {formatMs(log.image_gen_ms)}</span>
-                                                    <span className="text-cyan-500">☁️ {formatMs(log.upload_ms)}</span>
-                                                    <span className="text-orange-500">📤 {formatMs(log.telegram_ms)}</span>
-                                                    <span className="text-emerald-600 font-medium">Σ {formatMs(log.total_ms)}</span>
-                                                </div>
-                                            )}
-
-                                            {/* Error */}
-                                            {log.error_message && (
-                                                <div className="mt-2 px-3 py-2 bg-red-50 rounded-lg text-red-600 text-xs border border-red-100">
-                                                    {log.error_stage && <span className="font-medium">Этап: {log.error_stage} — </span>}
-                                                    {log.error_message}
-                                                </div>
-                                            )}
+                                            <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                                                {new Date(log.created_at).toLocaleString('ru-RU', {
+                                                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                                                })}
+                                            </span>
                                         </div>
 
-                                        <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                                            {new Date(log.created_at).toLocaleString('ru-RU', {
-                                                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-                                            })}
-                                        </span>
+                                        {/* Expanded details */}
+                                        {isExpanded && (
+                                            <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3" onClick={e => e.stopPropagation()}>
+                                                {/* User & Style */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="User ID" value={String(log.user_id)} />
+                                                    <DetailRow label="Стиль" value={log.style_id || '—'} />
+                                                </div>
+
+                                                {/* Providers */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="Текст" value={`${log.text_provider} / ${log.text_model}`} />
+                                                    <DetailRow label="Картинки" value={`${log.image_provider} / ${log.image_model}`} />
+                                                </div>
+
+                                                {/* Key indices */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="Ключ текста" value={log.text_key_index !== null ? `#${log.text_key_index}` : '—'} />
+                                                    <DetailRow label="Ключ картинок" value={log.image_key_index !== null ? `#${log.image_key_index}` : '—'} />
+                                                </div>
+
+                                                {/* Slides */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailRow label="Слайдов" value={log.slides_count ? String(log.slides_count) : '—'} />
+                                                    <DetailRow label="Монеты возвращены" value={log.coins_refunded ? 'Да (30)' : 'Нет'} />
+                                                </div>
+
+                                                {/* Timings */}
+                                                {log.total_ms && (
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-2 font-medium">Тайминги</p>
+                                                        <div className="grid grid-cols-5 gap-2 text-xs">
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Текст</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.text_gen_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Картинки</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.image_gen_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Загрузка</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.upload_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Telegram</p>
+                                                                <p className="font-mono font-medium text-gray-700">{formatMs(log.telegram_ms)}</p>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-gray-400">Итого</p>
+                                                                <p className="font-mono font-bold text-emerald-600">{formatMs(log.total_ms)}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Cloudinary / Слайды */}
+                                                {log.image_urls?.length ? (
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-2 font-medium">
+                                                            Слайды ({log.image_urls.length}) {log.cloudinary_cleaned ? '— очищено' : ''}
+                                                        </p>
+                                                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                                            {log.image_urls.map((url, idx) => (
+                                                                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="block">
+                                                                    <img src={url} alt={`Слайд ${idx + 1}`} className="w-full h-auto rounded-lg border border-gray-200 hover:border-orange-400 hover:shadow-md transition-all cursor-pointer" />
+                                                                    <p className="text-[10px] text-center text-gray-400 mt-0.5">{idx + 1}</p>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <DetailRow label="Cloudinary" value={log.cloudinary_cleaned ? 'Очищено' : '—'} />
+                                                )}
+
+                                                {/* Topic full */}
+                                                {log.topic && log.topic.length > 60 && (
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-1 font-medium">Тема полностью</p>
+                                                        <p className="text-sm text-gray-700">{log.topic}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Error */}
+                                                {log.error_message && (
+                                                    <div className="p-3 bg-red-50 rounded-lg border border-red-100">
+                                                        <p className="text-xs text-red-500 mb-1 font-medium">
+                                                            Ошибка {log.error_stage ? `(этап: ${log.error_stage})` : ''}
+                                                        </p>
+                                                        <p className="text-sm text-red-700">{log.error_message}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Log ID */}
+                                                <p className="text-xs text-gray-300 font-mono select-all">ID: {log.id}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     )}
                 </div>
@@ -591,6 +815,15 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 
 function Label({ children }: { children: React.ReactNode }) {
     return <label className="block text-sm font-medium text-gray-600 mb-1.5">{children}</label>
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="flex justify-between items-center py-1.5 px-3 bg-gray-50 rounded-lg">
+            <span className="text-xs text-gray-400">{label}</span>
+            <span className="text-sm text-gray-700 font-medium">{value}</span>
+        </div>
+    )
 }
 
 function ApiKeyInput({
@@ -632,6 +865,86 @@ function ApiKeyInput({
     )
 }
 
-// Tailwind utility classes used inline in this component:
-// input-field = "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
-// input-field-sm = "w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+function MultiKeyEditor({
+    keys,
+    onChange,
+    placeholder,
+}: {
+    keys: ApiKeyEntry[] | null
+    onChange: (keys: ApiKeyEntry[]) => void
+    placeholder: string
+}) {
+    const list = keys || []
+    const [visibleKeys, setVisibleKeys] = useState<Record<number, boolean>>({})
+
+    const addKey = () => {
+        onChange([...list, { key: '', label: `Key ${list.length + 1}`, enabled: true }])
+    }
+
+    const removeKey = (index: number) => {
+        onChange(list.filter((_, i) => i !== index))
+    }
+
+    const updateKey = (index: number, field: keyof ApiKeyEntry, value: unknown) => {
+        const updated = [...list]
+        updated[index] = { ...updated[index], [field]: value }
+        onChange(updated)
+    }
+
+    const toggleVisible = (index: number) => {
+        setVisibleKeys(prev => ({ ...prev, [index]: !prev[index] }))
+    }
+
+    return (
+        <div className="space-y-2">
+            {list.map((entry, i) => (
+                <div key={i} className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={entry.enabled}
+                        onChange={e => updateKey(i, 'enabled', e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 shrink-0"
+                    />
+                    <input
+                        type="text"
+                        value={entry.label}
+                        onChange={e => updateKey(i, 'label', e.target.value)}
+                        className="w-28 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm shrink-0"
+                        placeholder="Label"
+                    />
+                    <div className="flex-1 relative">
+                        <input
+                            type={visibleKeys[i] ? 'text' : 'password'}
+                            value={entry.key}
+                            onChange={e => updateKey(i, 'key', e.target.value)}
+                            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono pr-10"
+                            placeholder={placeholder}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => toggleVisible(i)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            aria-label={visibleKeys[i] ? 'Скрыть ключ' : 'Показать ключ'}
+                        >
+                            {visibleKeys[i] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                    </div>
+                    <button
+                        onClick={() => removeKey(i)}
+                        className="text-red-400 hover:text-red-600 transition-colors shrink-0 cursor-pointer"
+                        aria-label="Удалить ключ"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            ))}
+            <button
+                onClick={addKey}
+                className="flex items-center gap-1.5 text-sm text-orange-500 hover:text-orange-600 font-medium cursor-pointer transition-colors"
+            >
+                <Plus className="w-4 h-4" />
+                Добавить ключ
+            </button>
+        </div>
+    )
+}

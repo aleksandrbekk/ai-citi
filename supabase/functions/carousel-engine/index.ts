@@ -16,6 +16,92 @@ const VERTEX_PROJECT_ID = "gen-lang-client-0102901194"
 const VERTEX_LOCATION = "us-central1"
 
 // ============================================================
+// FETCH WITH TIMEOUT (фикс #1: все fetch с таймаутами)
+// ============================================================
+
+async function fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeoutMs: number = 60000
+): Promise<Response> {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        })
+        return response
+    } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            throw new Error(`Request timed out after ${timeoutMs}ms: ${url.substring(0, 80)}`)
+        }
+        throw err
+    } finally {
+        clearTimeout(timer)
+    }
+}
+
+// ============================================================
+// API KEY ROTATION (ротация ключей)
+// ============================================================
+
+interface ApiKeyEntry {
+    key: string
+    label?: string
+    enabled?: boolean
+}
+
+function getRotatedKeys(
+    keysJson: ApiKeyEntry[] | null | undefined,
+    singleKey: string | null
+): string[] {
+    // Combine: primary single key first, then rotation keys
+    const allKeys: string[] = []
+
+    // Primary key always goes first
+    if (singleKey) allKeys.push(singleKey)
+
+    // Add enabled rotation keys (skip duplicates of primary)
+    if (keysJson && Array.isArray(keysJson) && keysJson.length > 0) {
+        const enabled = keysJson.filter(k => k.enabled !== false && k.key && k.key !== singleKey)
+        if (enabled.length > 0) {
+            // Round-robin: rotate based on current minute to spread load
+            const offset = Math.floor(Date.now() / 60000) % enabled.length
+            const rotated = [...enabled.slice(offset), ...enabled.slice(0, offset)]
+            allKeys.push(...rotated.map(k => k.key))
+        }
+    }
+
+    return allKeys
+}
+
+async function tryWithKeyRotation<T>(
+    keys: string[],
+    fn: (key: string, index: number) => Promise<T>,
+    providerName: string
+): Promise<T> {
+    let lastError: Error | null = null
+    for (let i = 0; i < keys.length; i++) {
+        try {
+            return await fn(keys[i], i)
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : String(err)
+            console.warn(`[Engine] Key ${i + 1}/${keys.length} for ${providerName} failed: ${errMsg}`)
+            // Only retry on rate limit / auth errors
+            if (errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('rate') ||
+                errMsg.includes('401') || errMsg.includes('403') || errMsg.includes('billing')) {
+                lastError = err instanceof Error ? err : new Error(errMsg)
+                continue
+            }
+            // Non-retryable error — throw immediately
+            throw err
+        }
+    }
+    throw lastError || new Error(`All ${keys.length} keys exhausted for ${providerName}`)
+}
+
+// ============================================================
 // TYPES
 // ============================================================
 
@@ -25,9 +111,17 @@ interface EngineConfig {
     text_model: string
     text_fallback_provider: string | null
     text_fallback_key: string | null
-    image_provider: 'gemini' | 'imagen' | 'ideogram'
+    text_fallback_model: string | null
+    text_api_keys: ApiKeyEntry[] | null
+    text_fallback_keys: ApiKeyEntry[] | null
+    image_provider: 'openrouter' | 'gemini' | 'imagen' | 'ideogram'
     image_api_key: string
     image_model: string
+    image_api_keys: ApiKeyEntry[] | null
+    image_fallback_provider: string | null
+    image_fallback_model: string | null
+    image_fallback_key: string | null
+    image_fallback_keys: ApiKeyEntry[] | null
     telegram_bot_token: string
     cloudinary_cloud: string
     cloudinary_preset: string
@@ -193,11 +287,11 @@ async function createJWT(credentials: { client_email: string; private_key: strin
 
 async function getAccessToken(credentials: { client_email: string; private_key: string }): Promise<string> {
     const jwt = await createJWT(credentials)
-    const response = await fetch("https://oauth2.googleapis.com/token", {
+    const response = await fetchWithTimeout("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
-    })
+    }, 15000)
 
     if (!response.ok) {
         const error = await response.text()
@@ -259,14 +353,14 @@ async function generateTextGemini(
         ]
     }
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
-    })
+    }, 90000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -284,7 +378,7 @@ async function generateTextOpenRouter(
     model: string,
     apiKey: string
 ): Promise<string> {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -300,7 +394,7 @@ async function generateTextOpenRouter(
             temperature: 0.8,
             max_tokens: 8192,
         }),
-    })
+    }, 90000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -311,28 +405,50 @@ async function generateTextOpenRouter(
     return data.choices?.[0]?.message?.content || ''
 }
 
-// --- Unified text generation ---
+// --- Unified text generation (с ротацией ключей + фикс fallback) ---
 async function generateText(
     systemPrompt: string,
     userPrompt: string,
     config: EngineConfig
-): Promise<string> {
+): Promise<{ text: string; keyIndex: number }> {
+    // Primary provider with key rotation
     try {
         if (config.text_provider === 'gemini') {
-            return await generateTextGemini(systemPrompt, userPrompt, config.text_model, config.use_search_grounding)
+            // Gemini uses service account, no API key rotation
+            const text = await generateTextGemini(systemPrompt, userPrompt, config.text_model, config.use_search_grounding)
+            return { text, keyIndex: 0 }
         } else {
-            return await generateTextOpenRouter(systemPrompt, userPrompt, config.text_model, config.text_api_key)
+            // OpenRouter — rotate API keys
+            const keys = getRotatedKeys(config.text_api_keys, config.text_api_key)
+            if (keys.length === 0) throw new Error('No text API keys configured')
+            let resultText = ''
+            let resultIdx = 0
+            await tryWithKeyRotation(keys, async (key, idx) => {
+                resultText = await generateTextOpenRouter(systemPrompt, userPrompt, config.text_model, key)
+                resultIdx = idx
+            }, 'text-openrouter')
+            return { text: resultText, keyIndex: resultIdx }
         }
     } catch (err) {
-        console.error(`[Engine] Primary text provider (${config.text_provider}) failed:`, err)
+        console.error(`[Engine] Primary text (${config.text_provider}) failed:`, err)
 
-        // Fallback
-        if (config.text_fallback_provider && config.text_fallback_key) {
-            console.log(`[Engine] Trying fallback: ${config.text_fallback_provider}`)
+        // Fallback: use text_fallback_model (FIX: раньше использовалась text_model от основного провайдера)
+        if (config.text_fallback_provider) {
+            const fallbackModel = config.text_fallback_model || config.text_model
+            console.log(`[Engine] Trying fallback: ${config.text_fallback_provider} / ${fallbackModel}`)
+
             if (config.text_fallback_provider === 'openrouter') {
-                return await generateTextOpenRouter(systemPrompt, userPrompt, config.text_model, config.text_fallback_key)
+                const fallbackKeys = getRotatedKeys(config.text_fallback_keys, config.text_fallback_key)
+                if (fallbackKeys.length === 0) throw err
+                let resultText = ''
+                await tryWithKeyRotation(fallbackKeys, async (key) => {
+                    resultText = await generateTextOpenRouter(systemPrompt, userPrompt, fallbackModel, key)
+                }, 'text-fallback-openrouter')
+                return { text: resultText, keyIndex: -1 }
             } else if (config.text_fallback_provider === 'gemini') {
-                return await generateTextGemini(systemPrompt, userPrompt, config.text_model, config.use_search_grounding)
+                // FIX: use fallbackModel, not primary text_model
+                const text = await generateTextGemini(systemPrompt, userPrompt, fallbackModel, config.use_search_grounding)
+                return { text, keyIndex: -1 }
             }
         }
 
@@ -360,7 +476,7 @@ async function generateImageImagen(
     console.log(`[Engine] Using image model: ${modelId}`)
     const endpoint = `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:predict`
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -376,7 +492,7 @@ async function generateImageImagen(
                 safetySetting: "block_only_high",
             }
         }),
-    })
+    }, 120000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -402,7 +518,7 @@ async function generateImageIdeogram(
     _model: string,
     apiKey: string
 ): Promise<Uint8Array> {
-    const response = await fetch('https://api.ideogram.ai/generate', {
+    const response = await fetchWithTimeout('https://api.ideogram.ai/generate', {
         method: 'POST',
         headers: {
             'Api-Key': apiKey,
@@ -416,7 +532,7 @@ async function generateImageIdeogram(
                 magic_prompt_option: "AUTO",
             }
         }),
-    })
+    }, 120000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -428,7 +544,7 @@ async function generateImageIdeogram(
     if (!imageUrl) throw new Error('No image URL from Ideogram')
 
     // Download the image
-    const imgResponse = await fetch(imageUrl)
+    const imgResponse = await fetchWithTimeout(imageUrl, {}, 30000)
     const imgBuffer = await imgResponse.arrayBuffer()
     return new Uint8Array(imgBuffer)
 }
@@ -443,7 +559,7 @@ async function fetchPhotoAsBase64(photoUrl: string): Promise<string | null> {
         }
 
         console.log(`[Engine] Fetching user photo: ${url.substring(0, 80)}...`)
-        const response = await fetch(url)
+        const response = await fetchWithTimeout(url, {}, 30000)
         if (!response.ok) {
             console.error(`[Engine] Photo fetch failed: ${response.status}`)
             return null
@@ -495,7 +611,7 @@ async function generateImageGemini(
 
     parts.push({ text: prompt })
 
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -515,7 +631,7 @@ async function generateImageGemini(
                 { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
             ],
         }),
-    })
+    }, 120000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -541,18 +657,179 @@ async function generateImageGemini(
     throw new Error('Gemini did not return an image in response')
 }
 
-// --- Unified image generation ---
+// --- OpenRouter Image Generation (как в n8n) ---
+async function generateImageOpenRouter(
+    prompt: string,
+    model: string,
+    apiKey: string,
+    referenceImageBase64?: string | null
+): Promise<Uint8Array> {
+    const modelId = model || 'google/gemini-3-pro-image-preview'
+    console.log(`[Engine] Using OpenRouter image model: ${modelId}${referenceImageBase64 ? ' + reference photo' : ''}`)
+
+    // Build messages: reference image (if provided) + text prompt
+    const contentParts: Record<string, unknown>[] = []
+
+    if (referenceImageBase64) {
+        contentParts.push({
+            type: 'image_url',
+            image_url: {
+                url: `data:image/jpeg;base64,${referenceImageBase64}`,
+            }
+        })
+    }
+
+    contentParts.push({ type: 'text', text: prompt })
+
+    const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://aiciti.pro',
+        },
+        body: JSON.stringify({
+            model: modelId,
+            messages: [
+                {
+                    role: 'user',
+                    content: contentParts,
+                }
+            ],
+            modalities: ['image', 'text'],
+        }),
+    }, 120000)
+
+    if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`OpenRouter Image error ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    let imageBase64: string | null = null
+
+    try {
+        const msg = data.choices?.[0]?.message
+
+        // Attempt 1: OpenRouter images field — message.images[0].image_url.url
+        if (msg?.images?.[0]?.image_url?.url) {
+            const imageUrl = msg.images[0].image_url.url
+            if (imageUrl.startsWith('data:image/')) {
+                imageBase64 = imageUrl.replace(/^data:image\/\w+;base64,/, '')
+            }
+        }
+
+        // Attempt 2: OpenRouter multipart content — message.content[] with image_url
+        if (!imageBase64 && Array.isArray(msg?.content)) {
+            for (const part of msg.content) {
+                if (part.image_url?.url?.startsWith('data:image/')) {
+                    imageBase64 = part.image_url.url.replace(/^data:image\/\w+;base64,/, '')
+                    break
+                }
+            }
+        }
+
+        // Attempt 3: Native Gemini format — candidates[0].content.parts[].inlineData.data
+        if (!imageBase64 && data.candidates?.[0]?.content?.parts) {
+            for (const part of data.candidates[0].content.parts) {
+                if (part.inlineData?.data) {
+                    imageBase64 = part.inlineData.data
+                    break
+                }
+            }
+        }
+    } catch (e) {
+        console.error('[Engine] Error extracting image from response:', e)
+    }
+
+    if (imageBase64) {
+        const binaryStr = atob(imageBase64)
+        const bytes = new Uint8Array(binaryStr.length)
+        for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i)
+        }
+        return bytes
+    }
+
+    // Log response structure for debugging
+    const responseKeys = JSON.stringify({
+        hasChoices: !!data.choices,
+        messageKeys: data.choices?.[0]?.message ? Object.keys(data.choices[0].message) : [],
+        hasCandidates: !!data.candidates,
+        contentType: typeof data.choices?.[0]?.message?.content,
+    })
+    throw new Error(`OpenRouter did not return an image. Response structure: ${responseKeys}`)
+}
+
+// --- Image generation by provider (с ротацией ключей) ---
+async function generateImageWithProvider(
+    prompt: string,
+    provider: string,
+    model: string,
+    singleKey: string | null,
+    keysJson: ApiKeyEntry[] | null | undefined,
+    referenceImageBase64?: string | null
+): Promise<Uint8Array> {
+    if (provider === 'openrouter') {
+        const keys = getRotatedKeys(keysJson, singleKey)
+        if (keys.length === 0) throw new Error('No OpenRouter image API keys configured')
+        let result: Uint8Array = new Uint8Array()
+        await tryWithKeyRotation(keys, async (key) => {
+            result = await generateImageOpenRouter(prompt, model, key, referenceImageBase64)
+        }, 'image-openrouter')
+        return result
+    } else if (provider === 'gemini') {
+        const keys = getRotatedKeys(keysJson, singleKey)
+        if (keys.length === 0) throw new Error('No Gemini image API keys configured')
+        let result: Uint8Array = new Uint8Array()
+        await tryWithKeyRotation(keys, async (key) => {
+            result = await generateImageGemini(prompt, model, key, referenceImageBase64)
+        }, 'image-gemini')
+        return result
+    } else if (provider === 'imagen') {
+        // Imagen uses service account (no API key rotation needed)
+        return await generateImageImagen(prompt, model)
+    } else {
+        // ideogram
+        const keys = getRotatedKeys(keysJson, singleKey)
+        if (keys.length === 0) throw new Error('No Ideogram API keys configured')
+        let result: Uint8Array = new Uint8Array()
+        await tryWithKeyRotation(keys, async (key) => {
+            result = await generateImageIdeogram(prompt, model, key)
+        }, 'image-ideogram')
+        return result
+    }
+}
+
+// --- Unified image generation (с fallback на другой провайдер) ---
 async function generateImage(
     prompt: string,
     config: EngineConfig,
     referenceImageBase64?: string | null
 ): Promise<Uint8Array> {
-    if (config.image_provider === 'gemini') {
-        return await generateImageGemini(prompt, config.image_model, config.image_api_key, referenceImageBase64)
-    } else if (config.image_provider === 'imagen') {
-        return await generateImageImagen(prompt, config.image_model)
-    } else {
-        return await generateImageIdeogram(prompt, config.image_model, config.image_api_key)
+    // Primary provider
+    try {
+        return await generateImageWithProvider(
+            prompt, config.image_provider, config.image_model,
+            config.image_api_key, config.image_api_keys,
+            referenceImageBase64
+        )
+    } catch (err) {
+        console.error(`[Engine] Primary image (${config.image_provider}) failed:`, err)
+
+        // Image fallback (NEW: раньше не было)
+        if (config.image_fallback_provider) {
+            console.log(`[Engine] Trying image fallback: ${config.image_fallback_provider}`)
+            return await generateImageWithProvider(
+                prompt, config.image_fallback_provider,
+                config.image_fallback_model || config.image_model,
+                config.image_fallback_key,
+                config.image_fallback_keys,
+                referenceImageBase64
+            )
+        }
+        throw err
     }
 }
 
@@ -580,10 +857,10 @@ async function uploadToCloudinary(
     formData.append('folder', 'carousels')
     formData.append('public_id', `slide_${slideIndex}_${Date.now()}`)
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    const response = await fetchWithTimeout(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
         method: 'POST',
         body: formData,
-    })
+    }, 60000)
 
     if (!response.ok) {
         const errorText = await response.text()
@@ -595,12 +872,100 @@ async function uploadToCloudinary(
 }
 
 // ============================================================
+// CLOUDINARY CLEANUP (auto-delete after 24h)
+// ============================================================
+
+async function sha1(message: string): Promise<string> {
+    const data = new TextEncoder().encode(message)
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+function extractPublicId(url: string): string | null {
+    const match = url.match(/\/upload\/(?:v\d+\/|[^/]*\/)?(.+)\.\w+$/)
+    return match ? match[1] : null
+}
+
+async function destroyCloudinaryImage(publicId: string, cloudName: string, apiKey: string, apiSecret: string): Promise<boolean> {
+    try {
+        const timestamp = Math.floor(Date.now() / 1000)
+        const signature = await sha1(`public_id=${publicId}&timestamp=${timestamp}${apiSecret}`)
+
+        const formData = new URLSearchParams()
+        formData.append('public_id', publicId)
+        formData.append('api_key', apiKey)
+        formData.append('timestamp', timestamp.toString())
+        formData.append('signature', signature)
+
+        const response = await fetchWithTimeout(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`,
+            { method: 'POST', body: formData },
+            15000
+        )
+        const result = await response.json()
+        return result.result === 'ok' || result.result === 'not found'
+    } catch (err) {
+        console.error(`[Cloudinary] Failed to delete ${publicId}:`, err)
+        return false
+    }
+}
+
+async function cleanupOldCloudinaryImages(config: EngineConfig): Promise<number> {
+    const apiKey = Deno.env.get('CLOUDINARY_API_KEY')
+    const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET')
+    if (!apiKey || !apiSecret) {
+        console.log('[Cloudinary] No API_KEY/SECRET — skipping cleanup')
+        return 0
+    }
+
+    const supabase = getSupabaseClient()
+
+    // Find logs older than 24h with images that haven't been cleaned
+    const { data: oldLogs, error } = await supabase
+        .from('ai_generation_logs')
+        .select('id, image_urls')
+        .eq('cloudinary_cleaned', false)
+        .not('image_urls', 'is', null)
+        .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .limit(10) // Process max 10 per run to avoid timeouts
+
+    if (error || !oldLogs || oldLogs.length === 0) return 0
+
+    let totalDeleted = 0
+
+    for (const log of oldLogs) {
+        const urls: string[] = log.image_urls || []
+        let allDeleted = true
+
+        for (const url of urls) {
+            const publicId = extractPublicId(url)
+            if (!publicId) continue
+            const ok = await destroyCloudinaryImage(publicId, config.cloudinary_cloud, apiKey, apiSecret)
+            if (ok) totalDeleted++
+            else allDeleted = false
+        }
+
+        // Mark as cleaned even if some failed (to avoid infinite retry)
+        await supabase
+            .from('ai_generation_logs')
+            .update({ cloudinary_cleaned: true })
+            .eq('id', log.id)
+
+        if (!allDeleted) {
+            console.warn(`[Cloudinary] Some images failed to delete for log ${log.id}`)
+        }
+    }
+
+    return totalDeleted
+}
+
+// ============================================================
 // TELEGRAM DELIVERY
 // ============================================================
 
 async function sendStatusToTelegram(chatId: number, text: string, botToken: string): Promise<void> {
     try {
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -608,7 +973,7 @@ async function sendStatusToTelegram(chatId: number, text: string, botToken: stri
                 text,
                 parse_mode: 'HTML',
             }),
-        })
+        }, 15000)
     } catch {
         // Не критично — статусное сообщение
     }
@@ -634,14 +999,14 @@ async function sendToTelegram(
             ...(i === 0 ? { caption } : {}),
         }))
 
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
+        const response = await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: chatId,
                 media,
             }),
-        })
+        }, 15000)
 
         if (!response.ok) {
             const errorText = await response.text()
@@ -649,28 +1014,28 @@ async function sendToTelegram(
 
             // Fallback: отправляем по одной
             for (const url of imageUrls) {
-                await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: chatId,
                         photo: url,
                     }),
-                })
+                }, 15000)
             }
         }
     }
 }
 
 async function sendErrorToTelegram(chatId: number, error: string, botToken: string) {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    await fetchWithTimeout(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             chat_id: chatId,
-            text: `❌ Ошибка генерации карусели:\n${error}\n\nПопробуйте ещё раз.`,
+            text: `❌ Ошибка генерации карусели:\n${error}\n\n💰 Монеты возвращены на баланс.\nПопробуйте ещё раз.`,
         }),
-    })
+    }, 15000)
 }
 
 // ============================================================
@@ -946,14 +1311,24 @@ function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: Gen
         const outfit = selectOutfit(niche, slideType, vasiaCore)
         const props = selectProps(niche, contentTone, vasiaCore)
 
-        // Для CTA-слайда: акцент на кодовое слово
-        const ctaExtra = slideType === 'CTA' && payload.cta
-            ? `\nIMPORTANT: This is a CTA slide. The keyword "${payload.cta}" MUST appear prominently on the slide in LARGE text with vibrant orange glow effect. Format: "ПИШИ: ${payload.cta}"`
-            : ''
-
-        prompt = `Create a vertical portrait image, taller than wide.
+        // CTA vs HOOK: разные промпты
+        if (slideType === 'CTA' && payload.cta) {
+            prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
-Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}${ctaExtra}
+LAYOUT: Person on the LEFT side (40% of frame). On the RIGHT side — a large frosted glass card (glassmorphism style, rounded corners, semi-transparent white).
+INSIDE the glass card, centered: Large bold text "ПИШИ: ${payload.cta}" in vibrant orange with glow effect.${slide.body_text ? `\nBelow that, smaller text inside the same card: "${slide.body_text}"` : ''}
+
+Person: chest up to waist.
+Pose: ${posePrompt}
+Expression: ${emotionPrompt}
+Outfit: ${outfit}
+
+Photorealistic, NOT illustration. Cinematic lighting. 8K. ALL text MUST be INSIDE the glass card. DO NOT add text not specified.
+${stylePrompt ? `\nMANDATORY: Follow the style description above exactly — same colors, background, aesthetic.` : ''}${referenceInstruction}`
+        } else {
+            prompt = `Create a vertical portrait image, taller than wide.
+${stylePrompt ? stylePrompt + '\n' : ''}
+Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}
 
 Person: chest up to waist, fills 85% of frame width.
 Pose: ${posePrompt}
@@ -963,7 +1338,9 @@ Props around person: ${props}
 
 ${slide.body_text ? `Bottom card text: "${slide.body_text}"` : ''}
 
-Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.
+${stylePrompt ? `\nMANDATORY: Follow the style description above exactly — same colors, background, aesthetic.` : ''}${referenceInstruction}`
+        }
     } else if (slideType === 'VIRAL') {
         const viralTarget = slide.subheadline || selectViralTarget(vasiaCore)
         prompt = `Create a vertical portrait image, taller than wide.
@@ -973,13 +1350,15 @@ Share icons, paper airplane, energy particles.
 No person. Bright, viral aesthetic. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     } else {
         // CONTENT slides (no person)
+        const contentText = slide.content_details || slide.body_text || ''
         prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
-Headline: "${slide.headline || ''}"
-Layout: ${slide.content_layout || 'clean structured layout'}
-Content: ${slide.content_details || slide.body_text || ''}
-${slide.transition ? `Transition text: "${slide.transition}"` : ''}
-No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+At the TOP: Large bold headline "${slide.headline || ''}"
+Below headline: ${slide.content_layout || 'clean structured layout'} with the following text items clearly written and readable:
+${contentText}
+${slide.transition ? `At the BOTTOM: transition text "${slide.transition}"` : ''}
+No person. Clean infographic style. 8K.
+CRITICAL: All text content listed above MUST be clearly written and READABLE on the image. Do NOT leave cards or frames empty — fill them with the actual text content provided. DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     }
 
     if (payload.primaryColor) {
@@ -995,6 +1374,28 @@ No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is no
 
 async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
     const startTime = Date.now()
+
+    // === Очистка зависших генераций (фикс #5) ===
+    try {
+        const supabase = getSupabaseClient()
+        const { data: cleanedCount } = await supabase.rpc('cleanup_hung_generations', { p_timeout_minutes: 5 })
+        if (cleanedCount && cleanedCount > 0) {
+            console.log(`[Engine] Cleaned up ${cleanedCount} hung generations`)
+        }
+    } catch {
+        // Non-critical
+    }
+
+    // === Автоочистка Cloudinary (удаление картинок старше 24ч) ===
+    try {
+        const deletedCount = await cleanupOldCloudinaryImages(config)
+        if (deletedCount > 0) {
+            console.log(`[Engine] Cloudinary cleanup: deleted ${deletedCount} old images`)
+        }
+    } catch {
+        // Non-critical
+    }
+
     const logId = await createGenLog(payload.chatId, payload.topic, payload.styleId, config)
 
     try {
@@ -1011,11 +1412,11 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         const textStart = Date.now()
         const { systemPrompt, userPrompt } = buildCopywriterPrompt(payload)
-        const rawText = await generateText(systemPrompt, userPrompt, config)
+        const { text: rawText, keyIndex: textKeyIndex } = await generateText(systemPrompt, userPrompt, config)
         const textMs = Date.now() - textStart
 
-        console.log(`[Engine] Text generated in ${textMs}ms, length: ${rawText.length}`)
-        await updateGenLog(logId, { text_gen_ms: textMs })
+        console.log(`[Engine] Text generated in ${textMs}ms, length: ${rawText.length}, keyIndex: ${textKeyIndex}`)
+        await updateGenLog(logId, { text_gen_ms: textMs, text_key_index: textKeyIndex })
 
         // Парсим JSON из ответа
         let slides: SlideContent[]
@@ -1031,7 +1432,7 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Array.isArray(parsed.slides)) {
                 // New format: { slides: [...], post_text: "..." }
                 slides = parsed.slides
-                postText = parsed.post_text || ''
+                postText = (parsed.post_text || '').replace(/\\n/g, '\n')
                 console.log('[Engine] Parsed CopywriterResponse format (slides + post_text)')
             } else if (Array.isArray(parsed)) {
                 // Legacy format: flat array — convert to new format
@@ -1057,6 +1458,23 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         console.log(`[Engine] Parsed ${slides.length} slides, post_text length: ${postText.length}`)
 
+        // === CTA KEYWORD ENFORCEMENT (фикс #6) ===
+        const ctaKeyword = payload.cta || 'ПОДПИШИСЬ'
+        const ctaSlide = slides.find(s => s.type === 'CTA') || slides[slides.length - 2] // CTA обычно предпоследний
+        if (ctaSlide && ctaKeyword) {
+            const headline = ctaSlide.headline || ''
+            if (!headline.toUpperCase().includes(ctaKeyword.toUpperCase())) {
+                console.warn(`[Engine] CTA keyword "${ctaKeyword}" missing from CTA slide headline: "${headline}"`)
+                // Inject: заменяем headline, сохраняем оригинал в subheadline
+                const originalHeadline = headline
+                ctaSlide.headline = `ПИШИ: ${ctaKeyword}`
+                if (originalHeadline && !originalHeadline.toUpperCase().startsWith('ПИШИ')) {
+                    ctaSlide.subheadline = originalHeadline
+                }
+                console.log(`[Engine] CTA keyword injected: "${ctaSlide.headline}"`)
+            }
+        }
+
         // === СТАТУС: Тексты готовы ===
         const faceCount = slides.filter(s => s.human_mode === 'FACE' || s.type === 'HOOK' || s.type === 'CTA').length
         await sendStatusToTelegram(
@@ -1079,7 +1497,7 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             console.log('[Engine] No userPhoto provided, generating without reference')
         }
 
-        // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО!) ===
+        // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО) ===
         console.log('[Engine] Step 2: Generating images (parallel)...')
         await updateGenLog(logId, { status: 'generating_images', slides_count: slides.length })
 
@@ -1087,19 +1505,26 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         const imageStart = Date.now()
 
         let firstImageError = ''
-        const imagePromises = slides.map((slide) => {
+        const imagePromises = slides.map((slide, i) => {
             const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
             const slidePhotoRef = isFaceSlide ? photoBase64 : null
             const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
-            return generateImage(prompt, config, slidePhotoRef).catch((err) => {
-                const errMsg = err instanceof Error ? err.message : String(err)
-                console.error(`[Engine] Image gen failed for slide ${slide.slideNumber}:`, errMsg)
-                if (!firstImageError) firstImageError = errMsg
-                return null
-            })
+
+            return generateImage(prompt, config, slidePhotoRef)
+                .then(img => {
+                    console.log(`[Engine] Image ${i + 1}/${slides.length} OK`)
+                    return img
+                })
+                .catch((err) => {
+                    const errMsg = err instanceof Error ? err.message : String(err)
+                    console.error(`[Engine] Image ${i + 1}/${slides.length} FAILED:`, errMsg)
+                    if (!firstImageError) firstImageError = errMsg
+                    return null
+                })
         })
 
         const imageResults = await Promise.all(imagePromises)
+
         if (firstImageError) {
             await updateGenLog(logId, { error_message: `Image errors: ${firstImageError}` })
         }
@@ -1110,6 +1535,12 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         // Фильтруем null (провалившиеся слайды)
         const validImages = imageResults.filter((img): img is Uint8Array => img !== null)
         console.log(`[Engine] ${validImages.length}/${slides.length} images generated successfully`)
+
+        // Проверка: если меньше 70% слайдов — считаем ошибкой
+        const minRequired = Math.ceil(slides.length * 0.7)
+        if (validImages.length < minRequired) {
+            throw new Error(`Только ${validImages.length} из ${slides.length} картинок сгенерировано (нужно минимум ${minRequired}). ${firstImageError}`)
+        }
 
         // === СТАТУС: Картинки готовы ===
         await sendStatusToTelegram(
@@ -1161,13 +1592,33 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         const totalMs = Date.now() - startTime
         console.error(`[Engine] ❌ Pipeline failed after ${totalMs}ms:`, errorMessage)
 
+        // === ВОЗВРАТ МОНЕТ (фикс #2) ===
+        try {
+            const supabase = getSupabaseClient()
+            const refundResult = await supabase.rpc('add_coins', {
+                p_telegram_id: payload.chatId,
+                p_amount: 30,
+                p_type: 'bonus',
+                p_description: 'Возврат за ошибку генерации карусели',
+                p_metadata: { source: 'refund', reason: 'carousel_engine_error', error: errorMessage.substring(0, 200) }
+            })
+            if (refundResult.error) {
+                console.error('[Engine] Refund failed:', refundResult.error)
+            } else {
+                console.log(`[Engine] Refunded 30 coins to user ${payload.chatId}`)
+                await updateGenLog(logId, { coins_refunded: true })
+            }
+        } catch (refundErr) {
+            console.error('[Engine] Refund error:', refundErr)
+        }
+
         await updateGenLog(logId, {
             status: 'error',
             error_message: errorMessage,
             total_ms: totalMs,
         })
 
-        // Уведомляем пользователя об ошибке
+        // Уведомляем пользователя об ошибке (+ текст про возврат монет)
         try {
             await sendErrorToTelegram(payload.chatId, errorMessage, config.telegram_bot_token)
         } catch {
