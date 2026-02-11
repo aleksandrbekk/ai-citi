@@ -1497,20 +1497,41 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             console.log('[Engine] No userPhoto provided, generating without reference')
         }
 
-        // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО) ===
-        console.log('[Engine] Step 2: Generating images (parallel)...')
+        // === ШАГ 2: Генерация картинок ===
         await updateGenLog(logId, { status: 'generating_images', slides_count: slides.length })
 
         const stylePrompt = payload.stylePrompt || (payload.styleConfig?.style_prompt as string) || ''
         const imageStart = Date.now()
 
+        // Проверяем нагрузку: сколько генераций сейчас в процессе
+        let concurrentCount = 0
+        try {
+            const supabase = getSupabaseClient()
+            const { count } = await supabase
+                .from('ai_generation_logs')
+                .select('id', { count: 'exact', head: true })
+                .in('status', ['generating_text', 'generating_images', 'uploading'])
+            concurrentCount = count || 0
+        } catch { /* non-critical */ }
+
+        // Адаптивная стратегия: при высокой нагрузке добавляем задержку между запросами
+        const staggerMs = concurrentCount >= 5 ? 4000 : concurrentCount >= 3 ? 2000 : 0
+        const strategy = staggerMs > 0 ? `staggered (${staggerMs}ms, ${concurrentCount} concurrent)` : `parallel (${concurrentCount} concurrent)`
+        console.log(`[Engine] Step 2: Generating images — ${strategy}`)
+
         let firstImageError = ''
-        const imagePromises = slides.map((slide, i) => {
+
+        function makeImagePromise(slide: SlideContent, i: number, delayMs: number) {
             const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
             const slidePhotoRef = isFaceSlide ? photoBase64 : null
             const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
 
-            return generateImage(prompt, config, slidePhotoRef)
+            const doGenerate = async () => {
+                if (delayMs > 0) await new Promise(r => setTimeout(r, delayMs))
+                return generateImage(prompt, config, slidePhotoRef)
+            }
+
+            return doGenerate()
                 .then(img => {
                     console.log(`[Engine] Image ${i + 1}/${slides.length} OK`)
                     return img
@@ -1521,8 +1542,9 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
                     if (!firstImageError) firstImageError = errMsg
                     return null
                 })
-        })
+        }
 
+        const imagePromises = slides.map((slide, i) => makeImagePromise(slide, i, i * staggerMs))
         const imageResults = await Promise.all(imagePromises)
 
         // === РЕТРАЙ упавших картинок (по одной, чтобы не перегружать API) ===
