@@ -1136,64 +1136,41 @@ function selectViralTarget(vasiaCore: Record<string, unknown>): string {
 // PIPELINE: Построение промптов
 // ============================================================
 
-function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: string; userPrompt: string } {
-    const styleConfig = payload.styleConfig || {}
-    const contentSystemPrompt = styleConfig.content_system_prompt as string || ''
-    const globalSystemPrompt = payload.globalSystemPrompt || ''
-    const topic = payload.topic || ''
+// Обязательная JSON-схема — ВСЕГДА дописывается в конец любого промпта.
+// Гарантирует что AI вернёт поля в формате, который движок умеет парсить.
+const MANDATORY_JSON_SCHEMA = `
 
-    // Логика приоритетов:
-    // 1. Admin content_system_prompt (если > 20 символов) — уже содержит формат
-    // 2. Global system prompt из БД — уже содержит формат
-    // 3. Базовый fallback с rich JSON форматом
-    let systemPrompt = ''
+=== ОБЯЗАТЕЛЬНЫЙ ФОРМАТ ОТВЕТА ===
+Верни СТРОГО JSON объект. Без markdown, без пояснений, без \`\`\`json.
 
-    if (contentSystemPrompt && contentSystemPrompt.length > 20) {
-        systemPrompt = contentSystemPrompt
-        if (!systemPrompt.includes('{topic}')) {
-            systemPrompt = `ТЕМА: ${topic}\n\n${systemPrompt}`
-        }
-        systemPrompt = systemPrompt.replace(/{topic}/g, topic)
-    } else if (globalSystemPrompt && globalSystemPrompt.length > 20) {
-        systemPrompt = globalSystemPrompt
-        if (!systemPrompt.includes('{topic}')) {
-            systemPrompt = `ТЕМА: ${topic}\n\n${systemPrompt}`
-        }
-        systemPrompt = systemPrompt.replace(/{topic}/g, topic)
-    } else {
-        // Fallback: rich JSON format instructions
-        systemPrompt = `Ты — профессиональный копирайтер для Instagram каруселей.
-Создай структуру из 9 слайдов на указанную тему.
-
-ФОРМАТ ОТВЕТА — СТРОГО JSON объект:
 {
   "slides": [
     {
       "slideNumber": 1,
       "type": "HOOK",
-      "headline": "Главный заголовок (крупный, цепляющий, до 6 слов)",
+      "headline": "Цепляющий заголовок (до 6 слов)",
       "subheadline": "Подзаголовок (до 10 слов)",
-      "body_text": "Основной текст для нижней карточки",
-      "pose": "описание позы человека на русском",
-      "emotion": "описание эмоции человека на русском",
+      "body_text": "Текст для нижней карточки слайда",
+      "pose": "описание позы человека",
+      "emotion": "описание эмоции",
       "human_mode": "FACE"
     },
     {
       "slideNumber": 2,
       "type": "CONTENT",
-      "headline": "Заголовок слайда",
-      "body_text": "Основной контент — список, факты, советы",
+      "headline": "Заголовок (до 6 слов)",
+      "body_text": "Основной контент: список, факты, советы",
       "transition": "Переходная фраза к следующему слайду",
       "human_mode": "NONE",
       "content_layout": "numbered_list | comparison | checklist | infographic | quote",
       "content_details": "Подробное описание контента для визуализации"
     },
-    ... (слайды 3-7 — CONTENT, аналогично слайду 2)
+    // ... слайды 3-7 — type: "CONTENT", аналогично слайду 2
     {
       "slideNumber": 8,
       "type": "CTA",
-      "headline": "ПИШИ: {CTA_CODE}",
-      "body_text": "Выгода для подписчика + призыв написать кодовое слово",
+      "headline": "Заголовок с кодовым словом",
+      "body_text": "Выгода + призыв написать кодовое слово",
       "pose": "описание позы",
       "emotion": "описание эмоции",
       "human_mode": "FACE"
@@ -1206,21 +1183,64 @@ function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: stri
       "human_mode": "NONE"
     }
   ],
-  "post_text": "Текст для Instagram caption (200-300 слов, хэштеги, эмодзи)"
+  "post_text": "Текст для Instagram caption (200-300 слов, хэштеги, эмодзи, кодовое слово)"
 }
 
-ПРАВИЛА:
-- Слайд 1 (HOOK) и 8 (CTA): human_mode="FACE" — с человеком
-- Слайды 2-7 (CONTENT) и 9 (VIRAL): human_mode="NONE" — без человека
-- headline: короткий, крупный текст (до 6 слов)
-- content_layout: выбери из вариантов для каждого CONTENT слайда
-- Чередуй content_layout: не повторяй один и тот же два раза подряд
-- ОБЯЗАТЕЛЬНО: Слайд 8 (CTA) — headline ДОЛЖЕН содержать кодовое слово/CTA из запроса пользователя. Формат: "ПИШИ: {CTA_CODE}" где {CTA_CODE} — это кодовое слово. Это КРИТИЧЕСКИ важно!
-- post_text: полноценный Instagram caption с CTA и хэштегами, включая кодовое слово
-- Верни ТОЛЬКО JSON, без markdown, без пояснений`
+ОБЯЗАТЕЛЬНЫЕ ПРАВИЛА JSON:
+- Ровно 9 слайдов: slideNumber от 1 до 9
+- Каждый слайд ОБЯЗАН иметь: slideNumber, type, headline, body_text, human_mode
+- type: "HOOK" (слайд 1), "CONTENT" (слайды 2-7), "CTA" (слайд 8), "VIRAL" (слайд 9)
+- human_mode: "FACE" для слайдов 1 и 8, "NONE" для остальных
+- CONTENT слайды обязаны иметь: content_layout, content_details
+- Чередуй content_layout — не повторяй подряд
+- Слайд 8 (CTA) headline ДОЛЖЕН содержать кодовое слово из запроса
+- Верни ТОЛЬКО JSON, никакого другого текста`
+
+function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: string; userPrompt: string } {
+    const styleConfig = payload.styleConfig || {}
+    const contentSystemPrompt = styleConfig.content_system_prompt as string || ''
+    const formatSystemPrompt = payload.formatSystemPrompt || ''
+    const globalSystemPrompt = payload.globalSystemPrompt || ''
+    const topic = payload.topic || ''
+
+    // Логика приоритетов:
+    // 1. Style content_system_prompt (индивидуальный промпт стиля, если > 20 символов)
+    // 2. Format system prompt (промпт выбранного формата из carousel_formats)
+    // 3. Global system prompt из БД (carousel_settings)
+    // 4. Базовый fallback
+    let systemPrompt = ''
+    let promptSource = 'fallback'
+
+    if (contentSystemPrompt && contentSystemPrompt.length > 20) {
+        systemPrompt = contentSystemPrompt
+        promptSource = 'style_content_prompt'
+    } else if (formatSystemPrompt && formatSystemPrompt.length > 20) {
+        systemPrompt = formatSystemPrompt
+        promptSource = `format_prompt (${payload.formatId || 'unknown'})`
+    } else if (globalSystemPrompt && globalSystemPrompt.length > 20) {
+        systemPrompt = globalSystemPrompt
+        promptSource = 'global_system_prompt'
+    } else {
+        systemPrompt = `Ты — профессиональный копирайтер для Instagram каруселей.
+Создай структуру из 9 слайдов на указанную тему.
+Текст должен быть вовлекающим, с сильными заголовками и полезным контентом.`
+        promptSource = 'hardcoded_fallback'
     }
 
-    // userPrompt: ТОЛЬКО тема, пол, CTA — БЕЗ описания формата (формат уже в systemPrompt)
+    // Подставляем тему
+    if (systemPrompt.includes('{topic}')) {
+        systemPrompt = systemPrompt.replace(/{topic}/g, topic)
+    } else {
+        systemPrompt = `ТЕМА: ${topic}\n\n${systemPrompt}`
+    }
+
+    // ВСЕГДА добавляем обязательную JSON-схему в конец
+    // Это гарантирует правильный формат ответа независимо от системного промпта
+    systemPrompt = systemPrompt + MANDATORY_JSON_SCHEMA
+
+    console.log(`[Engine] Copywriter prompt source: ${promptSource}, total length: ${systemPrompt.length}`)
+
+    // userPrompt: тема, пол, CTA
     const ctaCode = payload.cta || 'ПОДПИШИСЬ'
     const userPrompt = `Тема: "${topic}".
 Пол для склонений: ${payload.gender || 'male'}.
