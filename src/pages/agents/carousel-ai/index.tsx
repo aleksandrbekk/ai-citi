@@ -13,13 +13,21 @@ import { isAdmin } from '@/config/admins'
 import { getTelegramUser } from '@/lib/telegram'
 import { getCarouselStyles, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
-import { getCoinBalance, spendCoinsForGeneration, getFirstUserPhoto } from '@/lib/supabase'
+import { getCoinBalance, spendCoinsForGeneration, getFirstUserPhoto, savePhotoToSlot } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import { Sparkles, Zap, Send, Clock, ExternalLink, CheckCircle2 } from 'lucide-react'
-import { CheckIcon } from '@/components/ui/icons'
+import { CheckIcon, LoaderIcon } from '@/components/ui/icons'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://debcwvxlvozjlqkhnauy.supabase.co'
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+
+// Cloudinary config
+const CLOUDINARY_CLOUD = 'ds8ylsl2x'
+const CLOUDINARY_PRESET = 'carousel_unsigned'
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`
+
+// localStorage keys
+const SAVED_STYLE_KEY = 'carousel_default_style'
 
 type Step = 'setup' | 'generating' | 'done'
 
@@ -41,6 +49,13 @@ const MegaphoneIcon = ({ className = '' }: { className?: string }) => (
 const MessageIcon = ({ className = '' }: { className?: string }) => (
     <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+)
+
+const CameraIcon = ({ className = '' }: { className?: string }) => (
+    <svg className={className} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+        <circle cx="12" cy="13" r="4" />
     </svg>
 )
 
@@ -79,6 +94,8 @@ function CarouselAIInner() {
     const [showSuccess, setShowSuccess] = useState(false)
     const [showCtaPage, setShowCtaPage] = useState(false)
     const [showStyleModal, setShowStyleModal] = useState(false)
+    const [showPhotoModal, setShowPhotoModal] = useState(false)
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
     const [userPhoto, setUserPhoto] = useState<string | null>(null)
     const isGeneratingRef = useRef(false)
 
@@ -138,12 +155,16 @@ function CarouselAIInner() {
             const sp = dbConfig.style_prompt as string | undefined
             const csp = dbConfig.content_system_prompt as string | undefined
             if ((sp && sp.length > 20) || (csp && csp.length > 20)) return dbConfig
+            if ('slide_templates' in dbConfig) {
+                const st = dbConfig.slide_templates as Record<string, string> | undefined
+                if (st?.HOOK && st.HOOK.length > 50) return dbConfig
+            }
         }
         return STYLE_CONFIGS[id as StyleId] || STYLE_CONFIGS['APPLE_GLASSMORPHISM']
     }
 
     // Get style preview
-    const getPreview = (id: string) => {
+    const getStylePreview = (id: string) => {
         const dbStyle = dbStyles.find(s => s.style_id === id)
         if (dbStyle?.preview_image) return dbStyle.preview_image
         const local: Record<string, string> = {
@@ -154,6 +175,59 @@ function CarouselAIInner() {
             GRADIENT_MESH_3D: '/styles/gradient.jpg',
         }
         return local[id] || '/styles/apple.jpg'
+    }
+
+    // Get local example images for style
+    const getLocalExamples = (id: StyleId): string[] => {
+        const counts: Record<StyleId, number> = {
+            APPLE_GLASSMORPHISM: 9,
+            AESTHETIC_BEIGE: 9,
+            SOFT_PINK_EDITORIAL: 7,
+            MINIMALIST_LINE_ART: 9,
+            GRADIENT_MESH_3D: 9,
+        }
+        const count = counts[id] || 9
+        return Array.from({ length: count }, (_, i) => `/styles/${id}/example_${i + 1}.jpeg`)
+    }
+
+    // Get style examples (DB first, then local)
+    const getStyleExamples = (id: string): string[] => {
+        const dbStyle = dbStyles.find(s => s.style_id === id)
+        if (dbStyle?.example_images && dbStyle.example_images.length > 0) {
+            return dbStyle.example_images
+        }
+        return getLocalExamples(id as StyleId)
+    }
+
+    // Photo upload handler
+    const handlePhotoUpload = async (file: File) => {
+        if (!file.type.startsWith('image/')) return
+        const user = getTelegramUser()
+        if (!user?.id) return
+
+        setIsUploadingPhoto(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('upload_preset', CLOUDINARY_PRESET)
+            formData.append('folder', `carousel-users/${user.id}`)
+            const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData })
+            if (!response.ok) throw new Error('Ошибка загрузки')
+            const data = await response.json()
+            const photoUrl = data.secure_url
+            setUserPhoto(photoUrl)
+            setShowPhotoModal(false)
+            await savePhotoToSlot(user.id, photoUrl, 0)
+        } catch (err) {
+            console.error('Photo upload error:', err)
+        } finally {
+            setIsUploadingPhoto(false)
+        }
+    }
+
+    const handleRemovePhoto = () => {
+        setUserPhoto(null)
+        setShowPhotoModal(false)
     }
 
     // Engine config check
@@ -670,15 +744,37 @@ function CarouselAIInner() {
                     </div>
                 </div>
 
-                {/* Compact Settings Row: Style + Gender */}
+                {/* Compact Settings Row: Photo + Style + Gender */}
                 <div className="flex items-center gap-2 mb-4">
+                    {/* Photo - Compact */}
+                    <button
+                        onClick={() => setShowPhotoModal(true)}
+                        className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                        {userPhoto ? (
+                            <img src={userPhoto} alt="" className="w-9 h-9 rounded-lg object-cover ring-2 ring-orange-400" />
+                        ) : (
+                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center">
+                                <CameraIcon className="text-orange-400 w-5 h-5" />
+                            </div>
+                        )}
+                        <div className="flex-1 text-left min-w-0">
+                            <span className="font-medium text-gray-900 text-xs block">Фото</span>
+                            {userPhoto ? (
+                                <span className="text-[10px] text-green-600">✓</span>
+                            ) : (
+                                <span className="text-[10px] text-gray-400">+</span>
+                            )}
+                        </div>
+                    </button>
+
                     {/* Style - Compact */}
                     <button
                         onClick={() => setShowStyleModal(true)}
                         className="flex-1 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 p-3 flex items-center gap-2 hover:border-orange-200 transition-all active:scale-[0.98] cursor-pointer"
                     >
                         <img
-                            src={getPreview(styleId)}
+                            src={getStylePreview(styleId)}
                             alt={currentStyleMeta?.name}
                             className="w-9 h-9 rounded-lg object-cover ring-2 ring-orange-200"
                         />
@@ -731,53 +827,336 @@ function CarouselAIInner() {
 
             {/* Style Modal */}
             {showStyleModal && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end">
-                    <div className="w-full bg-white rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col animate-slide-up">
-                        {/* Modal Header */}
-                        <div className="px-4 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
-                            <h2 className="text-lg font-bold text-gray-900">Выберите стиль</h2>
-                            <button
-                                onClick={() => setShowStyleModal(false)}
-                                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer"
-                            >
-                                ✕
-                            </button>
-                        </div>
+                <StyleModal
+                    currentStyle={styleId}
+                    onSelect={(id) => {
+                        setStyleId(id)
+                        localStorage.setItem(SAVED_STYLE_KEY, id)
+                        setShowStyleModal(false)
+                    }}
+                    stylesIndex={allStyles}
+                    getExamples={getStyleExamples}
+                />
+            )}
 
-                        {/* Style Grid */}
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <div className="grid grid-cols-2 gap-3">
-                                {allStyles.map(s => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => { setStyleId(s.id); setShowStyleModal(false) }}
-                                        className={`relative overflow-hidden rounded-2xl aspect-[3/4] cursor-pointer transition-all ${styleId === s.id
-                                            ? 'ring-3 ring-orange-500 ring-offset-2 shadow-xl shadow-orange-500/20'
-                                            : 'hover:shadow-lg'
-                                            }`}
-                                    >
-                                        <img
-                                            src={getPreview(s.id)}
-                                            alt={s.name}
-                                            className="w-full h-full object-cover"
-                                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                        <div className="absolute bottom-0 left-0 right-0 p-3">
-                                            <p className="text-sm font-semibold text-white">{s.emoji} {s.name}</p>
-                                        </div>
-                                        {styleId === s.id && (
-                                            <div className="absolute top-2 right-2 w-7 h-7 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                                                <span className="text-white text-sm font-bold">✓</span>
-                                            </div>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+            {/* Photo Modal */}
+            {showPhotoModal && (
+                <PhotoModal
+                    photo={userPhoto}
+                    isUploading={isUploadingPhoto}
+                    onUpload={handlePhotoUpload}
+                    onRemove={handleRemovePhoto}
+                    onClose={() => setShowPhotoModal(false)}
+                />
+            )}
+        </div>
+    )
+}
+
+// ========== STYLE MODAL (ported from carousel/index.tsx) ==========
+
+interface StyleMetaAI {
+    id: string
+    name: string
+    emoji: string
+    audience: 'universal' | 'female'
+    previewColor: string
+    description: string
+}
+
+interface StyleModalProps {
+    currentStyle: string
+    onSelect: (id: string) => void
+    stylesIndex: StyleMetaAI[]
+    getExamples: (styleId: string) => string[]
+}
+
+function StyleModal({ currentStyle, onSelect, stylesIndex, getExamples }: StyleModalProps) {
+    const [selectedStyle, setSelectedStyle] = useState<string>(currentStyle)
+    const [saveAsDefault, setSaveAsDefault] = useState(true)
+    const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+    const [isTransitioning, setIsTransitioning] = useState(false)
+
+    // Swipe state
+    const [touchStart, setTouchStart] = useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = useState<number | null>(null)
+    const minSwipeDistance = 50
+
+    const activeStylesIndex = stylesIndex || []
+    const styleIndex = activeStylesIndex?.findIndex(s => s.id === selectedStyle) ?? 0
+    const totalStyles = activeStylesIndex?.length ?? 0
+    const selectedMeta = activeStylesIndex?.[styleIndex]
+    const examples = getExamples(selectedStyle)
+
+    // Preload current + adjacent style images
+    useEffect(() => {
+        if (!activeStylesIndex?.length) return
+        const preloadImages = (sid: string) => {
+            const images = getExamples(sid)
+            images.forEach(src => {
+                const img = new Image()
+                img.src = src
+                img.onload = () => {
+                    if (sid === selectedStyle) {
+                        setLoadedImages(prev => new Set(prev).add(src))
+                    }
+                }
+            })
+        }
+        preloadImages(selectedStyle)
+        if (totalStyles > 1) {
+            const nextIdx = styleIndex < totalStyles - 1 ? styleIndex + 1 : 0
+            const prevIdx = styleIndex > 0 ? styleIndex - 1 : totalStyles - 1
+            preloadImages(activeStylesIndex[nextIdx].id)
+            preloadImages(activeStylesIndex[prevIdx].id)
+        }
+    }, [selectedStyle, styleIndex, totalStyles, activeStylesIndex, getExamples])
+
+    const navigateToStyle = (newIndex: number) => {
+        if (!activeStylesIndex?.length || isTransitioning) return
+        setIsTransitioning(true)
+        setTimeout(() => {
+            setSelectedStyle(activeStylesIndex[newIndex].id)
+            setLoadedImages(new Set())
+            setIsTransitioning(false)
+        }, 150)
+    }
+
+    const goToPrev = () => navigateToStyle(styleIndex > 0 ? styleIndex - 1 : totalStyles - 1)
+    const goToNext = () => navigateToStyle(styleIndex < totalStyles - 1 ? styleIndex + 1 : 0)
+
+    const onTouchStart = (e: React.TouchEvent) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX) }
+    const onTouchMove = (e: React.TouchEvent) => { setTouchEnd(e.targetTouches[0].clientX) }
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return
+        const distance = touchStart - touchEnd
+        if (distance > minSwipeDistance) goToNext()
+        else if (distance < -minSwipeDistance) goToPrev()
+    }
+
+    const handleImageLoad = (src: string) => { setLoadedImages(prev => new Set(prev).add(src)) }
+    const handleImageError = (src: string) => { setLoadedImages(prev => new Set(prev).add(src)) }
+
+    const handleConfirm = () => {
+        if (saveAsDefault && selectedStyle) {
+            localStorage.setItem(SAVED_STYLE_KEY, selectedStyle)
+        }
+        onSelect(selectedStyle)
+    }
+
+    if (!activeStylesIndex?.length) {
+        return (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white p-6">
+                <p className="text-gray-500 mb-4">Не удалось загрузить стили</p>
+                <button onClick={() => onSelect(currentStyle)} className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-medium cursor-pointer">Закрыть</button>
+            </div>
+        )
+    }
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex flex-col bg-gradient-to-b from-gray-50 to-white overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+        >
+            {/* Header with Navigation */}
+            <div className="px-4 py-4 border-b border-gray-100/50">
+                <div className="flex items-center justify-between">
+                    <button onClick={goToPrev} className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95" aria-label="Предыдущий стиль">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
+                    </button>
+
+                    <div className="text-center flex-1 px-3">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-orange-100 to-orange-50 rounded-full mb-1.5">
+                            <span className="text-xs font-semibold text-orange-600">{styleIndex + 1} из {totalStyles}</span>
                         </div>
+                        <h3 className="text-lg font-bold text-gray-900 truncate">{selectedMeta?.name || 'Стиль'}</h3>
                     </div>
+
+                    <button onClick={goToNext} className="w-11 h-11 rounded-xl bg-white shadow-md flex items-center justify-center hover:shadow-lg transition-all cursor-pointer border border-gray-100 active:scale-95" aria-label="Следующий стиль">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6" /></svg>
+                    </button>
+                </div>
+
+                {/* Progress Dots */}
+                <div className="mt-3 flex justify-center gap-1">
+                    {activeStylesIndex?.map((s, i) => (
+                        <button
+                            key={s.id}
+                            onClick={() => { setSelectedStyle(activeStylesIndex[i].id); setLoadedImages(new Set()) }}
+                            className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === styleIndex
+                                ? 'w-6 bg-gradient-to-r from-orange-500 to-orange-400'
+                                : 'w-1.5 bg-gray-200 hover:bg-gray-300'
+                                }`}
+                            aria-label={`Стиль ${i + 1}`}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Description */}
+            {selectedMeta?.description && (
+                <div className="px-4 py-3 bg-gray-50/50">
+                    <p className="text-sm text-gray-500 text-center line-clamp-2">{selectedMeta.description}</p>
                 </div>
             )}
+
+            {/* Examples Grid */}
+            <div className="flex-1 px-4 py-3 overflow-auto">
+                <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-gray-500">Примеры слайдов</p>
+                    <span className="text-xs text-gray-400">← Свайп для смены стиля →</span>
+                </div>
+
+                {examples.length > 0 ? (
+                    <div
+                        className="grid grid-cols-3 gap-2 transition-all duration-200"
+                        style={{
+                            opacity: isTransitioning ? 0.5 : 1,
+                            transform: isTransitioning ? 'scale(0.98)' : 'scale(1)'
+                        }}
+                    >
+                        {examples.map((src, i) => (
+                            <div key={`${selectedStyle}-${i}`} className="aspect-[3/4] rounded-xl overflow-hidden shadow-sm bg-gray-100 relative">
+                                {!loadedImages.has(src) && (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse flex items-center justify-center">
+                                        <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-orange-400 animate-spin" />
+                                    </div>
+                                )}
+                                <img
+                                    src={src}
+                                    alt={`Пример ${i + 1}`}
+                                    loading={i < 6 ? 'eager' : 'lazy'}
+                                    onLoad={() => handleImageLoad(src)}
+                                    onError={() => handleImageError(src)}
+                                    className="w-full h-full object-cover"
+                                    style={{
+                                        opacity: loadedImages.has(src) ? 1 : 0,
+                                        transition: 'opacity 0.3s ease-in-out'
+                                    }}
+                                />
+                                <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center">
+                                    <span className="text-[10px] text-white font-medium">{i + 1}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-32 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-400">Нет примеров</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="px-4 py-4 bg-white border-t border-gray-100">
+                <div className="flex items-center justify-between mb-4 bg-gray-50 rounded-xl px-4 py-3">
+                    <div>
+                        <span className="text-sm font-medium text-gray-700">Сохранить как основной</span>
+                        <p className="text-xs text-gray-400">Будет выбран по умолчанию</p>
+                    </div>
+                    <button
+                        onClick={() => setSaveAsDefault(!saveAsDefault)}
+                        className={`w-11 h-6 rounded-full transition-all relative cursor-pointer ${saveAsDefault ? 'bg-gradient-to-r from-orange-500 to-orange-400' : 'bg-gray-300'}`}
+                        role="switch"
+                        aria-checked={saveAsDefault}
+                    >
+                        <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${saveAsDefault ? 'left-5' : 'left-0.5'}`} />
+                    </button>
+                </div>
+
+                <button
+                    onClick={handleConfirm}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-bold text-base shadow-lg shadow-orange-500/25 active:scale-[0.98] transition-all cursor-pointer hover:shadow-xl"
+                >
+                    ✓ Выбрать «{selectedMeta?.name?.split(' ')[0] || 'стиль'}»
+                </button>
+            </div>
+        </div>
+    )
+}
+
+// ========== PHOTO MODAL ==========
+
+interface PhotoModalProps {
+    photo: string | null
+    isUploading: boolean
+    onUpload: (file: File) => void
+    onRemove: () => void
+    onClose: () => void
+}
+
+function PhotoModal({ photo, isUploading, onUpload, onRemove, onClose }: PhotoModalProps) {
+    const localFileInputRef = useRef<HTMLInputElement>(null)
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) onUpload(file)
+    }
+
+    const triggerFileInput = () => { localFileInputRef.current?.click() }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div className="p-4 text-center border-b border-gray-100">
+                    <h2 className="text-lg font-bold text-gray-900">Твоё фото</h2>
+                    <p className="text-sm text-gray-500">Будет на слайдах карусели</p>
+                </div>
+
+                <div className="p-6">
+                    <input ref={localFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
+                    {photo ? (
+                        <div className="relative">
+                            <img src={photo} alt="Фото" className="w-full aspect-square rounded-2xl object-cover" />
+                            <button onClick={onRemove} className="absolute top-2 right-2 p-2 bg-black/50 rounded-full hover:bg-black/70 cursor-pointer">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+                    ) : (
+                        <div
+                            onClick={triggerFileInput}
+                            className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl border-2 border-dashed border-gray-300 hover:border-orange-400 cursor-pointer bg-gray-50"
+                        >
+                            {isUploading ? (
+                                <div className="text-center">
+                                    <LoaderIcon size={32} className="text-orange-500 animate-spin mx-auto mb-2" />
+                                    <span className="text-gray-500">Загрузка...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <CameraIcon className="text-gray-400 mb-3" />
+                                    <span className="text-gray-600 font-medium">Нажмите для загрузки</span>
+                                    <span className="text-sm text-gray-400 mt-1">JPG, PNG до 10MB</span>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-4 pt-0 flex gap-3">
+                    {photo ? (
+                        <>
+                            <button onClick={triggerFileInput} className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 cursor-pointer">
+                                Заменить
+                            </button>
+                            <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg cursor-pointer">
+                                Готово
+                            </button>
+                        </>
+                    ) : (
+                        <button onClick={onClose} className="w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 cursor-pointer">
+                            Закрыть
+                        </button>
+                    )}
+                </div>
+            </div>
         </div>
     )
 }
