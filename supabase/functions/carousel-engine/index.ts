@@ -1451,27 +1451,35 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             console.log('[Engine] No userPhoto provided, generating without reference')
         }
 
-        // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО!) ===
-        console.log('[Engine] Step 2: Generating images (parallel)...')
+        // === ШАГ 2: Генерация картинок (ПОСЛЕДОВАТЕЛЬНО, как в n8n) ===
+        console.log('[Engine] Step 2: Generating images (sequential, one by one)...')
         await updateGenLog(logId, { status: 'generating_images', slides_count: slides.length })
 
         const stylePrompt = payload.stylePrompt || (payload.styleConfig?.style_prompt as string) || ''
         const imageStart = Date.now()
 
         let firstImageError = ''
-        const imagePromises = slides.map((slide) => {
+        const imageResults: (Uint8Array | null)[] = []
+
+        for (let i = 0; i < slides.length; i++) {
+            const slide = slides[i]
             const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
             const slidePhotoRef = isFaceSlide ? photoBase64 : null
             const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
-            return generateImage(prompt, config, slidePhotoRef).catch((err) => {
-                const errMsg = err instanceof Error ? err.message : String(err)
-                console.error(`[Engine] Image gen failed for slide ${slide.slideNumber}:`, errMsg)
-                if (!firstImageError) firstImageError = errMsg
-                return null
-            })
-        })
 
-        const imageResults = await Promise.all(imagePromises)
+            console.log(`[Engine] Generating image ${i + 1}/${slides.length} (${slide.type})...`)
+            try {
+                const img = await generateImage(prompt, config, slidePhotoRef)
+                imageResults.push(img)
+                console.log(`[Engine] Image ${i + 1}/${slides.length} OK`)
+            } catch (err) {
+                const errMsg = err instanceof Error ? err.message : String(err)
+                console.error(`[Engine] Image ${i + 1}/${slides.length} FAILED:`, errMsg)
+                if (!firstImageError) firstImageError = errMsg
+                imageResults.push(null)
+            }
+        }
+
         if (firstImageError) {
             await updateGenLog(logId, { error_message: `Image errors: ${firstImageError}` })
         }
@@ -1482,6 +1490,12 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
         // Фильтруем null (провалившиеся слайды)
         const validImages = imageResults.filter((img): img is Uint8Array => img !== null)
         console.log(`[Engine] ${validImages.length}/${slides.length} images generated successfully`)
+
+        // Проверка: если меньше 70% слайдов — считаем ошибкой
+        const minRequired = Math.ceil(slides.length * 0.7)
+        if (validImages.length < minRequired) {
+            throw new Error(`Только ${validImages.length} из ${slides.length} картинок сгенерировано (нужно минимум ${minRequired}). ${firstImageError}`)
+        }
 
         // === СТАТУС: Картинки готовы ===
         await sendStatusToTelegram(
