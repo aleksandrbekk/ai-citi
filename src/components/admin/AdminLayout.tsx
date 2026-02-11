@@ -11,7 +11,8 @@ import {
   Palette,
   BookOpen,
   UserCheck,
-  ClipboardCheck
+  ClipboardCheck,
+  Zap
 } from 'lucide-react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
 
@@ -135,6 +136,20 @@ export function AdminLayout() {
             >
               <Palette className="w-5 h-5" />
               Карусели
+            </NavLink>
+
+            {/* AI Engine */}
+            <NavLink
+              to="/admin/ai-engine"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-white font-medium shadow-sm hover:shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] ${isActive
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 ring-2 ring-amber-300'
+                  : 'bg-gradient-to-r from-amber-400 to-orange-500'
+                }`
+              }
+            >
+              <Zap className="w-5 h-5" />
+              AI Engine
             </NavLink>
 
             {/* Школа */}
