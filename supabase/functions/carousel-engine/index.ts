@@ -25,7 +25,7 @@ interface EngineConfig {
     text_model: string
     text_fallback_provider: string | null
     text_fallback_key: string | null
-    image_provider: 'imagen' | 'ideogram'
+    image_provider: 'gemini' | 'imagen' | 'ideogram'
     image_api_key: string
     image_model: string
     telegram_bot_token: string
@@ -433,12 +433,77 @@ async function generateImageIdeogram(
     return new Uint8Array(imgBuffer)
 }
 
+// --- Gemini Native Image Generation (generateContent with responseModalities) ---
+async function generateImageGemini(
+    prompt: string,
+    model: string
+): Promise<Uint8Array> {
+    const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
+    if (!credentialsJson) throw new Error('GOOGLE_SERVICE_ACCOUNT not set')
+
+    const credentials = JSON.parse(credentialsJson)
+    const token = await getAccessToken(credentials)
+
+    const modelId = model || 'gemini-2.0-flash-preview-image-generation'
+    console.log(`[Engine] Using Gemini image model: ${modelId}`)
+    const endpoint = `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:generateContent`
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            contents: [{
+                role: 'user',
+                parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+                responseModalities: ['IMAGE', 'TEXT'],
+                responseMimeType: 'image/png',
+            },
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
+            ],
+        }),
+    })
+
+    if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Gemini Image error ${response.status}: ${errorText}`)
+    }
+
+    const data = await response.json()
+
+    // Gemini returns image in parts as inlineData
+    const parts = data.candidates?.[0]?.content?.parts || []
+    for (const part of parts) {
+        if (part.inlineData?.mimeType?.startsWith('image/') && part.inlineData?.data) {
+            const base64Image = part.inlineData.data
+            const binaryStr = atob(base64Image)
+            const bytes = new Uint8Array(binaryStr.length)
+            for (let i = 0; i < binaryStr.length; i++) {
+                bytes[i] = binaryStr.charCodeAt(i)
+            }
+            return bytes
+        }
+    }
+
+    throw new Error('Gemini did not return an image in response')
+}
+
 // --- Unified image generation ---
 async function generateImage(
     prompt: string,
     config: EngineConfig
 ): Promise<Uint8Array> {
-    if (config.image_provider === 'imagen') {
+    if (config.image_provider === 'gemini') {
+        return await generateImageGemini(prompt, config.image_model)
+    } else if (config.image_provider === 'imagen') {
         return await generateImageImagen(prompt, config.image_model)
     } else {
         return await generateImageIdeogram(prompt, config.image_model, config.image_api_key)
