@@ -336,7 +336,7 @@ async function generateText(
 // --- Google Imagen (Vertex AI) ---
 async function generateImageImagen(
     prompt: string,
-    _model: string
+    model: string
 ): Promise<Uint8Array> {
     const credentialsJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT')
     if (!credentialsJson) throw new Error('GOOGLE_SERVICE_ACCOUNT not set')
@@ -344,7 +344,10 @@ async function generateImageImagen(
     const credentials = JSON.parse(credentialsJson)
     const token = await getAccessToken(credentials)
 
-    const endpoint = `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/imagen-3.0-generate-002:predict`
+    // Используем model из конфига БД (imagen-4, imagen-3.0-generate-002 и т.д.)
+    const modelId = model || 'imagen-3.0-generate-002'
+    console.log(`[Engine] Using image model: ${modelId}`)
+    const endpoint = `https://${VERTEX_LOCATION}-aiplatform.googleapis.com/v1/projects/${VERTEX_PROJECT_ID}/locations/${VERTEX_LOCATION}/publishers/google/models/${modelId}:predict`
 
     const response = await fetch(endpoint, {
         method: 'POST',
@@ -357,7 +360,9 @@ async function generateImageImagen(
             parameters: {
                 sampleCount: 1,
                 aspectRatio: "3:4",
-                language: "ru",
+                personGeneration: "allow_all",
+                enhancePrompt: true,
+                safetySetting: "block_only_high",
             }
         }),
     })
