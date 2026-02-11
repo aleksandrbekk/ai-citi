@@ -1418,7 +1418,7 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Array.isArray(parsed.slides)) {
                 // New format: { slides: [...], post_text: "..." }
                 slides = parsed.slides
-                postText = parsed.post_text || ''
+                postText = (parsed.post_text || '').replace(/\\n/g, '\n')
                 console.log('[Engine] Parsed CopywriterResponse format (slides + post_text)')
             } else if (Array.isArray(parsed)) {
                 // Legacy format: flat array — convert to new format
