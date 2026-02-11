@@ -197,10 +197,10 @@ export default function PublicQuiz() {
           </div>
         )}
         {/* Text + button side */}
-        <div className={`flex-1 flex flex-col items-start justify-center px-6 sm:px-10 py-8 ${!quiz.cover_image_url ? 'items-center text-center' : ''}`}>
-          <div className="max-w-md w-full">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">{quiz.title}</h1>
-            {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed">{quiz.description}</p>}
+        <div className={`flex-1 flex flex-col justify-center px-6 sm:px-10 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
+          <div className={quiz.cover_image_url ? 'max-w-md w-full' : 'max-w-lg w-full'}>
+            <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}>{quiz.title}</h1>
+            {quiz.description && <p className={`text-gray-600 mb-8 leading-relaxed ${quiz.cover_image_url ? '' : 'text-lg'}`}>{quiz.description}</p>}
             <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
               {quiz.cta_text || 'Начать'}
             </button>
