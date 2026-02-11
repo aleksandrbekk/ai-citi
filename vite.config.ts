@@ -47,8 +47,7 @@ export default defineConfig({
             if (id.includes('sonner') || id.includes('date-fns') || id.includes('recharts')) {
               return 'vendor-utils'
             }
-            // Остальные пакеты — пусть Rollup решает сам
-            // Это позволяет lazy-loaded страницам грузить свои пакеты отдельно
+            return 'vendor-misc'
           }
           // App chunks - разбиваем по фичам
           if (id.includes('/pages/admin/')) {
