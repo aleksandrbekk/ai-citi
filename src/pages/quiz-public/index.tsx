@@ -184,28 +184,68 @@ export default function PublicQuiz() {
   }
 
   // ==========================================
-  // Start Screen — split layout (image + text)
+  // Start Screen — layout from settings
   // ==========================================
   if (step === 'start') {
-    return (
-      <div className="min-h-screen bg-[#FFF8F5] flex flex-col sm:flex-row">
-        {/* Image side */}
-        {quiz.cover_image_url && (
-          <div className="w-full sm:w-1/2 h-56 sm:h-auto sm:min-h-screen relative flex-shrink-0">
-            <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-l from-[#FFF8F5] via-transparent to-transparent sm:from-[#FFF8F5] sm:via-transparent sm:to-transparent" />
+    const s = quiz.settings || {}
+    const layout = (s.start_layout === 'center' || s.start_layout === 'side') ? s.start_layout : 'side'
+    const alignment = (s.start_alignment === 'image-left' || s.start_alignment === 'image-right') ? s.start_alignment : 'image-left'
+    const hText = typeof s.header_text === 'string' ? s.header_text : ''
+    const fText = typeof s.footer_text === 'string' ? s.footer_text : ''
+
+    const headerEl = hText ? <div className="px-4 py-3 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{hText}</div> : null
+    const footerEl = fText ? <div className="px-4 py-3 text-xs text-gray-400 text-center border-t border-gray-100 bg-white/50 mt-auto">{fText}</div> : null
+
+    if (layout === 'center') {
+      return (
+        <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
+          {headerEl}
+          <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
+            {quiz.cover_image_url && (
+              <img src={quiz.cover_image_url} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64" />
+            )}
+            <div className="max-w-lg w-full">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{quiz.title}</h1>
+              {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed text-lg">{quiz.description}</p>}
+              <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
+                {quiz.cta_text || 'Начать'}
+              </button>
+            </div>
           </div>
-        )}
-        {/* Text + button side */}
-        <div className={`flex-1 flex flex-col justify-center px-6 sm:px-10 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
-          <div className={quiz.cover_image_url ? 'max-w-md w-full' : 'max-w-lg w-full'}>
-            <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}>{quiz.title}</h1>
-            {quiz.description && <p className={`text-gray-600 mb-8 leading-relaxed ${quiz.cover_image_url ? '' : 'text-lg'}`}>{quiz.description}</p>}
-            <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
-              {quiz.cta_text || 'Начать'}
-            </button>
-          </div>
+          {footerEl}
         </div>
+      )
+    }
+
+    // side layout
+    const imageEl = quiz.cover_image_url ? (
+      <div className="w-full sm:w-1/2 h-56 sm:h-auto sm:min-h-screen relative flex-shrink-0">
+        <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover" />
+        <div className={`absolute inset-0 bg-gradient-to-t sm:bg-none from-[#FFF8F5] via-transparent to-transparent ${alignment === 'image-left' ? 'sm:bg-gradient-to-l sm:from-[#FFF8F5] sm:via-transparent sm:to-transparent' : 'sm:bg-gradient-to-r sm:from-[#FFF8F5] sm:via-transparent sm:to-transparent'}`} />
+      </div>
+    ) : null
+
+    const textEl = (
+      <div className={`flex-1 flex flex-col justify-center px-6 sm:px-10 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
+        <div className={quiz.cover_image_url ? 'max-w-md w-full' : 'max-w-lg w-full'}>
+          <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}>{quiz.title}</h1>
+          {quiz.description && <p className={`text-gray-600 mb-8 leading-relaxed ${quiz.cover_image_url ? '' : 'text-lg'}`}>{quiz.description}</p>}
+          <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
+            {quiz.cta_text || 'Начать'}
+          </button>
+        </div>
+      </div>
+    )
+
+    const isImageRight = alignment === 'image-right'
+
+    return (
+      <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
+        {headerEl}
+        <div className="flex-1 flex flex-col sm:flex-row">
+          {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
+        </div>
+        {footerEl}
       </div>
     )
   }

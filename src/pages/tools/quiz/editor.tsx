@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2 } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { toast } from 'sonner'
 
 type TabId = 'start' | 'questions' | 'contacts' | 'results' | 'thanks'
+type StartLayout = 'side' | 'center'
+type StartAlignment = 'image-left' | 'image-right'
 
 const TABS: { id: TabId; label: string; emoji: string }[] = [
   { id: 'start', label: 'Стартовая', emoji: '📋' },
@@ -31,6 +33,12 @@ export default function QuizEditor() {
   const [ctaText, setCtaText] = useState('Начать')
   const [isPublished, setIsPublished] = useState(false)
   const [slug, setSlug] = useState<string | null>(null)
+
+  // Layout settings
+  const [startLayout, setStartLayout] = useState<StartLayout>('side')
+  const [startAlignment, setStartAlignment] = useState<StartAlignment>('image-left')
+  const [headerText, setHeaderText] = useState('')
+  const [footerText, setFooterText] = useState('')
 
   // Questions
   const [questions, setQuestions] = useState<QuizQuestionItem[]>([])
@@ -83,6 +91,12 @@ export default function QuizEditor() {
         setIsPublished(data.is_published)
         setSlug(data.slug)
         setQuestions(data.questions || [])
+        // Layout settings from settings field
+        const s = data.settings || {}
+        if (s.start_layout === 'center' || s.start_layout === 'side') setStartLayout(s.start_layout as StartLayout)
+        if (s.start_alignment === 'image-left' || s.start_alignment === 'image-right') setStartAlignment(s.start_alignment as StartAlignment)
+        if (typeof s.header_text === 'string') setHeaderText(s.header_text)
+        if (typeof s.footer_text === 'string') setFooterText(s.footer_text)
         if (data.contact_config) {
           setContactConfig({
             ...defaultContactConfig,
@@ -119,6 +133,12 @@ export default function QuizEditor() {
       contact_config: contactConfig,
       result_config: resultConfig,
       thank_you_config: thankYouConfig,
+      settings: {
+        start_layout: startLayout,
+        start_alignment: startAlignment,
+        header_text: headerText,
+        footer_text: footerText,
+      },
     })
 
     const questionsUpdated = await saveQuestions(id, questions)
@@ -248,7 +268,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
@@ -276,6 +296,10 @@ function StartTab({
   coverImageUrl, setCoverImageUrl,
   ctaText, setCtaText,
   isPublished, setIsPublished, slug, setSlug,
+  startLayout, setStartLayout,
+  startAlignment, setStartAlignment,
+  headerText, setHeaderText,
+  footerText, setFooterText,
 }: {
   title: string; setTitle: (v: string) => void
   description: string; setDescription: (v: string) => void
@@ -283,7 +307,62 @@ function StartTab({
   ctaText: string; setCtaText: (v: string) => void
   isPublished: boolean; setIsPublished: (v: boolean) => void
   slug: string | null; setSlug: (v: string | null) => void
+  startLayout: StartLayout; setStartLayout: (v: StartLayout) => void
+  startAlignment: StartAlignment; setStartAlignment: (v: StartAlignment) => void
+  headerText: string; setHeaderText: (v: string) => void
+  footerText: string; setFooterText: (v: string) => void
 }) {
+  // Preview renderer
+  const renderPreview = () => {
+    const titleEl = <h2 className={`font-bold text-gray-900 mb-2 ${startLayout === 'center' ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'}`}>{title || 'Заголовок квиза'}</h2>
+    const descEl = description ? <p className={`text-gray-600 mb-4 leading-relaxed ${startLayout === 'center' ? 'text-sm max-w-sm' : 'text-xs sm:text-sm'}`}>{description}</p> : null
+    const btnEl = <span className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">{ctaText || 'Начать'}</span>
+    const headerEl = headerText ? <div className="px-4 py-2 text-xs text-gray-400 text-center border-b border-gray-100">{headerText}</div> : null
+    const footerEl = footerText ? <div className="px-4 py-2 text-[10px] text-gray-300 text-center border-t border-gray-100">{footerText}</div> : null
+
+    if (startLayout === 'center') {
+      return (
+        <>
+          {headerEl}
+          <div className="flex flex-col items-center justify-center py-8 px-6 text-center min-h-[220px]">
+            {coverImageUrl && <img src={coverImageUrl} alt="" className="w-full max-w-xs rounded-xl mb-4 object-cover max-h-40" />}
+            {titleEl}
+            {descEl}
+            {btnEl}
+          </div>
+          {footerEl}
+        </>
+      )
+    }
+
+    // side layout
+    const imageEl = coverImageUrl ? (
+      <div className="w-full sm:w-1/2 h-36 sm:h-auto relative flex-shrink-0">
+        <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
+      </div>
+    ) : null
+
+    const textEl = (
+      <div className={`flex-1 flex flex-col justify-center px-5 sm:px-6 py-5 ${!coverImageUrl ? 'items-center text-center' : ''}`}>
+        {titleEl}
+        {descEl}
+        <div>{btnEl}</div>
+      </div>
+    )
+
+    const isImageRight = startAlignment === 'image-right'
+
+    return (
+      <>
+        {headerEl}
+        <div className="flex flex-col sm:flex-row min-h-[240px]">
+          {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
+        </div>
+        {footerEl}
+      </>
+    )
+  }
+
   return (
     <div className="space-y-5">
       {/* Live Preview */}
@@ -293,29 +372,54 @@ function StartTab({
           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью стартовой страницы</span>
         </div>
         <div className="bg-[#FFF8F5]">
-          {coverImageUrl ? (
-            <div className="flex flex-col sm:flex-row min-h-[280px]">
-              <div className="w-full sm:w-1/2 h-40 sm:h-auto relative flex-shrink-0">
-                <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-l from-[#FFF8F5] via-transparent to-transparent" />
-              </div>
-              <div className="flex-1 flex flex-col justify-center px-5 sm:px-8 py-5">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{title || 'Заголовок квиза'}</h2>
-                {description && <p className="text-sm text-gray-600 mb-5 leading-relaxed">{description}</p>}
-                <div>
-                  <span className="inline-block px-6 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">
-                    {ctaText || 'Начать'}
-                  </span>
-                </div>
-              </div>
+          {renderPreview()}
+        </div>
+
+        {/* Layout controls bar (like Marquiz) */}
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4">
+          {/* Design / Layout */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">Дизайн</span>
+            <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setStartLayout('side')}
+                className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'side' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+              >
+                Сбоку
+              </button>
+              <button
+                type="button"
+                onClick={() => setStartLayout('center')}
+                className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'center' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+              >
+                По центру
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 px-6 text-center min-h-[220px]">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{title || 'Заголовок квиза'}</h2>
-              {description && <p className="text-gray-600 mb-5 text-sm leading-relaxed max-w-sm">{description}</p>}
-              <span className="inline-block px-6 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">
-                {ctaText || 'Начать'}
-              </span>
+          </div>
+
+          {/* Alignment (only for side layout) */}
+          {startLayout === 'side' && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 font-medium">Выравнивание</span>
+              <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setStartAlignment('image-left')}
+                  className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-left' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  title="Фото слева"
+                >
+                  <PanelLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStartAlignment('image-right')}
+                  className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-right' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  title="Фото справа"
+                >
+                  <PanelRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -327,6 +431,11 @@ function StartTab({
 
         <div className="space-y-4">
           <QuizImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} label="Обложка" aspectRatio="16:9" />
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Текст сверху (необязательно)</label>
+            <input type="text" value={headerText} onChange={(e) => setHeaderText(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="Например: Готовый план по новой системе" maxLength={100} />
+          </div>
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">Заголовок</label>
@@ -341,6 +450,11 @@ function StartTab({
           <div>
             <label className="block text-sm text-gray-600 mb-1">Текст кнопки</label>
             <input type="text" value={ctaText} onChange={(e) => setCtaText(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="Начать" maxLength={50} />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Текст снизу (необязательно)</label>
+            <input type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="ИП Иванов И.И. ИНН 123456789" maxLength={150} />
           </div>
         </div>
       </div>
