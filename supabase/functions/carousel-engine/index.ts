@@ -1451,41 +1451,32 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
             console.log('[Engine] No userPhoto provided, generating without reference')
         }
 
-        // === ШАГ 2: Генерация картинок (БАТЧАМИ по 3, баланс скорости и rate limit) ===
-        console.log('[Engine] Step 2: Generating images (batches of 3)...')
+        // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО) ===
+        console.log('[Engine] Step 2: Generating images (parallel)...')
         await updateGenLog(logId, { status: 'generating_images', slides_count: slides.length })
 
         const stylePrompt = payload.stylePrompt || (payload.styleConfig?.style_prompt as string) || ''
         const imageStart = Date.now()
 
         let firstImageError = ''
-        const imageResults: (Uint8Array | null)[] = new Array(slides.length).fill(null)
-        const BATCH_SIZE = 3
+        const imagePromises = slides.map((slide, i) => {
+            const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
+            const slidePhotoRef = isFaceSlide ? photoBase64 : null
+            const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
+            return generateImage(prompt, config, slidePhotoRef)
+                .then(img => {
+                    console.log(`[Engine] Image ${i + 1}/${slides.length} OK`)
+                    return img
+                })
+                .catch((err) => {
+                    const errMsg = err instanceof Error ? err.message : String(err)
+                    console.error(`[Engine] Image ${i + 1}/${slides.length} FAILED:`, errMsg)
+                    if (!firstImageError) firstImageError = errMsg
+                    return null
+                })
+        })
 
-        for (let batch = 0; batch < slides.length; batch += BATCH_SIZE) {
-            const batchSlides = slides.slice(batch, batch + BATCH_SIZE)
-            console.log(`[Engine] Batch ${Math.floor(batch / BATCH_SIZE) + 1}: images ${batch + 1}-${batch + batchSlides.length}/${slides.length}`)
-
-            const batchPromises = batchSlides.map((slide, idx) => {
-                const i = batch + idx
-                const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
-                const slidePhotoRef = isFaceSlide ? photoBase64 : null
-                const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
-
-                return generateImage(prompt, config, slidePhotoRef)
-                    .then(img => {
-                        imageResults[i] = img
-                        console.log(`[Engine] Image ${i + 1}/${slides.length} OK`)
-                    })
-                    .catch(err => {
-                        const errMsg = err instanceof Error ? err.message : String(err)
-                        console.error(`[Engine] Image ${i + 1}/${slides.length} FAILED:`, errMsg)
-                        if (!firstImageError) firstImageError = errMsg
-                    })
-            })
-
-            await Promise.all(batchPromises)
-        }
+        const imageResults = await Promise.all(imagePromises)
 
         if (firstImageError) {
             await updateGenLog(logId, { error_message: `Image errors: ${firstImageError}` })
