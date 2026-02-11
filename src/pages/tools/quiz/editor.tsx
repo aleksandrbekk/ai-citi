@@ -39,6 +39,7 @@ export default function QuizEditor() {
   const [startAlignment, setStartAlignment] = useState<StartAlignment>('image-left')
   const [headerText, setHeaderText] = useState('')
   const [footerText, setFooterText] = useState('')
+  const [coverImageMobileUrl, setCoverImageMobileUrl] = useState<string | null>(null)
 
   // Questions
   const [questions, setQuestions] = useState<QuizQuestionItem[]>([])
@@ -97,6 +98,7 @@ export default function QuizEditor() {
         if (s.start_alignment === 'image-left' || s.start_alignment === 'image-right') setStartAlignment(s.start_alignment as StartAlignment)
         if (typeof s.header_text === 'string') setHeaderText(s.header_text)
         if (typeof s.footer_text === 'string') setFooterText(s.footer_text)
+        if (typeof s.cover_image_mobile_url === 'string') setCoverImageMobileUrl(s.cover_image_mobile_url)
         if (data.contact_config) {
           setContactConfig({
             ...defaultContactConfig,
@@ -138,6 +140,7 @@ export default function QuizEditor() {
         start_alignment: startAlignment,
         header_text: headerText,
         footer_text: footerText,
+        cover_image_mobile_url: coverImageMobileUrl,
       },
     })
 
@@ -268,7 +271,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
@@ -300,6 +303,7 @@ function StartTab({
   startAlignment, setStartAlignment,
   headerText, setHeaderText,
   footerText, setFooterText,
+  coverImageMobileUrl, setCoverImageMobileUrl,
 }: {
   title: string; setTitle: (v: string) => void
   description: string; setDescription: (v: string) => void
@@ -311,11 +315,12 @@ function StartTab({
   startAlignment: StartAlignment; setStartAlignment: (v: StartAlignment) => void
   headerText: string; setHeaderText: (v: string) => void
   footerText: string; setFooterText: (v: string) => void
+  coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
 }) {
-  // Preview renderer
-  const renderPreview = () => {
-    const titleEl = <h2 className={`font-bold text-gray-900 mb-2 ${startLayout === 'center' ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'}`}>{title || 'Заголовок квиза'}</h2>
-    const descEl = description ? <p className={`text-gray-600 mb-4 leading-relaxed ${startLayout === 'center' ? 'text-sm max-w-sm' : 'text-xs sm:text-sm'}`}>{description}</p> : null
+  // Desktop preview renderer
+  const renderDesktopPreview = () => {
+    const titleEl = <h2 className={`font-bold text-gray-900 mb-2 ${startLayout === 'center' ? 'text-xl' : 'text-lg'}`}>{title || 'Заголовок квиза'}</h2>
+    const descEl = description ? <p className={`text-gray-600 mb-4 leading-relaxed ${startLayout === 'center' ? 'text-sm max-w-sm' : 'text-xs'}`}>{description}</p> : null
     const btnEl = <span className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">{ctaText || 'Начать'}</span>
     const headerEl = headerText ? <div className="px-4 py-2 text-xs text-gray-400 text-center border-b border-gray-100">{headerText}</div> : null
     const footerEl = footerText ? <div className="px-4 py-2 text-[10px] text-gray-300 text-center border-t border-gray-100">{footerText}</div> : null
@@ -335,15 +340,14 @@ function StartTab({
       )
     }
 
-    // side layout
     const imageEl = coverImageUrl ? (
-      <div className="w-full sm:w-1/2 h-36 sm:h-auto relative flex-shrink-0">
+      <div className="w-1/2 h-auto relative flex-shrink-0">
         <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
       </div>
     ) : null
 
     const textEl = (
-      <div className={`flex-1 flex flex-col justify-center px-5 sm:px-6 py-5 ${!coverImageUrl ? 'items-center text-center' : ''}`}>
+      <div className={`flex-1 flex flex-col justify-center px-5 py-5 ${!coverImageUrl ? 'items-center text-center' : ''}`}>
         {titleEl}
         {descEl}
         <div>{btnEl}</div>
@@ -355,7 +359,7 @@ function StartTab({
     return (
       <>
         {headerEl}
-        <div className="flex flex-col sm:flex-row min-h-[240px]">
+        <div className="flex flex-row min-h-[240px]">
           {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
         </div>
         {footerEl}
@@ -363,60 +367,91 @@ function StartTab({
     )
   }
 
+  // Mobile preview renderer
+  const renderMobilePreview = () => {
+    const mobileImage = coverImageMobileUrl || coverImageUrl
+    return (
+      <div className="bg-[#FFF8F5] flex flex-col h-full">
+        {headerText && <div className="px-3 py-1.5 text-[8px] text-gray-400 text-center border-b border-gray-100">{headerText}</div>}
+        {mobileImage && (
+          <img src={mobileImage} alt="" className="w-full object-cover max-h-[140px]" />
+        )}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 text-center">
+          <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title || 'Заголовок'}</h3>
+          {description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{description}</p>}
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium">
+            {ctaText || 'Начать'}
+          </span>
+        </div>
+        {footerText && <div className="px-3 py-1.5 text-[7px] text-gray-300 text-center border-t border-gray-100">{footerText}</div>}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5">
-      {/* Live Preview */}
+      {/* Preview area — desktop + phone mockup side by side */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
           <Eye className="w-4 h-4 text-gray-400" />
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью стартовой страницы</span>
-        </div>
-        <div className="bg-[#FFF8F5]">
-          {renderPreview()}
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью</span>
         </div>
 
-        {/* Layout controls bar (like Marquiz) */}
+        <div className="flex flex-col md:flex-row">
+          {/* Desktop preview — visible on md+ */}
+          <div className="hidden md:block flex-1 bg-[#FFF8F5] min-w-0">
+            {renderDesktopPreview()}
+          </div>
+
+          {/* Mobile phone mockup */}
+          <div className="flex flex-col items-center px-4 py-5 md:px-6 md:border-l border-gray-200 bg-gray-50/80">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-3">Мобильная версия</p>
+            <div className="w-[200px] h-[380px] bg-gray-900 rounded-[32px] p-2 shadow-xl flex-shrink-0">
+              <div className="w-full h-full bg-white rounded-[26px] overflow-hidden flex flex-col">
+                {/* Notch */}
+                <div className="flex justify-center pt-1.5 pb-1">
+                  <div className="w-14 h-1.5 bg-gray-200 rounded-full" />
+                </div>
+                {/* Content */}
+                <div className="flex-1 overflow-hidden">
+                  {renderMobilePreview()}
+                </div>
+              </div>
+            </div>
+            {/* Mobile image upload */}
+            <div className="mt-3 w-full max-w-[200px]">
+              <QuizImageUpload
+                imageUrl={coverImageMobileUrl}
+                onImageChange={setCoverImageMobileUrl}
+                label="Фото для телефона"
+                compact
+                aspectRatio="auto"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Layout controls */}
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4">
-          {/* Design / Layout */}
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500 font-medium">Дизайн</span>
             <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setStartLayout('side')}
-                className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'side' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-              >
+              <button type="button" onClick={() => setStartLayout('side')} className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'side' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
                 Сбоку
               </button>
-              <button
-                type="button"
-                onClick={() => setStartLayout('center')}
-                className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'center' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-              >
+              <button type="button" onClick={() => setStartLayout('center')} className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'center' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
                 По центру
               </button>
             </div>
           </div>
-
-          {/* Alignment (only for side layout) */}
           {startLayout === 'side' && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 font-medium">Выравнивание</span>
               <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setStartAlignment('image-left')}
-                  className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-left' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                  title="Фото слева"
-                >
+                <button type="button" onClick={() => setStartAlignment('image-left')} className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-left' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`} title="Фото слева">
                   <PanelLeft className="w-4 h-4" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setStartAlignment('image-right')}
-                  className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-right' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                  title="Фото справа"
-                >
+                <button type="button" onClick={() => setStartAlignment('image-right')} className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-right' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`} title="Фото справа">
                   <PanelRight className="w-4 h-4" />
                 </button>
               </div>
