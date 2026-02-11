@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Component, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription, supabase } from '@/lib/supabase'
 import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles, getCarouselStylesByIds } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCarouselEvent } from '@/lib/analytics'
@@ -13,6 +13,9 @@ import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carous
 import { SettingsPanel } from '@/components/carousel/SettingsPanel'
 import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 import MaintenanceOverlay from '@/components/MaintenanceOverlay'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Error Boundary для отлова ошибок
 class CarouselErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -600,16 +603,44 @@ function CarouselIndexInner() {
         ...(objectImage ? { objectImage } : {}),
         ...(objectPlacement ? { objectPlacement } : {}),
       }
-      console.log('[Carousel] ========== SENDING TO N8N ==========')
+      console.log('[Carousel] ========== SENDING REQUEST ==========')
       console.log('[Carousel] Payload styleId:', payload.styleId)
       console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
       console.log('[Carousel] Payload stylePrompt length:', payload.stylePrompt.length)
 
-      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
+      // Проверяем use_internal_engine флаг
+      let useEngine = false
+      try {
+        const { data: engineCfg } = await supabase
+          .from('ai_engine_config')
+          .select('use_internal_engine')
+          .eq('is_active', true)
+          .limit(1)
+          .single()
+        useEngine = engineCfg?.use_internal_engine ?? false
+      } catch {
+        console.warn('[Carousel] Could not check engine config, falling back to n8n')
+      }
+
+      let response: Response
+      if (useEngine) {
+        console.log('[Carousel] Using carousel-engine (internal)')
+        response = await fetch(`${SUPABASE_URL}/functions/v1/carousel-engine`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(payload),
+        })
+      } else {
+        console.log('[Carousel] Using n8n (legacy)')
+        response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      }
 
       if (!response.ok) throw new Error('Network error')
 

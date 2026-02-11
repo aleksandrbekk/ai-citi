@@ -5,10 +5,13 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL } from '@/lib/carouselStyles'
 import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 import { getCarouselStyleByStyleId, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
-import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
+import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById, supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
 import { haptic } from '@/lib/haptic'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export default function CarouselContent() {
   const navigate = useNavigate()
@@ -174,24 +177,52 @@ export default function CarouselContent() {
     setStatus('generating')
     navigate('/agents/carousel/generating')
 
-    // Отправка в n8n
+    // Проверяем use_internal_engine флаг
     try {
-      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      })
+      let useEngine = false
+      try {
+        const { data: engineCfg } = await supabase
+          .from('ai_engine_config')
+          .select('use_internal_engine')
+          .eq('is_active', true)
+          .limit(1)
+          .single()
+        useEngine = engineCfg?.use_internal_engine ?? false
+      } catch {
+        console.warn('[CarouselContent] Could not check engine config, falling back to n8n')
+      }
+
+      let response: Response
+      if (useEngine) {
+        // Отправка в carousel-engine (Edge Function)
+        console.log('[CarouselContent] Sending to carousel-engine (internal)')
+        response = await fetch(`${SUPABASE_URL}/functions/v1/carousel-engine`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(requestData),
+        })
+      } else {
+        // Отправка в n8n (legacy)
+        console.log('[CarouselContent] Sending to n8n (legacy)')
+        response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        })
+      }
 
       if (!response.ok) {
         throw new Error('Ошибка отправки запроса')
       }
 
       // Результаты придут в Telegram, переходим на экран генерации
-      // Там будет ожидание и проверка статуса
     } catch (error) {
-      console.error('Error sending to n8n:', error)
+      console.error('[CarouselContent] Error sending request:', error)
       toast.error('Ошибка при отправке запроса')
       setStatus('error')
     }

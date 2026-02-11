@@ -433,19 +433,67 @@ async function generateImageIdeogram(
     return new Uint8Array(imgBuffer)
 }
 
+// --- Fetch user photo and convert to base64 ---
+async function fetchPhotoAsBase64(photoUrl: string): Promise<string | null> {
+    try {
+        // Optimize Cloudinary URL for faster loading
+        let url = photoUrl
+        if (url.includes('cloudinary.com')) {
+            url = url.replace('/upload/', '/upload/f_jpg,q_auto,w_768/')
+        }
+
+        console.log(`[Engine] Fetching user photo: ${url.substring(0, 80)}...`)
+        const response = await fetch(url)
+        if (!response.ok) {
+            console.error(`[Engine] Photo fetch failed: ${response.status}`)
+            return null
+        }
+
+        const buffer = await response.arrayBuffer()
+        const bytes = new Uint8Array(buffer)
+
+        // Convert to base64
+        let binary = ''
+        for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i])
+        }
+        const base64 = btoa(binary)
+        console.log(`[Engine] Photo fetched, base64 length: ${base64.length}`)
+        return base64
+    } catch (err) {
+        console.error('[Engine] Failed to fetch user photo:', err)
+        return null
+    }
+}
+
 // --- Gemini Native Image Generation (Google AI Studio API) ---
 async function generateImageGemini(
     prompt: string,
     model: string,
-    apiKey: string
+    apiKey: string,
+    referenceImageBase64?: string | null
 ): Promise<Uint8Array> {
     if (!apiKey || apiKey === 'via_service_account') {
         throw new Error('Gemini image requires a Google AI Studio API key in image_api_key')
     }
 
     const modelId = model || 'gemini-3-pro-image-preview'
-    console.log(`[Engine] Using Gemini image model: ${modelId} (AI Studio)`)
+    console.log(`[Engine] Using Gemini image model: ${modelId} (AI Studio)${referenceImageBase64 ? ' + reference photo' : ''}`)
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`
+
+    // Build parts: reference image (if provided) + text prompt
+    const parts: Record<string, unknown>[] = []
+
+    if (referenceImageBase64) {
+        parts.push({
+            inlineData: {
+                mimeType: 'image/jpeg',
+                data: referenceImageBase64,
+            }
+        })
+    }
+
+    parts.push({ text: prompt })
 
     const response = await fetch(endpoint, {
         method: 'POST',
@@ -455,7 +503,7 @@ async function generateImageGemini(
         body: JSON.stringify({
             contents: [{
                 role: 'user',
-                parts: [{ text: prompt }]
+                parts,
             }],
             generationConfig: {
                 responseModalities: ['IMAGE', 'TEXT'],
@@ -496,10 +544,11 @@ async function generateImageGemini(
 // --- Unified image generation ---
 async function generateImage(
     prompt: string,
-    config: EngineConfig
+    config: EngineConfig,
+    referenceImageBase64?: string | null
 ): Promise<Uint8Array> {
     if (config.image_provider === 'gemini') {
-        return await generateImageGemini(prompt, config.image_model, config.image_api_key)
+        return await generateImageGemini(prompt, config.image_model, config.image_api_key, referenceImageBase64)
     } else if (config.image_provider === 'imagen') {
         return await generateImageImagen(prompt, config.image_model)
     } else {
@@ -798,12 +847,16 @@ CTA: "${payload.cta || 'ПОДПИШИСЬ'}".
     return { systemPrompt, userPrompt }
 }
 
-function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: GenerationPayload): string {
+function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: GenerationPayload, hasReferencePhoto: boolean): string {
     const styleConfig = payload.styleConfig || {}
     const slideTemplates = styleConfig.slide_templates as Record<string, string> | undefined
     const vasiaCore = payload.vasiaCore || {}
     const slideType = (slide.type || 'CONTENT') as SlideType
     const topic = payload.topic || ''
+    const isFaceSlide = slide.human_mode === 'FACE' || slideType === 'HOOK' || slideType === 'CTA'
+    const referenceInstruction = hasReferencePhoto && isFaceSlide
+        ? '\n[INSTRUCTION: Person must be clearly visible from chest up. Use the provided reference image for the person\'s appearance — same face, same features. All visible text on slide must be in Russian language.]'
+        : '\n[INSTRUCTION: All text shown on the image must be in Russian/Cyrillic only. Do NOT render any English text on the slide.]'
 
     // Detect niche and tone for VASIA_CORE helpers
     const niche = detectNiche(topic, vasiaCore)
@@ -859,6 +912,8 @@ function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: Gen
             prompt += `\n[COLOR_OVERRIDE: Use ${payload.primaryColor} as primary accent color instead of default.]`
         }
 
+        prompt += referenceInstruction
+
         return prompt
     }
 
@@ -884,14 +939,14 @@ Props around person: ${props}
 
 ${slide.body_text ? `Bottom card text: "${slide.body_text}"` : ''}
 
-Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.`
+Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     } else if (slideType === 'VIRAL') {
         const viralTarget = slide.subheadline || selectViralTarget(vasiaCore)
         prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
 Center: Large card with text "ОТПРАВЬ ЭТО" and "${viralTarget}".
 Share icons, paper airplane, energy particles.
-No person. Bright, viral aesthetic. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.`
+No person. Bright, viral aesthetic. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     } else {
         // CONTENT slides (no person)
         prompt = `Create a vertical portrait image, taller than wide.
@@ -900,7 +955,7 @@ Headline: "${slide.headline || ''}"
 Layout: ${slide.content_layout || 'clean structured layout'}
 Content: ${slide.content_details || slide.body_text || ''}
 ${slide.transition ? `Transition text: "${slide.transition}"` : ''}
-No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.`
+No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     }
 
     if (payload.primaryColor) {
@@ -971,6 +1026,20 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         console.log(`[Engine] Parsed ${slides.length} slides, post_text length: ${postText.length}`)
 
+        // === ШАГ 1.5: Скачиваем фото пользователя (для FACE-слайдов) ===
+        let photoBase64: string | null = null
+        if (payload.userPhoto) {
+            console.log('[Engine] Step 1.5: Fetching user photo for reference...')
+            photoBase64 = await fetchPhotoAsBase64(payload.userPhoto)
+            if (photoBase64) {
+                console.log('[Engine] User photo ready as reference image')
+            } else {
+                console.warn('[Engine] Could not fetch user photo, will generate without reference')
+            }
+        } else {
+            console.log('[Engine] No userPhoto provided, generating without reference')
+        }
+
         // === ШАГ 2: Генерация картинок (ПАРАЛЛЕЛЬНО!) ===
         console.log('[Engine] Step 2: Generating images (parallel)...')
         await updateGenLog(logId, { status: 'generating_images', slides_count: slides.length })
@@ -980,8 +1049,10 @@ async function runPipeline(payload: GenerationPayload, config: EngineConfig) {
 
         let firstImageError = ''
         const imagePromises = slides.map((slide) => {
-            const prompt = buildImagePrompt(slide, stylePrompt, payload)
-            return generateImage(prompt, config).catch((err) => {
+            const isFaceSlide = slide.human_mode === 'FACE' || slide.type === 'HOOK' || slide.type === 'CTA'
+            const slidePhotoRef = isFaceSlide ? photoBase64 : null
+            const prompt = buildImagePrompt(slide, stylePrompt, payload, !!photoBase64)
+            return generateImage(prompt, config, slidePhotoRef).catch((err) => {
                 const errMsg = err instanceof Error ? err.message : String(err)
                 console.error(`[Engine] Image gen failed for slide ${slide.slideNumber}:`, errMsg)
                 if (!firstImageError) firstImageError = errMsg
