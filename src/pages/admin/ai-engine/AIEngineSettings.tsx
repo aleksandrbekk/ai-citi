@@ -745,8 +745,24 @@ export function AIEngineSettings() {
                                                     </div>
                                                 )}
 
-                                                {/* Cloudinary */}
-                                                <DetailRow label="Cloudinary" value={log.cloudinary_cleaned ? 'Очищено' : log.image_urls?.length ? `${log.image_urls.length} картинок на сервере` : '—'} />
+                                                {/* Cloudinary / Слайды */}
+                                                {log.image_urls?.length ? (
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-xs text-gray-500 mb-2 font-medium">
+                                                            Слайды ({log.image_urls.length}) {log.cloudinary_cleaned ? '— очищено' : ''}
+                                                        </p>
+                                                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                                            {log.image_urls.map((url, idx) => (
+                                                                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="block">
+                                                                    <img src={url} alt={`Слайд ${idx + 1}`} className="w-full h-auto rounded-lg border border-gray-200 hover:border-orange-400 hover:shadow-md transition-all cursor-pointer" />
+                                                                    <p className="text-[10px] text-center text-gray-400 mt-0.5">{idx + 1}</p>
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <DetailRow label="Cloudinary" value={log.cloudinary_cleaned ? 'Очищено' : '—'} />
+                                                )}
 
                                                 {/* Topic full */}
                                                 {log.topic && log.topic.length > 60 && (
