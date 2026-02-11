@@ -286,8 +286,44 @@ function StartTab({
 }) {
   return (
     <div className="space-y-5">
+      {/* Live Preview */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+          <Eye className="w-4 h-4 text-gray-400" />
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью стартовой страницы</span>
+        </div>
+        <div className="bg-[#FFF8F5]">
+          {coverImageUrl ? (
+            <div className="flex flex-col sm:flex-row min-h-[280px]">
+              <div className="w-full sm:w-1/2 h-40 sm:h-auto relative flex-shrink-0">
+                <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-l from-[#FFF8F5] via-transparent to-transparent" />
+              </div>
+              <div className="flex-1 flex flex-col justify-center px-5 sm:px-8 py-5">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{title || 'Заголовок квиза'}</h2>
+                {description && <p className="text-sm text-gray-600 mb-5 leading-relaxed">{description}</p>}
+                <div>
+                  <span className="inline-block px-6 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">
+                    {ctaText || 'Начать'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center min-h-[220px]">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{title || 'Заголовок квиза'}</h2>
+              {description && <p className="text-gray-600 mb-5 text-sm leading-relaxed max-w-sm">{description}</p>}
+              <span className="inline-block px-6 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">
+                {ctaText || 'Начать'}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Settings */}
       <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-5 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4">Стартовая страница</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">Настройки стартовой страницы</h3>
 
         <div className="space-y-4">
           <QuizImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} label="Обложка" aspectRatio="16:9" />
