@@ -1323,7 +1323,8 @@ Pose: ${posePrompt}
 Expression: ${emotionPrompt}
 Outfit: ${outfit}
 
-Photorealistic, NOT illustration. Cinematic lighting. 8K. ALL text MUST be INSIDE the glass card, NOT floating around the image. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+Photorealistic, NOT illustration. Cinematic lighting. 8K. ALL text MUST be INSIDE the glass card, NOT floating around the image. CRITICAL: DO NOT add ANY text that is not explicitly specified.
+${stylePrompt ? `\nMANDATORY STYLE: The visual style, background, colors, and overall aesthetic MUST match the style description above. This slide must look like it belongs to the same set as all other slides in the carousel.` : ''}${referenceInstruction}`
         } else {
             prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
@@ -1337,7 +1338,8 @@ Props around person: ${props}
 
 ${slide.body_text ? `Bottom card text: "${slide.body_text}"` : ''}
 
-Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.
+${stylePrompt ? `\nMANDATORY STYLE: The visual style, background, colors, and overall aesthetic MUST match the style description above. This slide must look like it belongs to the same set as all other slides in the carousel. Do NOT use a different background or color scheme.` : ''}${referenceInstruction}`
         }
     } else if (slideType === 'VIRAL') {
         const viralTarget = slide.subheadline || selectViralTarget(vasiaCore)
