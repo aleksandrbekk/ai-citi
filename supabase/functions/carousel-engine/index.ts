@@ -625,7 +625,7 @@ async function sendToTelegram(
     if (imageUrls.length > 0) {
         // Caption: use AI-generated post_text or fallback
         const caption = postText
-            ? `${postText.substring(0, 900)}\n\n---\n🤖 NEIROCITI AI`
+            ? postText.substring(0, 1024)
             : `🎨 Карусель: ${topic}\n\n✅ Готово! ${imageUrls.length} слайдов`
 
         const media = imageUrls.map((url, i) => ({
@@ -827,8 +827,8 @@ function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: stri
     {
       "slideNumber": 8,
       "type": "CTA",
-      "headline": "Призыв к действию",
-      "body_text": "Выгода для подписчика",
+      "headline": "ПИШИ: {CTA_CODE}",
+      "body_text": "Выгода для подписчика + призыв написать кодовое слово",
       "pose": "описание позы",
       "emotion": "описание эмоции",
       "human_mode": "FACE"
@@ -850,14 +850,17 @@ function buildCopywriterPrompt(payload: GenerationPayload): { systemPrompt: stri
 - headline: короткий, крупный текст (до 6 слов)
 - content_layout: выбери из вариантов для каждого CONTENT слайда
 - Чередуй content_layout: не повторяй один и тот же два раза подряд
-- post_text: полноценный Instagram caption с CTA и хэштегами
+- ОБЯЗАТЕЛЬНО: Слайд 8 (CTA) — headline ДОЛЖЕН содержать кодовое слово/CTA из запроса пользователя. Формат: "ПИШИ: {CTA_CODE}" где {CTA_CODE} — это кодовое слово. Это КРИТИЧЕСКИ важно!
+- post_text: полноценный Instagram caption с CTA и хэштегами, включая кодовое слово
 - Верни ТОЛЬКО JSON, без markdown, без пояснений`
     }
 
     // userPrompt: ТОЛЬКО тема, пол, CTA — БЕЗ описания формата (формат уже в systemPrompt)
+    const ctaCode = payload.cta || 'ПОДПИШИСЬ'
     const userPrompt = `Тема: "${topic}".
 Пол для склонений: ${payload.gender || 'male'}.
-CTA: "${payload.cta || 'ПОДПИШИСЬ'}".
+Кодовое слово / CTA: "${ctaCode}".
+ВАЖНО: На слайде 8 (CTA) headline ОБЯЗАТЕЛЬНО должен содержать "${ctaCode}" — это кодовое слово продукта!
 Верни ТОЛЬКО JSON.`
 
     return { systemPrompt, userPrompt }
@@ -943,9 +946,14 @@ function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: Gen
         const outfit = selectOutfit(niche, slideType, vasiaCore)
         const props = selectProps(niche, contentTone, vasiaCore)
 
+        // Для CTA-слайда: акцент на кодовое слово
+        const ctaExtra = slideType === 'CTA' && payload.cta
+            ? `\nIMPORTANT: This is a CTA slide. The keyword "${payload.cta}" MUST appear prominently on the slide in LARGE text with vibrant orange glow effect. Format: "ПИШИ: ${payload.cta}"`
+            : ''
+
         prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
-Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}
+Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}${ctaExtra}
 
 Person: chest up to waist, fills 85% of frame width.
 Pose: ${posePrompt}
