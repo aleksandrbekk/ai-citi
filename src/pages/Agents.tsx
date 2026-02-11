@@ -4,7 +4,7 @@ import { CarouselIcon, CalendarIcon, SparkleIcon, LockIcon } from '@/components/
 import { useAuthStore } from '@/store/authStore'
 import { useMaintenanceMode } from '@/hooks/useMaintenanceMode'
 import { isAdmin } from '@/config/admins'
-import { getTelegramUser } from '@/lib/telegram'
+
 import { Zap } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -13,10 +13,9 @@ const OWNER_TELEGRAM_ID = 643763835
 export function Agents() {
   const navigate = useNavigate()
   const [isOwner, setIsOwner] = useState(false)
+  const [isAdminUser, setIsAdminUser] = useState(false)
   const tariffs = useAuthStore((state) => state.tariffs)
   const { isMaintenanceMode, message } = useMaintenanceMode()
-  const telegramUser = getTelegramUser()
-  const isAdminUser = isAdmin(telegramUser?.id)
 
   // Проверяем есть ли платный тариф
   const hasPaidAccess = tariffs.length > 0
@@ -37,6 +36,7 @@ export function Agents() {
     }
 
     setIsOwner(telegramId === OWNER_TELEGRAM_ID)
+    setIsAdminUser(isAdmin(telegramId))
   }, [])
 
   return (
@@ -63,8 +63,8 @@ export function Agents() {
               if (hasPaidAccess) navigate('/agents/carousel')
             }}
             className={`glass-card p-5 transition-all group relative ${isMaintenanceMode
-                ? 'opacity-60 cursor-pointer'
-                : hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
+              ? 'opacity-60 cursor-pointer'
+              : hasPaidAccess ? 'cursor-pointer hover:scale-[1.02]' : 'opacity-60 cursor-not-allowed'
               }`}
           >
             {(isMaintenanceMode || !hasPaidAccess) && (
