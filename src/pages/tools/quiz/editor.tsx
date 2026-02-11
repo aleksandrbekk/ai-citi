@@ -545,10 +545,10 @@ function QuestionsTab({
 
                   {/* Options */}
                   {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice') && (
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 space-y-3">
                       {question.options.map((option, oi) => (
-                        <div key={option.id || `opt-${oi}`}>
-                          <div className="flex items-center gap-2">
+                        <div key={option.id || `opt-${oi}`} className="border border-gray-200 rounded-xl p-3 bg-white/50">
+                          <div className="flex items-start gap-2">
                             <input
                               type={question.question_type === 'single_choice' ? 'radio' : 'checkbox'}
                               checked={option.is_correct}
@@ -560,24 +560,27 @@ function QuestionsTab({
                                   updateOption(qi, oi, { is_correct: !option.is_correct })
                                 }
                               }}
-                              className="w-4 h-4 text-orange-500 cursor-pointer"
+                              className="w-4 h-4 text-orange-500 cursor-pointer mt-2"
                             />
-                            <input type="text" value={option.option_text} onChange={(e) => updateOption(qi, oi, { option_text: e.target.value })} className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder={`Вариант ${oi + 1}`} />
-                            <button onClick={() => moveOption(qi, oi, 'up')} disabled={oi === 0} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
-                              <ChevronUp className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => moveOption(qi, oi, 'down')} disabled={oi === question.options.length - 1} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
-                              <ChevronDown className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex-1 space-y-1.5">
+                              <input type="text" value={option.option_text} onChange={(e) => updateOption(qi, oi, { option_text: e.target.value })} className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm font-medium" placeholder={`Вариант ${oi + 1}`} />
+                              <input type="text" value={option.option_description || ''} onChange={(e) => updateOption(qi, oi, { option_description: e.target.value || null })} className="w-full px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-500 text-xs" placeholder="Описание (необязательно)" />
+                              {/* Option image */}
+                              <QuizImageUpload imageUrl={option.option_image_url} onImageChange={(url: string | null) => updateOption(qi, oi, { option_image_url: url })} compact aspectRatio="4:3" />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <button onClick={() => moveOption(qi, oi, 'up')} disabled={oi === 0} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => moveOption(qi, oi, 'down')} disabled={oi === question.options.length - 1} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                             {question.options.length > 1 && (
-                              <button onClick={() => removeOption(qi, oi)} className="p-1 text-red-400 hover:text-red-500">
+                              <button onClick={() => removeOption(qi, oi)} className="p-1 text-red-400 hover:text-red-500 mt-1">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
-                          </div>
-                          {/* Option image */}
-                          <div className="ml-6 mt-1">
-                            <QuizImageUpload imageUrl={option.option_image_url} onImageChange={(url: string | null) => updateOption(qi, oi, { option_image_url: url })} compact aspectRatio="4:3" />
                           </div>
                         </div>
                       ))}

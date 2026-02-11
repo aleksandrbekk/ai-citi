@@ -61,6 +61,7 @@ export interface UserQuiz {
 export interface QuizOptionItem {
   id?: string
   option_text: string
+  option_description?: string | null
   option_image_url?: string | null
   is_correct: boolean
   order_index: number
