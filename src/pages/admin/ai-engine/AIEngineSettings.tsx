@@ -94,17 +94,17 @@ const TEXT_MODELS = [
     { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', provider: 'gemini' },
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', provider: 'gemini' },
-    { value: 'google/gemini-3-pro-preview', label: 'Gemini 3 Pro (OR)', provider: 'openrouter' },
-    { value: 'google/gemini-2.5-pro-preview', label: 'Gemini 2.5 Pro (OR)', provider: 'openrouter' },
-    { value: 'google/gemini-2.5-flash-preview', label: 'Gemini 2.5 Flash (OR)', provider: 'openrouter' },
+    { value: 'google/gemini-3-pro-preview', label: 'Gemini 3 Pro', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-pro-preview', label: 'Gemini 2.5 Pro', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-flash-preview', label: 'Gemini 2.5 Flash', provider: 'openrouter' },
     { value: 'anthropic/claude-sonnet-4-20250514', label: 'Claude Sonnet 4', provider: 'openrouter' },
     { value: 'openai/gpt-4o', label: 'GPT-4o', provider: 'openrouter' },
     { value: 'meta-llama/llama-4-maverick', label: 'Llama 4 Maverick', provider: 'openrouter' },
 ]
 
 const IMAGE_MODELS = [
-    { value: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro Image (OR)', provider: 'openrouter' },
-    { value: 'google/gemini-2.5-flash-preview:image', label: 'Gemini 2.5 Flash Image (OR)', provider: 'openrouter' },
+    { value: 'google/gemini-3-pro-image-preview', label: 'Gemini 3 Pro Image', provider: 'openrouter' },
+    { value: 'google/gemini-2.5-flash-preview:image', label: 'Gemini 2.5 Flash Image', provider: 'openrouter' },
     { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (нативный)', provider: 'gemini' },
     { value: 'imagen-3.0-generate-002', label: 'Imagen 3', provider: 'imagen' },
     { value: 'imagen-4.0-generate-001', label: 'Imagen 4', provider: 'imagen' },
