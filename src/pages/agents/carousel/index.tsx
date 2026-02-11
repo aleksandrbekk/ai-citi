@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Component, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription, supabase } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
 import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles, getCarouselStylesByIds } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCarouselEvent } from '@/lib/analytics'
@@ -608,23 +608,12 @@ function CarouselIndexInner() {
       console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
       console.log('[Carousel] Payload stylePrompt length:', payload.stylePrompt.length)
 
-      // Проверяем use_internal_engine флаг
-      let useEngine = false
-      try {
-        const { data: engineCfg } = await supabase
-          .from('ai_engine_config')
-          .select('use_internal_engine')
-          .eq('is_active', true)
-          .limit(1)
-          .single()
-        useEngine = engineCfg?.use_internal_engine ?? false
-      } catch {
-        console.warn('[Carousel] Could not check engine config, falling back to n8n')
-      }
+      // Админы тестируют carousel-engine, остальные — n8n
+      const useEngine = isAdmin(user?.id)
 
       let response: Response
       if (useEngine) {
-        console.log('[Carousel] Using carousel-engine (internal)')
+        console.log('[Carousel] ADMIN — sending to carousel-engine')
         response = await fetch(`${SUPABASE_URL}/functions/v1/carousel-engine`, {
           method: 'POST',
           headers: {
@@ -634,7 +623,7 @@ function CarouselIndexInner() {
           body: JSON.stringify(payload),
         })
       } else {
-        console.log('[Carousel] Using n8n (legacy)')
+        console.log('[Carousel] USER — sending to n8n')
         response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

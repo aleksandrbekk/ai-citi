@@ -5,10 +5,11 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL } from '@/lib/carouselStyles'
 import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 import { getCarouselStyleByStyleId, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
-import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById, supabase } from '@/lib/supabase'
+import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
 import { haptic } from '@/lib/haptic'
+import { isAdmin } from '@/config/admins'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -177,25 +178,15 @@ export default function CarouselContent() {
     setStatus('generating')
     navigate('/agents/carousel/generating')
 
-    // Проверяем use_internal_engine флаг
+    // Админы тестируют carousel-engine, остальные — n8n
     try {
-      let useEngine = false
-      try {
-        const { data: engineCfg } = await supabase
-          .from('ai_engine_config')
-          .select('use_internal_engine')
-          .eq('is_active', true)
-          .limit(1)
-          .single()
-        useEngine = engineCfg?.use_internal_engine ?? false
-      } catch {
-        console.warn('[CarouselContent] Could not check engine config, falling back to n8n')
-      }
+      const currentUserId = chatId
+      const useEngine = isAdmin(currentUserId)
 
       let response: Response
       if (useEngine) {
-        // Отправка в carousel-engine (Edge Function)
-        console.log('[CarouselContent] Sending to carousel-engine (internal)')
+        // Админ → carousel-engine (тест нового движка с фото)
+        console.log('[CarouselContent] ADMIN — sending to carousel-engine')
         response = await fetch(`${SUPABASE_URL}/functions/v1/carousel-engine`, {
           method: 'POST',
           headers: {
@@ -205,8 +196,8 @@ export default function CarouselContent() {
           body: JSON.stringify(requestData),
         })
       } else {
-        // Отправка в n8n (legacy)
-        console.log('[CarouselContent] Sending to n8n (legacy)')
+        // Обычные пользователи → n8n (стабильный)
+        console.log('[CarouselContent] USER — sending to n8n')
         response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
           method: 'POST',
           headers: {
