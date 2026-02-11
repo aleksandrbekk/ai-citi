@@ -466,16 +466,16 @@ export function AIEngineSettings() {
                             </div>
                         </div>
 
-                        {(config.image_provider === 'ideogram' || config.image_provider === 'gemini') && (
+                        {config.image_provider !== 'imagen' && (
                             <div className="mt-4">
-                                <Label>API ключ {config.image_provider === 'gemini' ? 'Google AI Studio' : 'Ideogram'}</Label>
+                                <Label>API ключ {config.image_provider === 'gemini' ? 'Google AI Studio' : config.image_provider === 'ideogram' ? 'Ideogram' : 'OpenRouter'}</Label>
                                 <ApiKeyInput
                                     value={config.image_api_key}
                                     onChange={v => updateConfig('image_api_key', v)}
                                     visible={showKeys['image_api_key'] || false}
                                     onToggle={() => toggleKeyVisibility('image_api_key')}
                                     masked={maskKey(config.image_api_key)}
-                                    placeholder={config.image_provider === 'gemini' ? 'Google AI Studio API key' : 'Ideogram API key'}
+                                    placeholder="API key для провайдера картинок"
                                 />
                             </div>
                         )}

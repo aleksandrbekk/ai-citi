@@ -56,19 +56,24 @@ function getRotatedKeys(
     keysJson: ApiKeyEntry[] | null | undefined,
     singleKey: string | null
 ): string[] {
-    // JSONB array takes priority
+    // Combine: primary single key first, then rotation keys
+    const allKeys: string[] = []
+
+    // Primary key always goes first
+    if (singleKey) allKeys.push(singleKey)
+
+    // Add enabled rotation keys (skip duplicates of primary)
     if (keysJson && Array.isArray(keysJson) && keysJson.length > 0) {
-        const enabled = keysJson.filter(k => k.enabled !== false && k.key)
+        const enabled = keysJson.filter(k => k.enabled !== false && k.key && k.key !== singleKey)
         if (enabled.length > 0) {
             // Round-robin: rotate based on current minute to spread load
             const offset = Math.floor(Date.now() / 60000) % enabled.length
             const rotated = [...enabled.slice(offset), ...enabled.slice(0, offset)]
-            return rotated.map(k => k.key)
+            allKeys.push(...rotated.map(k => k.key))
         }
     }
-    // Fallback to single key
-    if (singleKey) return [singleKey]
-    return []
+
+    return allKeys
 }
 
 async function tryWithKeyRotation<T>(
