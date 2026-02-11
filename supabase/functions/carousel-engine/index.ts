@@ -1311,14 +1311,23 @@ function buildImagePrompt(slide: SlideContent, stylePrompt: string, payload: Gen
         const outfit = selectOutfit(niche, slideType, vasiaCore)
         const props = selectProps(niche, contentTone, vasiaCore)
 
-        // Для CTA-слайда: акцент на кодовое слово
-        const ctaExtra = slideType === 'CTA' && payload.cta
-            ? `\nIMPORTANT: This is a CTA slide. The keyword "${payload.cta}" MUST appear prominently on the slide in LARGE text with vibrant orange glow effect. Format: "ПИШИ: ${payload.cta}"`
-            : ''
-
-        prompt = `Create a vertical portrait image, taller than wide.
+        // CTA vs HOOK: разные промпты
+        if (slideType === 'CTA' && payload.cta) {
+            prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
-Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}${ctaExtra}
+LAYOUT: Person on the LEFT side (40% of frame). On the RIGHT side — a large frosted glass card (glassmorphism style, rounded corners, semi-transparent white).
+INSIDE the glass card, centered: Large bold text "ПИШИ: ${payload.cta}" in vibrant orange with glow effect.${slide.body_text ? `\nBelow that, smaller text inside the same card: "${slide.body_text}"` : ''}
+
+Person: chest up to waist.
+Pose: ${posePrompt}
+Expression: ${emotionPrompt}
+Outfit: ${outfit}
+
+Photorealistic, NOT illustration. Cinematic lighting. 8K. ALL text MUST be INSIDE the glass card, NOT floating around the image. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+        } else {
+            prompt = `Create a vertical portrait image, taller than wide.
+${stylePrompt ? stylePrompt + '\n' : ''}
+Headline text on image: "${slide.headline || ''}"${slide.subheadline ? `\nSubheadline: "${slide.subheadline}"` : ''}
 
 Person: chest up to waist, fills 85% of frame width.
 Pose: ${posePrompt}
@@ -1329,6 +1338,7 @@ Props around person: ${props}
 ${slide.body_text ? `Bottom card text: "${slide.body_text}"` : ''}
 
 Photorealistic, NOT illustration. Cinematic lighting. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+        }
     } else if (slideType === 'VIRAL') {
         const viralTarget = slide.subheadline || selectViralTarget(vasiaCore)
         prompt = `Create a vertical portrait image, taller than wide.
