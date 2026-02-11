@@ -503,6 +503,7 @@ export function Shop() {
                           <p className="text-base font-bold text-gray-900">{pkg.name}</p>
                         </div>
                         <p className="text-sm text-gray-700 font-medium mt-0.5">{pkg.coins} нейронов</p>
+                        <p className="text-xs text-gray-400 mt-0.5">~{pkg.generations} {pkg.generations === 1 ? 'карусель' : pkg.generations < 5 ? 'карусели' : 'каруселей'}</p>
                       </div>
                     </div>
 
