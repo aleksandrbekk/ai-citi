@@ -68,7 +68,7 @@ const coinPackages: CoinPackage[] = [
     id: 'pro',
     name: 'PRO',
     coins: 500,
-    generations: 17,
+    generations: 16,
     priceRub: 3990,
     oldPriceRub: 5990,
     pricePerCoin: 7.98,
