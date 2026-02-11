@@ -1348,13 +1348,15 @@ Share icons, paper airplane, energy particles.
 No person. Bright, viral aesthetic. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     } else {
         // CONTENT slides (no person)
+        const contentText = slide.content_details || slide.body_text || ''
         prompt = `Create a vertical portrait image, taller than wide.
 ${stylePrompt ? stylePrompt + '\n' : ''}
-Headline: "${slide.headline || ''}"
-Layout: ${slide.content_layout || 'clean structured layout'}
-Content: ${slide.content_details || slide.body_text || ''}
-${slide.transition ? `Transition text: "${slide.transition}"` : ''}
-No person. Clean infographic style. 8K. CRITICAL: DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
+At the TOP: Large bold headline "${slide.headline || ''}"
+Below headline: ${slide.content_layout || 'clean structured layout'} with the following text items clearly written and readable:
+${contentText}
+${slide.transition ? `At the BOTTOM: transition text "${slide.transition}"` : ''}
+No person. Clean infographic style. 8K.
+CRITICAL: All text content listed above MUST be clearly written and READABLE on the image. Do NOT leave cards or frames empty — fill them with the actual text content provided. DO NOT add ANY text that is not explicitly specified.${referenceInstruction}`
     }
 
     if (payload.primaryColor) {
