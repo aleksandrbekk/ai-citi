@@ -321,7 +321,7 @@ export default function PublicQuiz() {
           <div className="px-4 py-2.5 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{qHeaderText}</div>
         )}
 
-        <div className="flex-1 px-4 py-6 max-w-2xl mx-auto w-full">
+        <div className={`flex-1 px-4 py-6 max-w-2xl mx-auto w-full flex flex-col ${!tileMode && !currentQuestion.question_image_url ? 'justify-center' : ''}`}>
           {/* Question title */}
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
             Вопрос {currentQuestionIndex + 1}/{totalQuestions}. {currentQuestion.question_text}
