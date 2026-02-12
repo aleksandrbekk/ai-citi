@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { quiz_id, lead_name, lead_phone, lead_email } = await req.json()
+    const { quiz_id, lead_name, lead_phone, lead_telegram, lead_email, lead_answers } = await req.json()
 
     if (!quiz_id) {
       return new Response(
@@ -44,9 +44,18 @@ serve(async (req) => {
 
     // Формируем сообщение
     const contactParts: string[] = []
-    if (lead_name) contactParts.push(`👤 Имя: ${lead_name}`)
-    if (lead_phone) contactParts.push(`📱 Тел: ${lead_phone}`)
-    if (lead_email) contactParts.push(`📧 Email: ${lead_email}`)
+    if (lead_name) contactParts.push(`<b>Имя:</b> ${lead_name}`)
+    if (lead_phone) contactParts.push(`<b>Телефон:</b> ${lead_phone}`)
+    if (lead_telegram) contactParts.push(`<b>telegram:</b> ${lead_telegram}`)
+    if (lead_email) contactParts.push(`<b>Email:</b> ${lead_email}`)
+
+    // Вопросы и ответы
+    let answersText = ''
+    if (Array.isArray(lead_answers) && lead_answers.length > 0) {
+      answersText = lead_answers.map((a: { question_text: string; answer_text: string }, i: number) => {
+        return `<b>${i + 1}</b>  <b>${a.question_text}</b>\n${a.answer_text}`
+      }).join('\n\n')
+    }
 
     const now = new Date().toLocaleString('ru-RU', {
       timeZone: 'Europe/Moscow',
@@ -60,6 +69,7 @@ serve(async (req) => {
     const text = `🎯 <b>Новая заявка из квиза!</b>\n\n` +
       `📝 Квиз: <b>${quiz.title}</b>\n` +
       (contactParts.length > 0 ? `\n${contactParts.join('\n')}\n` : '') +
+      (answersText ? `\n${answersText}\n` : '') +
       `\n🕐 ${now} МСК`
 
     // Отправляем уведомление
