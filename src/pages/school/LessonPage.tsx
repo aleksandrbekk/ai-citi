@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
-import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/uiStore'
 import { toast } from 'sonner'
@@ -35,13 +35,13 @@ export default function LessonPage() {
   }
 
   // Получи все уроки модуля
-  const { data: allLessons } = useQuery({
+  const { data: allLessons, isLoading: allLessonsLoading } = useQuery({
     queryKey: ['module-lessons', moduleId],
     queryFn: async () => {
       if (!moduleId) return []
       const { data } = await supabase
         .from('course_lessons')
-        .select('id, title, order_index')
+        .select('id, title, order_index, has_homework')
         .eq('module_id', moduleId)
         .eq('is_active', true)
         .order('order_index')
@@ -50,10 +50,56 @@ export default function LessonPage() {
     enabled: !!moduleId
   })
 
+  // Загружаем статусы ДЗ для проверки доступа к уроку
+  const { data: hwStatuses, isLoading: hwLoading } = useQuery({
+    queryKey: ['hw-statuses', moduleId, getTelegramId()],
+    queryFn: async () => {
+      const tgId = getTelegramId()
+      if (!tgId) return {}
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', tgId)
+        .single()
+      if (!user) return {}
+      const { data: submissions } = await supabase
+        .from('homework_submissions')
+        .select('lesson_id, status')
+        .eq('user_id', user.id)
+      if (!submissions) return {}
+      const map: Record<string, string> = {}
+      for (const s of submissions) {
+        map[s.lesson_id] = s.status
+      }
+      return map
+    },
+    enabled: !!getTelegramId() && !!moduleId
+  })
+
   // Найди индекс текущего урока
   const currentIndex = allLessons?.findIndex(l => l.id === lessonId) ?? -1
   const prevLesson = currentIndex > 0 ? allLessons?.[currentIndex - 1] : null
   const nextLesson = currentIndex < (allLessons?.length || 0) - 1 ? allLessons?.[currentIndex + 1] : null
+
+  // Вычисляем разблокированные уроки
+  const getUnlockedLessons = (): Set<string> => {
+    if (!allLessons || allLessons.length === 0) return new Set()
+    const unlocked = new Set<string>()
+    unlocked.add(allLessons[0].id)
+    for (let i = 0; i < allLessons.length; i++) {
+      const lesson = allLessons[i]
+      if (!unlocked.has(lesson.id)) break
+      if (!lesson.has_homework || hwStatuses?.[lesson.id] === 'approved') {
+        if (i + 1 < allLessons.length) {
+          unlocked.add(allLessons[i + 1].id)
+        }
+      }
+    }
+    return unlocked
+  }
+
+  const unlockedSet = getUnlockedLessons()
+  const isLessonLocked = !!allLessons && allLessons.length > 0 && hwStatuses !== undefined && !!lessonId && !unlockedSet.has(lessonId)
 
   // Получи статус отправленного ДЗ текущего пользователя
   const { data: mySubmission, refetch: refetchSubmission } = useQuery({
@@ -141,10 +187,29 @@ export default function LessonPage() {
     )
   }
 
-  if (isLoading) {
+  if (isLoading || allLessonsLoading || hwLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-[#FFF8F5]">
+        <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Урок заблокирован — выполните предыдущее ДЗ
+  if (isLessonLocked) {
+    return (
+      <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+          <Lock className="w-8 h-8 text-gray-400" />
+        </div>
+        <p className="text-gray-900 font-semibold text-lg mb-2">Урок заблокирован</p>
+        <p className="text-gray-500 text-sm text-center mb-6">Выполните домашнее задание предыдущего урока</p>
+        <button
+          onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)}
+          className="bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl px-6 py-3 font-medium hover:shadow-lg transition-all duration-200 cursor-pointer"
+        >
+          К списку уроков
+        </button>
       </div>
     )
   }
@@ -311,9 +376,9 @@ export default function LessonPage() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={() => nextLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
-              disabled={!nextLesson}
-              className={`p-2 ${nextLesson ? 'text-gray-900' : 'text-gray-300'}`}
+              onClick={() => nextLesson && unlockedSet.has(nextLesson.id) && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
+              disabled={!nextLesson || !unlockedSet.has(nextLesson.id)}
+              className={`p-2 ${nextLesson && unlockedSet.has(nextLesson.id) ? 'text-gray-900' : 'text-gray-300'}`}
             >
               <ChevronRight className="w-5 h-5" />
             </button>

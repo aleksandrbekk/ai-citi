@@ -1,59 +1,171 @@
 import { useParams, Link } from 'react-router-dom'
 import { useModule, useLessons } from '@/hooks/useCourse'
-import { ArrowLeft, Play, FileText, ChevronRight } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowLeft, Play, FileText, ChevronRight, Lock, CheckCircle2, Clock } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+
+function getTelegramId(): number | null {
+  const tg = (window as any).Telegram?.WebApp
+  if (tg?.initDataUnsafe?.user?.id) return tg.initDataUnsafe.user.id
+  const saved = localStorage.getItem('tg_user')
+  if (saved) { try { return JSON.parse(saved).id } catch {} }
+  return null
+}
 
 export default function ModulePage() {
   const { tariffSlug, moduleId } = useParams<{ tariffSlug: string; moduleId: string }>()
   const { data: module, isLoading: moduleLoading } = useModule(moduleId!)
   const { data: lessons, isLoading: lessonsLoading } = useLessons(moduleId!)
+  const telegramId = getTelegramId()
+
+  // Загружаем статусы ДЗ ученика для всех уроков модуля
+  const { data: hwStatuses } = useQuery({
+    queryKey: ['hw-statuses', moduleId, telegramId],
+    queryFn: async () => {
+      if (!telegramId) return {}
+
+      // Получаем user_id
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegramId)
+        .single()
+
+      if (!user) return {}
+
+      // Все ДЗ пользователя для уроков этого модуля
+      const { data: submissions } = await supabase
+        .from('homework_submissions')
+        .select('lesson_id, status')
+        .eq('user_id', user.id)
+
+      if (!submissions) return {}
+
+      const map: Record<string, string> = {}
+      for (const s of submissions) {
+        map[s.lesson_id] = s.status
+      }
+      return map
+    },
+    enabled: !!telegramId && !!moduleId
+  })
+
+  // Вычисляем, какие уроки разблокированы
+  const getUnlockedLessons = (): Set<string> => {
+    if (!lessons || lessons.length === 0) return new Set()
+
+    const unlocked = new Set<string>()
+
+    // Первый урок всегда открыт
+    unlocked.add(lessons[0].id)
+
+    for (let i = 0; i < lessons.length; i++) {
+      const lesson = lessons[i]
+
+      if (!unlocked.has(lesson.id)) break // Если текущий заблокирован — дальше тоже
+
+      // Если у урока нет ДЗ или ДЗ зачтено — открываем следующий
+      if (!lesson.has_homework || hwStatuses?.[lesson.id] === 'approved') {
+        if (i + 1 < lessons.length) {
+          unlocked.add(lessons[i + 1].id)
+        }
+      }
+      // Если ДЗ есть но не зачтено — цепочка останавливается
+    }
+
+    return unlocked
+  }
+
+  const unlockedSet = getUnlockedLessons()
 
   if (moduleLoading || lessonsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-[#FFF8F5]">
+        <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 p-4 pb-24">
+    <div className="min-h-screen bg-[#FFF8F5] text-gray-900 p-4 pb-24">
       {/* Шапка */}
       <div className="flex items-center gap-3 mb-6">
-        <Link to={`/school/${tariffSlug}`} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
-          <ArrowLeft className="w-5 h-5 text-white" />
+        <Link to={`/school/${tariffSlug}`} className="p-2 rounded-lg bg-white border border-gray-200 hover:border-orange-300 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <h1 className="text-xl font-bold flex-1">{module?.title}</h1>
       </div>
 
       {/* Список уроков */}
       <div className="space-y-2">
-        {lessons?.map((lesson, index) => (
-          <Link
-            key={lesson.id}
-            to={`/school/${tariffSlug}/${moduleId}/lesson/${lesson.id}`}
-            className="flex items-center gap-3 p-4 rounded-xl glass-card border border-gray-200 hover:border-orange-500 transition-all"
-          >
-            <div className="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-sm font-medium">
-              {index + 1}
-            </div>
-            <div className="flex-1">
-              <div className="font-medium">{lesson.title}</div>
-              <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                {lesson.video_url && (
-                  <span className="flex items-center gap-1">
-                    <Play className="w-3 h-3" /> Видео
-                  </span>
-                )}
-                {lesson.has_homework && (
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3 h-3" /> ДЗ
-                  </span>
+        {lessons?.map((lesson, index) => {
+          const isUnlocked = unlockedSet.has(lesson.id)
+          const hwStatus = hwStatuses?.[lesson.id]
+
+          if (!isUnlocked) {
+            return (
+              <div
+                key={lesson.id}
+                className="flex items-center gap-3 p-4 rounded-xl bg-gray-100/60 border border-gray-200 opacity-60"
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-400">{lesson.title}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Выполните предыдущее ДЗ</div>
+                </div>
+              </div>
+            )
+          }
+
+          return (
+            <Link
+              key={lesson.id}
+              to={`/school/${tariffSlug}/${moduleId}/lesson/${lesson.id}`}
+              className="flex items-center gap-3 p-4 rounded-xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:border-orange-300 transition-all"
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                hwStatus === 'approved'
+                  ? 'bg-green-100 text-green-600'
+                  : hwStatus === 'pending'
+                  ? 'bg-amber-100 text-amber-600'
+                  : 'bg-orange-100 text-orange-500'
+              }`}>
+                {hwStatus === 'approved' ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : hwStatus === 'pending' ? (
+                  <Clock className="w-4 h-4" />
+                ) : (
+                  index + 1
                 )}
               </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Link>
-        ))}
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">{lesson.title}</div>
+                <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                  {lesson.video_url && (
+                    <span className="flex items-center gap-1">
+                      <Play className="w-3 h-3" /> Видео
+                    </span>
+                  )}
+                  {lesson.has_homework && (
+                    <span className={`flex items-center gap-1 ${
+                      hwStatus === 'approved' ? 'text-green-500' :
+                      hwStatus === 'pending' ? 'text-amber-500' :
+                      hwStatus === 'rejected' ? 'text-red-500' : ''
+                    }`}>
+                      <FileText className="w-3 h-3" />
+                      {hwStatus === 'approved' ? 'Зачтено' :
+                       hwStatus === 'pending' ? 'На проверке' :
+                       hwStatus === 'rejected' ? 'Незачёт' : 'ДЗ'}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </Link>
+          )
+        })}
       </div>
 
       {(!lessons || lessons.length === 0) && (
@@ -64,5 +176,3 @@ export default function ModulePage() {
     </div>
   )
 }
-
-
