@@ -17,6 +17,7 @@ export interface ContactConfig {
   title: string
   description: string
   image_url?: string | null
+  mobile_image_url?: string | null
   fields: {
     name: ContactFieldConfig
     phone: ContactFieldConfig
@@ -36,6 +37,7 @@ export interface ThankYouConfig {
   title: string
   description: string
   image_url?: string | null
+  mobile_image_url?: string | null
   cta_text: string | null
   cta_url: string | null
 }

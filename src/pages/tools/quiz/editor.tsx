@@ -14,7 +14,6 @@ const TABS: { id: TabId; label: string; emoji: string }[] = [
   { id: 'start', label: 'Стартовая', emoji: '📋' },
   { id: 'questions', label: 'Вопросы', emoji: '❓' },
   { id: 'contacts', label: 'Контакты', emoji: '📇' },
-  { id: 'results', label: 'Результаты', emoji: '📊' },
   { id: 'thanks', label: 'Спасибо', emoji: '✅' },
 ]
 
@@ -1071,7 +1070,16 @@ function ContactsTab({
 
         {config.enabled && (
           <div className="space-y-4">
-            <QuizImageUpload imageUrl={config.image_url} onImageChange={(url: string | null) => setConfig({ ...config, image_url: url })} label="Фото формы" aspectRatio="16:9" />
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Фото формы</label>
+              <InlineImageUpload
+                imageUrl={config.image_url || null}
+                onImageChange={(url) => setConfig({ ...config, image_url: url })}
+                mobileImageUrl={config.mobile_image_url || null}
+                onMobileImageChange={(url) => setConfig({ ...config, mobile_image_url: url })}
+                className="w-full aspect-video rounded-xl overflow-hidden"
+              />
+            </div>
 
             <div>
               <label className="block text-sm text-gray-600 mb-1">Заголовок формы</label>
@@ -1172,7 +1180,16 @@ function ThanksTab({
         <h3 className="font-semibold text-gray-900 mb-4">Страница "Спасибо"</h3>
 
         <div className="space-y-4">
-          <QuizImageUpload imageUrl={config.image_url} onImageChange={(url: string | null) => setConfig({ ...config, image_url: url })} label="Картинка" aspectRatio="16:9" />
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Картинка</label>
+            <InlineImageUpload
+              imageUrl={config.image_url || null}
+              onImageChange={(url) => setConfig({ ...config, image_url: url })}
+              mobileImageUrl={config.mobile_image_url || null}
+              onMobileImageChange={(url) => setConfig({ ...config, mobile_image_url: url })}
+              className="w-full aspect-video rounded-xl overflow-hidden"
+            />
+          </div>
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">Заголовок</label>
