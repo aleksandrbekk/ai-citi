@@ -514,8 +514,10 @@ function PreviewContent({
 
   if (activeTab === 'contacts') {
     if (!contactConfig.enabled) return <div className="bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 text-xs p-4">Форма контактов отключена</div>
+    const contactMobileImg = contactConfig.mobile_image_url || contactConfig.image_url
     return (
       <div className="bg-[#FFF8F5] flex flex-col h-full px-4 py-4">
+        {contactMobileImg && <img src={contactMobileImg} alt="" className="w-full h-24 object-cover rounded-lg mb-2" />}
         <h3 className="text-xs font-bold text-gray-900 mb-1 text-center">{contactConfig.title}</h3>
         <p className="text-[9px] text-gray-500 mb-3 text-center">{contactConfig.description}</p>
         <div className="space-y-1.5">
@@ -540,8 +542,10 @@ function PreviewContent({
   }
 
   // thanks
+  const thanksMobileImg = thankYouConfig.mobile_image_url || thankYouConfig.image_url
   return (
     <div className="bg-[#FFF8F5] flex flex-col h-full items-center justify-center px-4 py-4 text-center">
+      {thanksMobileImg && <img src={thanksMobileImg} alt="" className="w-full h-24 object-cover rounded-lg mb-2" />}
       <h3 className="text-xs font-bold text-gray-900 mb-1">{thankYouConfig.title}</h3>
       {thankYouConfig.description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{thankYouConfig.description}</p>}
       {thankYouConfig.cta_text && (
