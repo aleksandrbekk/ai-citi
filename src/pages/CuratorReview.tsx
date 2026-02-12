@@ -12,32 +12,28 @@ export default function CuratorReview() {
   const { data: submissions, isLoading } = useQuery({
     queryKey: ['curator-homework'],
     queryFn: async () => {
-      // Сначала получаем ДЗ
       const { data: submissions, error } = await supabase
         .from('homework_submissions')
         .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: true })
-      
+
       if (error) {
         console.error('Error fetching submissions:', error)
         throw error
       }
-      
+
       if (!submissions || submissions.length === 0) {
         return []
       }
-      
-      // Подгружаем данные для каждого ДЗ
+
       const enriched = await Promise.all(submissions.map(async (sub: any) => {
-        // Получаем урок
         const { data: lesson } = await supabase
           .from('course_lessons')
           .select('id, title, order_index, module_id')
           .eq('id', sub.lesson_id)
           .single()
-        
-        // Получаем модуль
+
         let module = null
         if (lesson?.module_id) {
           const { data: mod } = await supabase
@@ -47,15 +43,13 @@ export default function CuratorReview() {
             .single()
           module = mod
         }
-        
-        // Получаем пользователя
+
         const { data: user } = await supabase
           .from('users')
           .select('id, first_name, last_name, username')
           .eq('id', sub.user_id)
           .single()
-        
-        // Подгружаем quiz данные если есть
+
         let quizData = null
         if (sub.quiz_answers && Object.keys(sub.quiz_answers).length > 0) {
           const questionIds = Object.keys(sub.quiz_answers)
@@ -63,7 +57,7 @@ export default function CuratorReview() {
             .from('lesson_quizzes')
             .select('id, question')
             .in('id', questionIds)
-          
+
           const allOptionIds = Object.values(sub.quiz_answers).flat() as string[]
           if (allOptionIds.length > 0) {
             const { data: options } = await supabase
@@ -73,7 +67,7 @@ export default function CuratorReview() {
             quizData = { questions, options }
           }
         }
-        
+
         return {
           ...sub,
           course_lessons: lesson ? { ...lesson, course_modules: module } : null,
@@ -81,18 +75,17 @@ export default function CuratorReview() {
           quizData
         }
       }))
-      
+
       return enriched
     }
   })
 
-  // Проверка ДЗ
   const reviewMutation = useMutation({
     mutationFn: async ({ id, status, comment }: { id: string, status: string, comment?: string }) => {
       const { error } = await supabase
         .from('homework_submissions')
-        .update({ 
-          status, 
+        .update({
+          status,
           curator_comment: comment || null,
           reviewed_at: new Date().toISOString()
         })
@@ -114,21 +107,23 @@ export default function CuratorReview() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-24">
+    <div className="min-h-screen bg-[#FFF8F5] text-gray-900 pb-24">
       {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50/90 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <Link to="/" className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg">
-          <ArrowLeft size={20} />
+      <div className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3 z-10">
+        <Link to="/school" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <ArrowLeft size={20} className="text-gray-600" />
         </Link>
         <div>
-          <h1 className="font-bold">Проверка ДЗ</h1>
+          <h1 className="font-bold text-gray-900">Проверка ДЗ</h1>
           <p className="text-xs text-gray-400">На проверке: {submissions?.length || 0}</p>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 max-w-2xl mx-auto">
         {isLoading ? (
-          <p className="text-center text-gray-400 py-8">Загрузка...</p>
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          </div>
         ) : submissions?.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-3">✅</div>
@@ -137,55 +132,58 @@ export default function CuratorReview() {
         ) : (
           <div className="space-y-4">
             {submissions?.map((sub: any) => (
-              <div key={sub.id} className="glass-card rounded-2xl p-4">
+              <div key={sub.id} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-5 shadow-sm">
                 {/* Инфо об ученике */}
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-bold">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold">
                     {sub.users?.first_name?.[0] || '?'}
                   </div>
                   <div>
-                    <p className="font-medium">
+                    <p className="font-semibold text-gray-900">
                       {sub.users?.first_name} {sub.users?.last_name}
                     </p>
                     <p className="text-xs text-gray-400">
                       @{sub.users?.username || 'нет username'}
                     </p>
                   </div>
+                  <div className="ml-auto text-xs text-gray-400">
+                    {new Date(sub.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
 
                 {/* Урок */}
-                <div className="bg-zinc-800 rounded-xl p-3 mb-3">
-                  <p className="text-xs text-gray-400">
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-3">
+                  <p className="text-xs text-gray-500">
                     Модуль {sub.course_lessons?.course_modules?.order_index}: {sub.course_lessons?.course_modules?.title}
                   </p>
-                  <p className="text-sm text-orange-400">
+                  <p className="text-sm font-medium text-orange-600">
                     Урок {sub.course_lessons?.order_index}: {sub.course_lessons?.title}
                   </p>
                 </div>
 
                 {/* Текстовый ответ */}
                 {sub.answer_text && (
-                  <div className="bg-zinc-800 rounded-xl p-3 mb-3">
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-3">
                     <p className="text-xs text-gray-400 mb-1">Ответ:</p>
-                    <p className="text-sm whitespace-pre-wrap">{sub.answer_text}</p>
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">{sub.answer_text}</p>
                   </div>
                 )}
 
                 {/* Ответы на квиз */}
                 {sub.quiz_answers && sub.quizData && (
-                  <div className="bg-zinc-800 rounded-xl p-3 mb-3">
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-3">
                     <p className="text-xs text-gray-400 mb-2">Тест:</p>
                     <div className="space-y-2">
                       {Object.entries(sub.quiz_answers).map(([questionId, optionIds]: [string, any]) => {
                         const question = sub.quizData.questions?.find((q: any) => q.id === questionId)
                         const selectedOptions = sub.quizData.options?.filter((o: any) => optionIds.includes(o.id))
-                        
+
                         return (
-                          <div key={questionId} className="border-l-2 border-zinc-600 pl-2">
+                          <div key={questionId} className="border-l-2 border-orange-200 pl-2">
                             <p className="text-xs text-gray-500">{question?.question}</p>
                             {selectedOptions?.map((opt: any) => (
-                              <p key={opt.id} className={`text-sm ${opt.is_correct ? 'text-green-400' : 'text-red-400'}`}>
-                                • {opt.option_text} {opt.is_correct ? '✓' : '✗'}
+                              <p key={opt.id} className={`text-sm ${opt.is_correct ? 'text-green-600' : 'text-red-500'}`}>
+                                {opt.option_text} {opt.is_correct ? '✓' : '✗'}
                               </p>
                             ))}
                           </div>
@@ -200,7 +198,7 @@ export default function CuratorReview() {
                   value={commentInputs[sub.id] || ''}
                   onChange={(e) => setCommentInputs(prev => ({ ...prev, [sub.id]: e.target.value }))}
                   placeholder="Комментарий (необязательно)"
-                  className="w-full p-3 bg-zinc-800 rounded-xl text-sm placeholder-zinc-600 resize-none mb-3"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 resize-none mb-3 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
                   rows={2}
                 />
 
@@ -209,14 +207,14 @@ export default function CuratorReview() {
                   <button
                     onClick={() => handleReview(sub.id, 'rejected')}
                     disabled={reviewMutation.isPending}
-                    className="flex-1 py-3 bg-red-500/20 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-red-50 border border-red-200 text-red-600 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-100 transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     <X size={18} /> Незачёт
                   </button>
                   <button
                     onClick={() => handleReview(sub.id, 'approved')}
                     disabled={reviewMutation.isPending}
-                    className="flex-1 py-3 bg-green-500/20 text-green-400 rounded-xl font-medium flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-green-50 border border-green-200 text-green-600 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-green-100 transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     <Check size={18} /> Зачёт
                   </button>
@@ -229,4 +227,3 @@ export default function CuratorReview() {
     </div>
   )
 }
-
