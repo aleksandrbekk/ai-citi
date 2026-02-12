@@ -183,17 +183,19 @@ export default function PublicQuiz() {
     return !(selectedOptions[qId]?.length > 0)
   }
 
-  // Promo badge — on all pages
+  // Promo badge — on all pages, inline (not fixed)
   const promoBadge = (
-    <a
-      href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="fixed bottom-8 right-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100/50 hover:bg-white/90 hover:shadow-md transition-all group cursor-pointer"
-    >
-      <span className="text-xs text-gray-400">Создай свой квиз в</span>
-      <span className="text-xs font-bold text-orange-500 group-hover:text-orange-600">AI CITI</span>
-    </a>
+    <div className="w-full flex justify-center py-3">
+      <a
+        href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/40 hover:bg-white/80 transition-all group cursor-pointer"
+      >
+        <span className="text-xs text-gray-400">Создай свой квиз в</span>
+        <span className="text-xs font-bold text-orange-500 group-hover:text-orange-600">AI CITI</span>
+      </a>
+    </div>
   )
 
   // ==========================================
@@ -294,7 +296,6 @@ export default function PublicQuiz() {
 
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
-        {promoBadge}
         {/* Header with quiz title */}
         {qHeaderText && (
           <div className="px-4 py-2.5 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{qHeaderText}</div>
@@ -381,7 +382,7 @@ export default function PublicQuiz() {
         </div>
 
         {/* Bottom nav */}
-        <div className="px-4 pb-6 max-w-2xl mx-auto w-full flex items-center justify-end gap-3">
+        <div className="px-4 pb-2 max-w-2xl mx-auto w-full flex items-center justify-end gap-3">
           <button onClick={handleBack} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-300 transition-colors cursor-pointer" aria-label="Назад">
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -390,6 +391,7 @@ export default function PublicQuiz() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
+        {promoBadge}
       </div>
     )
   }
