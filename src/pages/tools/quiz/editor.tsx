@@ -989,8 +989,8 @@ function QuestionsTab({
                               className="w-4 h-4 text-orange-500 cursor-pointer mt-0.5 flex-shrink-0"
                             />
 
-                            {/* Option image — only in 'with_option_images' mode */}
-                            {displayMode === 'with_option_images' && (
+                            {/* Option image — show when mode is 'with_option_images' OR any option already has an image */}
+                            {(displayMode === 'with_option_images' || question.options.some(o => o.option_image_url)) && (
                               <OptionImageSlot
                                 imageUrl={option.option_image_url || null}
                                 onImageChange={(url) => updateOption(qi, oi, { option_image_url: url })}
