@@ -547,22 +547,28 @@ function PreviewContent({
     const layout = startLayout || 'side'
     const alignment = startAlignment || 'image-left'
 
-    // Desktop side layout
+    // Desktop side layout (matches public page structure)
     if (!isMobile && layout === 'side') {
       const isImageRight = alignment === 'image-right'
-      const imageEl = image ? <img src={image} alt="" className="w-1/2 object-cover" /> : null
+      const imageEl = image ? (
+        <div className="w-1/2 flex-shrink-0 relative">
+          <img src={image} alt="" className="w-full h-full object-cover" />
+        </div>
+      ) : null
       const textEl = (
-        <div className={`flex-1 flex flex-col justify-center ${padX} py-4 ${!image ? 'items-center text-center' : ''}`}>
-          {headerText && <p className="text-[9px] text-gray-400 mb-2">{headerText}</p>}
+        <div className={`flex-1 flex flex-col justify-center px-5 py-4 ${!image ? 'items-center text-center' : ''}`}>
           <h3 className={`${titleScale} font-bold text-gray-900 mb-1.5`}>{title || 'Заголовок'}</h3>
           {description && <p className={`${textScale} text-gray-600 mb-3 leading-snug`}>{description}</p>}
           <div><span className={`inline-block ${btnScale} bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium`}>{ctaText || 'Начать'}</span></div>
-          {footerText && <p className="text-[8px] text-gray-300 mt-3">{footerText}</p>}
         </div>
       )
       return (
-        <div className="bg-[#FFF8F5] flex h-full">
-          {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
+        <div className="bg-[#FFF8F5] flex flex-col h-full">
+          {headerText && <div className="px-4 py-1.5 text-[10px] text-gray-400 text-center border-b border-gray-100 bg-white/50">{headerText}</div>}
+          <div className="flex-1 flex flex-row">
+            {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
+          </div>
+          {footerText && <div className="px-4 py-1.5 text-[9px] text-gray-400 text-center border-t border-gray-100 bg-white/50">{footerText}</div>}
         </div>
       )
     }
