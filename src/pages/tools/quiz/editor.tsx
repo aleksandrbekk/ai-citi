@@ -71,12 +71,14 @@ function InlineEdit({
 const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/ds8ylsl2x/image/upload'
 
 function InlineImageUpload({
-  imageUrl, onImageChange, className, onMobileUpload,
+  imageUrl, onImageChange, className,
+  mobileImageUrl, onMobileImageChange,
 }: {
   imageUrl: string | null; onImageChange: (url: string | null) => void; className?: string
-  onMobileUpload?: () => void
+  mobileImageUrl?: string | null; onMobileImageChange?: (url: string | null) => void
 }) {
   const [isUploading, setIsUploading] = useState(false)
+  const [showMobilePanel, setShowMobilePanel] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (file: File) => {
@@ -101,44 +103,64 @@ function InlineImageUpload({
   }
 
   return (
-    <div
-      className={`relative group/img cursor-pointer ${className || ''}`}
-      onClick={() => fileInputRef.current?.click()}
-      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleUpload(f) }}
-      onDragOver={(e) => e.preventDefault()}
-    >
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f) }} />
-      {imageUrl ? (
-        <>
-          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
+    <div className={`relative group/img ${className || ''}`}>
+      <div
+        className="cursor-pointer w-full h-full"
+        onClick={() => fileInputRef.current?.click()}
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleUpload(f) }}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f) }} />
+        {imageUrl ? (
+          <>
+            <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center pointer-events-none">
+              {isUploading ? (
+                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              ) : (
+                <Camera className="w-8 h-8 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-orange-300 hover:bg-orange-50/30 transition-colors">
             {isUploading ? (
-              <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <Loader2 className="w-6 h-6 text-orange-400 animate-spin" />
             ) : (
-              <Camera className="w-8 h-8 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
+              <>
+                <ImagePlus className="w-6 h-6 text-gray-300" />
+                <span className="text-xs text-gray-400">Добавить фото</span>
+              </>
             )}
           </div>
-          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
-            {onMobileUpload && (
-              <button type="button" onClick={(e) => { e.stopPropagation(); onMobileUpload() }} className="p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors" title="Фото для телефона">
-                <Smartphone className="w-3.5 h-3.5 text-white" />
-              </button>
-            )}
-            <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors">
-              <X className="w-3.5 h-3.5 text-white" />
+        )}
+      </div>
+
+      {/* Top-left: gear (mobile image) + delete buttons */}
+      {imageUrl && (
+        <div className="absolute top-2 left-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
+          {onMobileImageChange && (
+            <button type="button" onClick={(e) => { e.stopPropagation(); setShowMobilePanel(!showMobilePanel) }} className="p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors cursor-pointer" title="Изображение (мобильная версия)">
+              <Settings2 className="w-3.5 h-3.5 text-white" />
+            </button>
+          )}
+          <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="p-1.5 bg-red-500/80 rounded-full hover:bg-red-600 transition-colors cursor-pointer" title="Удалить фото">
+            <X className="w-3.5 h-3.5 text-white" />
+          </button>
+        </div>
+      )}
+
+      {/* Mobile image upload popover */}
+      {showMobilePanel && onMobileImageChange && (
+        <div className="absolute top-10 left-2 z-20 bg-white rounded-xl shadow-xl border border-gray-200 p-3 w-64" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-gray-700">Изображение (мобильная версия)</span>
+            <button type="button" onClick={() => setShowMobilePanel(false)} className="p-0.5 hover:bg-gray-100 rounded cursor-pointer">
+              <X className="w-3.5 h-3.5 text-gray-400" />
             </button>
           </div>
-        </>
-      ) : (
-        <div className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-orange-300 hover:bg-orange-50/30 transition-colors">
-          {isUploading ? (
-            <Loader2 className="w-6 h-6 text-orange-400 animate-spin" />
-          ) : (
-            <>
-              <ImagePlus className="w-6 h-6 text-gray-300" />
-              <span className="text-xs text-gray-400">Добавить фото</span>
-            </>
-          )}
+          <QuizImageUpload imageUrl={mobileImageUrl || null} onImageChange={onMobileImageChange} label="" compact aspectRatio="auto" />
+          <p className="mt-1.5 text-[10px] text-gray-400 leading-snug">Рекомендуемый размер — 400x220</p>
         </div>
       )}
     </div>
@@ -400,7 +422,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} onNavigateToQuestions={() => setActiveTab('questions')} showMobile={showMobile} setShowMobile={setShowMobile} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} showMobile={showMobile} setShowMobile={setShowMobile} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
@@ -418,7 +440,7 @@ export default function QuizEditor() {
 
       {/* Floating mobile preview — persistent across tabs */}
       {showMobile && (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center gap-3">
+        <div className="fixed bottom-4 right-4 z-50">
           <div className="relative">
             <button type="button" onClick={() => setShowMobile(false)} className="absolute -top-3 -right-3 z-10 w-8 h-8 flex items-center justify-center bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer" aria-label="Закрыть">
               <X className="w-4 h-4 text-white" />
@@ -441,12 +463,6 @@ export default function QuizEditor() {
               </div>
             </div>
           </div>
-          {activeTab === 'start' && (
-            <div className="w-[220px]">
-              <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
-              <p className="mt-1.5 text-[10px] text-gray-400 leading-snug text-center">Другое фото для телефона. 400x220</p>
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -560,6 +576,7 @@ function StartTab({
   startAlignment, setStartAlignment,
   headerText, setHeaderText,
   footerText, setFooterText,
+  coverImageMobileUrl, setCoverImageMobileUrl,
   onNavigateToQuestions,
   showMobile, setShowMobile,
 }: {
@@ -573,6 +590,7 @@ function StartTab({
   startAlignment: StartAlignment; setStartAlignment: (v: StartAlignment) => void
   headerText: string; setHeaderText: (v: string) => void
   footerText: string; setFooterText: (v: string) => void
+  coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
   onNavigateToQuestions: () => void
   showMobile: boolean; setShowMobile: (v: boolean) => void
 }) {
@@ -596,7 +614,7 @@ function StartTab({
         <div className="flex flex-col min-h-[300px]">
           {headerEl}
           <div className="flex-1 flex flex-col items-center justify-center py-8 px-6 text-center">
-            <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full max-w-xs rounded-xl mb-4 overflow-hidden" onMobileUpload={() => setShowMobile(true)} />
+            <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full max-w-xs rounded-xl mb-4 overflow-hidden" mobileImageUrl={coverImageMobileUrl} onMobileImageChange={setCoverImageMobileUrl} />
             <InlineEdit value={title} onChange={setTitle} placeholder="Заголовок квиза" className="font-bold text-gray-900 text-xl mb-2" maxLength={200} />
             <InlineEdit value={description} onChange={setDescription} placeholder="Описание квиза" className="text-sm text-gray-600 max-w-sm leading-relaxed mb-4" multiline maxLength={500} />
             <div className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl">
@@ -613,7 +631,7 @@ function StartTab({
 
     const imageEl = (
       <div className="w-1/2 flex-shrink-0 min-h-[240px]">
-        <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full h-full" onMobileUpload={() => setShowMobile(true)} />
+        <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full h-full" mobileImageUrl={coverImageMobileUrl} onMobileImageChange={setCoverImageMobileUrl} />
       </div>
     )
 
