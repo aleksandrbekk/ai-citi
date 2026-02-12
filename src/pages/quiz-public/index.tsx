@@ -197,13 +197,13 @@ export default function PublicQuiz() {
 
     if (layout === 'center') {
       return (
-        <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
+        <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
           {headerEl}
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
             {quiz.cover_image_url && (
               <img src={quiz.cover_image_url} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64" />
             )}
-            <div className="max-w-lg w-full">
+            <div className="max-w-2xl w-full">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{quiz.title}</h1>
               {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed text-lg">{quiz.description}</p>}
               <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
@@ -218,17 +218,16 @@ export default function PublicQuiz() {
 
     // side layout
     const imageEl = quiz.cover_image_url ? (
-      <div className="w-full sm:w-1/2 h-56 sm:h-auto sm:min-h-screen relative flex-shrink-0">
+      <div className="w-full sm:w-1/2 h-56 sm:h-auto relative flex-shrink-0">
         <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover" />
-        <div className={`absolute inset-0 bg-gradient-to-t sm:bg-none from-[#FFF8F5] via-transparent to-transparent ${alignment === 'image-left' ? 'sm:bg-gradient-to-l sm:from-[#FFF8F5] sm:via-transparent sm:to-transparent' : 'sm:bg-gradient-to-r sm:from-[#FFF8F5] sm:via-transparent sm:to-transparent'}`} />
       </div>
     ) : null
 
     const textEl = (
-      <div className={`flex-1 flex flex-col justify-center px-6 sm:px-10 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
-        <div className={quiz.cover_image_url ? 'max-w-md w-full' : 'max-w-lg w-full'}>
-          <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}>{quiz.title}</h1>
-          {quiz.description && <p className={`text-gray-600 mb-8 leading-relaxed ${quiz.cover_image_url ? '' : 'text-lg'}`}>{quiz.description}</p>}
+      <div className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
+        <div className="w-full">
+          <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-4xl' : 'text-3xl sm:text-4xl'}`}>{quiz.title}</h1>
+          {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed text-base sm:text-lg">{quiz.description}</p>}
           <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
             {quiz.cta_text || 'Начать'}
           </button>
@@ -239,9 +238,9 @@ export default function PublicQuiz() {
     const isImageRight = alignment === 'image-right'
 
     return (
-      <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
+      <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
         {headerEl}
-        <div className="flex-1 flex flex-col sm:flex-row">
+        <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
           {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
         </div>
         {footerEl}
