@@ -863,6 +863,53 @@ function QuestionsTab({
                 {/* Collapsible body */}
                 {!isCollapsed && (
                   <div className="px-4 pb-4">
+                    {/* Display mode + question type selectors */}
+                    {question.question_type !== 'text' && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <select
+                          value={question.question_type}
+                          onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
+                          className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
+                        >
+                          <option value="single_choice">Один ответ</option>
+                          <option value="multiple_choice">Несколько ответов</option>
+                          <option value="text">Текст</option>
+                        </select>
+
+                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+                          {([
+                            { mode: 'text_only' as QuestionDisplayMode, icon: List, label: 'Варианты ответов' },
+                            { mode: 'with_option_images' as QuestionDisplayMode, icon: LayoutGrid, label: 'Варианты с картинками' },
+                            { mode: 'with_question_image' as QuestionDisplayMode, icon: ImageIcon, label: 'Варианты и картинка' },
+                          ] as const).map(({ mode, icon: Icon, label }) => (
+                            <button
+                              key={mode}
+                              onClick={() => updateQuestion(qi, { display_mode: mode })}
+                              className={`flex items-center gap-1 px-2 py-1.5 text-xs transition-colors cursor-pointer ${displayMode === mode ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                              title={label}
+                            >
+                              <Icon className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">{label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {question.question_type === 'text' && (
+                      <div className="mb-3">
+                        <select
+                          value={question.question_type}
+                          onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
+                          className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
+                        >
+                          <option value="single_choice">Один ответ</option>
+                          <option value="multiple_choice">Несколько ответов</option>
+                          <option value="text">Текст</option>
+                        </select>
+                      </div>
+                    )}
+
                     {/* Question image — only in 'with_question_image' mode */}
                     {displayMode === 'with_question_image' && (
                       <div className="mb-3">
@@ -955,37 +1002,6 @@ function QuestionsTab({
 
                     {/* Bottom toolbar */}
                     <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
-                      <select
-                        value={question.question_type}
-                        onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
-                        className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
-                      >
-                        <option value="single_choice">Один ответ</option>
-                        <option value="multiple_choice">Несколько ответов</option>
-                        <option value="text">Текст</option>
-                      </select>
-
-                      {/* Display mode switcher */}
-                      {question.question_type !== 'text' && (
-                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                          {([
-                            { mode: 'text_only' as QuestionDisplayMode, icon: List, title: 'Варианты ответов' },
-                            { mode: 'with_option_images' as QuestionDisplayMode, icon: LayoutGrid, title: 'Варианты с картинками' },
-                            { mode: 'with_question_image' as QuestionDisplayMode, icon: ImageIcon, title: 'Варианты и картинка' },
-                          ] as const).map(({ mode, icon: Icon, title }) => (
-                            <button
-                              key={mode}
-                              onClick={() => updateQuestion(qi, { display_mode: mode })}
-                              className={`p-1.5 transition-colors cursor-pointer ${displayMode === mode ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                              title={title}
-                              aria-label={title}
-                            >
-                              <Icon className="w-3.5 h-3.5" />
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
                       <div className="flex-1" />
 
                       <button onClick={() => moveQuestion(qi, 'up')} disabled={qi === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 cursor-pointer" aria-label="Переместить вверх">
