@@ -1058,64 +1058,121 @@ function ContactsTab({
     })
   }
 
-  return (
-    <div className="space-y-5">
-      <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-5 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">Форма контактов</h3>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" checked={config.enabled} onChange={(e) => setConfig({ ...config, enabled: e.target.checked })} className="sr-only peer" />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
-          </label>
-        </div>
+  const fieldPlaceholders: Record<string, string> = {
+    name: 'Ваше имя',
+    phone: '+7 (___) ___-__-__',
+    telegram: '@username',
+    email: 'email@example.com',
+  }
 
-        {config.enabled && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Фото формы</label>
-              <InlineImageUpload
-                imageUrl={config.image_url || null}
-                onImageChange={(url) => setConfig({ ...config, image_url: url })}
-                mobileImageUrl={config.mobile_image_url || null}
-                onMobileImageChange={(url) => setConfig({ ...config, mobile_image_url: url })}
-                className="w-full aspect-video rounded-xl overflow-hidden"
-              />
-            </div>
+  const renderPreview = () => {
+    const imageEl = (
+      <div className="w-1/2 flex-shrink-0 min-h-[240px]">
+        <InlineImageUpload
+          imageUrl={config.image_url || null}
+          onImageChange={(url) => setConfig({ ...config, image_url: url })}
+          mobileImageUrl={config.mobile_image_url || null}
+          onMobileImageChange={(url) => setConfig({ ...config, mobile_image_url: url })}
+          className="w-full h-full"
+        />
+      </div>
+    )
 
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Заголовок формы</label>
-              <input type="text" value={config.title} onChange={(e) => setConfig({ ...config, title: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="Оставьте контакты" />
-            </div>
+    const enabledFields = (['name', 'phone', 'telegram', 'email'] as const).filter((f) => config.fields[f].enabled)
 
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Описание</label>
-              <input type="text" value={config.description} onChange={(e) => setConfig({ ...config, description: e.target.value })} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="И мы свяжемся с вами" />
-            </div>
+    const formEl = (
+      <div className="flex-1 flex flex-col justify-center px-5 py-5">
+        <div className="w-full">
+          {/* Progress bar */}
+          <div className="h-1 bg-orange-100 rounded-full mb-4">
+            <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 w-[95%] rounded-full" />
+          </div>
 
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-700">Поля формы</p>
+          <InlineEdit value={config.title} onChange={(v) => setConfig({ ...config, title: v })} placeholder="Оставьте контакты" className="font-bold text-gray-900 text-lg mb-1" maxLength={200} />
+          <InlineEdit value={config.description} onChange={(v) => setConfig({ ...config, description: v })} placeholder="И мы свяжемся с вами" className="text-xs text-gray-500 mb-4" maxLength={300} />
 
-              {(['name', 'phone', 'telegram', 'email'] as const).map((field) => (
-                <div key={field} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                  <div className="flex items-center gap-3">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={config.fields[field].enabled} onChange={(e) => updateField(field, 'enabled', e.target.checked)} className="sr-only peer" />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500" />
-                    </label>
-                    <span className="text-sm text-gray-700">{config.fields[field].label}</span>
-                  </div>
-                  {config.fields[field].enabled && (
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={config.fields[field].required} onChange={(e) => updateField(field, 'required', e.target.checked)} className="w-4 h-4 text-orange-500 rounded" />
-                      <span className="text-xs text-gray-500">Обязательное</span>
-                    </label>
-                  )}
-                </div>
-              ))}
+          <div className="space-y-2.5">
+            {enabledFields.map((field) => (
+              <div key={field}>
+                <span className="text-[10px] text-gray-400 mb-0.5 block">{config.fields[field].label}{config.fields[field].required ? ' *' : ''}</span>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-300">{fieldPlaceholders[field]}</div>
+              </div>
+            ))}
+            {enabledFields.length === 0 && (
+              <div className="text-xs text-gray-300 italic py-2">Включите поля формы ниже</div>
+            )}
+          </div>
+
+          <div className="mt-4">
+            <div className="px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg text-white text-xs font-medium text-center">
+              Отправить
             </div>
           </div>
-        )}
+        </div>
       </div>
+    )
+
+    return (
+      <div className="flex flex-row min-h-[300px]">
+        {imageEl}
+        {formEl}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Toggle */}
+      <div className="flex items-center justify-between px-1">
+        <h3 className="font-semibold text-gray-900 text-sm">Форма контактов</h3>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" checked={config.enabled} onChange={(e) => setConfig({ ...config, enabled: e.target.checked })} className="sr-only peer" />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
+        </label>
+      </div>
+
+      {config.enabled && (
+        <>
+          {/* Live preview */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-gray-400" />
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Редактор</span>
+              </div>
+            </div>
+            <div className="bg-[#FFF8F5]">
+              {renderPreview()}
+            </div>
+          </div>
+
+          {/* Fields settings */}
+          <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-4 shadow-sm">
+            <p className="text-sm font-medium text-gray-700 mb-3">Поля формы</p>
+            {(['name', 'phone', 'telegram', 'email'] as const).map((field) => (
+              <div key={field} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div className="flex items-center gap-3">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={config.fields[field].enabled} onChange={(e) => updateField(field, 'enabled', e.target.checked)} className="sr-only peer" />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500" />
+                  </label>
+                  <span className="text-sm text-gray-700">{config.fields[field].label}</span>
+                </div>
+                {config.fields[field].enabled && (
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={config.fields[field].required} onChange={(e) => updateField(field, 'required', e.target.checked)} className="w-4 h-4 text-orange-500 rounded" />
+                    <span className="text-xs text-gray-500">Обязательное</span>
+                  </label>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {!config.enabled && (
+        <p className="text-sm text-gray-400 px-1">Отключено — контакты не будут запрашиваться</p>
+      )}
     </div>
   )
 }
