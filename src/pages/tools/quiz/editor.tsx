@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight, GripVertical } from 'lucide-react'
-import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight, GripVertical, List, LayoutGrid, ImageIcon } from 'lucide-react'
+import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type QuestionDisplayMode, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
@@ -814,13 +814,9 @@ function QuestionsTab({
   updateOption: (qi: number, oi: number, u: Partial<QuizOptionItem>) => void
 }) {
   const [collapsedSet, setCollapsedSet] = useState<Set<number>>(new Set())
-  const [photoVisibleSet, setPhotoVisibleSet] = useState<Set<number>>(new Set())
 
   const toggleCollapse = (qi: number) => {
     setCollapsedSet(prev => { const n = new Set(prev); n.has(qi) ? n.delete(qi) : n.add(qi); return n })
-  }
-  const togglePhoto = (qi: number) => {
-    setPhotoVisibleSet(prev => { const n = new Set(prev); n.has(qi) ? n.delete(qi) : n.add(qi); return n })
   }
 
   return (
@@ -837,7 +833,7 @@ function QuestionsTab({
         <>
           {questions.map((question, qi) => {
             const isCollapsed = collapsedSet.has(qi)
-            const showPhoto = photoVisibleSet.has(qi) || !!question.question_image_url
+            const displayMode = question.display_mode || 'text_only'
 
             return (
               <div key={question.id || `new-${qi}`} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
@@ -867,8 +863,8 @@ function QuestionsTab({
                 {/* Collapsible body */}
                 {!isCollapsed && (
                   <div className="px-4 pb-4">
-                    {/* Question image (shown when exists or toggled) */}
-                    {showPhoto && (
+                    {/* Question image — only in 'with_question_image' mode */}
+                    {displayMode === 'with_question_image' && (
                       <div className="mb-3">
                         <QuizImageUpload
                           imageUrl={question.question_image_url}
@@ -879,7 +875,7 @@ function QuestionsTab({
                       </div>
                     )}
 
-                    {/* Options — clean rows without cards */}
+                    {/* Options */}
                     {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice') && (
                       <div className="space-y-0.5 mt-1">
                         {question.options.map((option, oi) => (
@@ -901,10 +897,13 @@ function QuestionsTab({
                               className="w-4 h-4 text-orange-500 cursor-pointer mt-0.5 flex-shrink-0"
                             />
 
-                            <OptionImageSlot
-                              imageUrl={option.option_image_url || null}
-                              onImageChange={(url) => updateOption(qi, oi, { option_image_url: url })}
-                            />
+                            {/* Option image — only in 'with_option_images' mode */}
+                            {displayMode === 'with_option_images' && (
+                              <OptionImageSlot
+                                imageUrl={option.option_image_url || null}
+                                onImageChange={(url) => updateOption(qi, oi, { option_image_url: url })}
+                              />
+                            )}
 
                             <div className="flex-1 min-w-0">
                               <input
@@ -966,14 +965,26 @@ function QuestionsTab({
                         <option value="text">Текст</option>
                       </select>
 
-                      <button
-                        onClick={() => togglePhoto(qi)}
-                        className={`p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer ${question.question_image_url ? 'text-orange-500' : 'text-gray-400'}`}
-                        title="Фото вопроса"
-                        aria-label="Фото вопроса"
-                      >
-                        <Camera className="w-4 h-4" />
-                      </button>
+                      {/* Display mode switcher */}
+                      {question.question_type !== 'text' && (
+                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+                          {([
+                            { mode: 'text_only' as QuestionDisplayMode, icon: List, title: 'Варианты ответов' },
+                            { mode: 'with_option_images' as QuestionDisplayMode, icon: LayoutGrid, title: 'Варианты с картинками' },
+                            { mode: 'with_question_image' as QuestionDisplayMode, icon: ImageIcon, title: 'Варианты и картинка' },
+                          ] as const).map(({ mode, icon: Icon, title }) => (
+                            <button
+                              key={mode}
+                              onClick={() => updateQuestion(qi, { display_mode: mode })}
+                              className={`p-1.5 transition-colors cursor-pointer ${displayMode === mode ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                              title={title}
+                              aria-label={title}
+                            >
+                              <Icon className="w-3.5 h-3.5" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
 
                       <div className="flex-1" />
 
