@@ -814,6 +814,7 @@ function QuestionsTab({
   updateOption: (qi: number, oi: number, u: Partial<QuizOptionItem>) => void
 }) {
   const [collapsedSet, setCollapsedSet] = useState<Set<number>>(new Set())
+  const [modeDropdownOpen, setModeDropdownOpen] = useState<number | null>(null)
 
   const toggleCollapse = (qi: number) => {
     setCollapsedSet(prev => { const n = new Set(prev); n.has(qi) ? n.delete(qi) : n.add(qi); return n })
@@ -842,7 +843,38 @@ function QuestionsTab({
                   className="flex items-center gap-2.5 px-4 py-3 cursor-pointer select-none"
                   onClick={() => toggleCollapse(qi)}
                 >
-                  <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                  {/* Menu button — opens display mode dropdown */}
+                  <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => setModeDropdownOpen(modeDropdownOpen === qi ? null : qi)}
+                      className="p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+                      aria-label="Режим отображения"
+                    >
+                      <GripVertical className="w-4 h-4 text-gray-400" />
+                    </button>
+
+                    {modeDropdownOpen === qi && question.question_type !== 'text' && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setModeDropdownOpen(null)} />
+                        <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-200 py-1 min-w-[220px]">
+                          {([
+                            { mode: 'text_only' as QuestionDisplayMode, icon: List, label: 'Варианты ответов' },
+                            { mode: 'with_option_images' as QuestionDisplayMode, icon: LayoutGrid, label: 'Варианты с картинками' },
+                            { mode: 'with_question_image' as QuestionDisplayMode, icon: ImageIcon, label: 'Варианты и картинка' },
+                          ] as const).map(({ mode, icon: Icon, label }) => (
+                            <button
+                              key={mode}
+                              onClick={() => { updateQuestion(qi, { display_mode: mode }); setModeDropdownOpen(null) }}
+                              className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors cursor-pointer ${displayMode === mode ? 'text-orange-500 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                              <Icon className="w-4 h-4 flex-shrink-0" />
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
 
                   <span className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
                     {qi + 1}
@@ -863,52 +895,18 @@ function QuestionsTab({
                 {/* Collapsible body */}
                 {!isCollapsed && (
                   <div className="px-4 pb-4">
-                    {/* Display mode + question type selectors */}
-                    {question.question_type !== 'text' && (
-                      <div className="flex items-center gap-2 mb-3">
-                        <select
-                          value={question.question_type}
-                          onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
-                          className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
-                        >
-                          <option value="single_choice">Один ответ</option>
-                          <option value="multiple_choice">Несколько ответов</option>
-                          <option value="text">Текст</option>
-                        </select>
-
-                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                          {([
-                            { mode: 'text_only' as QuestionDisplayMode, icon: List, label: 'Варианты ответов' },
-                            { mode: 'with_option_images' as QuestionDisplayMode, icon: LayoutGrid, label: 'Варианты с картинками' },
-                            { mode: 'with_question_image' as QuestionDisplayMode, icon: ImageIcon, label: 'Варианты и картинка' },
-                          ] as const).map(({ mode, icon: Icon, label }) => (
-                            <button
-                              key={mode}
-                              onClick={() => updateQuestion(qi, { display_mode: mode })}
-                              className={`flex items-center gap-1 px-2 py-1.5 text-xs transition-colors cursor-pointer ${displayMode === mode ? 'bg-orange-500 text-white' : 'text-gray-500 hover:text-gray-700'}`}
-                              title={label}
-                            >
-                              <Icon className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">{label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {question.question_type === 'text' && (
-                      <div className="mb-3">
-                        <select
-                          value={question.question_type}
-                          onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
-                          className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
-                        >
-                          <option value="single_choice">Один ответ</option>
-                          <option value="multiple_choice">Несколько ответов</option>
-                          <option value="text">Текст</option>
-                        </select>
-                      </div>
-                    )}
+                    {/* Question type selector */}
+                    <div className="mb-3">
+                      <select
+                        value={question.question_type}
+                        onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
+                        className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
+                      >
+                        <option value="single_choice">Один ответ</option>
+                        <option value="multiple_choice">Несколько ответов</option>
+                        <option value="text">Текст</option>
+                      </select>
+                    </div>
 
                     {/* Question image — only in 'with_question_image' mode */}
                     {displayMode === 'with_question_image' && (
