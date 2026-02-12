@@ -5,7 +5,7 @@ import { useCarouselStore } from '@/store/carouselStore'
 import { STYLE_CONFIGS, VASIA_CORE, FORMAT_UNIVERSAL } from '@/lib/carouselStyles'
 import { getFormatByFormatId } from '@/lib/carouselFormatsApi'
 import { getCarouselStyleByStyleId, getGlobalSystemPrompt } from '@/lib/carouselStylesApi'
-import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById } from '@/lib/supabase'
+import { getFirstUserPhoto, getCoinBalance, spendCoinsForGeneration, getUserTariffsById, supabase } from '@/lib/supabase'
 import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
 import { haptic } from '@/lib/haptic'
@@ -174,26 +174,39 @@ export default function CarouselContent() {
     setStatus('generating')
     navigate('/agents/carousel/generating')
 
-    // Первый агент ВСЕГДА через n8n (carousel-engine только в /agents/carousel-ai/)
+    // Отправляем через edge function прокси (решает CORS и Load failed на мобиле)
     try {
-      console.log('[CarouselContent] Sending to n8n (stable)')
-      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
+      console.log('[CarouselContent] Sending via n8n-carousel-proxy')
+      const { data, error: invokeError } = await supabase.functions.invoke('n8n-carousel-proxy', {
+        body: requestData,
       })
 
-      if (!response.ok) {
-        throw new Error('Ошибка отправки запроса')
+      if (invokeError) {
+        throw new Error(invokeError.message || 'Ошибка отправки запроса')
       }
 
-      // Результаты придут в Telegram, переходим на экран генерации
+      if (data && !data.success) {
+        throw new Error(data.error || 'n8n не принял запрос')
+      }
+
+      // Результаты придут в Telegram
     } catch (error) {
       console.error('[CarouselContent] Error sending request:', error)
       toast.error('Ошибка при отправке запроса')
       setStatus('error')
+
+      // Возврат монет при ошибке
+      try {
+        await supabase.rpc('add_coins', {
+          p_telegram_id: chatId,
+          p_amount: 30,
+          p_type: 'refund',
+          p_description: 'Возврат: ошибка отправки карусели',
+        })
+        toast.info('30 нейронов возвращены')
+      } catch (refundErr) {
+        console.error('[CarouselContent] Refund error:', refundErr)
+      }
     }
   }
 

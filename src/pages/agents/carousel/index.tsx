@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Component, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useCarouselStore } from '@/store/carouselStore'
-import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription } from '@/lib/supabase'
+import { getFirstUserPhoto, savePhotoToSlot, getCoinBalance, spendCoinsForGeneration, checkPremiumSubscription, supabase } from '@/lib/supabase'
 import { getCarouselStyles, getGlobalSystemPrompt, getUserPurchasedStyles, getCarouselStylesByIds } from '@/lib/carouselStylesApi'
 import { getTelegramUser } from '@/lib/telegram'
 import { trackCarouselEvent } from '@/lib/analytics'
@@ -606,15 +606,18 @@ function CarouselIndexInner() {
       console.log('[Carousel] Payload globalSystemPrompt length:', payload.globalSystemPrompt.length)
       console.log('[Carousel] Payload stylePrompt length:', payload.stylePrompt.length)
 
-      // Первый агент ВСЕГДА через n8n (carousel-engine только в /agents/carousel-ai/)
-      console.log('[Carousel] Sending to n8n (stable)')
-      const response = await fetch('https://n8n.iferma.pro/webhook/carousel-v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      // Отправляем через edge function прокси (решает CORS и Load failed на мобиле)
+      console.log('[Carousel] Sending via n8n-carousel-proxy')
+      const { data: proxyData, error: invokeError } = await supabase.functions.invoke('n8n-carousel-proxy', {
+        body: payload,
       })
 
-      if (!response.ok) throw new Error('Network error')
+      if (invokeError) {
+        throw new Error(invokeError.message || 'Ошибка отправки')
+      }
+      if (proxyData && !proxyData.success) {
+        throw new Error(proxyData.error || 'n8n не принял запрос')
+      }
 
       // Трекинг успешной генерации
       trackCarouselEvent('start', {
@@ -633,6 +636,19 @@ function CarouselIndexInner() {
       const errMsg = err instanceof Error ? err.message : String(err)
       setError('Ошибка: ' + errMsg)
       isGeneratingRef.current = false
+
+      // Возврат монет при ошибке
+      try {
+        await supabase.rpc('add_coins', {
+          p_telegram_id: user.id,
+          p_amount: 30,
+          p_type: 'refund',
+          p_description: 'Возврат: ошибка отправки карусели',
+        })
+        setError('30 нейронов возвращены')
+      } catch (refundErr) {
+        console.error('[Carousel] Refund error:', refundErr)
+      }
     } finally {
       setIsSubmitting(false)
     }
