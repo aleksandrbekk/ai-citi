@@ -108,57 +108,57 @@ export function ModuleEdit() {
     <div>
       <button
         onClick={() => navigate('/admin/mlm/modules')}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors"
+        className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors"
       >
         <ArrowLeft size={20} />
         Назад к модулям
       </button>
 
-      <h1 className="text-2xl font-bold mb-6 text-white">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900">
         {isNew ? 'Создать модуль' : 'Редактировать модуль'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="bg-zinc-800 rounded-xl p-6 mb-6">
+      <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-6 mb-6 shadow-sm">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Название</label>
+            <label className="block text-sm text-gray-500 mb-2">Название</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Описание</label>
+            <label className="block text-sm text-gray-500 mb-2">Описание</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">Порядок</label>
+              <label className="block text-sm text-gray-500 mb-2">Порядок</label>
               <input
                 type="number"
                 value={orderIndex}
                 onChange={(e) => setOrderIndex(parseInt(e.target.value) || 0)}
                 min={0}
-                className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">Минимальный тариф</label>
+              <label className="block text-sm text-gray-500 mb-2">Минимальный тариф</label>
               <select
                 value={minTariff}
                 onChange={(e) => setMinTariff(e.target.value as 'standard' | 'platinum')}
-                className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="standard">Standard</option>
                 <option value="platinum">Platinum</option>
@@ -172,9 +172,9 @@ export function ModuleEdit() {
               id="isActive"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="w-4 h-4 text-blue-500 bg-zinc-700 border-zinc-600 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-orange-500 bg-white border-gray-300 rounded focus:ring-orange-500"
             />
-            <label htmlFor="isActive" className="text-sm text-zinc-400">
+            <label htmlFor="isActive" className="text-sm text-gray-500">
               Модуль активен
             </label>
           </div>
@@ -183,14 +183,14 @@ export function ModuleEdit() {
             <button
               type="submit"
               disabled={updateModule.isPending || createModule.isPending}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
             >
               {updateModule.isPending || createModule.isPending ? 'Сохранение...' : 'Сохранить'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/admin/mlm/modules')}
-              className="px-6 py-3 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
             >
               Отмена
             </button>
@@ -201,11 +201,11 @@ export function ModuleEdit() {
       {!isNew && data && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white">Уроки модуля</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Уроки модуля</h2>
             <button
               onClick={handleAddLesson}
               disabled={createLesson.isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 hover:shadow-lg text-white rounded-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
             >
               <Plus size={20} />
               Добавить урок
@@ -216,14 +216,14 @@ export function ModuleEdit() {
             {data.lessons.map((lesson) => (
               <div
                 key={lesson.id}
-                className="bg-zinc-800 rounded-lg p-4 flex items-center justify-between"
+                className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-lg p-4 flex items-center justify-between shadow-sm"
               >
                 <div className="flex-1">
-                  <div className="font-semibold text-white">{lesson.title}</div>
+                  <div className="font-semibold text-gray-900">{lesson.title}</div>
                   {lesson.description && (
-                    <div className="text-sm text-zinc-400 mt-1">{lesson.description}</div>
+                    <div className="text-sm text-gray-500 mt-1">{lesson.description}</div>
                   )}
-                  <div className="text-xs text-zinc-500 mt-2">
+                  <div className="text-xs text-gray-400 mt-2">
                     Порядок: {lesson.order_index} {lesson.has_homework && '• Домашнее задание'}
                   </div>
                 </div>
@@ -231,7 +231,7 @@ export function ModuleEdit() {
                   <button
                     onClick={() => handleDuplicateLesson(lesson.id)}
                     disabled={duplicateLesson.isPending}
-                    className="p-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 rounded-lg transition-colors disabled:opacity-50"
                     title="Копировать урок"
                   >
                     <Copy size={18} />
@@ -239,14 +239,14 @@ export function ModuleEdit() {
                   <button
                     onClick={() => handleDeleteLesson(lesson.id, lesson.title)}
                     disabled={deleteLesson.isPending}
-                    className="p-2 bg-zinc-700 hover:bg-red-600 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                    className="p-2 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-lg transition-colors disabled:opacity-50"
                     title="Удалить урок"
                   >
                     <Trash2 size={18} />
                   </button>
                   <Link
                     to={`/admin/mlm/modules/${id}/lessons/${lesson.id}`}
-                    className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors inline-block"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg transition-colors inline-block"
                   >
                     Редактировать
                   </Link>
@@ -255,7 +255,7 @@ export function ModuleEdit() {
             ))}
 
             {data.lessons.length === 0 && (
-              <div className="text-center py-8 text-zinc-400">
+              <div className="text-center py-8 text-gray-400">
                 Уроки не добавлены
               </div>
             )}

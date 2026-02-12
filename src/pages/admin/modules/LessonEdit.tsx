@@ -153,7 +153,7 @@ export function LessonEdit() {
   if (isLoading && !isNew) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-zinc-400">Загрузка...</div>
+        <div className="text-gray-400">Загрузка...</div>
       </div>
     )
   }
@@ -162,34 +162,34 @@ export function LessonEdit() {
     <div>
       <button
         onClick={() => navigate(`/admin/mlm/modules/${moduleId}`)}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors"
+        className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors"
       >
         <ArrowLeft size={20} />
         Назад к модулю
       </button>
 
-      <h1 className="text-2xl font-bold mb-6 text-white">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900">
         {isNew ? 'Создать урок' : 'Редактировать урок'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="bg-zinc-800 rounded-xl p-6 mb-6">
+      <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-6 mb-6 shadow-sm">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Название</label>
+            <label className="block text-sm text-gray-500 mb-2">Название</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
 
           <div>
             {/* Кнопка развернуть */}
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm text-zinc-400">Описание</label>
-              <button 
+              <label className="text-sm text-gray-500">Описание</label>
+              <button
                 type="button"
                 onClick={() => setFullscreenEditor(true)}
                 className="text-sm text-orange-500 hover:underline"
@@ -200,42 +200,42 @@ export function LessonEdit() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full min-h-[300px] p-4 bg-zinc-800 rounded-xl text-white resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-h-[300px] p-4 bg-white border border-gray-200 rounded-xl text-gray-900 resize-y focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="Описание урока..."
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">Порядок</label>
+              <label className="block text-sm text-gray-500 mb-2">Порядок</label>
               <input
                 type="number"
                 value={orderIndex}
                 onChange={(e) => setOrderIndex(parseInt(e.target.value) || 0)}
                 min={0}
-                className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-zinc-400 mb-2">URL видео</label>
+              <label className="block text-sm text-gray-500 mb-2">URL видео</label>
               <input
                 type="url"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="https://..."
               />
             </div>
           </div>
 
           {!isNew && lessonId && (
-            <div className="border-t border-zinc-700 pt-6 mt-6">
-              <h3 className="text-lg font-medium mb-4 text-white">Дополнительные видео</h3>
-              
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <h3 className="text-lg font-medium mb-4 text-gray-900">Дополнительные видео</h3>
+
               {/* Список существующих видео */}
               {videos?.map((video: any, index: number) => (
-                <div key={video.id} className="bg-zinc-800 rounded-xl p-4 mb-4">
+                <div key={video.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
                   {/* Название видео */}
                   <input
                     type="text"
@@ -246,29 +246,29 @@ export function LessonEdit() {
                       }
                     }}
                     placeholder="Название видео (необязательно)"
-                    className="w-full mb-3 px-3 py-2 bg-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full mb-3 px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
-                  
+
                   {/* URL видео */}
                   <div className="flex gap-2">
-                    <span className="text-zinc-500 py-2">#{index + 2}</span>
+                    <span className="text-gray-400 py-2">#{index + 2}</span>
                     <input
                       type="text"
                       value={video.video_url}
                       readOnly
-                      className="flex-1 px-4 py-2 bg-zinc-800 rounded-lg text-white"
+                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900"
                     />
                     <button
                       type="button"
                       onClick={() => deleteVideo.mutate(video.id)}
-                      className="px-3 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-white"
+                      className="px-3 py-2 bg-red-500 rounded-lg hover:bg-red-600 text-white"
                     >
                       ✕
                     </button>
                   </div>
                 </div>
               ))}
-              
+
               {/* Добавить новый URL */}
               <div className="flex gap-2">
                 <input
@@ -276,22 +276,22 @@ export function LessonEdit() {
                   placeholder="URL видео (Kinescope)"
                   value={newVideoUrl}
                   onChange={(e) => setNewVideoUrl(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-zinc-800 rounded-lg text-white"
+                  className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <button
                   type="button"
                   onClick={() => {
                     if (newVideoUrl.trim()) {
-                      addVideo.mutate({ 
-                        lessonId: lessonId!, 
-                        title: '', 
-                        videoUrl: newVideoUrl, 
-                        orderIndex: (videos?.length || 0) + 1 
+                      addVideo.mutate({
+                        lessonId: lessonId!,
+                        title: '',
+                        videoUrl: newVideoUrl,
+                        orderIndex: (videos?.length || 0) + 1
                       })
                       setNewVideoUrl('')
                     }
                   }}
-                  className="px-4 py-2 bg-orange-500 rounded-lg hover:bg-orange-600 text-white"
+                  className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg hover:shadow-lg text-white transition-all duration-200 cursor-pointer"
                 >
                   + Добавить
                 </button>
@@ -305,9 +305,9 @@ export function LessonEdit() {
               id="hasHomework"
               checked={hasHomework}
               onChange={(e) => setHasHomework(e.target.checked)}
-              className="w-4 h-4 text-blue-500 bg-zinc-700 border-zinc-600 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-orange-500 bg-white border-gray-300 rounded focus:ring-orange-500"
             />
-            <label htmlFor="hasHomework" className="text-sm text-zinc-400">
+            <label htmlFor="hasHomework" className="text-sm text-gray-500">
               Есть домашнее задание
             </label>
           </div>
@@ -315,8 +315,8 @@ export function LessonEdit() {
           {hasHomework && (
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-sm text-zinc-400">Описание домашнего задания</label>
-                <button 
+                <label className="text-sm text-gray-500">Описание домашнего задания</label>
+                <button
                   type="button"
                   onClick={() => setFullscreenHomework(true)}
                   className="text-sm text-orange-500 hover:underline"
@@ -327,38 +327,38 @@ export function LessonEdit() {
               <textarea
                 value={homeworkDescription}
                 onChange={(e) => setHomeworkDescription(e.target.value)}
-                className="w-full min-h-[150px] p-4 bg-zinc-800 rounded-xl text-white resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full min-h-[150px] p-4 bg-white border border-gray-200 rounded-xl text-gray-900 resize-y focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="Опишите домашнее задание..."
               />
 
               {/* Тесты */}
               {!isNew && lessonId && (
-                <div className="border-t border-zinc-700 pt-6 mt-6">
-                  <h3 className="text-lg font-medium mb-4 text-white">📝 Тесты</h3>
-                  
+                <div className="border-t border-gray-200 pt-6 mt-6">
+                  <h3 className="text-lg font-medium mb-4 text-gray-900">Тесты</h3>
+
                   {/* Список вопросов */}
                   {quizzes?.map((quiz: any, qIndex: number) => (
-                    <div key={quiz.id} className="bg-zinc-800 rounded-lg p-4 mb-4">
+                    <div key={quiz.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <span className="text-zinc-500 text-sm">Вопрос {qIndex + 1}</span>
-                          <span className="ml-2 text-xs px-2 py-1 rounded bg-zinc-700 text-white">
+                          <span className="text-gray-400 text-sm">Вопрос {qIndex + 1}</span>
+                          <span className="ml-2 text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
                             {quiz.question_type === 'single' ? 'Один ответ' : quiz.question_type === 'multiple' ? 'Несколько ответов' : 'С картинками'}
                           </span>
                         </div>
-                        <button 
+                        <button
                           type="button"
                           onClick={() => {
                             if (confirm(`Удалить вопрос "${quiz.question}"?`)) {
                               deleteQuiz.mutate(quiz.id)
                             }
-                          }} 
+                          }}
                           className="text-red-500 hover:text-red-400"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      
+
                       <input
                         type="text"
                         defaultValue={quiz.question}
@@ -367,31 +367,31 @@ export function LessonEdit() {
                             updateQuiz.mutate({ id: quiz.id, question: e.target.value })
                           }
                         }}
-                        className="w-full bg-transparent text-white text-lg font-medium border-b border-zinc-700 focus:border-orange-500 focus:outline-none pb-1 mb-3"
+                        className="w-full bg-transparent text-gray-900 text-lg font-medium border-b border-gray-200 focus:border-orange-500 focus:outline-none pb-1 mb-3"
                         placeholder="Введите вопрос..."
                       />
-                      
+
                       {/* Варианты ответов */}
                       <div className="space-y-2 ml-4">
                         {quiz.quiz_options?.map((opt: any, _oIndex: number) => (
-                          <div key={opt.id} className="flex items-center gap-2 p-2 bg-zinc-700 rounded">
+                          <div key={opt.id} className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded">
                             <input
                               type="checkbox"
                               checked={opt.is_correct}
                               onChange={(e) => updateOption.mutate({ id: opt.id, isCorrect: e.target.checked })}
                               className="w-4 h-4"
                             />
-                            
+
                             {quiz.question_type === 'image' ? (
                               <div className="flex items-center gap-3 flex-1">
                                 {opt.image_url ? (
                                   <img src={opt.image_url} alt="" className="w-20 h-20 object-cover rounded" />
                                 ) : (
-                                  <div className="w-20 h-20 bg-zinc-600 rounded flex items-center justify-center text-zinc-400 text-xs">
+                                  <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
                                     Нет фото
                                   </div>
                                 )}
-                                <label className="cursor-pointer bg-orange-500 px-3 py-1 rounded text-sm hover:bg-orange-600 text-white">
+                                <label className="cursor-pointer bg-gradient-to-r from-orange-400 to-orange-500 px-3 py-1 rounded text-sm hover:shadow-lg text-white transition-all duration-200">
                                   Загрузить
                                   <input
                                     type="file"
@@ -403,11 +403,11 @@ export function LessonEdit() {
                                         // Генерируем безопасное имя без кириллицы
                                         const ext = file.name.split('.').pop() || 'jpg'
                                         const fileName = `quiz-images/${quiz.id}/${Date.now()}.${ext}`
-                                        
+
                                         const { error: uploadError } = await supabase.storage
                                           .from('quiz-images')
                                           .upload(fileName, file)
-                                        
+
                                         if (uploadError) {
                                           console.error('Upload error:', uploadError)
                                           toast.error('Ошибка загрузки: ' + uploadError.message)
@@ -428,28 +428,28 @@ export function LessonEdit() {
                                 defaultValue={opt.option_text || ''}
                                 placeholder="Текст ответа"
                                 onBlur={(e) => updateOption.mutate({ id: opt.id, optionText: e.target.value })}
-                                className="flex-1 bg-zinc-600 px-2 py-1 rounded text-sm text-white"
+                                className="flex-1 bg-gray-50 border border-gray-200 px-2 py-1 rounded text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                               />
                             )}
-                            
-                            <button 
+
+                            <button
                               type="button"
-                              onClick={() => deleteOption.mutate(opt.id)} 
+                              onClick={() => deleteOption.mutate(opt.id)}
                               className="text-red-500 hover:text-red-400"
                             >
                               ✕
                             </button>
                           </div>
                         ))}
-                        
+
                         {/* Добавить вариант */}
                         <button
                           type="button"
-                          onClick={() => addOption.mutate({ 
-                            quizId: quiz.id, 
-                            optionText: '', 
-                            isCorrect: false, 
-                            orderIndex: (quiz.quiz_options?.length || 0) 
+                          onClick={() => addOption.mutate({
+                            quizId: quiz.id,
+                            optionText: '',
+                            isCorrect: false,
+                            orderIndex: (quiz.quiz_options?.length || 0)
                           })}
                           className="text-orange-500 text-sm hover:underline"
                         >
@@ -458,14 +458,14 @@ export function LessonEdit() {
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Добавить вопрос */}
-                  <div className="bg-zinc-800 rounded-lg p-4">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <div className="flex gap-2 mb-3">
                       <select
                         value={newQuestionType}
                         onChange={(e) => setNewQuestionType(e.target.value)}
-                        className="bg-zinc-700 px-3 py-2 rounded text-white"
+                        className="bg-white border border-gray-200 px-3 py-2 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       >
                         <option value="single">Один ответ</option>
                         <option value="multiple">Несколько ответов</option>
@@ -478,7 +478,7 @@ export function LessonEdit() {
                         value={newQuestion}
                         onChange={(e) => setNewQuestion(e.target.value)}
                         placeholder="Текст вопроса"
-                        className="flex-1 bg-zinc-700 px-3 py-2 rounded text-white"
+                        className="flex-1 bg-white border border-gray-200 px-3 py-2 rounded text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       />
                       <button
                         type="button"
@@ -493,7 +493,7 @@ export function LessonEdit() {
                             setNewQuestion('')
                           }
                         }}
-                        className="px-4 py-2 bg-orange-500 rounded hover:bg-orange-600 text-white"
+                        className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded hover:shadow-lg text-white transition-all duration-200 cursor-pointer"
                       >
                         + Добавить
                       </button>
@@ -508,14 +508,14 @@ export function LessonEdit() {
             <button
               type="submit"
               disabled={updateLesson.isPending || createLesson.isPending}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
             >
               {updateLesson.isPending || createLesson.isPending ? 'Сохранение...' : 'Сохранить'}
             </button>
             <button
               type="button"
               onClick={() => navigate(`/admin/mlm/modules/${moduleId}`)}
-              className="px-6 py-3 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
             >
               Отмена
             </button>
@@ -526,17 +526,17 @@ export function LessonEdit() {
       {!isNew && lessonId && (
         <>
           {/* Материалы */}
-          <div className="bg-zinc-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-6 text-white">Материалы</h2>
+          <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-6 text-gray-900">Материалы</h2>
 
           {/* Список материалов */}
           {materialsLoading ? (
-            <div className="text-center py-8 text-zinc-400">Загрузка материалов...</div>
+            <div className="text-center py-8 text-gray-400">Загрузка материалов...</div>
           ) : materials && materials.length > 0 ? (
             <div className="space-y-3 mb-6">
               {materials.map((material) => (
-                <div key={material.id} className="flex items-center gap-3 p-3 bg-zinc-800 rounded-lg">
-                  <Link className="w-5 h-5 text-zinc-400 flex-shrink-0" />
+                <div key={material.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <Link className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   <input
                     type="text"
                     defaultValue={material.title || ''}
@@ -546,20 +546,20 @@ export function LessonEdit() {
                         updateMaterial.mutate({ id: material.id, title: e.target.value })
                       }
                     }}
-                    className="flex-1 bg-zinc-700 px-3 py-1 rounded text-white outline-none focus:ring-2 focus:ring-orange-500"
+                    className="flex-1 bg-white border border-gray-200 px-3 py-1 rounded text-gray-900 outline-none focus:ring-2 focus:ring-orange-500"
                   />
                   {material.url && (
                     <a href={material.url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline text-sm flex-shrink-0">
                       Открыть
                     </a>
                   )}
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       if (confirm(`Удалить материал "${material.title}"?`)) {
                         deleteMaterial.mutate(material)
                       }
-                    }} 
+                    }}
                     className="text-red-500 hover:text-red-400 flex-shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -568,29 +568,29 @@ export function LessonEdit() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-zinc-400 mb-6">
+            <div className="text-center py-8 text-gray-400 mb-6">
               Материалы не добавлены
             </div>
           )}
 
           {/* Форма добавления материала */}
-          <form onSubmit={handleAddMaterial} className="border-t border-zinc-700 pt-6">
-            <h3 className="text-lg font-semibold mb-4 text-white">Добавить материал</h3>
+          <form onSubmit={handleAddMaterial} className="border-t border-gray-200 pt-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Добавить материал</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Название</label>
+                <label className="block text-sm text-gray-500 mb-2">Название</label>
                 <input
                   type="text"
                   value={materialTitle}
                   onChange={(e) => setMaterialTitle(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="Название материала"
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Тип</label>
+                <label className="block text-sm text-gray-500 mb-2">Тип</label>
                 <select
                   value={materialType}
                   onChange={(e) => {
@@ -598,7 +598,7 @@ export function LessonEdit() {
                     setMaterialUrl('')
                     setMaterialFile(null)
                   }}
-                  className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   <option value="link">Ссылка</option>
                   <option value="file">Файл</option>
@@ -607,27 +607,27 @@ export function LessonEdit() {
 
               {materialType === 'link' ? (
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-2">URL</label>
+                  <label className="block text-sm text-gray-500 mb-2">URL</label>
                   <input
                     type="url"
                     value={materialUrl}
                     onChange={(e) => setMaterialUrl(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="https://..."
                   />
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-2">Файл</label>
+                  <label className="block text-sm text-gray-500 mb-2">Файл</label>
                   <input
                     type="file"
                     onChange={(e) => setMaterialFile(e.target.files?.[0] || null)}
                     required
-                    className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600"
                   />
                   {materialFile && (
-                    <div className="mt-2 text-sm text-zinc-400">
+                    <div className="mt-2 text-sm text-gray-400">
                       Выбран: {materialFile.name} ({(materialFile.size / 1024).toFixed(2)} KB)
                     </div>
                   )}
@@ -637,7 +637,7 @@ export function LessonEdit() {
               <button
                 type="submit"
                 disabled={isAddingMaterial || createMaterial.isPending}
-                className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isAddingMaterial || createMaterial.isPending ? (
                   <>
@@ -656,13 +656,13 @@ export function LessonEdit() {
 
       {/* Модалка полноэкранного редактора описания */}
       {fullscreenEditor && (
-        <div className="fixed inset-0 z-50 bg-zinc-900 p-4 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-white p-4 flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-white">Описание урока</h2>
-            <button 
+            <h2 className="text-xl font-bold text-gray-900">Описание урока</h2>
+            <button
               type="button"
               onClick={() => setFullscreenEditor(false)}
-              className="px-4 py-2 bg-orange-500 rounded-lg hover:bg-orange-600 text-white"
+              className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg hover:shadow-lg text-white transition-all duration-200 cursor-pointer"
             >
               Готово
             </button>
@@ -670,7 +670,7 @@ export function LessonEdit() {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="flex-1 w-full p-4 bg-zinc-800 rounded-xl text-white text-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"
             placeholder="Описание урока..."
             autoFocus
           />
@@ -679,13 +679,13 @@ export function LessonEdit() {
 
       {/* Модалка полноэкранного редактора для домашки */}
       {fullscreenHomework && (
-        <div className="fixed inset-0 z-50 bg-zinc-900 p-4 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-white p-4 flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-white">Домашнее задание</h2>
-            <button 
+            <h2 className="text-xl font-bold text-gray-900">Домашнее задание</h2>
+            <button
               type="button"
               onClick={() => setFullscreenHomework(false)}
-              className="px-4 py-2 bg-orange-500 rounded-lg hover:bg-orange-600 text-white"
+              className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg hover:shadow-lg text-white transition-all duration-200 cursor-pointer"
             >
               Готово
             </button>
@@ -693,7 +693,7 @@ export function LessonEdit() {
           <textarea
             value={homeworkDescription}
             onChange={(e) => setHomeworkDescription(e.target.value)}
-            className="flex-1 w-full p-4 bg-zinc-800 rounded-xl text-white text-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"
             placeholder="Опишите домашнее задание..."
             autoFocus
           />
