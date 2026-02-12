@@ -190,17 +190,17 @@ export default function PublicQuiz() {
     return !(selectedOptions[qId]?.length > 0)
   }
 
-  // Promo badge — on all pages, inline (not fixed)
+  // Promo badge — Marquiz-style, inline
   const promoBadge = (
-    <div className="w-full flex justify-start px-4 py-3">
+    <div className="w-full text-center py-3">
       <a
         href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-100/40 hover:bg-white/80 transition-all group cursor-pointer"
+        className="inline-flex items-center gap-1 text-gray-400 hover:text-gray-500 transition-colors"
       >
-        <span className="text-xs text-gray-400">Создай свой квиз в</span>
-        <span className="text-xs font-bold text-orange-500 group-hover:text-orange-600">AI CITI</span>
+        <span className="text-xs">Создай свой</span>
+        <span className="text-sm font-bold text-gray-600 hover:text-orange-500 transition-colors">AI CITI</span>
       </a>
     </div>
   )
@@ -264,15 +264,29 @@ export default function PublicQuiz() {
       </div>
     ) : null
 
+    const startBadge = (
+      <a
+        href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-gray-400 hover:text-gray-500 transition-colors"
+      >
+        <span className="text-xs">Создай свой</span>
+        <span className="text-sm font-bold text-gray-600 hover:text-orange-500 transition-colors">AI CITI</span>
+      </a>
+    )
+
     const textEl = (
-      <div className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
-        <div className="w-full">
+      <div className={`flex-1 flex flex-col justify-between px-6 sm:px-12 py-8`}>
+        <div />
+        <div className={`w-full ${quiz.cover_image_url ? '' : 'text-center'}`}>
           <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-4xl' : 'text-3xl sm:text-4xl'}`}>{displayTitle}</h1>
           {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed text-base sm:text-lg">{quiz.description}</p>}
           <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
             {quiz.cta_text || 'Начать'}
           </button>
         </div>
+        <div className="w-full text-right mt-4">{startBadge}</div>
       </div>
     )
 
@@ -285,7 +299,6 @@ export default function PublicQuiz() {
           {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
         </div>
         {footerEl}
-        {promoBadge}
       </div>
     )
   }
