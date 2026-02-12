@@ -504,6 +504,7 @@ function PreviewContent({
 
   if (activeTab === 'questions') {
     const q = questions[0]
+    const hasTileImages = q?.options?.some((o) => o.option_image_url)
     return (
       <div className="bg-[#FFF8F5] flex flex-col h-full px-4 py-4">
         {questions.length > 0 && q ? (
@@ -511,11 +512,32 @@ function PreviewContent({
             <p className="text-[9px] text-gray-400 mb-2">Вопрос 1/{questions.length}</p>
             {q.question_image_url && <img src={q.question_image_url} alt="" className="w-full h-20 object-cover rounded-lg mb-2" />}
             <h3 className="text-xs font-bold text-gray-900 mb-3">{q.question_text || 'Текст вопроса'}</h3>
-            <div className="space-y-1.5">
-              {q.options.slice(0, 4).map((o, i) => (
-                <div key={i} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-700">{o.option_text || `Вариант ${i + 1}`}</div>
-              ))}
-            </div>
+            {q.question_type === 'info' ? (
+              <p className="text-[9px] text-gray-400 italic">Нажмите «Далее»</p>
+            ) : q.question_type === 'text' ? (
+              <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-400">Ваш ответ...</div>
+            ) : hasTileImages ? (
+              <div className="grid grid-cols-2 gap-1.5">
+                {q.options.slice(0, 4).map((o, i) => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    {o.option_image_url ? (
+                      <img src={o.option_image_url} alt="" className="w-full aspect-[4/3] object-cover" />
+                    ) : (
+                      <div className="w-full aspect-[4/3] bg-gray-100" />
+                    )}
+                    <div className="px-1.5 py-1">
+                      <span className="text-[8px] text-gray-700 leading-tight line-clamp-2">{o.option_text || `Вариант ${i + 1}`}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {q.options.slice(0, 4).map((o, i) => (
+                  <div key={i} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-700">{o.option_text || `Вариант ${i + 1}`}</div>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-300 text-xs">Нет вопросов</div>
