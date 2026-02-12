@@ -551,8 +551,8 @@ function PreviewContent({
     if (!isMobile && layout === 'side') {
       const isImageRight = alignment === 'image-right'
       const imageEl = image ? (
-        <div className="w-1/2 flex-shrink-0 relative">
-          <img src={image} alt="" className="w-full h-full object-cover" />
+        <div className="w-1/2 flex-shrink-0 relative overflow-hidden">
+          <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover" />
         </div>
       ) : null
       const textEl = (
