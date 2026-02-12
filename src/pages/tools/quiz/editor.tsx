@@ -440,7 +440,7 @@ export default function QuizEditor() {
 
       {/* Floating preview — persistent across tabs */}
       {previewMode !== 'hidden' && (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+        <div className="fixed top-24 right-4 z-50 flex flex-col items-end gap-2">
           {/* Close */}
           <button type="button" onClick={() => setPreviewMode('hidden')} className="w-8 h-8 flex items-center justify-center bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer" aria-label="Закрыть">
             <X className="w-4 h-4 text-white" />
