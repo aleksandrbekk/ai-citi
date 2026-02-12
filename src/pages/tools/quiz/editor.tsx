@@ -1083,11 +1083,6 @@ function ContactsTab({
     const formEl = (
       <div className="flex-1 flex flex-col justify-center px-5 py-5">
         <div className="w-full">
-          {/* Progress bar */}
-          <div className="h-1 bg-orange-100 rounded-full mb-4">
-            <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 w-[95%] rounded-full" />
-          </div>
-
           <InlineEdit value={config.title} onChange={(v) => setConfig({ ...config, title: v })} placeholder="Оставьте контакты" className="font-bold text-gray-900 text-lg mb-1" maxLength={200} />
           <InlineEdit value={config.description} onChange={(v) => setConfig({ ...config, description: v })} placeholder="И мы свяжемся с вами" className="text-xs text-gray-500 mb-4" maxLength={300} />
 
