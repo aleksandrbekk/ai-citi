@@ -512,9 +512,7 @@ function PreviewContent({
             <p className="text-[9px] text-gray-400 mb-2">Вопрос 1/{questions.length}</p>
             {q.question_image_url && <img src={q.question_image_url} alt="" className="w-full h-20 object-cover rounded-lg mb-2" />}
             <h3 className="text-xs font-bold text-gray-900 mb-3">{q.question_text || 'Текст вопроса'}</h3>
-            {q.question_type === 'info' ? (
-              <p className="text-[9px] text-gray-400 italic">Нажмите «Далее»</p>
-            ) : q.question_type === 'text' ? (
+            {q.question_type === 'text' ? (
               <div className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-400">Ваш ответ...</div>
             ) : hasTileImages ? (
               <div className="grid grid-cols-2 gap-1.5">
@@ -899,7 +897,7 @@ function QuestionsTab({
                       <GripVertical className="w-4 h-4 text-gray-400" />
                     </button>
 
-                    {modeDropdownOpen === qi && question.question_type !== 'text' && question.question_type !== 'info' && (
+                    {modeDropdownOpen === qi && question.question_type !== 'text' && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setModeDropdownOpen(null)} />
                         <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-200 py-1 min-w-[220px]">
@@ -968,26 +966,29 @@ function QuestionsTab({
                     )}
 
                     {/* Options */}
-                    {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice') && (
+                    {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice' || question.question_type === 'info') && (
                       <div className="space-y-0.5 mt-1">
                         {question.options.map((option, oi) => (
                           <div
                             key={option.id || `opt-${oi}`}
                             className="group/opt flex items-start gap-2.5 py-2 px-2 -mx-2 rounded-lg hover:bg-gray-50/60 transition-colors"
                           >
-                            <input
-                              type={question.question_type === 'single_choice' ? 'radio' : 'checkbox'}
-                              checked={option.is_correct}
-                              onChange={() => {
-                                if (question.question_type === 'single_choice') {
-                                  const newOptions = question.options.map((o, i) => ({ ...o, is_correct: i === oi }))
-                                  updateQuestion(qi, { options: newOptions })
-                                } else {
-                                  updateOption(qi, oi, { is_correct: !option.is_correct })
-                                }
-                              }}
-                              className="w-4 h-4 text-orange-500 cursor-pointer mt-0.5 flex-shrink-0"
-                            />
+                            {/* Radio/checkbox — only for single/multiple choice, not for info */}
+                            {question.question_type !== 'info' && (
+                              <input
+                                type={question.question_type === 'single_choice' ? 'radio' : 'checkbox'}
+                                checked={option.is_correct}
+                                onChange={() => {
+                                  if (question.question_type === 'single_choice') {
+                                    const newOptions = question.options.map((o, i) => ({ ...o, is_correct: i === oi }))
+                                    updateQuestion(qi, { options: newOptions })
+                                  } else {
+                                    updateOption(qi, oi, { is_correct: !option.is_correct })
+                                  }
+                                }}
+                                className="w-4 h-4 text-orange-500 cursor-pointer mt-0.5 flex-shrink-0"
+                              />
+                            )}
 
                             {/* Option image — show when mode is 'with_option_images' OR any option already has an image */}
                             {(displayMode === 'with_option_images' || question.options.some(o => o.option_image_url)) && (
@@ -1046,12 +1047,6 @@ function QuestionsTab({
                           rows={3}
                         />
                         <p className="text-xs text-gray-400 mt-1">Респондент напишет свободный ответ</p>
-                      </div>
-                    )}
-
-                    {question.question_type === 'info' && (
-                      <div className="mt-1 px-3 py-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                        <p className="text-xs text-gray-400">Информационный слайд — без ответа. Пользователь увидит текст и картинку, нажмёт «Далее».</p>
                       </div>
                     )}
 

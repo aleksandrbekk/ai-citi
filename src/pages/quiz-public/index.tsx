@@ -62,8 +62,6 @@ export default function PublicQuiz() {
     const qId = currentQuestion.id || `q-${currentQuestionIndex}`
     const selected = selectedOptions[qId] || []
 
-    if (currentQuestion.question_type === 'info') return
-
     let answerText = ''
     if (currentQuestion.question_type === 'text') {
       answerText = textAnswer
@@ -270,7 +268,7 @@ export default function PublicQuiz() {
   // ==========================================
   if (step === 'question' && currentQuestion) {
     const qId = currentQuestion.id || `q-${currentQuestionIndex}`
-    const isSingle = currentQuestion.question_type === 'single_choice'
+    const isSingle = currentQuestion.question_type === 'single_choice' || currentQuestion.question_type === 'info'
     const currentSelected = selectedOptions[qId] || []
     const tileMode = hasOptionImages(currentQuestion)
     const qHeaderText = typeof quiz.settings?.header_text === 'string' ? quiz.settings.header_text : ''
@@ -294,7 +292,7 @@ export default function PublicQuiz() {
           )}
 
           {/* Options — tile or list */}
-          {(currentQuestion.question_type === 'single_choice' || currentQuestion.question_type === 'multiple_choice') && (
+          {(currentQuestion.question_type === 'single_choice' || currentQuestion.question_type === 'multiple_choice' || currentQuestion.question_type === 'info') && (
             tileMode ? (
               <div className="grid grid-cols-2 gap-3">
                 {currentQuestion.options.map((option, oi) => {
@@ -357,8 +355,8 @@ export default function PublicQuiz() {
             <textarea value={textAnswer} onChange={(e) => setTextAnswer(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900 resize-none shadow-sm" rows={4} placeholder="Ваш ответ..." autoFocus />
           )}
 
-          {/* Info — no answer needed */}
-          {currentQuestion.question_type === 'info' && (
+          {/* Info with no options — just show hint */}
+          {currentQuestion.question_type === 'info' && currentQuestion.options.length === 0 && (
             <p className="text-sm text-gray-400 italic">Нажмите «Далее» чтобы продолжить</p>
           )}
         </div>
