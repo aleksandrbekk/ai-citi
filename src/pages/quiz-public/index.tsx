@@ -174,7 +174,14 @@ export default function PublicQuiz() {
 
   const isNextDisabled = () => {
     if (!currentQuestion) return true
-    if (currentQuestion.question_type === 'info') return false
+    if (currentQuestion.question_type === 'info') {
+      // info с вариантами — обязательно выбрать
+      if (currentQuestion.options?.length > 0) {
+        const qId = currentQuestion.id || `q-${currentQuestionIndex}`
+        return !(selectedOptions[qId]?.length > 0)
+      }
+      return false
+    }
     if (!currentQuestion.is_required) return false
     const qId = currentQuestion.id || `q-${currentQuestionIndex}`
     if (currentQuestion.question_type === 'text') {
@@ -185,7 +192,7 @@ export default function PublicQuiz() {
 
   // Promo badge — on all pages, inline (not fixed)
   const promoBadge = (
-    <div className="w-full flex justify-center py-3">
+    <div className="w-full flex justify-start px-4 py-3">
       <a
         href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
         target="_blank"
