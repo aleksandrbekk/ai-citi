@@ -192,6 +192,7 @@ export default function PublicQuiz() {
     const alignment = (s.start_alignment === 'image-left' || s.start_alignment === 'image-right') ? s.start_alignment : 'image-left'
     const hText = typeof s.header_text === 'string' ? s.header_text : ''
     const fText = typeof s.footer_text === 'string' ? s.footer_text : ''
+    const displayTitle = (typeof s.headline === 'string' && s.headline) ? s.headline : quiz.title
 
     const headerEl = hText ? <div className="px-4 py-3 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{hText}</div> : null
     const footerEl = fText ? <div className="px-4 py-3 text-xs text-gray-400 text-center border-t border-gray-100 bg-white/50 mt-auto">{fText}</div> : null
@@ -217,7 +218,7 @@ export default function PublicQuiz() {
               <img src={quiz.cover_image_url} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64" />
             )}
             <div className="max-w-2xl w-full">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{quiz.title}</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{displayTitle}</h1>
               {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed text-lg">{quiz.description}</p>}
               <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
                 {quiz.cta_text || 'Начать'}
@@ -240,7 +241,7 @@ export default function PublicQuiz() {
     const textEl = (
       <div className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-8 ${quiz.cover_image_url ? 'items-start' : 'items-center text-center'}`}>
         <div className="w-full">
-          <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-4xl' : 'text-3xl sm:text-4xl'}`}>{quiz.title}</h1>
+          <h1 className={`font-bold text-gray-900 mb-4 ${quiz.cover_image_url ? 'text-2xl sm:text-4xl' : 'text-3xl sm:text-4xl'}`}>{displayTitle}</h1>
           {quiz.description && <p className="text-gray-600 mb-8 leading-relaxed text-base sm:text-lg">{quiz.description}</p>}
           <button onClick={handleStart} className="px-8 py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-lg font-medium hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-[0.98]">
             {quiz.cta_text || 'Начать'}

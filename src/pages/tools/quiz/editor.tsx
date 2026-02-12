@@ -192,6 +192,7 @@ export default function QuizEditor() {
   const [headerText, setHeaderText] = useState('')
   const [footerText, setFooterText] = useState('')
   const [coverImageMobileUrl, setCoverImageMobileUrl] = useState<string | null>(null)
+  const [headline, setHeadline] = useState('')
 
   // Questions
   const [questions, setQuestions] = useState<QuizQuestionItem[]>([])
@@ -251,6 +252,7 @@ export default function QuizEditor() {
         if (typeof s.header_text === 'string') setHeaderText(s.header_text)
         if (typeof s.footer_text === 'string') setFooterText(s.footer_text)
         if (typeof s.cover_image_mobile_url === 'string') setCoverImageMobileUrl(s.cover_image_mobile_url)
+        if (typeof s.headline === 'string') setHeadline(s.headline)
         if (data.contact_config) {
           setContactConfig({
             ...defaultContactConfig,
@@ -300,6 +302,7 @@ export default function QuizEditor() {
         header_text: headerText,
         footer_text: footerText,
         cover_image_mobile_url: coverImageMobileUrl,
+        headline: headline,
       },
     })
 
@@ -387,7 +390,7 @@ export default function QuizEditor() {
           <button onClick={() => navigate('/tools/quiz')} className="p-2 rounded-xl hover:bg-gray-100 transition-colors" aria-label="Назад">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <span className="flex-1 text-lg font-semibold text-gray-900 truncate">{title || 'Название квиза'}</span>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 text-lg font-semibold bg-transparent border-none outline-none text-gray-900 placeholder-gray-400" placeholder="Название квиза" />
           <button onClick={() => setShowMobile(!showMobile)} className={`p-2 rounded-xl transition-colors cursor-pointer ${showMobile ? 'bg-orange-500 text-white' : 'hover:bg-gray-100 text-gray-500'}`} title="Мобильное превью">
             <Smartphone className="w-5 h-5" />
           </button>
@@ -424,7 +427,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} userRef={userRef} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
+          <StartTab title={headline} setTitle={setHeadline} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} userRef={userRef} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} />
@@ -452,7 +455,7 @@ export default function QuizEditor() {
               <div className="flex-1 overflow-hidden">
                 <PreviewContent
                   activeTab={activeTab}
-                  title={title} description={description} ctaText={ctaText}
+                  title={headline || title} description={description} ctaText={ctaText}
                   coverImageUrl={coverImageUrl} coverImageMobileUrl={coverImageMobileUrl}
                   headerText={headerText} footerText={footerText}
                   questions={questions}
