@@ -387,7 +387,7 @@ export default function QuizEditor() {
           <button onClick={() => navigate('/tools/quiz')} className="p-2 rounded-xl hover:bg-gray-100 transition-colors" aria-label="Назад">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 text-lg font-semibold bg-transparent border-none outline-none text-gray-900 placeholder-gray-400" placeholder="Название квиза" />
+          <span className="flex-1 text-lg font-semibold text-gray-900 truncate">{title || 'Название квиза'}</span>
           <button onClick={() => setShowMobile(!showMobile)} className={`p-2 rounded-xl transition-colors cursor-pointer ${showMobile ? 'bg-orange-500 text-white' : 'hover:bg-gray-100 text-gray-500'}`} title="Мобильное превью">
             <Smartphone className="w-5 h-5" />
           </button>
