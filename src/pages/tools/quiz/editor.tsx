@@ -558,6 +558,7 @@ function StartTab({
             </div>
             <div className="mt-3 w-full max-w-[200px]">
               <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
+              <p className="mt-1.5 text-[10px] text-gray-400 leading-snug">На телефоне будет показано это фото вместо основного. Рекомендуемый размер — 400x220</p>
             </div>
           </div>
         </div>
