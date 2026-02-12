@@ -61,7 +61,7 @@ function InlineEdit({
     <div className={`group/ie cursor-pointer ${className || ''}`} onClick={() => setEditing(true)}>
       <span className="inline-flex items-center gap-1">
         {value || <span className="opacity-30 italic">{placeholder}</span>}
-        <Pencil className="w-3 h-3 flex-shrink-0 opacity-0 group-hover/ie:opacity-40 transition-opacity" />
+        <Pencil className="w-3 h-3 flex-shrink-0 opacity-30 group-hover/ie:opacity-50 transition-opacity" />
       </span>
     </div>
   )
@@ -137,14 +137,14 @@ function InlineImageUpload({
 
       {/* Top-left: gear (mobile image) + delete buttons */}
       {imageUrl && (
-        <div className="absolute top-2 left-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
+        <div className="absolute top-2 left-2 flex gap-1.5">
           {onMobileImageChange && (
-            <button type="button" onClick={(e) => { e.stopPropagation(); setShowMobilePanel(!showMobilePanel) }} className="p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors cursor-pointer" title="Изображение (мобильная версия)">
-              <Settings2 className="w-3.5 h-3.5 text-white" />
+            <button type="button" onClick={(e) => { e.stopPropagation(); setShowMobilePanel(!showMobilePanel) }} className="p-2 bg-black/50 rounded-full hover:bg-black/70 transition-colors cursor-pointer" title="Фото для мобильной версии">
+              <Smartphone className="w-4 h-4 text-white" />
             </button>
           )}
-          <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="p-1.5 bg-red-500/80 rounded-full hover:bg-red-600 transition-colors cursor-pointer" title="Удалить фото">
-            <X className="w-3.5 h-3.5 text-white" />
+          <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="p-2 bg-red-500/80 rounded-full hover:bg-red-600 transition-colors cursor-pointer" title="Удалить фото">
+            <X className="w-4 h-4 text-white" />
           </button>
         </div>
       )}
