@@ -379,6 +379,9 @@ export default function QuizEditor() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 text-lg font-semibold bg-transparent border-none outline-none text-gray-900 placeholder-gray-400" placeholder="Название квиза" />
+          <button onClick={() => setShowMobile(!showMobile)} className={`p-2 rounded-xl transition-colors cursor-pointer ${showMobile ? 'bg-orange-500 text-white' : 'hover:bg-gray-100 text-gray-500'}`} title="Мобильное превью">
+            <Smartphone className="w-5 h-5" />
+          </button>
           {slug && (
             <a href={`/q/${slug}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl hover:bg-gray-100 transition-colors" title="Предпросмотр">
               <Eye className="w-5 h-5 text-gray-500" />
@@ -412,7 +415,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} showMobile={showMobile} setShowMobile={setShowMobile} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} />
@@ -570,7 +573,6 @@ function StartTab({
   footerText, setFooterText,
   coverImageMobileUrl, setCoverImageMobileUrl,
   onNavigateToQuestions,
-  showMobile, setShowMobile,
 }: {
   title: string; setTitle: (v: string) => void
   description: string; setDescription: (v: string) => void
@@ -584,7 +586,6 @@ function StartTab({
   footerText: string; setFooterText: (v: string) => void
   coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
   onNavigateToQuestions: () => void
-  showMobile: boolean; setShowMobile: (v: boolean) => void
 }) {
   const [showSettings, setShowSettings] = useState(false)
 
@@ -685,10 +686,6 @@ function StartTab({
               </div>
             </div>
           )}
-          {/* Mobile preview toggle */}
-          <button type="button" onClick={() => setShowMobile(!showMobile)} className={`ml-auto p-2 rounded-lg transition-colors cursor-pointer ${showMobile ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`} title="Мобильная версия">
-            <Smartphone className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
