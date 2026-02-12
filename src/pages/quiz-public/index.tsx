@@ -195,9 +195,21 @@ export default function PublicQuiz() {
     const headerEl = hText ? <div className="px-4 py-3 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{hText}</div> : null
     const footerEl = fText ? <div className="px-4 py-3 text-xs text-gray-400 text-center border-t border-gray-100 bg-white/50 mt-auto">{fText}</div> : null
 
+    const promoBadge = (
+      <a
+        href="https://t.me/Neirociti_bot?start=ref_06_src_quiz"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 right-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all group cursor-pointer"
+      >
+        <span className="text-xs text-gray-400">Создай свой квиз в</span>
+        <span className="text-xs font-bold text-orange-500 group-hover:text-orange-600">AI CITI</span>
+      </a>
+    )
+
     if (layout === 'center') {
       return (
-        <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
+        <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden relative">
           {headerEl}
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
             {quiz.cover_image_url && (
@@ -212,6 +224,7 @@ export default function PublicQuiz() {
             </div>
           </div>
           {footerEl}
+          {promoBadge}
         </div>
       )
     }
@@ -238,12 +251,13 @@ export default function PublicQuiz() {
     const isImageRight = alignment === 'image-right'
 
     return (
-      <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
+      <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden relative">
         {headerEl}
         <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
           {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
         </div>
         {footerEl}
+        {promoBadge}
       </div>
     )
   }
