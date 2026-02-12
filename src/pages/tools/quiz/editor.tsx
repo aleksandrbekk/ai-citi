@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Monitor, Smartphone } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Monitor, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
+import { getTelegramUser } from '@/lib/telegram'
 import { toast } from 'sonner'
 
 type TabId = 'start' | 'questions' | 'contacts' | 'results' | 'thanks'
@@ -16,6 +17,125 @@ const TABS: { id: TabId; label: string; emoji: string }[] = [
   { id: 'results', label: 'Результаты', emoji: '📊' },
   { id: 'thanks', label: 'Спасибо', emoji: '✅' },
 ]
+
+// ==========================================
+// Inline editor components
+// ==========================================
+
+function InlineEdit({
+  value, onChange, placeholder, className, multiline, maxLength,
+}: {
+  value: string; onChange: (v: string) => void; placeholder: string
+  className?: string; multiline?: boolean; maxLength?: number
+}) {
+  const [editing, setEditing] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (!editing) return
+    const el = multiline ? textareaRef.current : inputRef.current
+    if (el) { el.focus(); el.select() }
+  }, [editing, multiline])
+
+  if (editing) {
+    const shared = {
+      value,
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value),
+      onBlur: () => setEditing(false),
+      onKeyDown: (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') setEditing(false)
+        if (e.key === 'Enter' && !multiline) setEditing(false)
+      },
+      placeholder,
+      maxLength,
+      className: 'w-full bg-white border border-orange-400 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-orange-400/40 text-gray-900 text-sm',
+    }
+    return (
+      <div className={className}>
+        {multiline ? <textarea ref={textareaRef} {...shared} rows={3} /> : <input ref={inputRef} type="text" {...shared} />}
+      </div>
+    )
+  }
+
+  return (
+    <div className={`group/ie cursor-pointer ${className || ''}`} onClick={() => setEditing(true)}>
+      <span className="inline-flex items-center gap-1">
+        {value || <span className="opacity-30 italic">{placeholder}</span>}
+        <Pencil className="w-3 h-3 flex-shrink-0 opacity-0 group-hover/ie:opacity-40 transition-opacity" />
+      </span>
+    </div>
+  )
+}
+
+const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/ds8ylsl2x/image/upload'
+
+function InlineImageUpload({
+  imageUrl, onImageChange, className,
+}: {
+  imageUrl: string | null; onImageChange: (url: string | null) => void; className?: string
+}) {
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) return
+    setIsUploading(true)
+    try {
+      const telegramUser = getTelegramUser()
+      const telegramId = telegramUser?.id || 'unknown'
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', 'carousel_unsigned')
+      formData.append('folder', `quiz-images/${telegramId}`)
+      const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData })
+      if (!response.ok) throw new Error('Upload failed')
+      const data = await response.json()
+      onImageChange(data.secure_url)
+    } catch (err) {
+      console.error('Image upload error:', err)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  return (
+    <div
+      className={`relative group/img cursor-pointer ${className || ''}`}
+      onClick={() => fileInputRef.current?.click()}
+      onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleUpload(f) }}
+      onDragOver={(e) => e.preventDefault()}
+    >
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f) }} />
+      {imageUrl ? (
+        <>
+          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
+            {isUploading ? (
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
+            ) : (
+              <Camera className="w-8 h-8 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
+            )}
+          </div>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors opacity-0 group-hover/img:opacity-100">
+            <X className="w-3.5 h-3.5 text-white" />
+          </button>
+        </>
+      ) : (
+        <div className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-orange-300 hover:bg-orange-50/30 transition-colors">
+          {isUploading ? (
+            <Loader2 className="w-6 h-6 text-orange-400 animate-spin" />
+          ) : (
+            <>
+              <ImagePlus className="w-6 h-6 text-gray-300" />
+              <span className="text-xs text-gray-400">Добавить фото</span>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function QuizEditor() {
   const { id } = useParams<{ id: string }>()
@@ -271,7 +391,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
@@ -304,6 +424,7 @@ function StartTab({
   headerText, setHeaderText,
   footerText, setFooterText,
   coverImageMobileUrl, setCoverImageMobileUrl,
+  onNavigateToQuestions,
 }: {
   title: string; setTitle: (v: string) => void
   description: string; setDescription: (v: string) => void
@@ -316,68 +437,80 @@ function StartTab({
   headerText: string; setHeaderText: (v: string) => void
   footerText: string; setFooterText: (v: string) => void
   coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
+  onNavigateToQuestions: () => void
 }) {
   const [mobileView, setMobileView] = useState<'phone' | 'browser'>('phone')
+  const [showSettings, setShowSettings] = useState(false)
 
-  // Desktop preview renderer
+  // Desktop preview with inline editing
   const renderDesktopPreview = () => {
-    const titleEl = <h2 className={`font-bold text-gray-900 mb-2 ${startLayout === 'center' ? 'text-xl' : 'text-lg'}`}>{title || 'Заголовок квиза'}</h2>
-    const descEl = description ? <p className={`text-gray-600 mb-4 leading-relaxed ${startLayout === 'center' ? 'text-sm max-w-sm' : 'text-xs'}`}>{description}</p> : null
-    const btnEl = <span className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl text-sm font-medium">{ctaText || 'Начать'}</span>
-    const headerEl = headerText ? <div className="px-4 py-2 text-xs text-gray-400 text-center border-b border-gray-100">{headerText}</div> : null
-    const footerEl = footerText ? <div className="px-4 py-2 text-[10px] text-gray-300 text-center border-t border-gray-100">{footerText}</div> : null
+    const headerEl = (
+      <div className="px-4 py-2 text-center border-b border-gray-100">
+        <InlineEdit value={headerText} onChange={setHeaderText} placeholder="Текст сверху (необязательно)" className="text-xs text-gray-400" maxLength={100} />
+      </div>
+    )
+    const footerEl = (
+      <div className="px-4 py-2 text-center border-t border-gray-100 mt-auto">
+        <InlineEdit value={footerText} onChange={setFooterText} placeholder="Текст снизу (необязательно)" className="text-[10px] text-gray-300" maxLength={150} />
+      </div>
+    )
 
     if (startLayout === 'center') {
       return (
-        <>
+        <div className="flex flex-col min-h-[300px]">
           {headerEl}
-          <div className="flex flex-col items-center justify-center py-8 px-6 text-center min-h-[220px]">
-            {coverImageUrl && <img src={coverImageUrl} alt="" className="w-full max-w-xs rounded-xl mb-4 object-cover max-h-40" />}
-            {titleEl}
-            {descEl}
-            {btnEl}
+          <div className="flex-1 flex flex-col items-center justify-center py-8 px-6 text-center">
+            <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full max-w-xs rounded-xl mb-4 overflow-hidden" />
+            <InlineEdit value={title} onChange={setTitle} placeholder="Заголовок квиза" className="font-bold text-gray-900 text-xl mb-2" maxLength={200} />
+            <InlineEdit value={description} onChange={setDescription} placeholder="Описание квиза" className="text-sm text-gray-600 max-w-sm leading-relaxed mb-4" multiline maxLength={500} />
+            <div className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl">
+              <InlineEdit value={ctaText} onChange={setCtaText} placeholder="Начать" className="text-white text-sm font-medium" maxLength={50} />
+            </div>
           </div>
           {footerEl}
-        </>
+        </div>
       )
     }
 
-    const imageEl = coverImageUrl ? (
-      <div className="w-1/2 h-auto relative flex-shrink-0">
-        <img src={coverImageUrl} alt="" className="w-full h-full object-cover" />
+    // Side layout
+    const isImageRight = startAlignment === 'image-right'
+
+    const imageEl = (
+      <div className="w-1/2 flex-shrink-0 min-h-[240px]">
+        <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full h-full" />
       </div>
-    ) : null
+    )
 
     const textEl = (
       <div className={`flex-1 flex flex-col justify-center px-5 py-5 ${!coverImageUrl ? 'items-center text-center' : ''}`}>
-        {titleEl}
-        {descEl}
-        <div>{btnEl}</div>
+        <InlineEdit value={title} onChange={setTitle} placeholder="Заголовок квиза" className="font-bold text-gray-900 text-lg mb-2" maxLength={200} />
+        <InlineEdit value={description} onChange={setDescription} placeholder="Описание квиза" className="text-xs text-gray-600 leading-relaxed mb-4" multiline maxLength={500} />
+        <div>
+          <div className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl">
+            <InlineEdit value={ctaText} onChange={setCtaText} placeholder="Начать" className="text-white text-sm font-medium" maxLength={50} />
+          </div>
+        </div>
       </div>
     )
 
-    const isImageRight = startAlignment === 'image-right'
-
     return (
-      <>
+      <div className="flex flex-col min-h-[300px]">
         {headerEl}
-        <div className="flex flex-row min-h-[240px]">
+        <div className="flex-1 flex flex-row">
           {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
         </div>
         {footerEl}
-      </>
+      </div>
     )
   }
 
-  // Mobile preview renderer
+  // Mobile preview (read-only, synced with desktop edits)
   const renderMobilePreview = () => {
     const mobileImage = coverImageMobileUrl || coverImageUrl
     return (
       <div className="bg-[#FFF8F5] flex flex-col h-full">
         {headerText && <div className="px-3 py-1.5 text-[8px] text-gray-400 text-center border-b border-gray-100">{headerText}</div>}
-        {mobileImage && (
-          <img src={mobileImage} alt="" className="w-full object-cover max-h-[140px]" />
-        )}
+        {mobileImage && <img src={mobileImage} alt="" className="w-full object-cover max-h-[140px]" />}
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 text-center">
           <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title || 'Заголовок'}</h3>
           {description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{description}</p>}
@@ -391,15 +524,15 @@ function StartTab({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Preview area — desktop + phone mockup side by side */}
+    <div className="space-y-4">
+      {/* Preview = Editor */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Header with toggle */}
         <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Превью</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Редактор</span>
           </div>
-          {/* Mobile-only toggle: phone / browser */}
           <div className="flex md:hidden bg-white border border-gray-200 rounded-lg overflow-hidden">
             <button type="button" onClick={() => setMobileView('phone')} className={`p-1.5 transition-colors cursor-pointer ${mobileView === 'phone' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`} title="Телефон">
               <Smartphone className="w-4 h-4" />
@@ -410,124 +543,82 @@ function StartTab({
           </div>
         </div>
 
+        {/* Main area: desktop + mobile */}
         <div className="flex flex-col md:flex-row">
-          {/* Desktop preview — always on md+, toggle on mobile */}
           <div className={`flex-1 bg-[#FFF8F5] min-w-0 ${mobileView === 'browser' ? 'block' : 'hidden md:block'}`}>
             {renderDesktopPreview()}
           </div>
-
-          {/* Mobile phone mockup — always on md+, toggle on mobile */}
           <div className={`flex-col items-center px-4 py-5 md:px-6 md:border-l border-gray-200 bg-gray-50/80 ${mobileView === 'phone' ? 'flex' : 'hidden md:flex'}`}>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-3">Мобильная версия</p>
             <div className="w-[200px] h-[380px] bg-gray-900 rounded-[32px] p-2 shadow-xl flex-shrink-0">
               <div className="w-full h-full bg-white rounded-[26px] overflow-hidden flex flex-col">
-                {/* Notch */}
-                <div className="flex justify-center pt-1.5 pb-1">
-                  <div className="w-14 h-1.5 bg-gray-200 rounded-full" />
-                </div>
-                {/* Content */}
-                <div className="flex-1 overflow-hidden">
-                  {renderMobilePreview()}
-                </div>
+                <div className="flex justify-center pt-1.5 pb-1"><div className="w-14 h-1.5 bg-gray-200 rounded-full" /></div>
+                <div className="flex-1 overflow-hidden">{renderMobilePreview()}</div>
               </div>
             </div>
-            {/* Mobile image upload */}
             <div className="mt-3 w-full max-w-[200px]">
-              <QuizImageUpload
-                imageUrl={coverImageMobileUrl}
-                onImageChange={setCoverImageMobileUrl}
-                label="Фото для телефона"
-                compact
-                aspectRatio="auto"
-              />
+              <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
             </div>
           </div>
         </div>
 
-        {/* Layout controls */}
+        {/* Bottom toolbar */}
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500 font-medium">Дизайн</span>
             <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <button type="button" onClick={() => setStartLayout('side')} className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'side' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-                Сбоку
-              </button>
-              <button type="button" onClick={() => setStartLayout('center')} className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'center' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-                По центру
-              </button>
+              <button type="button" onClick={() => setStartLayout('side')} className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'side' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>Сбоку</button>
+              <button type="button" onClick={() => setStartLayout('center')} className={`px-3 py-1.5 text-xs transition-colors cursor-pointer ${startLayout === 'center' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>По центру</button>
             </div>
           </div>
           {startLayout === 'side' && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 font-medium">Выравнивание</span>
               <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <button type="button" onClick={() => setStartAlignment('image-left')} className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-left' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`} title="Фото слева">
-                  <PanelLeft className="w-4 h-4" />
-                </button>
-                <button type="button" onClick={() => setStartAlignment('image-right')} className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-right' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`} title="Фото справа">
-                  <PanelRight className="w-4 h-4" />
-                </button>
+                <button type="button" onClick={() => setStartAlignment('image-left')} className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-left' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`} title="Фото слева"><PanelLeft className="w-4 h-4" /></button>
+                <button type="button" onClick={() => setStartAlignment('image-right')} className={`p-1.5 transition-colors cursor-pointer ${startAlignment === 'image-right' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`} title="Фото справа"><PanelRight className="w-4 h-4" /></button>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Settings */}
-      <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-5 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4">Настройки стартовой страницы</h3>
-
-        <div className="space-y-4">
-          <QuizImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} label="Обложка" aspectRatio="16:9" />
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Текст сверху (необязательно)</label>
-            <input type="text" value={headerText} onChange={(e) => setHeaderText(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="Например: Готовый план по новой системе" maxLength={100} />
+      {/* Publication settings (collapsible) */}
+      <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+        <button type="button" onClick={() => setShowSettings(!showSettings)} className="w-full px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 transition-colors">
+          <div className="flex items-center gap-2">
+            <Settings2 className="w-4 h-4 text-gray-500" />
+            <span className="font-semibold text-gray-900 text-sm">Настройки публикации</span>
           </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Заголовок</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="Заголовок квиза" maxLength={200} />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Описание</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 resize-none" rows={3} placeholder="Описание квиза" maxLength={500} />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Текст кнопки</label>
-            <input type="text" value={ctaText} onChange={(e) => setCtaText(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="Начать" maxLength={50} />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Текст снизу (необязательно)</label>
-            <input type="text" value={footerText} onChange={(e) => setFooterText(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900" placeholder="ИП Иванов И.И. ИНН 123456789" maxLength={150} />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-5 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4">Публикация</h3>
-
-        {slug && (
-          <div className="mb-4">
-            <label className="block text-sm text-gray-600 mb-1">Ссылка на квиз</label>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">/q/</span>
-              <input type="text" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder="my-quiz" />
+          <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showSettings ? 'rotate-90' : ''}`} />
+        </button>
+        {showSettings && (
+          <div className="px-5 pb-5 space-y-4 border-t border-gray-100">
+            {slug && (
+              <div className="pt-4">
+                <label className="block text-sm text-gray-600 mb-1">Ссылка на квиз</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400">/q/</span>
+                  <input type="text" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder="my-quiz" />
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-sm text-gray-900">Опубликовать квиз</p>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="sr-only peer" />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
+              </label>
             </div>
           </div>
         )}
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-900">Опубликовать квиз</p>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} className="sr-only peer" />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
-          </label>
-        </div>
       </div>
+
+      {/* Navigate to questions */}
+      <button type="button" onClick={onNavigateToQuestions} className="w-full py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl font-medium hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2">
+        Настроить вопросы
+        <ChevronRight className="w-4 h-4" />
+      </button>
     </div>
   )
 }
