@@ -479,7 +479,7 @@ export default function PublicQuiz() {
 
     if (!contactImage) {
       return (
-        <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
+        <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
           {formEl}
           {promoBadge}
         </div>
@@ -487,7 +487,7 @@ export default function PublicQuiz() {
     }
 
     return (
-      <div className="h-screen bg-[#FFF8F5] flex flex-col sm:flex-row overflow-hidden">
+      <div className="min-h-screen bg-[#FFF8F5] flex flex-col sm:flex-row">
         <div className="w-full sm:w-1/2 h-56 sm:h-auto relative flex-shrink-0">
           <img src={contactImage} alt="" className="w-full h-full object-cover" />
         </div>
