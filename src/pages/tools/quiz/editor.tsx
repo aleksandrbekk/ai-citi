@@ -991,10 +991,14 @@ function QuestionsTab({
                     )}
 
                     {question.question_type === 'text' && (
-                      <div className="mt-1 px-2">
-                        <div className="py-3 border-b border-dashed border-gray-200 text-sm text-gray-400 italic">
-                          Пользователь введёт свободный ответ
-                        </div>
+                      <div className="mt-1">
+                        <textarea
+                          disabled
+                          placeholder="Пользователь введёт свой ответ здесь..."
+                          className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-400 resize-none cursor-not-allowed"
+                          rows={3}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Респондент напишет свободный ответ</p>
                       </div>
                     )}
 

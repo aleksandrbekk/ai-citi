@@ -62,14 +62,36 @@ export function QuizImageUpload({
 
   if (imageUrl) {
     return (
-      <div className={`relative rounded-xl overflow-hidden bg-gray-50 ${aspectClass}`}>
-        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+      <div className={`relative rounded-xl overflow-hidden bg-gray-50 group/qimg ${aspectClass}`}>
+        <img
+          src={imageUrl}
+          alt=""
+          className="w-full h-full object-cover cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleUpload(file)
+            if (e.target) e.target.value = ''
+          }}
+        />
+        {isUploading && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-white animate-spin" />
+          </div>
+        )}
         <button
           onClick={() => onImageChange(null)}
-          className="absolute top-1.5 right-1.5 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+          className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full hover:bg-red-500 transition-colors flex items-center justify-center cursor-pointer"
           type="button"
+          aria-label="Удалить фото"
         >
-          <X className="w-3.5 h-3.5 text-white" />
+          <X className="w-4 h-4 text-white" />
         </button>
       </div>
     )
@@ -103,12 +125,12 @@ export function QuizImageUpload({
           }}
         />
         {isUploading ? (
-          <Loader2 className="w-5 h-5 text-orange-400 animate-spin" />
+          <Loader2 className="w-6 h-6 text-orange-400 animate-spin" />
         ) : (
           <>
-            <Upload className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} text-gray-400`} />
-            <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-gray-400`}>
-              {compact ? 'Фото' : 'Загрузить фото'}
+            <Upload className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-gray-400`} />
+            <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-400`}>
+              {compact ? 'Загрузить фото' : 'Загрузить или перетащить фото'}
             </span>
           </>
         )}
