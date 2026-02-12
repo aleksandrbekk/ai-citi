@@ -190,17 +190,17 @@ export default function PublicQuiz() {
     return !(selectedOptions[qId]?.length > 0)
   }
 
-  // Promo badge — Marquiz-style, inline
+  // Promo badge — Marquiz-style, inline, transparent, orange
   const promoBadge = (
-    <div className="w-full text-center py-3">
+    <div className="w-full text-center py-2">
       <a
         href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-gray-400 hover:text-gray-500 transition-colors"
+        className="inline-flex items-center gap-1 opacity-40 hover:opacity-70 transition-opacity"
       >
-        <span className="text-xs">Создай свой</span>
-        <span className="text-sm font-bold text-gray-600 hover:text-orange-500 transition-colors">AI CITI</span>
+        <span className="text-[11px] text-orange-400">Создай свой</span>
+        <span className="text-xs font-bold text-orange-500">AI CITI</span>
       </a>
     </div>
   )
@@ -269,10 +269,10 @@ export default function PublicQuiz() {
         href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-gray-400 hover:text-gray-500 transition-colors"
+        className="inline-flex items-center gap-1 opacity-40 hover:opacity-70 transition-opacity"
       >
-        <span className="text-xs">Создай свой</span>
-        <span className="text-sm font-bold text-gray-600 hover:text-orange-500 transition-colors">AI CITI</span>
+        <span className="text-[11px] text-orange-400">Создай свой</span>
+        <span className="text-xs font-bold text-orange-500">AI CITI</span>
       </a>
     )
 
@@ -401,8 +401,11 @@ export default function PublicQuiz() {
           )}
         </div>
 
+        {/* Badge between options and nav */}
+        {promoBadge}
+
         {/* Bottom nav */}
-        <div className="px-4 pb-2 max-w-2xl mx-auto w-full flex items-center justify-end gap-3">
+        <div className="px-4 pb-3 max-w-2xl mx-auto w-full flex items-center justify-end gap-3">
           <button onClick={handleBack} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-300 transition-colors cursor-pointer" aria-label="Назад">
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -411,7 +414,6 @@ export default function PublicQuiz() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
         </div>
-        {promoBadge}
       </div>
     )
   }
@@ -502,7 +504,6 @@ export default function PublicQuiz() {
     const rc = quiz.result_config
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center px-6 py-8 text-center">
-        {promoBadge}
         <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-8 shadow-sm max-w-md w-full">
           {rc?.image_url && <img src={rc.image_url} alt="" className="w-full rounded-2xl mb-6 object-cover max-h-56" />}
           <h1 className="text-2xl font-bold text-gray-900 mb-3">{rc?.title || 'Результат'}</h1>
@@ -511,6 +512,7 @@ export default function PublicQuiz() {
             Далее
           </button>
         </div>
+        {promoBadge}
       </div>
     )
   }
@@ -523,7 +525,6 @@ export default function PublicQuiz() {
     const ctaUrl = tc?.cta_url ? (tc.cta_url.startsWith('http') ? tc.cta_url : `https://${tc.cta_url}`) : null
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center px-6 py-8 text-center">
-        {promoBadge}
         <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-8 shadow-sm max-w-md w-full">
           {tc?.image_url && <img src={tc.image_url} alt="" className="w-full rounded-2xl mb-6 object-cover max-h-56" />}
           <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg shadow-orange-500/20">
@@ -539,6 +540,7 @@ export default function PublicQuiz() {
             </a>
           )}
         </div>
+        {promoBadge}
       </div>
     )
   }
