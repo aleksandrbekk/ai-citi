@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight, GripVertical } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { getTelegramUser } from '@/lib/telegram'
@@ -363,15 +363,6 @@ export default function QuizEditor() {
     })
   }
 
-  const moveOption = (questionIndex: number, optionIndex: number, direction: 'up' | 'down') => {
-    const q = questions[questionIndex]
-    const newOptions = [...q.options]
-    const swapIndex = direction === 'up' ? optionIndex - 1 : optionIndex + 1
-    if (swapIndex < 0 || swapIndex >= newOptions.length) return
-    ;[newOptions[optionIndex], newOptions[swapIndex]] = [newOptions[swapIndex], newOptions[optionIndex]]
-    updateQuestion(questionIndex, { options: newOptions.map((o, i) => ({ ...o, order_index: i })) })
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex items-center justify-center">
@@ -425,7 +416,7 @@ export default function QuizEditor() {
           <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} showMobile={showMobile} setShowMobile={setShowMobile} />
         )}
         {activeTab === 'questions' && (
-          <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
+          <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} />
         )}
         {activeTab === 'contacts' && (
           <ContactsTab config={contactConfig} setConfig={setContactConfig} />
@@ -744,7 +735,7 @@ function StartTab({
 
 function QuestionsTab({
   questions, addQuestion, removeQuestion, moveQuestion,
-  updateQuestion, addOption, removeOption, updateOption, moveOption,
+  updateQuestion, addOption, removeOption, updateOption,
 }: {
   questions: QuizQuestionItem[]
   addQuestion: () => void
@@ -754,10 +745,19 @@ function QuestionsTab({
   addOption: (qi: number) => void
   removeOption: (qi: number, oi: number) => void
   updateOption: (qi: number, oi: number, u: Partial<QuizOptionItem>) => void
-  moveOption: (qi: number, oi: number, d: 'up' | 'down') => void
 }) {
+  const [collapsedSet, setCollapsedSet] = useState<Set<number>>(new Set())
+  const [photoVisibleSet, setPhotoVisibleSet] = useState<Set<number>>(new Set())
+
+  const toggleCollapse = (qi: number) => {
+    setCollapsedSet(prev => { const n = new Set(prev); n.has(qi) ? n.delete(qi) : n.add(qi); return n })
+  }
+  const togglePhoto = (qi: number) => {
+    setPhotoVisibleSet(prev => { const n = new Set(prev); n.has(qi) ? n.delete(qi) : n.add(qi); return n })
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {questions.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-400 mb-4">Нет вопросов</p>
@@ -768,41 +768,58 @@ function QuestionsTab({
         </div>
       ) : (
         <>
-          {questions.map((question, qi) => (
-            <div key={question.id || `new-${qi}`} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-4 shadow-sm">
-              <div className="flex items-start gap-2 mb-3">
-                <div className="flex flex-col gap-0.5 pt-1">
-                  <button onClick={() => moveQuestion(qi, 'up')} disabled={qi === 0} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
-                    <ChevronUp className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => moveQuestion(qi, 'down')} disabled={qi === questions.length - 1} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
+          {questions.map((question, qi) => {
+            const isCollapsed = collapsedSet.has(qi)
+            const showPhoto = photoVisibleSet.has(qi) || !!question.question_image_url
+
+            return (
+              <div key={question.id || `new-${qi}`} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
+                {/* Header row */}
+                <div
+                  className="flex items-center gap-2.5 px-4 py-3 cursor-pointer select-none"
+                  onClick={() => toggleCollapse(qi)}
+                >
+                  <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
+
+                  <span className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                    {qi + 1}
+                  </span>
+
+                  <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                    <InlineEdit
+                      value={question.question_text}
+                      onChange={(v) => updateQuestion(qi, { question_text: v })}
+                      placeholder="Текст вопроса..."
+                      className="font-semibold text-gray-900"
+                    />
+                  </div>
+
+                  <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`} />
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-400 font-medium">#{qi + 1}</span>
-                    <select value={question.question_type} onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })} className="text-xs px-2 py-1 bg-gray-100 border border-gray-200 rounded-lg text-gray-600">
-                      <option value="single_choice">Один ответ</option>
-                      <option value="multiple_choice">Несколько ответов</option>
-                      <option value="text">Текст</option>
-                    </select>
-                  </div>
+                {/* Collapsible body */}
+                {!isCollapsed && (
+                  <div className="px-4 pb-4">
+                    {/* Question image (shown when exists or toggled) */}
+                    {showPhoto && (
+                      <div className="mb-3">
+                        <QuizImageUpload
+                          imageUrl={question.question_image_url}
+                          onImageChange={(url: string | null) => updateQuestion(qi, { question_image_url: url })}
+                          compact
+                          aspectRatio="16:9"
+                        />
+                      </div>
+                    )}
 
-                  <input type="text" value={question.question_text} onChange={(e) => updateQuestion(qi, { question_text: e.target.value })} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder="Текст вопроса" />
-
-                  {/* Question image */}
-                  <div className="mt-2">
-                    <QuizImageUpload imageUrl={question.question_image_url} onImageChange={(url: string | null) => updateQuestion(qi, { question_image_url: url })} compact aspectRatio="16:9" />
-                  </div>
-
-                  {/* Options */}
-                  {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice') && (
-                    <div className="mt-3 space-y-3">
-                      {question.options.map((option, oi) => (
-                        <div key={option.id || `opt-${oi}`} className="border border-gray-200 rounded-xl p-3 bg-white/50">
-                          <div className="flex items-start gap-2">
+                    {/* Options — clean rows without cards */}
+                    {(question.question_type === 'single_choice' || question.question_type === 'multiple_choice') && (
+                      <div className="space-y-0.5 mt-1">
+                        {question.options.map((option, oi) => (
+                          <div
+                            key={option.id || `opt-${oi}`}
+                            className="group/opt flex items-start gap-2.5 py-2 px-2 -mx-2 rounded-lg hover:bg-gray-50/60 transition-colors"
+                          >
                             <input
                               type={question.question_type === 'single_choice' ? 'radio' : 'checkbox'}
                               checked={option.is_correct}
@@ -814,45 +831,105 @@ function QuestionsTab({
                                   updateOption(qi, oi, { is_correct: !option.is_correct })
                                 }
                               }}
-                              className="w-4 h-4 text-orange-500 cursor-pointer mt-2"
+                              className="w-4 h-4 text-orange-500 cursor-pointer mt-0.5 flex-shrink-0"
                             />
-                            <div className="flex-1 space-y-1.5">
-                              <input type="text" value={option.option_text} onChange={(e) => updateOption(qi, oi, { option_text: e.target.value })} className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm font-medium" placeholder={`Вариант ${oi + 1}`} />
-                              <input type="text" value={option.option_description || ''} onChange={(e) => updateOption(qi, oi, { option_description: e.target.value || null })} className="w-full px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-500 text-xs" placeholder="Описание (необязательно)" />
-                              {/* Option image */}
-                              <QuizImageUpload imageUrl={option.option_image_url} onImageChange={(url: string | null) => updateOption(qi, oi, { option_image_url: url })} compact aspectRatio="4:3" />
+
+                            {option.option_image_url && (
+                              <img src={option.option_image_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                            )}
+
+                            <div className="flex-1 min-w-0">
+                              <input
+                                type="text"
+                                value={option.option_text}
+                                onChange={(e) => updateOption(qi, oi, { option_text: e.target.value })}
+                                className="w-full bg-transparent border-none outline-none text-sm text-gray-900 font-medium placeholder:text-gray-300"
+                                placeholder={`Вариант ${oi + 1}`}
+                              />
+                              <input
+                                type="text"
+                                value={option.option_description || ''}
+                                onChange={(e) => updateOption(qi, oi, { option_description: e.target.value || null })}
+                                className="w-full bg-transparent border-none outline-none text-xs text-gray-400 mt-0.5 placeholder:text-gray-300"
+                                placeholder="Описание"
+                              />
                             </div>
-                            <div className="flex flex-col gap-0.5">
-                              <button onClick={() => moveOption(qi, oi, 'up')} disabled={oi === 0} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button onClick={() => moveOption(qi, oi, 'down')} disabled={oi === question.options.length - 1} className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30">
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+
                             {question.options.length > 1 && (
-                              <button onClick={() => removeOption(qi, oi)} className="p-1 text-red-400 hover:text-red-500 mt-1">
-                                <Trash2 className="w-3.5 h-3.5" />
+                              <button
+                                onClick={() => removeOption(qi, oi)}
+                                className="p-0.5 text-gray-300 hover:text-red-400 opacity-0 group-hover/opt:opacity-100 transition-opacity cursor-pointer flex-shrink-0 mt-0.5"
+                                aria-label="Удалить вариант"
+                              >
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
-                        </div>
-                      ))}
-                      {question.options.length < 6 && (
-                        <button onClick={() => addOption(qi)} className="text-xs text-orange-500 hover:text-orange-600 py-1 cursor-pointer">
-                          + Добавить вариант
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        ))}
 
-                <button onClick={() => { if (confirm('Удалить вопрос?')) removeQuestion(qi) }} className="p-1.5 text-red-400 hover:text-red-500">
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                        {question.options.length < 6 && (
+                          <button
+                            onClick={() => addOption(qi)}
+                            className="text-sm text-orange-500 hover:text-orange-600 py-2 pl-8 cursor-pointer"
+                          >
+                            Добавьте ответ
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {question.question_type === 'text' && (
+                      <div className="mt-1 px-2">
+                        <div className="py-3 border-b border-dashed border-gray-200 text-sm text-gray-400 italic">
+                          Пользователь введёт свободный ответ
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bottom toolbar */}
+                    <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
+                      <select
+                        value={question.question_type}
+                        onChange={(e) => updateQuestion(qi, { question_type: e.target.value as QuizQuestionItem['question_type'] })}
+                        className="text-xs px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-pointer"
+                      >
+                        <option value="single_choice">Один ответ</option>
+                        <option value="multiple_choice">Несколько ответов</option>
+                        <option value="text">Текст</option>
+                      </select>
+
+                      <button
+                        onClick={() => togglePhoto(qi)}
+                        className={`p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer ${question.question_image_url ? 'text-orange-500' : 'text-gray-400'}`}
+                        title="Фото вопроса"
+                        aria-label="Фото вопроса"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+
+                      <div className="flex-1" />
+
+                      <button onClick={() => moveQuestion(qi, 'up')} disabled={qi === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 cursor-pointer" aria-label="Переместить вверх">
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => moveQuestion(qi, 'down')} disabled={qi === questions.length - 1} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 cursor-pointer" aria-label="Переместить вниз">
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => { if (confirm('Удалить вопрос?')) removeQuestion(qi) }}
+                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                        title="Удалить вопрос"
+                        aria-label="Удалить вопрос"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           <button onClick={addQuestion} className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-500 hover:border-orange-300 hover:text-orange-500 transition-colors cursor-pointer">
             <Plus className="w-4 h-4 inline mr-1" />
