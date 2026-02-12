@@ -62,6 +62,8 @@ export default function PublicQuiz() {
     const qId = currentQuestion.id || `q-${currentQuestionIndex}`
     const selected = selectedOptions[qId] || []
 
+    if (currentQuestion.question_type === 'info') return
+
     let answerText = ''
     if (currentQuestion.question_type === 'text') {
       answerText = textAnswer
@@ -174,6 +176,7 @@ export default function PublicQuiz() {
 
   const isNextDisabled = () => {
     if (!currentQuestion) return true
+    if (currentQuestion.question_type === 'info') return false
     if (!currentQuestion.is_required) return false
     const qId = currentQuestion.id || `q-${currentQuestionIndex}`
     if (currentQuestion.question_type === 'text') {
@@ -352,6 +355,11 @@ export default function PublicQuiz() {
           {/* Text input */}
           {currentQuestion.question_type === 'text' && (
             <textarea value={textAnswer} onChange={(e) => setTextAnswer(e.target.value)} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900 resize-none shadow-sm" rows={4} placeholder="Ваш ответ..." autoFocus />
+          )}
+
+          {/* Info — no answer needed */}
+          {currentQuestion.question_type === 'info' && (
+            <p className="text-sm text-gray-400 italic">Нажмите «Далее» чтобы продолжить</p>
           )}
         </div>
 

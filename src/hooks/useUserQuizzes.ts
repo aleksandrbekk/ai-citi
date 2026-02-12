@@ -75,7 +75,7 @@ export interface QuizQuestionItem {
   id?: string
   question_text: string
   question_image_url?: string | null
-  question_type: 'single_choice' | 'multiple_choice' | 'text'
+  question_type: 'single_choice' | 'multiple_choice' | 'text' | 'info'
   display_mode?: QuestionDisplayMode
   order_index: number
   is_required: boolean

@@ -877,7 +877,7 @@ function QuestionsTab({
                       <GripVertical className="w-4 h-4 text-gray-400" />
                     </button>
 
-                    {modeDropdownOpen === qi && question.question_type !== 'text' && (
+                    {modeDropdownOpen === qi && question.question_type !== 'text' && question.question_type !== 'info' && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setModeDropdownOpen(null)} />
                         <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-200 py-1 min-w-[220px]">
@@ -929,6 +929,7 @@ function QuestionsTab({
                         <option value="single_choice">Один ответ</option>
                         <option value="multiple_choice">Несколько ответов</option>
                         <option value="text">Текст</option>
+                        <option value="info">Без ответа</option>
                       </select>
                     </div>
 
@@ -1023,6 +1024,12 @@ function QuestionsTab({
                           rows={3}
                         />
                         <p className="text-xs text-gray-400 mt-1">Респондент напишет свободный ответ</p>
+                      </div>
+                    )}
+
+                    {question.question_type === 'info' && (
+                      <div className="mt-1 px-3 py-3 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                        <p className="text-xs text-gray-400">Информационный слайд — без ответа. Пользователь увидит текст и картинку, нажмёт «Далее».</p>
                       </div>
                     )}
 
