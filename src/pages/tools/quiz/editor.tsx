@@ -153,6 +153,7 @@ export default function QuizEditor() {
   const [activeTab, setActiveTab] = useState<TabId>('start')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [showMobile, setShowMobile] = useState(false)
 
   // Quiz data
   const [title, setTitle] = useState('')
@@ -399,7 +400,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} onNavigateToQuestions={() => setActiveTab('questions')} showMobile={showMobile} setShowMobile={setShowMobile} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
@@ -414,6 +415,134 @@ export default function QuizEditor() {
           <ThanksTab config={thankYouConfig} setConfig={setThankYouConfig} />
         )}
       </div>
+
+      {/* Floating mobile preview — persistent across tabs */}
+      {showMobile && (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center gap-3">
+          <div className="relative">
+            <button type="button" onClick={() => setShowMobile(false)} className="absolute -top-3 -right-3 z-10 w-8 h-8 flex items-center justify-center bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer" aria-label="Закрыть">
+              <X className="w-4 h-4 text-white" />
+            </button>
+            <div className="w-[220px] h-[420px] bg-gray-900 rounded-[36px] p-2.5 shadow-2xl">
+              <div className="w-full h-full bg-white rounded-[28px] overflow-hidden flex flex-col">
+                <div className="flex justify-center pt-2 pb-1"><div className="w-16 h-1.5 bg-gray-200 rounded-full" /></div>
+                <div className="flex-1 overflow-hidden">
+                  <MobilePreviewContent
+                    activeTab={activeTab}
+                    title={title} description={description} ctaText={ctaText}
+                    coverImageUrl={coverImageUrl} coverImageMobileUrl={coverImageMobileUrl}
+                    headerText={headerText} footerText={footerText}
+                    questions={questions}
+                    contactConfig={contactConfig}
+                    resultConfig={resultConfig}
+                    thankYouConfig={thankYouConfig}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          {activeTab === 'start' && (
+            <div className="w-[220px]">
+              <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
+              <p className="mt-1.5 text-[10px] text-gray-400 leading-snug text-center">Другое фото для телефона. 400x220</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ==========================================
+// Mobile preview content (per tab)
+// ==========================================
+
+function MobilePreviewContent({
+  activeTab, title, description, ctaText,
+  coverImageUrl, coverImageMobileUrl,
+  headerText, footerText,
+  questions, contactConfig, resultConfig, thankYouConfig,
+}: {
+  activeTab: TabId
+  title: string; description: string; ctaText: string
+  coverImageUrl: string | null; coverImageMobileUrl: string | null
+  headerText: string; footerText: string
+  questions: QuizQuestionItem[]
+  contactConfig: ContactConfig; resultConfig: ResultConfig; thankYouConfig: ThankYouConfig
+}) {
+  if (activeTab === 'start') {
+    const mobileImage = coverImageMobileUrl || coverImageUrl
+    return (
+      <div className="bg-[#FFF8F5] flex flex-col h-full">
+        {headerText && <div className="px-3 py-1.5 text-[8px] text-gray-400 text-center border-b border-gray-100">{headerText}</div>}
+        {mobileImage && <img src={mobileImage} alt="" className="w-full object-cover max-h-[140px]" />}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 text-center">
+          <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title || 'Заголовок'}</h3>
+          {description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{description}</p>}
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium">{ctaText || 'Начать'}</span>
+        </div>
+        {footerText && <div className="px-3 py-1.5 text-[7px] text-gray-300 text-center border-t border-gray-100">{footerText}</div>}
+      </div>
+    )
+  }
+
+  if (activeTab === 'questions') {
+    const q = questions[0]
+    return (
+      <div className="bg-[#FFF8F5] flex flex-col h-full px-4 py-4">
+        {questions.length > 0 && q ? (
+          <>
+            <p className="text-[9px] text-gray-400 mb-2">Вопрос 1/{questions.length}</p>
+            {q.question_image_url && <img src={q.question_image_url} alt="" className="w-full h-20 object-cover rounded-lg mb-2" />}
+            <h3 className="text-xs font-bold text-gray-900 mb-3">{q.question_text || 'Текст вопроса'}</h3>
+            <div className="space-y-1.5">
+              {q.options.slice(0, 4).map((o, i) => (
+                <div key={i} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-700">{o.option_text || `Вариант ${i + 1}`}</div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-300 text-xs">Нет вопросов</div>
+        )}
+      </div>
+    )
+  }
+
+  if (activeTab === 'contacts') {
+    if (!contactConfig.enabled) return <div className="bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 text-xs p-4">Форма контактов отключена</div>
+    return (
+      <div className="bg-[#FFF8F5] flex flex-col h-full px-4 py-4">
+        <h3 className="text-xs font-bold text-gray-900 mb-1 text-center">{contactConfig.title}</h3>
+        <p className="text-[9px] text-gray-500 mb-3 text-center">{contactConfig.description}</p>
+        <div className="space-y-1.5">
+          {(['name', 'phone', 'telegram', 'email'] as const).filter(f => contactConfig.fields[f].enabled).map((f) => (
+            <div key={f} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-400">{contactConfig.fields[f].label}</div>
+          ))}
+        </div>
+        <div className="mt-3 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium text-center">Отправить</div>
+      </div>
+    )
+  }
+
+  if (activeTab === 'results') {
+    if (!resultConfig.enabled) return <div className="bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 text-xs p-4">Страница результата отключена</div>
+    return (
+      <div className="bg-[#FFF8F5] flex flex-col h-full items-center justify-center px-4 py-4 text-center">
+        {resultConfig.image_url && <img src={resultConfig.image_url} alt="" className="w-20 h-20 rounded-xl object-cover mb-2" />}
+        <h3 className="text-xs font-bold text-gray-900 mb-1">{resultConfig.title}</h3>
+        {resultConfig.description && <p className="text-[9px] text-gray-600 leading-snug">{resultConfig.description}</p>}
+      </div>
+    )
+  }
+
+  // thanks
+  return (
+    <div className="bg-[#FFF8F5] flex flex-col h-full items-center justify-center px-4 py-4 text-center">
+      <h3 className="text-xs font-bold text-gray-900 mb-1">{thankYouConfig.title}</h3>
+      {thankYouConfig.description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{thankYouConfig.description}</p>}
+      {thankYouConfig.cta_text && (
+        <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium">{thankYouConfig.cta_text}</span>
+      )}
     </div>
   )
 }
@@ -431,8 +560,8 @@ function StartTab({
   startAlignment, setStartAlignment,
   headerText, setHeaderText,
   footerText, setFooterText,
-  coverImageMobileUrl, setCoverImageMobileUrl,
   onNavigateToQuestions,
+  showMobile, setShowMobile,
 }: {
   title: string; setTitle: (v: string) => void
   description: string; setDescription: (v: string) => void
@@ -444,10 +573,9 @@ function StartTab({
   startAlignment: StartAlignment; setStartAlignment: (v: StartAlignment) => void
   headerText: string; setHeaderText: (v: string) => void
   footerText: string; setFooterText: (v: string) => void
-  coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
   onNavigateToQuestions: () => void
+  showMobile: boolean; setShowMobile: (v: boolean) => void
 }) {
-  const [showMobile, setShowMobile] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
   // Desktop preview with inline editing
@@ -512,25 +640,6 @@ function StartTab({
     )
   }
 
-  // Mobile preview (read-only, synced with desktop edits)
-  const renderMobilePreview = () => {
-    const mobileImage = coverImageMobileUrl || coverImageUrl
-    return (
-      <div className="bg-[#FFF8F5] flex flex-col h-full">
-        {headerText && <div className="px-3 py-1.5 text-[8px] text-gray-400 text-center border-b border-gray-100">{headerText}</div>}
-        {mobileImage && <img src={mobileImage} alt="" className="w-full object-cover max-h-[140px]" />}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 text-center">
-          <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title || 'Заголовок'}</h3>
-          {description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{description}</p>}
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium">
-            {ctaText || 'Начать'}
-          </span>
-        </div>
-        {footerText && <div className="px-3 py-1.5 text-[7px] text-gray-300 text-center border-t border-gray-100">{footerText}</div>}
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       {/* Preview = Editor */}
@@ -572,27 +681,6 @@ function StartTab({
           </button>
         </div>
       </div>
-
-      {/* Floating mobile preview overlay */}
-      {showMobile && (
-        <div className="fixed bottom-24 right-4 z-50 flex flex-col items-center gap-3 animate-in slide-in-from-bottom-4 duration-200">
-          <div className="relative">
-            <button type="button" onClick={() => setShowMobile(false)} className="absolute -top-2 -right-2 z-10 p-1 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer">
-              <X className="w-3.5 h-3.5 text-white" />
-            </button>
-            <div className="w-[220px] h-[420px] bg-gray-900 rounded-[36px] p-2.5 shadow-2xl">
-              <div className="w-full h-full bg-white rounded-[28px] overflow-hidden flex flex-col">
-                <div className="flex justify-center pt-2 pb-1"><div className="w-16 h-1.5 bg-gray-200 rounded-full" /></div>
-                <div className="flex-1 overflow-hidden">{renderMobilePreview()}</div>
-              </div>
-            </div>
-          </div>
-          <div className="w-[220px]">
-            <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
-            <p className="mt-1.5 text-[10px] text-gray-400 leading-snug text-center">Другое фото для телефона. 400x220</p>
-          </div>
-        </div>
-      )}
 
       {/* Publication settings (collapsible) */}
       <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
