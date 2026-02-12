@@ -183,6 +183,19 @@ export default function PublicQuiz() {
     return !(selectedOptions[qId]?.length > 0)
   }
 
+  // Promo badge — on all pages
+  const promoBadge = (
+    <a
+      href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-8 right-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/70 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100/50 hover:bg-white/90 hover:shadow-md transition-all group cursor-pointer"
+    >
+      <span className="text-xs text-gray-400">Создай свой квиз в</span>
+      <span className="text-xs font-bold text-orange-500 group-hover:text-orange-600">AI CITI</span>
+    </a>
+  )
+
   // ==========================================
   // Start Screen — layout from settings
   // ==========================================
@@ -193,21 +206,10 @@ export default function PublicQuiz() {
     const hText = typeof s.header_text === 'string' ? s.header_text : ''
     const fText = typeof s.footer_text === 'string' ? s.footer_text : ''
     const displayTitle = (typeof s.headline === 'string' && s.headline) ? s.headline : quiz.title
+    const mobileImageUrl = typeof s.cover_image_mobile_url === 'string' ? s.cover_image_mobile_url : null
 
     const headerEl = hText ? <div className="px-4 py-3 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{hText}</div> : null
     const footerEl = fText ? <div className="px-4 py-3 text-xs text-gray-400 text-center border-t border-gray-100 bg-white/50 mt-auto">{fText}</div> : null
-
-    const promoBadge = (
-      <a
-        href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-4 right-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all group cursor-pointer"
-      >
-        <span className="text-xs text-gray-400">Создай свой квиз в</span>
-        <span className="text-xs font-bold text-orange-500 group-hover:text-orange-600">AI CITI</span>
-      </a>
-    )
 
     if (layout === 'center') {
       return (
@@ -215,7 +217,14 @@ export default function PublicQuiz() {
           {headerEl}
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center">
             {quiz.cover_image_url && (
-              <img src={quiz.cover_image_url} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64" />
+              mobileImageUrl ? (
+                <>
+                  <img src={mobileImageUrl} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64 sm:hidden" />
+                  <img src={quiz.cover_image_url} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64 hidden sm:block" />
+                </>
+              ) : (
+                <img src={quiz.cover_image_url} alt="" className="w-full max-w-md rounded-2xl mb-6 object-cover max-h-64" />
+              )
             )}
             <div className="max-w-2xl w-full">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{displayTitle}</h1>
@@ -234,7 +243,15 @@ export default function PublicQuiz() {
     // side layout
     const imageEl = quiz.cover_image_url ? (
       <div className="w-full sm:w-1/2 h-56 sm:h-auto relative flex-shrink-0">
-        <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover" />
+        {/* Mobile: show mobile image if available */}
+        {mobileImageUrl ? (
+          <>
+            <img src={mobileImageUrl} alt="" className="w-full h-full object-cover sm:hidden" />
+            <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover hidden sm:block" />
+          </>
+        ) : (
+          <img src={quiz.cover_image_url} alt="" className="w-full h-full object-cover" />
+        )}
       </div>
     ) : null
 
@@ -277,6 +294,7 @@ export default function PublicQuiz() {
 
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
+        {promoBadge}
         {/* Header with quiz title */}
         {qHeaderText && (
           <div className="px-4 py-2.5 text-sm text-gray-500 text-center border-b border-gray-100 bg-white/50">{qHeaderText}</div>
@@ -439,6 +457,7 @@ export default function PublicQuiz() {
       return (
         <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
           {formEl}
+          {promoBadge}
         </div>
       )
     }
@@ -449,6 +468,7 @@ export default function PublicQuiz() {
           <img src={contactImage} alt="" className="w-full h-full object-cover" />
         </div>
         {formEl}
+        {promoBadge}
       </div>
     )
   }
@@ -460,6 +480,7 @@ export default function PublicQuiz() {
     const rc = quiz.result_config
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center px-6 py-8 text-center">
+        {promoBadge}
         <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-8 shadow-sm max-w-md w-full">
           {rc?.image_url && <img src={rc.image_url} alt="" className="w-full rounded-2xl mb-6 object-cover max-h-56" />}
           <h1 className="text-2xl font-bold text-gray-900 mb-3">{rc?.title || 'Результат'}</h1>
@@ -480,6 +501,7 @@ export default function PublicQuiz() {
     const ctaUrl = tc?.cta_url ? (tc.cta_url.startsWith('http') ? tc.cta_url : `https://${tc.cta_url}`) : null
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center px-6 py-8 text-center">
+        {promoBadge}
         <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-8 shadow-sm max-w-md w-full">
           {tc?.image_url && <img src={tc.image_url} alt="" className="w-full rounded-2xl mb-6 object-cover max-h-56" />}
           <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg shadow-orange-500/20">
