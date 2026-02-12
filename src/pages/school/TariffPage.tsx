@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useModules } from '@/hooks/useCourse'
-import { ArrowLeft, BookOpen, ChevronRight } from 'lucide-react'
-import { getUserTariffsById } from '@/lib/supabase'
+import { ArrowLeft, BookOpen, ChevronRight, Lock, CheckCircle2 } from 'lucide-react'
+import { supabase, getUserTariffsById } from '@/lib/supabase'
+
+function getTelegramId(): number | null {
+  const tg = (window as any).Telegram?.WebApp
+  if (tg?.initDataUnsafe?.user?.id) return tg.initDataUnsafe.user.id
+  const saved = localStorage.getItem('tg_user')
+  if (saved) { try { return JSON.parse(saved).id } catch {} }
+  return null
+}
 
 export default function TariffPage() {
   const { tariffSlug } = useParams<{ tariffSlug: string }>()
@@ -41,7 +50,85 @@ export default function TariffPage() {
     return false
   }) || []
 
-  if (isLoading || isLoadingTariffs) {
+  // Загружаем все уроки модулей для проверки завершённости
+  const { data: allLessonsData, isLoading: lessonsLoading } = useQuery({
+    queryKey: ['tariff-module-lessons', filteredModules.map(m => m.id).join(',')],
+    queryFn: async () => {
+      const moduleIds = filteredModules.map(m => m.id)
+      if (moduleIds.length === 0) return []
+      const { data } = await supabase
+        .from('course_lessons')
+        .select('id, module_id, order_index, has_homework')
+        .in('module_id', moduleIds)
+        .eq('is_active', true)
+        .order('order_index')
+      return data || []
+    },
+    enabled: filteredModules.length > 0
+  })
+
+  // Загружаем статусы ДЗ ученика
+  const { data: hwStatuses, isLoading: hwLoading } = useQuery({
+    queryKey: ['all-hw-statuses', getTelegramId()],
+    queryFn: async () => {
+      const tgId = getTelegramId()
+      if (!tgId) return {}
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', tgId)
+        .single()
+      if (!user) return {}
+      const { data: submissions } = await supabase
+        .from('homework_submissions')
+        .select('lesson_id, status')
+        .eq('user_id', user.id)
+      if (!submissions) return {}
+      const map: Record<string, string> = {}
+      for (const s of submissions) {
+        map[s.lesson_id] = s.status
+      }
+      return map
+    },
+    enabled: !!getTelegramId()
+  })
+
+  // Модуль завершён если все уроки с ДЗ зачтены
+  const isModuleComplete = (moduleId: string): boolean => {
+    if (!allLessonsData || !hwStatuses) return false
+    const moduleLessons = allLessonsData.filter(l => l.module_id === moduleId)
+    if (moduleLessons.length === 0) return false
+    // Если нет уроков с ДЗ → модуль автозавершён
+    // Если есть → все должны быть approved
+    return moduleLessons
+      .filter(l => l.has_homework)
+      .every(l => hwStatuses[l.id] === 'approved')
+  }
+
+  // Вычисляем разблокированные модули
+  const getUnlockedModules = (): Set<string> => {
+    if (filteredModules.length === 0) return new Set()
+    // Без Telegram — всё открыто (dev режим)
+    if (!getTelegramId()) return new Set(filteredModules.map(m => m.id))
+
+    const unlocked = new Set<string>()
+    unlocked.add(filteredModules[0].id) // Первый модуль всегда открыт
+
+    for (let i = 0; i < filteredModules.length; i++) {
+      const mod = filteredModules[i]
+      if (!unlocked.has(mod.id)) break
+
+      if (isModuleComplete(mod.id) && i + 1 < filteredModules.length) {
+        unlocked.add(filteredModules[i + 1].id)
+      }
+    }
+
+    return unlocked
+  }
+
+  const unlockedModules = getUnlockedModules()
+
+  if (isLoading || isLoadingTariffs || lessonsLoading || hwLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -69,20 +156,45 @@ export default function TariffPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredModules.map((module) => (
-            <div
-              key={module.id}
-              onClick={() => navigate(`/school/${tariffSlug}/${module.id}`)}
-              className="flex items-center gap-3 p-4 rounded-xl glass-card border border-gray-200 hover:border-orange-500 transition-all cursor-pointer"
-            >
-              <BookOpen className="w-5 h-5 text-orange-500" />
-              <div className="flex-1">
-                <div className="font-medium">{module.title}</div>
-                <div className="text-sm text-gray-500">{module.lessons_count} уроков</div>
+          {filteredModules.map((module) => {
+            const isUnlocked = unlockedModules.has(module.id)
+
+            if (!isUnlocked) {
+              return (
+                <div
+                  key={module.id}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-100/60 border border-gray-200 opacity-60"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-400">{module.title}</div>
+                    <div className="text-sm text-gray-400">Завершите предыдущий модуль</div>
+                  </div>
+                </div>
+              )
+            }
+
+            return (
+              <div
+                key={module.id}
+                onClick={() => navigate(`/school/${tariffSlug}/${module.id}`)}
+                className="flex items-center gap-3 p-4 rounded-xl glass-card border border-gray-200 hover:border-orange-500 transition-all cursor-pointer"
+              >
+                {isModuleComplete(module.id) ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                ) : (
+                  <BookOpen className="w-5 h-5 text-orange-500" />
+                )}
+                <div className="flex-1">
+                  <div className="font-medium">{module.title}</div>
+                  <div className="text-sm text-gray-500">{module.lessons_count} уроков</div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
