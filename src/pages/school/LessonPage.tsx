@@ -267,6 +267,20 @@ export default function LessonPage() {
     setUserAnswers({})
     toast.success('Ответ отправлен на проверку!')
     refetchSubmission()
+
+    // Уведомление админу о новом ДЗ
+    try {
+      await supabase.functions.invoke('homework-notify', {
+        body: {
+          lesson_id: lessonId,
+          user_telegram_id: telegramId,
+          answer_text: homeworkAnswer,
+          quiz_answers: selectedAnswers,
+        },
+      })
+    } catch (notifyErr) {
+      console.error('Homework notify error:', notifyErr)
+    }
   }
 
   return (
