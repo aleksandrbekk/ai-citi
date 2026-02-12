@@ -376,72 +376,72 @@ export default function PublicQuiz() {
     const fields = quiz.contact_config?.fields
     const contactTitle = quiz.contact_config?.title || 'Оставьте контакты'
     const contactDesc = quiz.contact_config?.description || ''
-    const contactImage = quiz.contact_config?.image_url
+    const contactImage = quiz.contact_config?.mobile_image_url || quiz.contact_config?.image_url
 
-    return (
-      <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
-        <div className="h-2 bg-orange-100">
-          <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 w-[95%] rounded-r-full" />
-        </div>
+    const formEl = (
+      <div className={`flex-1 flex flex-col justify-center px-6 sm:px-12 py-8 ${contactImage ? '' : 'items-center'}`}>
+        <div className="w-full max-w-md">
+          {/* Progress */}
+          <div className="h-1.5 bg-orange-100 rounded-full mb-6">
+            <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 w-[95%] rounded-full" />
+          </div>
 
-        <div className="px-4 py-3">
-          <button onClick={handleBack} className="flex items-center gap-1 text-gray-500 hover:text-orange-500 text-sm cursor-pointer transition-colors">
+          <button onClick={handleBack} className="flex items-center gap-1 text-gray-500 hover:text-orange-500 text-sm cursor-pointer transition-colors mb-6">
             <ChevronLeft className="w-4 h-4" />
             Назад
           </button>
-        </div>
 
-        <div className="flex-1 px-4 py-4 max-w-lg mx-auto w-full">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-5 shadow-sm">
-            {contactImage && (
-              <img src={contactImage} alt="" className="w-full rounded-xl mb-4 object-cover max-h-40" />
-            )}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{contactTitle}</h2>
+          {contactDesc && <p className="text-gray-500 mb-6">{contactDesc}</p>}
+
+          <div className="space-y-4 mb-8">
+            {fields?.name?.enabled && (
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{contactTitle}</h2>
-                {contactDesc && <p className="text-sm text-gray-500">{contactDesc}</p>}
+                <label className="block text-sm text-gray-600 mb-1">{fields.name.label}{fields.name.required && ' *'}</label>
+                <input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="Ваше имя" />
               </div>
-            </div>
-
-            <div className="space-y-4">
-              {fields?.name?.enabled && (
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">{fields.name.label}{fields.name.required && ' *'}</label>
-                  <input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="Ваше имя" />
-                </div>
-              )}
-              {fields?.phone?.enabled && (
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">{fields.phone.label}{fields.phone.required && ' *'}</label>
-                  <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="+7 (___) ___-__-__" />
-                </div>
-              )}
-              {fields?.telegram?.enabled && (
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">{fields.telegram.label}{fields.telegram.required && ' *'}</label>
-                  <input type="text" value={contactTelegram} onChange={(e) => setContactTelegram(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="@username" />
-                </div>
-              )}
-              {fields?.email?.enabled && (
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">{fields.email.label}{fields.email.required && ' *'}</label>
-                  <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="email@example.com" />
-                </div>
-              )}
-            </div>
+            )}
+            {fields?.phone?.enabled && (
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">{fields.phone.label}{fields.phone.required && ' *'}</label>
+                <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="+7 (___) ___-__-__" />
+              </div>
+            )}
+            {fields?.telegram?.enabled && (
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">{fields.telegram.label}{fields.telegram.required && ' *'}</label>
+                <input type="text" value={contactTelegram} onChange={(e) => setContactTelegram(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="@username" />
+              </div>
+            )}
+            {fields?.email?.enabled && (
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">{fields.email.label}{fields.email.required && ' *'}</label>
+                <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 text-gray-900" placeholder="email@example.com" />
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="px-4 pb-6 max-w-lg mx-auto w-full">
           <button onClick={handleContactSubmit} disabled={isSubmitting} className="w-full py-3.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Отправить'}
           </button>
         </div>
+      </div>
+    )
+
+    if (!contactImage) {
+      return (
+        <div className="h-screen bg-[#FFF8F5] flex flex-col overflow-hidden">
+          {formEl}
+        </div>
+      )
+    }
+
+    return (
+      <div className="h-screen bg-[#FFF8F5] flex flex-col sm:flex-row overflow-hidden">
+        <div className="w-full sm:w-1/2 h-56 sm:h-auto relative flex-shrink-0">
+          <img src={contactImage} alt="" className="w-full h-full object-cover" />
+        </div>
+        {formEl}
       </div>
     )
   }
