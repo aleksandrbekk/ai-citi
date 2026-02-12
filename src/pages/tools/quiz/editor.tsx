@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Monitor, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { getTelegramUser } from '@/lib/telegram'
@@ -71,9 +71,10 @@ function InlineEdit({
 const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/ds8ylsl2x/image/upload'
 
 function InlineImageUpload({
-  imageUrl, onImageChange, className,
+  imageUrl, onImageChange, className, onMobileUpload,
 }: {
   imageUrl: string | null; onImageChange: (url: string | null) => void; className?: string
+  onMobileUpload?: () => void
 }) {
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -117,9 +118,16 @@ function InlineImageUpload({
               <Camera className="w-8 h-8 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
             )}
           </div>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors opacity-0 group-hover/img:opacity-100">
-            <X className="w-3.5 h-3.5 text-white" />
-          </button>
+          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
+            {onMobileUpload && (
+              <button type="button" onClick={(e) => { e.stopPropagation(); onMobileUpload() }} className="p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors" title="Фото для телефона">
+                <Smartphone className="w-3.5 h-3.5 text-white" />
+              </button>
+            )}
+            <button type="button" onClick={(e) => { e.stopPropagation(); onImageChange(null) }} className="p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors">
+              <X className="w-3.5 h-3.5 text-white" />
+            </button>
+          </div>
         </>
       ) : (
         <div className="w-full h-full min-h-[100px] border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-orange-300 hover:bg-orange-50/30 transition-colors">
@@ -439,7 +447,7 @@ function StartTab({
   coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
   onNavigateToQuestions: () => void
 }) {
-  const [mobileView, setMobileView] = useState<'phone' | 'browser'>('phone')
+  const [showMobile, setShowMobile] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
   // Desktop preview with inline editing
@@ -460,7 +468,7 @@ function StartTab({
         <div className="flex flex-col min-h-[300px]">
           {headerEl}
           <div className="flex-1 flex flex-col items-center justify-center py-8 px-6 text-center">
-            <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full max-w-xs rounded-xl mb-4 overflow-hidden" />
+            <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full max-w-xs rounded-xl mb-4 overflow-hidden" onMobileUpload={() => setShowMobile(true)} />
             <InlineEdit value={title} onChange={setTitle} placeholder="Заголовок квиза" className="font-bold text-gray-900 text-xl mb-2" maxLength={200} />
             <InlineEdit value={description} onChange={setDescription} placeholder="Описание квиза" className="text-sm text-gray-600 max-w-sm leading-relaxed mb-4" multiline maxLength={500} />
             <div className="inline-block px-5 py-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl">
@@ -477,7 +485,7 @@ function StartTab({
 
     const imageEl = (
       <div className="w-1/2 flex-shrink-0 min-h-[240px]">
-        <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full h-full" />
+        <InlineImageUpload imageUrl={coverImageUrl} onImageChange={setCoverImageUrl} className="w-full h-full" onMobileUpload={() => setShowMobile(true)} />
       </div>
     )
 
@@ -527,40 +535,17 @@ function StartTab({
     <div className="space-y-4">
       {/* Preview = Editor */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* Header with toggle */}
-        <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+        {/* Header */}
+        <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-gray-400" />
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Редактор</span>
           </div>
-          <div className="flex md:hidden bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <button type="button" onClick={() => setMobileView('phone')} className={`p-1.5 transition-colors cursor-pointer ${mobileView === 'phone' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`} title="Телефон">
-              <Smartphone className="w-4 h-4" />
-            </button>
-            <button type="button" onClick={() => setMobileView('browser')} className={`p-1.5 transition-colors cursor-pointer ${mobileView === 'browser' ? 'bg-orange-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`} title="Браузер">
-              <Monitor className="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
-        {/* Main area: desktop + mobile */}
-        <div className="flex flex-col md:flex-row">
-          <div className={`flex-1 bg-[#FFF8F5] min-w-0 ${mobileView === 'browser' ? 'block' : 'hidden md:block'}`}>
-            {renderDesktopPreview()}
-          </div>
-          <div className={`flex-col items-center px-4 py-5 md:px-6 md:border-l border-gray-200 bg-gray-50/80 ${mobileView === 'phone' ? 'flex' : 'hidden md:flex'}`}>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-3">Мобильная версия</p>
-            <div className="w-[200px] h-[380px] bg-gray-900 rounded-[32px] p-2 shadow-xl flex-shrink-0">
-              <div className="w-full h-full bg-white rounded-[26px] overflow-hidden flex flex-col">
-                <div className="flex justify-center pt-1.5 pb-1"><div className="w-14 h-1.5 bg-gray-200 rounded-full" /></div>
-                <div className="flex-1 overflow-hidden">{renderMobilePreview()}</div>
-              </div>
-            </div>
-            <div className="mt-3 w-full max-w-[200px]">
-              <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
-              <p className="mt-1.5 text-[10px] text-gray-400 leading-snug">На телефоне будет показано это фото вместо основного. Рекомендуемый размер — 400x220</p>
-            </div>
-          </div>
+        {/* Desktop preview only */}
+        <div className="bg-[#FFF8F5]">
+          {renderDesktopPreview()}
         </div>
 
         {/* Bottom toolbar */}
@@ -581,8 +566,33 @@ function StartTab({
               </div>
             </div>
           )}
+          {/* Mobile preview toggle */}
+          <button type="button" onClick={() => setShowMobile(!showMobile)} className={`ml-auto p-2 rounded-lg transition-colors cursor-pointer ${showMobile ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`} title="Мобильная версия">
+            <Smartphone className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {/* Floating mobile preview overlay */}
+      {showMobile && (
+        <div className="fixed bottom-24 right-4 z-50 flex flex-col items-center gap-3 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="relative">
+            <button type="button" onClick={() => setShowMobile(false)} className="absolute -top-2 -right-2 z-10 p-1 bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer">
+              <X className="w-3.5 h-3.5 text-white" />
+            </button>
+            <div className="w-[220px] h-[420px] bg-gray-900 rounded-[36px] p-2.5 shadow-2xl">
+              <div className="w-full h-full bg-white rounded-[28px] overflow-hidden flex flex-col">
+                <div className="flex justify-center pt-2 pb-1"><div className="w-16 h-1.5 bg-gray-200 rounded-full" /></div>
+                <div className="flex-1 overflow-hidden">{renderMobilePreview()}</div>
+              </div>
+            </div>
+          </div>
+          <div className="w-[220px]">
+            <QuizImageUpload imageUrl={coverImageMobileUrl} onImageChange={setCoverImageMobileUrl} label="Фото для телефона" compact aspectRatio="auto" />
+            <p className="mt-1.5 text-[10px] text-gray-400 leading-snug text-center">Другое фото для телефона. 400x220</p>
+          </div>
+        </div>
+      )}
 
       {/* Publication settings (collapsible) */}
       <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
