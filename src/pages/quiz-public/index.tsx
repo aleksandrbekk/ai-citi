@@ -12,8 +12,8 @@ interface AnswerData {
 }
 
 export default function PublicQuiz() {
-  const { slug } = useParams<{ slug: string }>()
-  const { quiz, isLoading, error, submitLead } = usePublicQuiz(slug)
+  const { ref, slug } = useParams<{ ref: string; slug: string }>()
+  const { quiz, isLoading, error, submitLead } = usePublicQuiz(slug, ref)
 
   const [step, setStep] = useState<Step>('start')
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -197,7 +197,7 @@ export default function PublicQuiz() {
 
     const promoBadge = (
       <a
-        href="https://t.me/Neirociti_bot?start=ref_06_src_quiz"
+        href={`https://t.me/Neirociti_bot?start=ref_${ref || '06'}_src_quiz`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-4 right-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all group cursor-pointer"

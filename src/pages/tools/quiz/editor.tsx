@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, Pane
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type QuestionDisplayMode, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { getTelegramUser } from '@/lib/telegram'
+import { getUserReferralCode } from '@/lib/referral'
 import { toast } from 'sonner'
 
 type TabId = 'start' | 'questions' | 'contacts' | 'results' | 'thanks'
@@ -183,6 +184,7 @@ export default function QuizEditor() {
   const [ctaText, setCtaText] = useState('Начать')
   const [isPublished, setIsPublished] = useState(false)
   const [slug, setSlug] = useState<string | null>(null)
+  const [userRef, setUserRef] = useState<string | null>(null)
 
   // Layout settings
   const [startLayout, setStartLayout] = useState<StartLayout>('side')
@@ -261,6 +263,13 @@ export default function QuizEditor() {
         }
         if (data.result_config) setResultConfig(data.result_config)
         if (data.thank_you_config) setThankYouConfig(data.thank_you_config)
+
+        // Загружаем реферальный код пользователя для ссылки
+        if (data.telegram_id) {
+          getUserReferralCode(data.telegram_id).then((code) => {
+            if (!cancelled && code) setUserRef(code)
+          })
+        }
       }
 
       setIsLoading(false)
@@ -383,7 +392,7 @@ export default function QuizEditor() {
             <Smartphone className="w-5 h-5" />
           </button>
           {slug && (
-            <a href={`/q/${slug}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl hover:bg-gray-100 transition-colors" title="Предпросмотр">
+            <a href={userRef ? `/q/${userRef}/${slug}` : `/q/${slug}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl hover:bg-gray-100 transition-colors" title="Предпросмотр">
               <Eye className="w-5 h-5 text-gray-500" />
             </a>
           )}
@@ -415,7 +424,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} userRef={userRef} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} />
@@ -566,7 +575,7 @@ function StartTab({
   title, setTitle, description, setDescription,
   coverImageUrl, setCoverImageUrl,
   ctaText, setCtaText,
-  isPublished, setIsPublished, slug, setSlug,
+  isPublished, setIsPublished, slug, setSlug, userRef,
   startLayout, setStartLayout,
   startAlignment, setStartAlignment,
   headerText, setHeaderText,
@@ -580,6 +589,7 @@ function StartTab({
   ctaText: string; setCtaText: (v: string) => void
   isPublished: boolean; setIsPublished: (v: boolean) => void
   slug: string | null; setSlug: (v: string | null) => void
+  userRef: string | null
   startLayout: StartLayout; setStartLayout: (v: StartLayout) => void
   startAlignment: StartAlignment; setStartAlignment: (v: StartAlignment) => void
   headerText: string; setHeaderText: (v: string) => void
@@ -704,9 +714,23 @@ function StartTab({
               <div className="pt-4">
                 <label className="block text-sm text-gray-600 mb-1">Ссылка на квиз</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">/q/</span>
+                  <span className="text-sm text-gray-400 whitespace-nowrap">/q/{userRef || '...'}/</span>
                   <input type="text" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder="my-quiz" />
                 </div>
+                {userRef && slug && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = `${window.location.origin}/q/${userRef}/${slug}`
+                      navigator.clipboard.writeText(url)
+                      toast.success('Ссылка скопирована!')
+                    }}
+                    className="mt-2 flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-600 cursor-pointer transition-colors"
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    Скопировать ссылку
+                  </button>
+                )}
               </div>
             )}
             <div className="flex items-center justify-between pt-2">

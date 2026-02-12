@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Eye, Users, Edit, Trash2, Link2, BarChart3, ArrowLeft, ClipboardList } from 'lucide-react'
 import { useUserQuizzes, type UserQuiz } from '@/hooks/useUserQuizzes'
 import { getTelegramUser } from '@/lib/telegram'
+import { getUserReferralCode } from '@/lib/referral'
 import { toast } from 'sonner'
 
 // Пока квизы доступны только админам
@@ -12,9 +13,18 @@ export default function QuizDashboard() {
   const navigate = useNavigate()
   const { quizzes, isLoading, createQuiz, deleteQuiz } = useUserQuizzes()
   const [isCreating, setIsCreating] = useState(false)
+  const [userRef, setUserRef] = useState<string | null>(null)
 
   const telegramUser = getTelegramUser()
   const hasAccess = telegramUser && ADMIN_IDS.includes(telegramUser.id)
+
+  useEffect(() => {
+    if (telegramUser?.id) {
+      getUserReferralCode(telegramUser.id).then((code) => {
+        if (code) setUserRef(code)
+      })
+    }
+  }, [telegramUser?.id])
 
   if (!hasAccess) {
     return (
@@ -55,7 +65,9 @@ export default function QuizDashboard() {
       toast.error('Сначала сохраните квиз')
       return
     }
-    const url = `${window.location.origin}/q/${slug}`
+    const url = userRef
+      ? `${window.location.origin}/q/${userRef}/${slug}`
+      : `${window.location.origin}/q/${slug}`
     navigator.clipboard.writeText(url)
     toast.success('Ссылка скопирована!')
   }
@@ -137,6 +149,7 @@ export default function QuizDashboard() {
               <QuizCard
                 key={quiz.id}
                 quiz={quiz}
+                userRef={userRef}
                 onEdit={() => navigate(`/tools/quiz/${quiz.id}/edit`)}
                 onLeads={() => navigate(`/tools/quiz/${quiz.id}/leads`)}
                 onCopyLink={(e) => copyLink(quiz.slug, e)}
@@ -152,12 +165,14 @@ export default function QuizDashboard() {
 
 function QuizCard({
   quiz,
+  userRef,
   onEdit,
   onLeads,
   onCopyLink,
   onDelete,
 }: {
   quiz: UserQuiz
+  userRef: string | null
   onEdit: () => void
   onLeads: () => void
   onCopyLink: (e: React.MouseEvent) => void
@@ -201,7 +216,7 @@ function QuizCard({
           </div>
 
           {quiz.slug && (
-            <p className="text-xs text-gray-400 mb-2 truncate">/q/{quiz.slug}</p>
+            <p className="text-xs text-gray-400 mb-2 truncate">/q/{userRef ? `${userRef}/` : ''}{quiz.slug}</p>
           )}
 
           {/* Metrics */}

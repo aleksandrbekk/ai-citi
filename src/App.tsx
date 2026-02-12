@@ -235,6 +235,7 @@ function AppContent() {
           <Routes>
             <Route path="/offer" element={<Offer />} />
             <Route path="/quiz/:id" element={<TakeQuiz />} />
+            <Route path="/q/:ref/:slug" element={<PublicQuiz />} />
             <Route path="/q/:slug" element={<PublicQuiz />} />
             <Route path="/carousel-designs" element={<CarouselDesignsPage />} />
             <Route path="/debug-referral" element={<DebugReferral />} />

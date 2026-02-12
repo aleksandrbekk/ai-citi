@@ -257,7 +257,7 @@ export function useUserQuizzes() {
 // usePublicQuiz — прохождение публичного квиза
 // ==========================================
 
-export function usePublicQuiz(slug: string | undefined) {
+export function usePublicQuiz(slug: string | undefined, ref?: string | undefined) {
   const [quiz, setQuiz] = useState<QuizWithQuestions | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -274,9 +274,25 @@ export function usePublicQuiz(slug: string | undefined) {
       setIsLoading(true)
       setError(null)
 
-      const { data, error: rpcError } = await supabase.rpc('nq_get_quiz_by_slug', {
-        p_slug: slug,
-      })
+      let data = null
+      let rpcError = null
+
+      if (ref) {
+        // Новый формат: /q/:ref/:slug
+        const res = await supabase.rpc('nq_get_quiz_by_ref_slug', {
+          p_ref: ref,
+          p_slug: slug,
+        })
+        data = res.data
+        rpcError = res.error
+      } else {
+        // Старый формат для обратной совместимости: /q/:slug
+        const res = await supabase.rpc('nq_get_quiz_by_slug', {
+          p_slug: slug,
+        })
+        data = res.data
+        rpcError = res.error
+      }
 
       if (cancelled) return
 
@@ -300,7 +316,7 @@ export function usePublicQuiz(slug: string | undefined) {
     load()
 
     return () => { cancelled = true }
-  }, [slug])
+  }, [slug, ref])
 
   const submitLead = useCallback(async (leadData: {
     name?: string
