@@ -730,6 +730,73 @@ function StartTab({
 }
 
 // ==========================================
+// Option image upload slot (Marquiz-style)
+// ==========================================
+
+function OptionImageSlot({ imageUrl, onImageChange }: { imageUrl: string | null | undefined; onImageChange: (url: string | null) => void }) {
+  const [isUploading, setIsUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) return
+    setIsUploading(true)
+    try {
+      const telegramUser = getTelegramUser()
+      const telegramId = telegramUser?.id || 'unknown'
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', 'carousel_unsigned')
+      formData.append('folder', `quiz-images/${telegramId}`)
+      const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData })
+      if (!response.ok) throw new Error('Upload failed')
+      const data = await response.json()
+      onImageChange(data.secure_url)
+    } catch (err) {
+      console.error('Option image upload error:', err)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  return (
+    <div className="relative group/optimg flex-shrink-0">
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); if (e.target) e.target.value = '' }} />
+      {imageUrl ? (
+        <div className="w-12 h-12 rounded-lg overflow-hidden cursor-pointer relative" onClick={() => fileRef.current?.click()}>
+          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+          {isUploading && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <Loader2 className="w-4 h-4 text-white animate-spin" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/0 group-hover/optimg:bg-black/30 transition-all flex items-center justify-center pointer-events-none">
+            <Camera className="w-4 h-4 text-white opacity-0 group-hover/optimg:opacity-100 transition-opacity" />
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onImageChange(null) }}
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover/optimg:opacity-100 transition-opacity cursor-pointer shadow-sm"
+            aria-label="Удалить фото"
+          >
+            <X className="w-3 h-3 text-white" />
+          </button>
+        </div>
+      ) : (
+        <div
+          className="w-12 h-12 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-colors"
+          onClick={() => fileRef.current?.click()}
+        >
+          {isUploading ? (
+            <Loader2 className="w-4 h-4 text-orange-400 animate-spin" />
+          ) : (
+            <ImagePlus className="w-4 h-4 text-gray-300" />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ==========================================
 // Tab 2: Вопросы
 // ==========================================
 
@@ -834,9 +901,10 @@ function QuestionsTab({
                               className="w-4 h-4 text-orange-500 cursor-pointer mt-0.5 flex-shrink-0"
                             />
 
-                            {option.option_image_url && (
-                              <img src={option.option_image_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
-                            )}
+                            <OptionImageSlot
+                              imageUrl={option.option_image_url || null}
+                              onImageChange={(url) => updateOption(qi, oi, { option_image_url: url })}
+                            />
 
                             <div className="flex-1 min-w-0">
                               <input
@@ -858,10 +926,10 @@ function QuestionsTab({
                             {question.options.length > 1 && (
                               <button
                                 onClick={() => removeOption(qi, oi)}
-                                className="p-0.5 text-gray-300 hover:text-red-400 opacity-0 group-hover/opt:opacity-100 transition-opacity cursor-pointer flex-shrink-0 mt-0.5"
+                                className="p-1 text-gray-300 hover:text-red-400 transition-colors cursor-pointer flex-shrink-0"
                                 aria-label="Удалить вариант"
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
