@@ -404,12 +404,12 @@ export default function PublicQuiz() {
         {/* Badge between options and nav */}
         {promoBadge}
 
-        {/* Bottom nav */}
-        <div className="px-4 pb-3 max-w-2xl mx-auto w-full flex items-center justify-end gap-3">
-          <button onClick={handleBack} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-300 transition-colors cursor-pointer" aria-label="Назад">
+        {/* Bottom nav — extra padding for Telegram safe area */}
+        <div className="px-4 pb-8 max-w-2xl mx-auto w-full flex items-center justify-end gap-3" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 2rem))' }}>
+          <button onClick={handleBack} className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:border-orange-300 transition-colors cursor-pointer" aria-label="Назад">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={handleNext} disabled={isNextDisabled()} className="px-6 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-full font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98] flex items-center gap-1.5">
+          <button onClick={handleNext} disabled={isNextDisabled()} className="px-7 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-full font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98] flex items-center gap-1.5 text-base">
             {nextLabel}
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
