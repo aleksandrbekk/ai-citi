@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Monitor, ExternalLink, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Plus, Trash2, ChevronUp, ChevronDown, Link2, PanelLeft, PanelRight, Smartphone, Pencil, Camera, ImagePlus, Loader2, X, Settings2, ChevronRight } from 'lucide-react'
 import { useUserQuizzes, type QuizQuestionItem, type QuizOptionItem, type ContactConfig, type ResultConfig, type ThankYouConfig } from '@/hooks/useUserQuizzes'
 import { QuizImageUpload } from '@/components/quiz/QuizImageUpload'
 import { getTelegramUser } from '@/lib/telegram'
@@ -175,7 +175,7 @@ export default function QuizEditor() {
   const [activeTab, setActiveTab] = useState<TabId>('start')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [previewMode, setPreviewMode] = useState<'hidden' | 'desktop' | 'mobile'>('hidden')
+  const [showMobile, setShowMobile] = useState(false)
 
   // Quiz data
   const [title, setTitle] = useState('')
@@ -422,7 +422,7 @@ export default function QuizEditor() {
       {/* Tab Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
         {activeTab === 'start' && (
-          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} previewMode={previewMode} setPreviewMode={setPreviewMode} />
+          <StartTab title={title} setTitle={setTitle} description={description} setDescription={setDescription} coverImageUrl={coverImageUrl} setCoverImageUrl={setCoverImageUrl} ctaText={ctaText} setCtaText={setCtaText} isPublished={isPublished} setIsPublished={setIsPublished} slug={slug} setSlug={setSlug} startLayout={startLayout} setStartLayout={setStartLayout} startAlignment={startAlignment} setStartAlignment={setStartAlignment} headerText={headerText} setHeaderText={setHeaderText} footerText={footerText} setFooterText={setFooterText} coverImageMobileUrl={coverImageMobileUrl} setCoverImageMobileUrl={setCoverImageMobileUrl} onNavigateToQuestions={() => setActiveTab('questions')} showMobile={showMobile} setShowMobile={setShowMobile} />
         )}
         {activeTab === 'questions' && (
           <QuestionsTab questions={questions} addQuestion={addQuestion} removeQuestion={removeQuestion} moveQuestion={moveQuestion} updateQuestion={updateQuestion} addOption={addOption} removeOption={removeOption} updateOption={updateOption} moveOption={moveOption} />
@@ -438,47 +438,16 @@ export default function QuizEditor() {
         )}
       </div>
 
-      {/* Floating preview — persistent across tabs */}
-      {previewMode !== 'hidden' && (
+      {/* Floating mobile preview — persistent across tabs */}
+      {showMobile && (
         <div className="fixed top-24 right-4 z-50 flex flex-col items-end gap-2">
-          {/* Close */}
-          <button type="button" onClick={() => setPreviewMode('hidden')} className="w-8 h-8 flex items-center justify-center bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer" aria-label="Закрыть">
+          <button type="button" onClick={() => setShowMobile(false)} className="w-8 h-8 flex items-center justify-center bg-gray-900 rounded-full hover:bg-gray-700 transition-colors shadow-lg cursor-pointer" aria-label="Закрыть">
             <X className="w-4 h-4 text-white" />
           </button>
-
-          {/* Preview frame */}
-          {previewMode === 'mobile' ? (
-            <div className="w-[220px] h-[420px] bg-gray-900 rounded-[36px] p-2.5 shadow-2xl">
-              <div className="w-full h-full bg-white rounded-[28px] overflow-hidden flex flex-col">
-                <div className="flex justify-center pt-2 pb-1"><div className="w-16 h-1.5 bg-gray-200 rounded-full" /></div>
-                <div className="flex-1 overflow-hidden">
-                  <PreviewContent
-                    activeTab={activeTab}
-                    title={title} description={description} ctaText={ctaText}
-                    coverImageUrl={coverImageUrl} coverImageMobileUrl={coverImageMobileUrl}
-                    headerText={headerText} footerText={footerText}
-                    questions={questions}
-                    contactConfig={contactConfig}
-                    resultConfig={resultConfig}
-                    thankYouConfig={thankYouConfig}
-                    mode="mobile"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="w-[420px] bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
-              {/* Browser chrome */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-gray-700">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                </div>
-                <div className="flex-1 px-3 py-1 bg-gray-600 rounded text-[9px] text-gray-300 truncate">{slug ? `ai-citi.ru/q/${slug}` : 'ai-citi.ru/q/...'}</div>
-              </div>
-              {/* Content */}
-              <div className="h-[360px] overflow-hidden">
+          <div className="w-[220px] h-[420px] bg-gray-900 rounded-[36px] p-2.5 shadow-2xl">
+            <div className="w-full h-full bg-white rounded-[28px] overflow-hidden flex flex-col">
+              <div className="flex justify-center pt-2 pb-1"><div className="w-16 h-1.5 bg-gray-200 rounded-full" /></div>
+              <div className="flex-1 overflow-hidden">
                 <PreviewContent
                   activeTab={activeTab}
                   title={title} description={description} ctaText={ctaText}
@@ -488,27 +457,9 @@ export default function QuizEditor() {
                   contactConfig={contactConfig}
                   resultConfig={resultConfig}
                   thankYouConfig={thankYouConfig}
-                  mode="desktop"
-                  startLayout={startLayout}
-                  startAlignment={startAlignment}
                 />
               </div>
             </div>
-          )}
-
-          {/* Mode toggle bar */}
-          <div className="flex items-center bg-gray-900 rounded-xl overflow-hidden shadow-lg">
-            <button type="button" onClick={() => setPreviewMode('desktop')} className={`p-2.5 transition-colors cursor-pointer ${previewMode === 'desktop' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`} title="Десктоп">
-              <Monitor className="w-4 h-4" />
-            </button>
-            <button type="button" onClick={() => setPreviewMode('mobile')} className={`p-2.5 transition-colors cursor-pointer ${previewMode === 'mobile' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`} title="Мобайл">
-              <Smartphone className="w-4 h-4" />
-            </button>
-            {slug && (
-              <a href={`/q/${slug}`} target="_blank" rel="noopener noreferrer" className="p-2.5 text-gray-400 hover:text-white transition-colors" title="Открыть квиз">
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            )}
           </div>
         </div>
       )}
@@ -525,7 +476,6 @@ function PreviewContent({
   coverImageUrl, coverImageMobileUrl,
   headerText, footerText,
   questions, contactConfig, resultConfig, thankYouConfig,
-  mode, startLayout, startAlignment,
 }: {
   activeTab: TabId
   title: string; description: string; ctaText: string
@@ -533,57 +483,19 @@ function PreviewContent({
   headerText: string; footerText: string
   questions: QuizQuestionItem[]
   contactConfig: ContactConfig; resultConfig: ResultConfig; thankYouConfig: ThankYouConfig
-  mode: 'desktop' | 'mobile'
-  startLayout?: StartLayout; startAlignment?: StartAlignment
 }) {
-  const isMobile = mode === 'mobile'
-  const textScale = isMobile ? 'text-[9px]' : 'text-xs'
-  const titleScale = isMobile ? 'text-sm' : 'text-base'
-  const btnScale = isMobile ? 'text-[10px] px-4 py-1.5' : 'text-xs px-5 py-2'
-  const padX = isMobile ? 'px-4' : 'px-6'
-
   if (activeTab === 'start') {
-    const image = isMobile ? (coverImageMobileUrl || coverImageUrl) : coverImageUrl
-    const layout = startLayout || 'side'
-    const alignment = startAlignment || 'image-left'
-
-    // Desktop side layout (matches public page structure)
-    if (!isMobile && layout === 'side') {
-      const isImageRight = alignment === 'image-right'
-      const imageEl = image ? (
-        <div className="w-1/2 flex-shrink-0 relative overflow-hidden">
-          <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover" />
-        </div>
-      ) : null
-      const textEl = (
-        <div className={`flex-1 flex flex-col justify-center px-5 py-4 ${!image ? 'items-center text-center' : ''}`}>
-          <h3 className={`${titleScale} font-bold text-gray-900 mb-1.5`}>{title || 'Заголовок'}</h3>
-          {description && <p className={`${textScale} text-gray-600 mb-3 leading-snug`}>{description}</p>}
-          <div><span className={`inline-block ${btnScale} bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium`}>{ctaText || 'Начать'}</span></div>
-        </div>
-      )
-      return (
-        <div className="bg-[#FFF8F5] flex flex-col h-full">
-          {headerText && <div className="px-4 py-1.5 text-[10px] text-gray-400 text-center border-b border-gray-100 bg-white/50">{headerText}</div>}
-          <div className="flex-1 flex flex-row">
-            {isImageRight ? <>{textEl}{imageEl}</> : <>{imageEl}{textEl}</>}
-          </div>
-          {footerText && <div className="px-4 py-1.5 text-[9px] text-gray-400 text-center border-t border-gray-100 bg-white/50">{footerText}</div>}
-        </div>
-      )
-    }
-
-    // Center layout (desktop) or mobile
+    const mobileImage = coverImageMobileUrl || coverImageUrl
     return (
       <div className="bg-[#FFF8F5] flex flex-col h-full">
-        {headerText && <div className={`${padX} py-1.5 ${isMobile ? 'text-[8px]' : 'text-[10px]'} text-gray-400 text-center border-b border-gray-100`}>{headerText}</div>}
-        {image && <img src={image} alt="" className={`w-full object-cover ${isMobile ? 'max-h-[140px]' : 'max-h-[180px]'}`} />}
-        <div className={`flex-1 flex flex-col items-center justify-center ${padX} py-4 text-center`}>
-          <h3 className={`${titleScale} font-bold text-gray-900 mb-1.5`}>{title || 'Заголовок'}</h3>
-          {description && <p className={`${textScale} text-gray-600 mb-3 leading-snug`}>{description}</p>}
-          <span className={`inline-block ${btnScale} bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium`}>{ctaText || 'Начать'}</span>
+        {headerText && <div className="px-3 py-1.5 text-[8px] text-gray-400 text-center border-b border-gray-100">{headerText}</div>}
+        {mobileImage && <img src={mobileImage} alt="" className="w-full object-cover max-h-[140px]" />}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 text-center">
+          <h3 className="text-sm font-bold text-gray-900 mb-1.5">{title || 'Заголовок'}</h3>
+          {description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{description}</p>}
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium">{ctaText || 'Начать'}</span>
         </div>
-        {footerText && <div className={`${padX} py-1.5 ${isMobile ? 'text-[7px]' : 'text-[9px]'} text-gray-300 text-center border-t border-gray-100`}>{footerText}</div>}
+        {footerText && <div className="px-3 py-1.5 text-[7px] text-gray-300 text-center border-t border-gray-100">{footerText}</div>}
       </div>
     )
   }
@@ -591,59 +503,59 @@ function PreviewContent({
   if (activeTab === 'questions') {
     const q = questions[0]
     return (
-      <div className={`bg-[#FFF8F5] flex flex-col h-full ${padX} py-4`}>
+      <div className="bg-[#FFF8F5] flex flex-col h-full px-4 py-4">
         {questions.length > 0 && q ? (
           <>
-            <p className={`${isMobile ? 'text-[9px]' : 'text-[11px]'} text-gray-400 mb-2`}>Вопрос 1/{questions.length}</p>
-            {q.question_image_url && <img src={q.question_image_url} alt="" className={`w-full ${isMobile ? 'h-20' : 'h-28'} object-cover rounded-lg mb-2`} />}
-            <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-900 mb-3`}>{q.question_text || 'Текст вопроса'}</h3>
+            <p className="text-[9px] text-gray-400 mb-2">Вопрос 1/{questions.length}</p>
+            {q.question_image_url && <img src={q.question_image_url} alt="" className="w-full h-20 object-cover rounded-lg mb-2" />}
+            <h3 className="text-xs font-bold text-gray-900 mb-3">{q.question_text || 'Текст вопроса'}</h3>
             <div className="space-y-1.5">
               {q.options.slice(0, 4).map((o, i) => (
-                <div key={i} className={`px-3 py-2 bg-white border border-gray-200 rounded-lg ${textScale} text-gray-700`}>{o.option_text || `Вариант ${i + 1}`}</div>
+                <div key={i} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-700">{o.option_text || `Вариант ${i + 1}`}</div>
               ))}
             </div>
           </>
         ) : (
-          <div className={`flex-1 flex items-center justify-center text-gray-300 ${textScale}`}>Нет вопросов</div>
+          <div className="flex-1 flex items-center justify-center text-gray-300 text-xs">Нет вопросов</div>
         )}
       </div>
     )
   }
 
   if (activeTab === 'contacts') {
-    if (!contactConfig.enabled) return <div className={`bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 ${textScale} p-4`}>Форма контактов отключена</div>
+    if (!contactConfig.enabled) return <div className="bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 text-xs p-4">Форма контактов отключена</div>
     return (
-      <div className={`bg-[#FFF8F5] flex flex-col h-full ${padX} py-4`}>
-        <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-900 mb-1 text-center`}>{contactConfig.title}</h3>
-        <p className={`${textScale} text-gray-500 mb-3 text-center`}>{contactConfig.description}</p>
+      <div className="bg-[#FFF8F5] flex flex-col h-full px-4 py-4">
+        <h3 className="text-xs font-bold text-gray-900 mb-1 text-center">{contactConfig.title}</h3>
+        <p className="text-[9px] text-gray-500 mb-3 text-center">{contactConfig.description}</p>
         <div className="space-y-1.5">
           {(['name', 'phone', 'telegram', 'email'] as const).filter(f => contactConfig.fields[f].enabled).map((f) => (
-            <div key={f} className={`px-3 py-2 bg-white border border-gray-200 rounded-lg ${textScale} text-gray-400`}>{contactConfig.fields[f].label}</div>
+            <div key={f} className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-[10px] text-gray-400">{contactConfig.fields[f].label}</div>
           ))}
         </div>
-        <div className={`mt-3 ${btnScale} bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium text-center`}>Отправить</div>
+        <div className="mt-3 px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium text-center">Отправить</div>
       </div>
     )
   }
 
   if (activeTab === 'results') {
-    if (!resultConfig.enabled) return <div className={`bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 ${textScale} p-4`}>Страница результата отключена</div>
+    if (!resultConfig.enabled) return <div className="bg-[#FFF8F5] flex-1 flex items-center justify-center text-gray-300 text-xs p-4">Страница результата отключена</div>
     return (
-      <div className={`bg-[#FFF8F5] flex flex-col h-full items-center justify-center ${padX} py-4 text-center`}>
-        {resultConfig.image_url && <img src={resultConfig.image_url} alt="" className={`${isMobile ? 'w-20 h-20' : 'w-24 h-24'} rounded-xl object-cover mb-2`} />}
-        <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-900 mb-1`}>{resultConfig.title}</h3>
-        {resultConfig.description && <p className={`${textScale} text-gray-600 leading-snug`}>{resultConfig.description}</p>}
+      <div className="bg-[#FFF8F5] flex flex-col h-full items-center justify-center px-4 py-4 text-center">
+        {resultConfig.image_url && <img src={resultConfig.image_url} alt="" className="w-20 h-20 rounded-xl object-cover mb-2" />}
+        <h3 className="text-xs font-bold text-gray-900 mb-1">{resultConfig.title}</h3>
+        {resultConfig.description && <p className="text-[9px] text-gray-600 leading-snug">{resultConfig.description}</p>}
       </div>
     )
   }
 
   // thanks
   return (
-    <div className={`bg-[#FFF8F5] flex flex-col h-full items-center justify-center ${padX} py-4 text-center`}>
-      <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-900 mb-1`}>{thankYouConfig.title}</h3>
-      {thankYouConfig.description && <p className={`${textScale} text-gray-600 mb-3 leading-snug`}>{thankYouConfig.description}</p>}
+    <div className="bg-[#FFF8F5] flex flex-col h-full items-center justify-center px-4 py-4 text-center">
+      <h3 className="text-xs font-bold text-gray-900 mb-1">{thankYouConfig.title}</h3>
+      {thankYouConfig.description && <p className="text-[9px] text-gray-600 mb-3 leading-snug">{thankYouConfig.description}</p>}
       {thankYouConfig.cta_text && (
-        <span className={`inline-block ${btnScale} bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium`}>{thankYouConfig.cta_text}</span>
+        <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg text-[10px] font-medium">{thankYouConfig.cta_text}</span>
       )}
     </div>
   )
@@ -664,7 +576,7 @@ function StartTab({
   footerText, setFooterText,
   coverImageMobileUrl, setCoverImageMobileUrl,
   onNavigateToQuestions,
-  previewMode, setPreviewMode,
+  showMobile, setShowMobile,
 }: {
   title: string; setTitle: (v: string) => void
   description: string; setDescription: (v: string) => void
@@ -678,7 +590,7 @@ function StartTab({
   footerText: string; setFooterText: (v: string) => void
   coverImageMobileUrl: string | null; setCoverImageMobileUrl: (v: string | null) => void
   onNavigateToQuestions: () => void
-  previewMode: 'hidden' | 'desktop' | 'mobile'; setPreviewMode: (v: 'hidden' | 'desktop' | 'mobile') => void
+  showMobile: boolean; setShowMobile: (v: boolean) => void
 }) {
   const [showSettings, setShowSettings] = useState(false)
 
@@ -779,9 +691,9 @@ function StartTab({
               </div>
             </div>
           )}
-          {/* Preview toggle */}
-          <button type="button" onClick={() => setPreviewMode(previewMode === 'hidden' ? 'desktop' : 'hidden')} className={`ml-auto p-2 rounded-lg transition-colors cursor-pointer ${previewMode !== 'hidden' ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`} title="Предпросмотр">
-            <Eye className="w-4 h-4" />
+          {/* Mobile preview toggle */}
+          <button type="button" onClick={() => setShowMobile(!showMobile)} className={`ml-auto p-2 rounded-lg transition-colors cursor-pointer ${showMobile ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-100'}`} title="Мобильная версия">
+            <Smartphone className="w-4 h-4" />
           </button>
         </div>
       </div>
