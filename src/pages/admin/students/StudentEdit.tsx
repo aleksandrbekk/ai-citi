@@ -6,12 +6,13 @@ import {
   useAllModulesWithLessons,
   useStudentLessonUnlocks,
   useStudentHwStatuses,
+  useStudentSubmissions,
   useToggleLessonUnlock,
   useBulkToggleLessonUnlocks
 } from '../../../hooks/admin/useStudents'
 import { supabase } from '../../../lib/supabase'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { Switch } from '../../../components/ui/switch'
 import { toast } from 'sonner'
 
@@ -26,6 +27,7 @@ export function StudentEdit() {
   const { data: courseData, isLoading: courseLoading } = useAllModulesWithLessons()
   const { data: lessonUnlocks, isLoading: unlocksLoading } = useStudentLessonUnlocks(id || '')
   const { data: hwStatuses, isLoading: hwLoading } = useStudentHwStatuses(id || '')
+  const { data: studentSubmissions, isLoading: submissionsLoading } = useStudentSubmissions(id || '')
   const toggleUnlock = useToggleLessonUnlock()
   const bulkToggle = useBulkToggleLessonUnlocks()
 
@@ -404,6 +406,126 @@ export function StudentEdit() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Секция: Домашние задания ученика */}
+      <div className="mt-6 bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-6 shadow-sm">
+        <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 mb-4">
+          <FileText size={20} />
+          Домашние задания
+          {studentSubmissions && studentSubmissions.length > 0 && (
+            <span className="text-sm font-normal text-gray-400">({studentSubmissions.length})</span>
+          )}
+        </h2>
+
+        {submissionsLoading ? (
+          <div className="text-center py-8 text-gray-400">Загрузка ДЗ...</div>
+        ) : !studentSubmissions || studentSubmissions.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">Ученик ещё не отправлял ДЗ</div>
+        ) : (
+          <div className="space-y-4">
+            {studentSubmissions.map((sub: any) => (
+              <div key={sub.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                {/* Заголовок ДЗ */}
+                <div className="flex items-center gap-3 p-4 bg-gray-50">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    sub.status === 'approved' ? 'bg-green-100 text-green-600' :
+                    sub.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+                    sub.status === 'rejected' ? 'bg-red-100 text-red-500' :
+                    'bg-gray-100 text-gray-400'
+                  }`}>
+                    {sub.status === 'approved' ? <CheckCircle2 size={16} /> :
+                     sub.status === 'pending' ? <Clock size={16} /> :
+                     <XCircle size={16} />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">{sub.lesson_title}</div>
+                    <div className="text-xs text-gray-500">{sub.module_title}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      sub.status === 'approved' ? 'bg-green-100 text-green-600' :
+                      sub.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+                      'bg-red-100 text-red-500'
+                    }`}>
+                      {sub.status === 'approved' ? 'Зачёт' :
+                       sub.status === 'pending' ? 'На проверке' : 'Незачёт'}
+                    </span>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {new Date(sub.created_at).toLocaleDateString('ru-RU')}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Содержимое ДЗ */}
+                <div className="p-4 space-y-3">
+                  {/* Текстовый ответ */}
+                  {sub.answer_text && (
+                    <div className="bg-gray-50 border border-gray-100 rounded-lg p-3">
+                      <p className="text-xs text-gray-400 mb-1">Ответ:</p>
+                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{sub.answer_text}</p>
+                    </div>
+                  )}
+
+                  {/* Ответы на квиз */}
+                  {sub.quiz_answers && sub.quizData && Object.keys(sub.quiz_answers).length > 0 && (
+                    <div className="bg-gray-50 border border-gray-100 rounded-lg p-3">
+                      <p className="text-xs text-gray-400 mb-2">Ответы на тест:</p>
+                      <div className="space-y-2">
+                        {Object.entries(sub.quiz_answers).map(([questionId, optionIds]: [string, any]) => {
+                          const question = sub.quizData.questions?.find((q: any) => q.id === questionId)
+                          const selectedOptions = sub.quizData.options?.filter((o: any) => optionIds.includes(o.id))
+                          return (
+                            <div key={questionId} className="border-l-2 border-orange-200 pl-3">
+                              <p className="text-xs font-medium text-gray-700 mb-1">{question?.question || 'Вопрос'}</p>
+                              {selectedOptions?.map((opt: any) => (
+                                <p key={opt.id} className={`text-xs ${opt.is_correct ? 'text-green-600' : 'text-red-500'}`}>
+                                  {opt.option_text} {opt.is_correct ? '✓' : '✗'}
+                                </p>
+                              ))}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Комментарий куратора */}
+                  {sub.curator_comment && (
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
+                      <p className="text-xs text-orange-400 mb-1">Комментарий куратора:</p>
+                      <p className="text-sm text-gray-900 whitespace-pre-wrap">{sub.curator_comment}</p>
+                    </div>
+                  )}
+
+                  {/* Файлы */}
+                  {sub.answer_files && sub.answer_files.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {sub.answer_files.map((file: string, idx: number) => (
+                        <a
+                          key={idx}
+                          href={file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-orange-500 hover:text-orange-600 underline"
+                        >
+                          Файл {idx + 1}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Дата проверки */}
+                  {sub.reviewed_at && (
+                    <p className="text-xs text-gray-400">
+                      Проверено: {new Date(sub.reviewed_at).toLocaleString('ru-RU')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

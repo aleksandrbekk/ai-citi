@@ -360,6 +360,69 @@ export function useBulkToggleLessonUnlocks() {
   })
 }
 
+export function useStudentSubmissions(userId: string) {
+  return useQuery({
+    queryKey: ['student-submissions', userId],
+    queryFn: async () => {
+      const { data: submissions, error } = await supabase
+        .from('homework_submissions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      if (!submissions || submissions.length === 0) return []
+
+      const lessonIds = [...new Set(submissions.map(s => s.lesson_id))]
+      const { data: lessons } = await supabase
+        .from('course_lessons')
+        .select('id, title, order_index, module_id')
+        .in('id', lessonIds)
+
+      const moduleIds = [...new Set(lessons?.map(l => l.module_id) || [])]
+      const { data: modules } = await supabase
+        .from('course_modules')
+        .select('id, title')
+        .in('id', moduleIds)
+
+      // Загружаем данные квизов если есть
+      const enriched = await Promise.all(submissions.map(async (sub: any) => {
+        const lesson = lessons?.find(l => l.id === sub.lesson_id)
+        const module = modules?.find(m => m.id === lesson?.module_id)
+
+        const enrichedSub: any = {
+          ...sub,
+          lesson_title: lesson?.title || 'Неизвестный урок',
+          lesson_order: lesson?.order_index,
+          module_title: module?.title || 'Неизвестный модуль',
+        }
+
+        if (sub.quiz_answers && Object.keys(sub.quiz_answers).length > 0) {
+          const questionIds = Object.keys(sub.quiz_answers)
+          const { data: questions } = await supabase
+            .from('lesson_quizzes')
+            .select('id, question')
+            .in('id', questionIds)
+
+          const allOptionIds = Object.values(sub.quiz_answers).flat() as string[]
+          if (allOptionIds.length > 0) {
+            const { data: options } = await supabase
+              .from('quiz_options')
+              .select('id, option_text, is_correct')
+              .in('id', allOptionIds)
+            enrichedSub.quizData = { questions: questions || [], options: options || [] }
+          }
+        }
+
+        return enrichedSub
+      }))
+
+      return enriched
+    },
+    enabled: !!userId
+  })
+}
+
 export function useCreateStudent() {
   const queryClient = useQueryClient()
 
