@@ -53,6 +53,7 @@ import Chat from './pages/Chat'
 import PaymentSuccess from './pages/PaymentSuccess'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import MlmLager from './pages/MlmLager'
 import DataDeletion from './pages/DataDeletion'
 
 // Lazy Loading - тяжёлые страницы грузятся по требованию
@@ -152,7 +153,7 @@ function AppContent() {
   usePromoCode()
 
   // Проверяем, является ли текущий путь страницей прохождения квиза или просмотра дизайнов
-  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/q/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral' || location.pathname === '/payment-success' || location.pathname === '/privacy' || location.pathname === '/terms' || location.pathname === '/data-deletion'
+  const isPublicPage = location.pathname.startsWith('/quiz/') || location.pathname.startsWith('/q/') || location.pathname.startsWith('/carousel-designs') || location.pathname === '/offer' || location.pathname === '/debug-referral' || location.pathname === '/payment-success' || location.pathname === '/privacy' || location.pathname === '/terms' || location.pathname === '/mlmlager' || location.pathname === '/data-deletion'
 
   useEffect(() => {
     expandWebApp()
@@ -243,6 +244,7 @@ function AppContent() {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/mlmlager" element={<MlmLager />} />
             <Route path="/data-deletion" element={<DataDeletion />} />
           </Routes>
         </Suspense>
