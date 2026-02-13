@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight, Lock, Star, Clock, Mail, GraduationCap, ClipboardCheck } from 'lucide-react'
-import { getUserTariffsById, getUserTariffWithExpiry, checkIsCurator, supabase } from '@/lib/supabase'
+import { ChevronRight, Lock, Star, Clock, Mail, GraduationCap, ClipboardCheck, UserCheck } from 'lucide-react'
+import { getUserTariffsById, getUserTariffWithExpiry, checkIsCurator, getCuratorSupportInfo, supabase } from '@/lib/supabase'
 import { useFeatureAccess, FEATURES } from '@/hooks/useSubscription'
 import { motion } from 'framer-motion'
 
@@ -16,6 +16,11 @@ export default function SchoolIndex() {
   const [savingEmail, setSavingEmail] = useState(false)
   const [emailChecked, setEmailChecked] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [curatorSupport, setCuratorSupport] = useState<{
+    curatorName: string | null
+    startedAt: string | null
+    tariffSlug: string
+  } | null>(null)
 
   // Проверка подписки PRO/ELITE
   const { data: academyAccess, isLoading: isLoadingAccess } = useFeatureAccess(FEATURES.AI_ACADEMY)
@@ -54,6 +59,15 @@ export default function SchoolIndex() {
           const curator = await checkIsCurator(userData.id)
           setIsCurator(curator)
         }
+        // Загружаем инфо о кураторской поддержке
+        const supportInfo = await getCuratorSupportInfo(telegramId)
+        if (supportInfo?.curator_id && supportInfo?.curator_started_at) {
+          setCuratorSupport({
+            curatorName: supportInfo.curator_name,
+            startedAt: supportInfo.curator_started_at,
+            tariffSlug: supportInfo.tariff_slug,
+          })
+        }
         setEmailChecked(true)
       }
       checkUserData()
@@ -69,9 +83,15 @@ export default function SchoolIndex() {
   const tariffSlug = userTariffs.includes('platinum') ? 'platinum' :
     userTariffs.includes('standard') ? 'standard' : null
 
-  // Вычисляем оставшиеся дни
+  // Вычисляем оставшиеся дни доступа
   const daysLeft = tariffExpiry
     ? Math.ceil((new Date(tariffExpiry).getTime() - Date.now()) / 86400000)
+    : null
+
+  // Вычисляем оставшиеся дни куратора
+  const curatorDaysTotal = curatorSupport?.tariffSlug === 'platinum' ? 90 : 30
+  const curatorDaysLeft = curatorSupport?.startedAt
+    ? Math.max(0, curatorDaysTotal - Math.floor((Date.now() - new Date(curatorSupport.startedAt).getTime()) / 86400000))
     : null
 
   // Доступ есть если: подписка PRO/ELITE ИЛИ куплен курс ИЛИ куратор
@@ -285,6 +305,43 @@ export default function SchoolIndex() {
                 </div>
               )}
             </Link>
+          </motion.div>
+        )}
+
+        {/* Счётчик дней куратора */}
+        {curatorSupport && curatorDaysLeft !== null && (
+          <motion.div custom={1} initial="hidden" animate="visible" variants={cardVariants}>
+            <div className="p-5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-50 to-cyan-100 flex items-center justify-center shadow-sm">
+                  <UserCheck className="w-5 h-5 text-cyan-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-base text-cyan-600">Куратор</div>
+                  <div className="text-sm text-gray-400">
+                    {curatorSupport.curatorName || 'Назначен'}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      curatorDaysLeft > 14 ? 'bg-gradient-to-r from-cyan-400 to-cyan-500' :
+                      curatorDaysLeft > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
+                      'bg-red-400'
+                    }`}
+                    style={{ width: `${Math.max(0, Math.min(100, (curatorDaysLeft / curatorDaysTotal) * 100))}%` }}
+                  />
+                </div>
+                <div className={`flex items-center gap-1 text-xs mt-2 ${
+                  curatorDaysLeft > 7 ? 'text-gray-400' : curatorDaysLeft > 0 ? 'text-amber-500' : 'text-red-500'
+                }`}>
+                  <Clock className="w-3 h-3" />
+                  {curatorDaysLeft > 0 ? `Поддержка: ${curatorDaysLeft} дн.` : 'Поддержка куратора завершена'}
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 

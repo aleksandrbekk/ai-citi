@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { lesson_id, user_telegram_id, answer_text, quiz_answers } = await req.json()
+    const { lesson_id, user_telegram_id, user_id, answer_text, quiz_answers } = await req.json()
 
     if (!lesson_id) {
       return new Response(
@@ -95,7 +95,43 @@ serve(async (req) => {
       answerPart +
       `\n\n🕐 ${now} МСК`
 
-    // Отправляем уведомление админу
+    // Определяем куратора ученика
+    let curatorChatId: number | null = null
+    if (user_id) {
+      const { data: tariff } = await supabase
+        .from('user_tariffs')
+        .select('curator_id')
+        .eq('user_id', user_id)
+        .eq('is_active', true)
+        .single()
+
+      if (tariff?.curator_id) {
+        const { data: curatorUser } = await supabase
+          .from('users')
+          .select('telegram_id')
+          .eq('id', tariff.curator_id)
+          .single()
+
+        if (curatorUser?.telegram_id) {
+          curatorChatId = curatorUser.telegram_id
+        }
+      }
+    }
+
+    // Отправляем уведомление куратору (если назначен и это не админ)
+    if (curatorChatId && curatorChatId !== ADMIN_CHAT_ID) {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: curatorChatId,
+          text,
+          parse_mode: 'HTML',
+        }),
+      })
+    }
+
+    // Отправляем уведомление админу (всегда)
     const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

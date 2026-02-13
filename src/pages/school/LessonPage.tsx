@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework, useModules } from '@/hooks/useCourse'
 import { FileText, ExternalLink, Send, Lock, List, CheckCircle2, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
-import { getUserTariffsById } from '@/lib/supabase'
+import { getUserTariffsById, setCuratorStartedIfNeeded } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/uiStore'
@@ -480,12 +480,20 @@ export default function LessonPage() {
     queryClient.invalidateQueries({ queryKey: ['all-hw-statuses'] })
     queryClient.invalidateQueries({ queryKey: ['my-lesson-overrides'] })
 
-    // Уведомление админу о новом ДЗ
+    // Установить дату начала кураторства (при первом ДЗ)
+    try {
+      await setCuratorStartedIfNeeded(userId)
+    } catch (e) {
+      console.error('setCuratorStarted error:', e)
+    }
+
+    // Уведомление куратору/админу о новом ДЗ
     try {
       await supabase.functions.invoke('homework-notify', {
         body: {
           lesson_id: lessonId,
           user_telegram_id: telegramId,
+          user_id: userId,
           answer_text: homeworkAnswer,
           quiz_answers: selectedAnswers,
         },

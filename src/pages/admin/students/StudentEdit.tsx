@@ -11,7 +11,7 @@ import {
   useBulkToggleLessonUnlocks
 } from '../../../hooks/admin/useStudents'
 import { supabase } from '../../../lib/supabase'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { Switch } from '../../../components/ui/switch'
 import { toast } from 'sonner'
@@ -33,9 +33,28 @@ export function StudentEdit() {
 
   const [tariffSlug, setTariffSlug] = useState('standard')
   const [expiresAt, setExpiresAt] = useState('')
+  const [curatorId, setCuratorId] = useState<string | null>(null)
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [showAccess, setShowAccess] = useState(false)
   const [showHomework, setShowHomework] = useState(false)
+
+  // Загружаем список кураторов
+  const { data: availableCurators } = useQuery({
+    queryKey: ['available-curators'],
+    queryFn: async () => {
+      const { data: curators } = await supabase
+        .from('curators')
+        .select('user_id')
+        .eq('is_active', true)
+      if (!curators || curators.length === 0) return []
+      const userIds = curators.map(c => c.user_id)
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, first_name, last_name, username')
+        .in('id', userIds)
+      return users || []
+    }
+  })
 
   useEffect(() => {
     if (data?.tariff) {
@@ -45,9 +64,11 @@ export function StudentEdit() {
           ? new Date(data.tariff.expires_at).toISOString().slice(0, 10)
           : ''
       )
+      setCuratorId(data.tariff.curator_id || null)
     } else {
       setTariffSlug('standard')
       setExpiresAt('')
+      setCuratorId(null)
     }
   }, [data])
 
@@ -90,7 +111,8 @@ export function StudentEdit() {
           .from('user_tariffs')
           .update({
             tariff_slug: tariffSlug,
-            expires_at: expiresAt || null
+            expires_at: expiresAt || null,
+            curator_id: curatorId || null
           })
           .eq('id', existingTariff.id)
         error = updateError
@@ -101,7 +123,8 @@ export function StudentEdit() {
             user_id: id,
             tariff_slug: tariffSlug,
             expires_at: expiresAt || null,
-            is_active: true
+            is_active: true,
+            curator_id: curatorId || null
           })
         error = insertError
       }
@@ -264,6 +287,22 @@ export function StudentEdit() {
                 >
                   <option value="standard">Standard</option>
                   <option value="platinum">Platinum</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Куратор</label>
+                <select
+                  value={curatorId || ''}
+                  onChange={(e) => setCuratorId(e.target.value || null)}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                >
+                  <option value="">Без куратора</option>
+                  {availableCurators?.map((c: { id: string; first_name: string | null; last_name: string | null; username: string | null }) => (
+                    <option key={c.id} value={c.id}>
+                      {[c.first_name, c.last_name].filter(Boolean).join(' ') || 'Без имени'} {c.username ? `(@${c.username})` : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
 

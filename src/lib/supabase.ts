@@ -1074,3 +1074,107 @@ export async function deleteCoachSession(telegramId: number, sessionId: string):
   }
   return !!data
 }
+
+// ===========================================
+// КУРАТОРСКАЯ СИСТЕМА
+// ===========================================
+
+export interface CuratorSupportInfo {
+  curator_id: string | null
+  curator_started_at: string | null
+  curator_name: string | null
+  tariff_slug: string
+}
+
+export async function getCuratorSupportInfo(telegramId: number): Promise<CuratorSupportInfo | null> {
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+  if (!user) return null
+
+  const { data: tariff } = await supabase
+    .from('user_tariffs')
+    .select('curator_id, curator_started_at, tariff_slug')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .single()
+  if (!tariff) return null
+
+  let curatorName: string | null = null
+  if (tariff.curator_id) {
+    const { data: curator } = await supabase
+      .from('users')
+      .select('first_name, last_name')
+      .eq('id', tariff.curator_id)
+      .single()
+    if (curator) {
+      curatorName = [curator.first_name, curator.last_name].filter(Boolean).join(' ') || null
+    }
+  }
+
+  return {
+    curator_id: tariff.curator_id,
+    curator_started_at: tariff.curator_started_at,
+    curator_name: curatorName,
+    tariff_slug: tariff.tariff_slug,
+  }
+}
+
+export interface CuratorStudent {
+  user_id: string
+  first_name: string | null
+  last_name: string | null
+  username: string | null
+  telegram_id: number
+  tariff_slug: string
+  curator_started_at: string | null
+  expires_at: string | null
+}
+
+export async function getCuratorStudents(curatorUserId: string): Promise<CuratorStudent[]> {
+  const { data: tariffs } = await supabase
+    .from('user_tariffs')
+    .select('user_id, tariff_slug, curator_started_at, expires_at')
+    .eq('curator_id', curatorUserId)
+    .eq('is_active', true)
+
+  if (!tariffs || tariffs.length === 0) return []
+
+  const userIds = tariffs.map(t => t.user_id)
+  const { data: users } = await supabase
+    .from('users')
+    .select('id, first_name, last_name, username, telegram_id')
+    .in('id', userIds)
+
+  return tariffs.map(t => {
+    const user = users?.find(u => u.id === t.user_id)
+    return {
+      user_id: t.user_id,
+      first_name: user?.first_name || null,
+      last_name: user?.last_name || null,
+      username: user?.username || null,
+      telegram_id: user?.telegram_id || 0,
+      tariff_slug: t.tariff_slug,
+      curator_started_at: t.curator_started_at,
+      expires_at: t.expires_at,
+    }
+  })
+}
+
+export async function setCuratorStartedIfNeeded(userId: string): Promise<void> {
+  const { data: tariff } = await supabase
+    .from('user_tariffs')
+    .select('id, curator_started_at, curator_id')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .single()
+
+  if (tariff && tariff.curator_id && !tariff.curator_started_at) {
+    await supabase
+      .from('user_tariffs')
+      .update({ curator_started_at: new Date().toISOString() })
+      .eq('id', tariff.id)
+  }
+}
