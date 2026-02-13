@@ -1083,6 +1083,7 @@ export interface CuratorSupportInfo {
   curator_id: string | null
   curator_started_at: string | null
   curator_name: string | null
+  curator_username: string | null
   tariff_slug: string
 }
 
@@ -1103,14 +1104,16 @@ export async function getCuratorSupportInfo(telegramId: number): Promise<Curator
   if (!tariff) return null
 
   let curatorName: string | null = null
+  let curatorUsername: string | null = null
   if (tariff.curator_id) {
     const { data: curator } = await supabase
       .from('users')
-      .select('first_name, last_name')
+      .select('first_name, last_name, username')
       .eq('id', tariff.curator_id)
       .single()
     if (curator) {
       curatorName = [curator.first_name, curator.last_name].filter(Boolean).join(' ') || null
+      curatorUsername = curator.username || null
     }
   }
 
@@ -1118,6 +1121,7 @@ export async function getCuratorSupportInfo(telegramId: number): Promise<Curator
     curator_id: tariff.curator_id,
     curator_started_at: tariff.curator_started_at,
     curator_name: curatorName,
+    curator_username: curatorUsername,
     tariff_slug: tariff.tariff_slug,
   }
 }

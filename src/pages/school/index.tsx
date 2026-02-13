@@ -18,6 +18,7 @@ export default function SchoolIndex() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [curatorSupport, setCuratorSupport] = useState<{
     curatorName: string | null
+    curatorUsername: string | null
     startedAt: string | null
     tariffSlug: string
   } | null>(null)
@@ -61,9 +62,10 @@ export default function SchoolIndex() {
         }
         // Загружаем инфо о кураторской поддержке
         const supportInfo = await getCuratorSupportInfo(telegramId)
-        if (supportInfo?.curator_id && supportInfo?.curator_started_at) {
+        if (supportInfo?.curator_id) {
           setCuratorSupport({
             curatorName: supportInfo.curator_name,
+            curatorUsername: supportInfo.curator_username,
             startedAt: supportInfo.curator_started_at,
             tariffSlug: supportInfo.tariff_slug,
           })
@@ -260,87 +262,104 @@ export default function SchoolIndex() {
           </motion.div>
         )}
 
-        {/* Курс (купленный) */}
+        {/* Курс (купленный) + куратор в одной карточке */}
         {tariffSlug && (
           <motion.div custom={hasSubscriptionAccess && !tariffSlug ? 1 : 0} initial="hidden" animate="visible" variants={cardVariants}>
-            <Link
-              to={`/school/${tariffSlug}`}
-              className="block p-5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-orange-200 active:scale-[0.98] transition-all duration-200"
-            >
-              {/* Верхняя часть: иконка + название + стрелка */}
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shadow-sm">
-                  <GraduationCap className="w-5 h-5 text-orange-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-base text-orange-500">{tariffName}</div>
-                  <div className="text-sm text-gray-400">
-                    {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
+            <div className="rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm overflow-hidden">
+              {/* Тариф — кликабельная часть */}
+              <Link
+                to={`/school/${tariffSlug}`}
+                className="block p-5 hover:bg-gray-50/50 active:scale-[0.99] transition-all duration-200"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shadow-sm">
+                    <GraduationCap className="w-5 h-5 text-orange-500" />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-base text-orange-500">{tariffName}</div>
+                    <div className="text-sm text-gray-400">
+                      {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
-              </div>
 
-              {/* Статус доступа */}
-              {daysLeft !== null ? (
-                <div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${daysLeft > 14 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
-                          daysLeft > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
-                            'bg-red-400'
-                        }`}
-                      style={{ width: `${Math.max(0, Math.min(100, (daysLeft / 90) * 100))}%` }}
-                    />
+                {daysLeft !== null ? (
+                  <div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${daysLeft > 14 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
+                            daysLeft > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
+                              'bg-red-400'
+                          }`}
+                        style={{ width: `${Math.max(0, Math.min(100, (daysLeft / 90) * 100))}%` }}
+                      />
+                    </div>
+                    <div className={`flex items-center gap-1 text-xs mt-2 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                      <Clock className="w-3 h-3" />
+                      {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
+                    </div>
                   </div>
-                  <div className={`flex items-center gap-1 text-xs mt-2 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                ) : (
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
                     <Clock className="w-3 h-3" />
-                    {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
+                    Бессрочный доступ
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <Clock className="w-3 h-3" />
-                  Бессрочный доступ
+                )}
+              </Link>
+
+              {/* Куратор — внутри той же карточки */}
+              {curatorSupport && (
+                <div className="border-t border-gray-100 px-5 py-4">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100 flex items-center justify-center">
+                      <UserCheck className="w-4 h-4 text-cyan-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-cyan-600">Куратор</div>
+                      {curatorSupport.curatorUsername ? (
+                        <a
+                          href={`https://t.me/${curatorSupport.curatorUsername}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-sm text-cyan-500 hover:text-cyan-600 underline underline-offset-2"
+                        >
+                          @{curatorSupport.curatorUsername}
+                        </a>
+                      ) : (
+                        <div className="text-sm text-gray-400">{curatorSupport.curatorName || 'Назначен'}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {curatorDaysLeft !== null ? (
+                    <div>
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            curatorDaysLeft > 14 ? 'bg-gradient-to-r from-cyan-400 to-cyan-500' :
+                            curatorDaysLeft > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
+                            'bg-red-400'
+                          }`}
+                          style={{ width: `${Math.max(0, Math.min(100, (curatorDaysLeft / curatorDaysTotal) * 100))}%` }}
+                        />
+                      </div>
+                      <div className={`flex items-center gap-1 text-xs mt-1.5 ${
+                        curatorDaysLeft > 7 ? 'text-gray-400' : curatorDaysLeft > 0 ? 'text-amber-500' : 'text-red-500'
+                      }`}>
+                        <Clock className="w-3 h-3" />
+                        {curatorDaysLeft > 0 ? `Поддержка: ${curatorDaysLeft} дн.` : 'Поддержка куратора завершена'}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <Clock className="w-3 h-3" />
+                      Поддержка начнётся после первого ДЗ
+                    </div>
+                  )}
                 </div>
               )}
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Счётчик дней куратора */}
-        {curatorSupport && curatorDaysLeft !== null && (
-          <motion.div custom={1} initial="hidden" animate="visible" variants={cardVariants}>
-            <div className="p-5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-50 to-cyan-100 flex items-center justify-center shadow-sm">
-                  <UserCheck className="w-5 h-5 text-cyan-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-base text-cyan-600">Куратор</div>
-                  <div className="text-sm text-gray-400">
-                    {curatorSupport.curatorName || 'Назначен'}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      curatorDaysLeft > 14 ? 'bg-gradient-to-r from-cyan-400 to-cyan-500' :
-                      curatorDaysLeft > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
-                      'bg-red-400'
-                    }`}
-                    style={{ width: `${Math.max(0, Math.min(100, (curatorDaysLeft / curatorDaysTotal) * 100))}%` }}
-                  />
-                </div>
-                <div className={`flex items-center gap-1 text-xs mt-2 ${
-                  curatorDaysLeft > 7 ? 'text-gray-400' : curatorDaysLeft > 0 ? 'text-amber-500' : 'text-red-500'
-                }`}>
-                  <Clock className="w-3 h-3" />
-                  {curatorDaysLeft > 0 ? `Поддержка: ${curatorDaysLeft} дн.` : 'Поддержка куратора завершена'}
-                </div>
-              </div>
             </div>
           </motion.div>
         )}
