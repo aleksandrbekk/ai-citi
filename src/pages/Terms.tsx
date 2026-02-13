@@ -1,123 +1,237 @@
 export default function Terms() {
   return (
-    <div className="min-h-screen bg-white px-6 py-12 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Пользовательское соглашение</h1>
-      <p className="text-sm text-gray-500 mb-6">Последнее обновление: 5 февраля 2026 г.</p>
+    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F5] via-white to-[#FFF8F5]">
+      <div className="max-w-2xl mx-auto px-5 py-10">
+        {/* Заголовок */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-lg mb-4">
+            <span className="text-2xl text-white">📋</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Пользовательское соглашение</h1>
+          <p className="text-sm text-gray-400 mt-2">Последнее обновление: 12 февраля 2026 г.</p>
+        </div>
 
-      <div className="space-y-6 text-gray-700 leading-relaxed">
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Общие положения</h2>
-          <p>
-            Настоящее Пользовательское соглашение (далее — «Соглашение») регулирует отношения между
-            сервисом <strong>AI CITI</strong> (далее — «Сервис», «мы») и пользователем (далее — «Пользователь», «вы»),
-            возникающие в связи с использованием Сервиса.
+        {/* Вступление */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
+          <p className="text-gray-700 leading-relaxed">
+            Приобретая курс <strong className="text-gray-900">МЛМ ЛАГЕРЬ</strong> (далее — «Курс»),
+            Вы соглашаетесь со следующими условиями.
           </p>
-          <p className="mt-2">
-            Используя Сервис, вы подтверждаете, что ознакомились с настоящим Соглашением и принимаете его условия.
+        </div>
+
+        {/* Ученикам запрещено */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+              <span className="text-lg">🚫</span>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Ученикам курса запрещено</h2>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <span className="text-sm font-semibold text-red-400 mt-0.5 shrink-0">1.</span>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Заниматься агитацией / рекрутингом в свои проекты, компании среди участников курса,
+                в общем чате курса, а также в личных сообщениях.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-sm font-semibold text-red-400 mt-0.5 shrink-0">2.</span>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Передавать свои логин и пароль третьим лицам, не являющимся слушателями курса.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-sm font-semibold text-red-400 mt-0.5 shrink-0">3.</span>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Скачивать материалы, уроки курса из личного кабинета и передавать их третьим лицам.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-sm font-semibold text-red-400 mt-0.5 shrink-0">4.</span>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Хамить, оскорблять и нецензурно выражаться по отношению к другим участникам курса.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-sm font-semibold text-red-400 mt-0.5 shrink-0">5.</span>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Все материалы школы защищены 4 ч. ГК РФ (гл. «Авторское право»). Вы можете сохранить
+                файлы на своём устройстве для личного использования, но не имеете права распространять их.
+                При попытке перепродажи материалов уроков ваш доступ к курсу будет{' '}
+                <strong className="text-red-500">заблокирован без возврата платы за обучение</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Организатор обязуется */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
+              <span className="text-lg">✅</span>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Организатор курса обязуется</h2>
+          </div>
+
+          <div className="space-y-5">
+            {/* Пункт 1 — доступ и тарифы */}
+            <div>
+              <div className="flex gap-3 mb-3">
+                <span className="text-sm font-semibold text-orange-500 mt-0.5 shrink-0">1.</span>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Сразу после подтверждения оплаты предоставить доступ к курсу и к полному перечню
+                  уроков (в рамках конкретно купленного тарифа) на срок, установленный каждым тарифом:
+                </p>
+              </div>
+
+              <div className="ml-6 space-y-2">
+                <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 font-medium">Стандарт</span>
+                  <span className="text-sm text-gray-700">4 месяца</span>
+                </div>
+                <div className="flex items-center gap-3 bg-amber-50 rounded-xl px-4 py-2.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">Платина</span>
+                  <span className="text-sm text-gray-700">12 месяцев</span>
+                </div>
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl px-4 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 font-medium">VIP</span>
+                    <span className="text-sm text-gray-700">Безлимитный доступ</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5 ml-0.5">
+                    Ко всем материалам курса, которые будут добавлены на{' '}
+                    <a
+                      href="https://aiciti.pro"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-orange-500 underline"
+                    >
+                      наш сайт
+                    </a>
+                    {' '}в течение года с момента покупки тарифа.
+                  </p>
+                </div>
+              </div>
+
+              <p className="ml-6 mt-3 text-xs text-gray-500 leading-relaxed">
+                Данный пункт может прекратить своё действие только в случае полного закрытия курса{' '}
+                <strong>МЛМ ЛАГЕРЬ</strong>.
+              </p>
+            </div>
+
+            {/* Пункт 2 — возврат */}
+            <div>
+              <div className="flex gap-3 mb-2">
+                <span className="text-sm font-semibold text-orange-500 mt-0.5 shrink-0">2.</span>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Вернуть участнику курса полную стоимость обучения, в случае если участник будет
+                  недоволен качеством материала.
+                </p>
+              </div>
+              <div className="ml-6 bg-cyan-50 border border-cyan-100 rounded-xl px-4 py-3">
+                <p className="text-xs text-cyan-700 leading-relaxed">
+                  <strong>Условия возврата:</strong> возврат возможен только в первые{' '}
+                  <strong>24 часа</strong> после покупки курса, при условии, что участником открыто
+                  не более трёх уроков, а также не активирована проверка домашних заданий.
+                </p>
+                <p className="text-xs text-cyan-600 mt-2">
+                  Возврат денежных средств производится в течение{' '}
+                  <strong>14 календарных дней</strong> после запроса.
+                </p>
+              </div>
+            </div>
+
+            {/* Пункт 3 — проверка ДЗ */}
+            <div>
+              <div className="flex gap-3 mb-3">
+                <span className="text-sm font-semibold text-orange-500 mt-0.5 shrink-0">3.</span>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Обеспечить проверку выполнения домашних заданий 2 раза в день на срок,
+                  заявленный в каждом тарифе:
+                </p>
+              </div>
+
+              <div className="ml-6 space-y-2">
+                <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-2.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 font-medium">Стандарт</span>
+                  <span className="text-sm text-gray-700">30 календарных дней</span>
+                </div>
+                <div className="flex items-center gap-3 bg-amber-50 rounded-xl px-4 py-2.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">Платина</span>
+                  <span className="text-sm text-gray-700">90 календарных дней</span>
+                </div>
+                <div className="flex items-center gap-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl px-4 py-2.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 font-medium">VIP</span>
+                  <span className="text-sm text-gray-700">180 календарных дней</span>
+                </div>
+              </div>
+
+              <p className="ml-6 mt-3 text-xs text-gray-500 leading-relaxed">
+                Консультации на тарифе <strong>Платина</strong> доступны в течение{' '}
+                <strong>6 месяцев</strong> после покупки курса.
+              </p>
+            </div>
+
+            {/* Пункт 4 — сертификат */}
+            <div>
+              <div className="flex gap-3">
+                <span className="text-sm font-semibold text-orange-500 mt-0.5 shrink-0">4.</span>
+                <div>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Выдать Сертификат участнику курса при условии:
+                  </p>
+                  <div className="mt-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+                    <p className="text-xs text-green-700 leading-relaxed">
+                      🎓 Выполнения всех домашних заданий курса и сдачи выпускного экзамена.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Вступление в силу */}
+        <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 shadow-sm mb-4">
+          <p className="text-sm text-gray-700 leading-relaxed text-center">
+            Данные правила вступают в силу с момента получения доступа к обучающему кабинету.
           </p>
-        </section>
+        </div>
 
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Описание Сервиса</h2>
-          <p>
-            AI CITI — это Telegram Mini App, предоставляющий инструменты на основе искусственного интеллекта
-            для создания контента, включая:
-          </p>
-          <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>Генерацию каруселей для социальных сетей</li>
-            <li>Планирование и публикацию постов в Instagram</li>
-            <li>AI-ассистентов для создания контента</li>
-            <li>Обучающие материалы и квизы</li>
-          </ul>
-        </section>
+        {/* Контакты */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-cyan-50 flex items-center justify-center shrink-0">
+              <span className="text-lg">📨</span>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Контакты</h2>
+          </div>
+          <div className="space-y-2 ml-1">
+            <p className="text-sm text-gray-600">
+              Email:{' '}
+              <a href="mailto:aleksandrbekk@bk.ru" className="text-orange-500 underline">
+                aleksandrbekk@bk.ru
+              </a>
+            </p>
+            <p className="text-sm text-gray-600">
+              Telegram:{' '}
+              <a
+                href="https://t.me/Neirociti_bot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-500 underline"
+              >
+                @Neirociti_bot
+              </a>
+            </p>
+          </div>
+        </div>
 
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Регистрация и аккаунт</h2>
-          <p>
-            Регистрация осуществляется автоматически через Telegram.
-            Пользователь несёт ответственность за все действия, совершённые в рамках его аккаунта.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Нейроны (внутренняя валюта)</h2>
-          <p>Сервис использует внутреннюю валюту — нейроны. Условия использования:</p>
-          <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>Нейроны приобретаются за реальные деньги через платёжные системы</li>
-            <li>Нейроны расходуются при использовании AI-инструментов</li>
-            <li>Нейроны не подлежат обмену обратно на денежные средства</li>
-            <li>Неиспользованные нейроны не сгорают</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Подписки</h2>
-          <p>Сервис предоставляет подписки с ежемесячным автосписанием:</p>
-          <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>Подписка продлевается автоматически каждые 30 дней</li>
-            <li>Отмена подписки возможна в любой момент</li>
-            <li>При отмене подписка действует до конца оплаченного периода</li>
-            <li>Возврат средств за текущий период не осуществляется</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Платежи и возвраты</h2>
-          <p>
-            Оплата производится через платёжную систему Lava.top.
-            Принимаются карты Visa, Mastercard, МИР.
-          </p>
-          <p className="mt-2">
-            Возврат средств возможен в случае технической ошибки при обработке платежа.
-            Для запроса возврата свяжитесь с нами по электронной почте.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Интеллектуальная собственность</h2>
-          <p>
-            Контент, созданный Пользователем с помощью Сервиса, принадлежит Пользователю.
-            Сервис и его исходный код, дизайн, логотипы являются интеллектуальной собственностью AI CITI.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Ограничения использования</h2>
-          <p>Пользователю запрещено:</p>
-          <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>Использовать Сервис для создания незаконного или вредоносного контента</li>
-            <li>Пытаться получить несанкционированный доступ к системам Сервиса</li>
-            <li>Нарушать работу Сервиса или его инфраструктуры</li>
-            <li>Передавать доступ к аккаунту третьим лицам</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Ограничение ответственности</h2>
-          <p>
-            Сервис предоставляется «как есть». Мы не гарантируем бесперебойную работу Сервиса
-            и не несём ответственности за убытки, возникшие в связи с использованием или невозможностью
-            использования Сервиса.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Изменения соглашения</h2>
-          <p>
-            Мы оставляем за собой право изменять условия настоящего Соглашения.
-            Актуальная версия всегда доступна по адресу{' '}
-            <a href="https://aiciti.pro/terms" className="text-orange-500 underline">aiciti.pro/terms</a>.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Контакты</h2>
-          <p>По вопросам, связанным с настоящим Соглашением:</p>
-          <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>Email: <a href="mailto:aleksandrbekk@bk.ru" className="text-orange-500 underline">aleksandrbekk@bk.ru</a></li>
-            <li>Telegram: <a href="https://t.me/Neirociti_bot" className="text-orange-500 underline">@Neirociti_bot</a></li>
-          </ul>
-        </section>
+        <p className="text-center text-xs text-gray-400 mt-6 mb-4">
+          © 2026 AI CITI. Все права защищены.
+        </p>
       </div>
     </div>
   )
