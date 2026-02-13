@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useModules } from '@/hooks/useCourse'
-import { ArrowLeft, BookOpen, ChevronRight, Lock, CheckCircle2 } from 'lucide-react'
+import { BookOpen, ChevronRight, Lock, CheckCircle2 } from 'lucide-react'
 import { supabase, getUserTariffsById } from '@/lib/supabase'
 
 function getTelegramId(): number | null {
@@ -183,12 +183,7 @@ export default function TariffPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 p-4 pb-24">
       {/* Шапка */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link to="/school" className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </Link>
-        <h1 className="text-xl font-bold text-orange-500">{tariffNames[tariffSlug || ''] || 'Курс'}</h1>
-      </div>
+      <h1 className="text-xl font-bold text-orange-500 mb-6">{tariffNames[tariffSlug || ''] || 'Курс'}</h1>
 
       {/* Список модулей */}
       {filteredModules.length === 0 ? (
