@@ -101,6 +101,18 @@ export function StudentsList() {
         if (foundUser) userId = foundUser.id
       }
 
+      // Если пользователя нет в users — создаём минимальную запись
+      // чтобы можно было назначить тариф. При первом входе auth-telegram обновит данные.
+      if (!userId) {
+        const { data: createdUser, error: createErr } = await supabase
+          .from('users')
+          .insert({ telegram_id: telegramId })
+          .select('id')
+          .single()
+        if (createErr) throw new Error('Не удалось создать пользователя: ' + createErr.message)
+        userId = createdUser.id
+      }
+
       // Добавляем в whitelist (upsert)
       const { error: wlError } = await supabase
         .from('allowed_users')
