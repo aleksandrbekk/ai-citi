@@ -529,7 +529,18 @@ export default function LessonPage() {
                 </div>
                 <h2 className="text-base font-bold text-gray-900">Содержание</h2>
               </div>
-              <div className="flex-1 overflow-y-auto px-3 py-2">
+              <div className="flex-1 overflow-y-auto px-3 py-2 pb-24">
+                {/* Кнопка к модулям */}
+                <button
+                  onClick={() => {
+                    navigate(`/school/${tariffSlug}`)
+                    setDrawerOpen(false)
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 mb-3 rounded-xl bg-orange-50 border border-orange-100 text-orange-500 text-sm font-medium hover:bg-orange-100 active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  К модулям
+                </button>
                 {filteredModules.map((mod) => {
                   const moduleLessons = drawerLessonsData?.filter(l => l.module_id === mod.id) || []
                   const moduleUnlocked = getUnlockedForModule(moduleLessons)
