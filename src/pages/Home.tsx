@@ -10,13 +10,8 @@ import { getTelegramUser } from '@/lib/telegram'
 // ID владельца Нейропостера
 const POSTER_OWNER_ID = 643763835
 
-// ID пользователей с доступом к квизам (пока только админы)
-const QUIZ_ACCESS_IDS = [643763835, 190202791, 1762872372]
-
 // Персонажи привязаны к разделам
 const getCharacters = (telegramId: number | null) => {
-  const hasQuizAccess = telegramId !== null && QUIZ_ACCESS_IDS.includes(telegramId)
-
   const chars = [
     {
       id: 'designer',
@@ -48,13 +43,11 @@ const getCharacters = (telegramId: number | null) => {
       name: 'Квизмастер',
       label: 'Создатель квизов',
       path: '/tools/quiz',
-      task: hasQuizAccess ? 'Создать квиз' : 'Скоро будет доступен',
-      defaultSpeech: hasQuizAccess
-        ? 'Создай интерактивный квиз\nдля своей аудитории! 🎓'
-        : 'Скоро я помогу тебе\nсоздавать крутые квизы! 🎓',
+      task: 'Создать квиз',
+      defaultSpeech: 'Создай интерактивный квиз\nдля своей аудитории! 🎓',
       icon: HelpCircle,
-      disabled: !hasQuizAccess,
-      comingSoon: !hasQuizAccess
+      disabled: false,
+      comingSoon: false
     },
   ]
 

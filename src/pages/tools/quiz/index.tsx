@@ -6,8 +6,7 @@ import { getTelegramUser } from '@/lib/telegram'
 import { getUserReferralCode } from '@/lib/referral'
 import { toast } from 'sonner'
 
-// Пока квизы доступны только админам
-const ADMIN_IDS = [643763835, 190202791, 1762872372]
+// Квизы доступны всем пользователям
 
 export default function QuizDashboard() {
   const navigate = useNavigate()
@@ -16,7 +15,7 @@ export default function QuizDashboard() {
   const [userRef, setUserRef] = useState<string | null>(null)
 
   const telegramUser = getTelegramUser()
-  const hasAccess = telegramUser && ADMIN_IDS.includes(telegramUser.id)
+  const hasAccess = !!telegramUser
 
   useEffect(() => {
     if (telegramUser?.id) {
