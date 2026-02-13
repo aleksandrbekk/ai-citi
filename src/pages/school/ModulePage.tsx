@@ -50,27 +50,53 @@ export default function ModulePage() {
     enabled: !!telegramId && !!moduleId
   })
 
+  // Загружаем ручные разблокировки от админа
+  const { data: manualUnlocks } = useQuery({
+    queryKey: ['my-lesson-unlocks', telegramId],
+    queryFn: async () => {
+      if (!telegramId) return {}
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', telegramId)
+        .single()
+      if (!user) return {}
+      const { data: unlocks } = await supabase
+        .from('lesson_unlocks')
+        .select('lesson_id')
+        .eq('user_id', user.id)
+      if (!unlocks) return {}
+      const map: Record<string, boolean> = {}
+      for (const u of unlocks) map[u.lesson_id] = true
+      return map
+    },
+    enabled: !!telegramId
+  })
+
   // Вычисляем, какие уроки разблокированы
   const getUnlockedLessons = (): Set<string> => {
     if (!lessons || lessons.length === 0) return new Set()
 
     const unlocked = new Set<string>()
-
-    // Первый урок всегда открыт
     unlocked.add(lessons[0].id)
 
     for (let i = 0; i < lessons.length; i++) {
       const lesson = lessons[i]
 
-      if (!unlocked.has(lesson.id)) break // Если текущий заблокирован — дальше тоже
+      // Ручная разблокировка от админа
+      if (manualUnlocks?.[lesson.id]) {
+        unlocked.add(lesson.id)
+        if (i + 1 < lessons.length) unlocked.add(lessons[i + 1].id)
+        continue
+      }
 
-      // Если у урока нет ДЗ или ДЗ зачтено — открываем следующий
+      if (!unlocked.has(lesson.id)) break
+
       if (!lesson.has_homework || !!hwStatuses?.[lesson.id]) {
         if (i + 1 < lessons.length) {
           unlocked.add(lessons[i + 1].id)
         }
       }
-      // Если ДЗ есть но не зачтено — цепочка останавливается
     }
 
     return unlocked

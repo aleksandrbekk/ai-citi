@@ -226,6 +226,151 @@ export function useUpdateStudent() {
   })
 }
 
+// --- Хуки для управления доступом к урокам ---
+
+export function useAllModulesWithLessons() {
+  return useQuery({
+    queryKey: ['admin-all-modules-lessons'],
+    queryFn: async () => {
+      const { data: modules, error: modError } = await supabase
+        .from('course_modules')
+        .select('id, title, order_index, min_tariff')
+        .eq('is_active', true)
+        .order('order_index')
+
+      if (modError) throw modError
+
+      const { data: lessons, error: lesError } = await supabase
+        .from('course_lessons')
+        .select('id, module_id, title, order_index, has_homework')
+        .eq('is_active', true)
+        .order('order_index')
+
+      if (lesError) throw lesError
+
+      return { modules: modules || [], lessons: lessons || [] }
+    }
+  })
+}
+
+export function useStudentLessonUnlocks(userId: string) {
+  return useQuery({
+    queryKey: ['student-lesson-unlocks', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lesson_unlocks')
+        .select('lesson_id')
+        .eq('user_id', userId)
+
+      if (error) throw error
+      const map: Record<string, boolean> = {}
+      for (const row of data || []) {
+        map[row.lesson_id] = true
+      }
+      return map
+    },
+    enabled: !!userId
+  })
+}
+
+export function useStudentHwStatuses(userId: string) {
+  return useQuery({
+    queryKey: ['student-hw-statuses', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('homework_submissions')
+        .select('lesson_id, status')
+        .eq('user_id', userId)
+
+      if (error) throw error
+      const map: Record<string, string> = {}
+      for (const s of data || []) {
+        map[s.lesson_id] = s.status
+      }
+      return map
+    },
+    enabled: !!userId
+  })
+}
+
+export function useToggleLessonUnlock() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      lessonId,
+      unlock
+    }: {
+      userId: string
+      lessonId: string
+      unlock: boolean
+    }) => {
+      if (unlock) {
+        const { error } = await supabase
+          .from('lesson_unlocks')
+          .upsert(
+            { user_id: userId, lesson_id: lessonId },
+            { onConflict: 'user_id,lesson_id' }
+          )
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('lesson_unlocks')
+          .delete()
+          .eq('user_id', userId)
+          .eq('lesson_id', lessonId)
+        if (error) throw error
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['student-lesson-unlocks', variables.userId]
+      })
+    }
+  })
+}
+
+export function useBulkToggleLessonUnlocks() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      lessonIds,
+      unlock
+    }: {
+      userId: string
+      lessonIds: string[]
+      unlock: boolean
+    }) => {
+      if (lessonIds.length === 0) return
+      if (unlock) {
+        const rows = lessonIds.map(lessonId => ({
+          user_id: userId,
+          lesson_id: lessonId
+        }))
+        const { error } = await supabase
+          .from('lesson_unlocks')
+          .upsert(rows, { onConflict: 'user_id,lesson_id' })
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('lesson_unlocks')
+          .delete()
+          .eq('user_id', userId)
+          .in('lesson_id', lessonIds)
+        if (error) throw error
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['student-lesson-unlocks', variables.userId]
+      })
+    }
+  })
+}
+
 export function useCreateStudent() {
   const queryClient = useQueryClient()
 

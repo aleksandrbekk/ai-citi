@@ -76,6 +76,30 @@ export default function LessonPage() {
     enabled: !!getTelegramId() && !!moduleId
   })
 
+  // Загружаем ручные разблокировки от админа
+  const { data: manualUnlocks } = useQuery({
+    queryKey: ['my-lesson-unlocks', getTelegramId()],
+    queryFn: async () => {
+      const tgId = getTelegramId()
+      if (!tgId) return {}
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', tgId)
+        .single()
+      if (!user) return {}
+      const { data: unlocks } = await supabase
+        .from('lesson_unlocks')
+        .select('lesson_id')
+        .eq('user_id', user.id)
+      if (!unlocks) return {}
+      const map: Record<string, boolean> = {}
+      for (const u of unlocks) map[u.lesson_id] = true
+      return map
+    },
+    enabled: !!getTelegramId()
+  })
+
   // Найди индекс текущего урока
   const currentIndex = allLessons?.findIndex(l => l.id === lessonId) ?? -1
   const prevLesson = currentIndex > 0 ? allLessons?.[currentIndex - 1] : null
@@ -88,6 +112,14 @@ export default function LessonPage() {
     unlocked.add(allLessons[0].id)
     for (let i = 0; i < allLessons.length; i++) {
       const lesson = allLessons[i]
+
+      // Ручная разблокировка от админа
+      if (manualUnlocks?.[lesson.id]) {
+        unlocked.add(lesson.id)
+        if (i + 1 < allLessons.length) unlocked.add(allLessons[i + 1].id)
+        continue
+      }
+
       if (!unlocked.has(lesson.id)) break
       if (!lesson.has_homework || !!hwStatuses?.[lesson.id]) {
         if (i + 1 < allLessons.length) {

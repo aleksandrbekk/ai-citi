@@ -93,13 +93,35 @@ export default function TariffPage() {
     enabled: !!getTelegramId()
   })
 
+  // Загружаем ручные разблокировки от админа
+  const { data: manualUnlocks } = useQuery({
+    queryKey: ['my-lesson-unlocks', getTelegramId()],
+    queryFn: async () => {
+      const tgId = getTelegramId()
+      if (!tgId) return {}
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('telegram_id', tgId)
+        .single()
+      if (!user) return {}
+      const { data: unlocks } = await supabase
+        .from('lesson_unlocks')
+        .select('lesson_id')
+        .eq('user_id', user.id)
+      if (!unlocks) return {}
+      const map: Record<string, boolean> = {}
+      for (const u of unlocks) map[u.lesson_id] = true
+      return map
+    },
+    enabled: !!getTelegramId()
+  })
+
   // Модуль завершён если все уроки с ДЗ зачтены
   const isModuleComplete = (moduleId: string): boolean => {
     if (!allLessonsData || !hwStatuses) return false
     const moduleLessons = allLessonsData.filter(l => l.module_id === moduleId)
     if (moduleLessons.length === 0) return false
-    // Если нет уроков с ДЗ → модуль автозавершён
-    // Если есть → все должны быть approved
     return moduleLessons
       .filter(l => l.has_homework)
       .every(l => !!hwStatuses[l.id])
@@ -108,14 +130,23 @@ export default function TariffPage() {
   // Вычисляем разблокированные модули
   const getUnlockedModules = (): Set<string> => {
     if (filteredModules.length === 0) return new Set()
-    // Без Telegram — всё открыто (dev режим)
     if (!getTelegramId()) return new Set(filteredModules.map(m => m.id))
 
     const unlocked = new Set<string>()
-    unlocked.add(filteredModules[0].id) // Первый модуль всегда открыт
+    unlocked.add(filteredModules[0].id)
 
     for (let i = 0; i < filteredModules.length; i++) {
       const mod = filteredModules[i]
+
+      // Ручная разблокировка: если любой урок модуля разблокирован вручную
+      const moduleLessons = allLessonsData?.filter(l => l.module_id === mod.id) || []
+      const hasManualUnlock = moduleLessons.some(l => manualUnlocks?.[l.id])
+      if (hasManualUnlock) {
+        unlocked.add(mod.id)
+        if (i + 1 < filteredModules.length) unlocked.add(filteredModules[i + 1].id)
+        continue
+      }
+
       if (!unlocked.has(mod.id)) break
 
       if (isModuleComplete(mod.id) && i + 1 < filteredModules.length) {
