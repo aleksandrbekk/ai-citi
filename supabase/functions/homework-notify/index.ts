@@ -130,8 +130,16 @@ serve(async (req) => {
       }
     }
 
-    // Отправляем уведомление куратору (если назначен и это не админ)
-    if (curatorChatId && curatorChatId !== ADMIN_CHAT_ID) {
+    // Без куратора — не отправляем уведомления никому
+    if (!curatorChatId) {
+      return new Response(
+        JSON.stringify({ ok: true, skipped: 'no_curator' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Отправляем уведомление куратору
+    if (curatorChatId !== ADMIN_CHAT_ID) {
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,7 +151,7 @@ serve(async (req) => {
       })
     }
 
-    // Отправляем уведомление админу (всегда)
+    // Отправляем уведомление админу (если куратор назначен)
     const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
