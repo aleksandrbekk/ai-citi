@@ -133,7 +133,7 @@ export function useStudent(id: string) {
       // Загружаем тариф
       const { data: tariff } = await supabase
         .from('user_tariffs')
-        .select('id, tariff_slug, expires_at, is_active, curator_id')
+        .select('id, tariff_slug, expires_at, is_active, curator_id, curator_started_at')
         .eq('user_id', id)
         .single()
       

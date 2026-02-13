@@ -12,7 +12,7 @@ import {
 } from '../../../hooks/admin/useStudents'
 import { supabase } from '../../../lib/supabase'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock, FileText, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock, FileText, CheckCircle2, Clock, XCircle, Plus, RotateCcw } from 'lucide-react'
 import { Switch } from '../../../components/ui/switch'
 import { toast } from 'sonner'
 
@@ -34,6 +34,7 @@ export function StudentEdit() {
   const [tariffSlug, setTariffSlug] = useState('standard')
   const [expiresAt, setExpiresAt] = useState('')
   const [curatorId, setCuratorId] = useState<string | null>(null)
+  const [addDaysInput, setAddDaysInput] = useState('')
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [showAccess, setShowAccess] = useState(false)
   const [showHomework, setShowHomework] = useState(false)
@@ -305,6 +306,97 @@ export function StudentEdit() {
                   ))}
                 </select>
               </div>
+
+              {/* Счётчик дней куратора */}
+              {curatorId && data?.tariff?.curator_started_at && (() => {
+                const totalDays = tariffSlug === 'platinum' ? 90 : 30
+                const start = new Date(data.tariff.curator_started_at)
+                const now = new Date()
+                const elapsed = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+                const daysLeft = Math.max(0, totalDays - elapsed)
+                const pct = Math.round((daysLeft / totalDays) * 100)
+                return (
+                  <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-cyan-700">Дни куратора</span>
+                      <span className={`text-sm font-bold ${daysLeft <= 5 ? 'text-red-500' : daysLeft <= 10 ? 'text-amber-500' : 'text-cyan-600'}`}>
+                        {daysLeft} / {totalDays} дн.
+                      </span>
+                    </div>
+                    <div className="h-2 bg-cyan-100 rounded-full overflow-hidden mb-3">
+                      <div
+                        className={`h-full rounded-full transition-all ${daysLeft <= 5 ? 'bg-red-400' : daysLeft <= 10 ? 'bg-amber-400' : 'bg-cyan-400'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mb-2">
+                      Начало: {start.toLocaleDateString('ru-RU')} · Прошло: {elapsed} дн.
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="365"
+                        placeholder="Кол-во дней"
+                        value={addDaysInput}
+                        onChange={(e) => setAddDaysInput(e.target.value)}
+                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const days = parseInt(addDaysInput)
+                          if (!days || days <= 0 || !data?.tariff?.curator_started_at) return
+                          // Сдвигаем curator_started_at назад на N дней
+                          const curStart = new Date(data.tariff.curator_started_at)
+                          curStart.setDate(curStart.getDate() - days)
+                          const { error } = await supabase
+                            .from('user_tariffs')
+                            .update({ curator_started_at: curStart.toISOString() })
+                            .eq('user_id', id)
+                          if (error) {
+                            toast.error('Ошибка: ' + error.message)
+                          } else {
+                            toast.success(`+${days} дн. куратора добавлено`)
+                            setAddDaysInput('')
+                            refetch()
+                          }
+                        }}
+                        className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus size={14} />
+                        Добавить
+                      </button>
+                      <button
+                        type="button"
+                        title="Сбросить отсчёт"
+                        onClick={async () => {
+                          if (!confirm('Сбросить отсчёт дней куратора? Он начнётся заново при следующем ДЗ.')) return
+                          const { error } = await supabase
+                            .from('user_tariffs')
+                            .update({ curator_started_at: null })
+                            .eq('user_id', id)
+                          if (error) {
+                            toast.error('Ошибка: ' + error.message)
+                          } else {
+                            toast.success('Отсчёт сброшен')
+                            refetch()
+                          }
+                        }}
+                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <RotateCcw size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {curatorId && !data?.tariff?.curator_started_at && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <p className="text-sm text-gray-500">Отсчёт дней куратора начнётся после первого ДЗ</p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm text-gray-500 mb-1">Дата окончания подписки</label>
