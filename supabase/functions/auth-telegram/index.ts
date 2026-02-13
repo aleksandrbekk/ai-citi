@@ -147,29 +147,34 @@ serve(async (req) => {
           .single()
 
         if (pending?.referral_code) {
-          // pending_referrals хранит полный start_param (ref_CODE_src_TAG)
-          // Парсим его чтобы извлечь и referrerCode и utmSource
-          const pendingParsed = parseStartParam(pending.referral_code)
-          if (pendingParsed.referrerCode) {
-            finalReferrerCode = pendingParsed.referrerCode
-            if (!utmSource && pendingParsed.utmSource) {
-              utmSource = pendingParsed.utmSource
-            }
+          // Если это school-код — не трогаем, оставляем для school-блока ниже
+          if (pending.referral_code.startsWith('school_')) {
+            console.log('Pending is school code, skipping ref processing:', pending.referral_code)
           } else {
-            // Старый формат: просто CODE без ref_ префикса
-            // Проверяем на наличие _src_ внутри
-            const srcIdx = pending.referral_code.indexOf('_src_')
-            if (srcIdx !== -1) {
-              finalReferrerCode = pending.referral_code.slice(0, srcIdx)
-              if (!utmSource) {
-                utmSource = pending.referral_code.slice(srcIdx + 5) || null
+            // pending_referrals хранит полный start_param (ref_CODE_src_TAG)
+            // Парсим его чтобы извлечь и referrerCode и utmSource
+            const pendingParsed = parseStartParam(pending.referral_code)
+            if (pendingParsed.referrerCode) {
+              finalReferrerCode = pendingParsed.referrerCode
+              if (!utmSource && pendingParsed.utmSource) {
+                utmSource = pendingParsed.utmSource
               }
             } else {
-              finalReferrerCode = pending.referral_code
+              // Старый формат: просто CODE без ref_ префикса
+              // Проверяем на наличие _src_ внутри
+              const srcIdx = pending.referral_code.indexOf('_src_')
+              if (srcIdx !== -1) {
+                finalReferrerCode = pending.referral_code.slice(0, srcIdx)
+                if (!utmSource) {
+                  utmSource = pending.referral_code.slice(srcIdx + 5) || null
+                }
+              } else {
+                finalReferrerCode = pending.referral_code
+              }
             }
+            console.log('Found pending referral:', { finalReferrerCode, utmSource })
+            await supabase.from('pending_referrals').delete().eq('telegram_id', userData.id)
           }
-          console.log('Found pending referral:', { finalReferrerCode, utmSource })
-          await supabase.from('pending_referrals').delete().eq('telegram_id', userData.id)
         }
       } catch (_e) { /* ok */ }
     }
