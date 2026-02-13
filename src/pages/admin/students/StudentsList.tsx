@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Trash2, UserPlus, Pause, Play } from 'lucide-react'
+import { Trash2, UserPlus, Pause, Play, ChevronRight } from 'lucide-react'
 
 export function StudentsList() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
   const [newTelegramId, setNewTelegramId] = useState('')
@@ -184,7 +186,10 @@ export function StudentsList() {
           {students?.map((student: any) => (
             <div key={student.id} className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+                <div
+                  className={`flex items-center gap-3 flex-1 min-w-0 ${student.user ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                  onClick={() => student.user && navigate(`/admin/mlm/students/${student.user.id}`)}
+                >
                   {student.user?.avatar_url ? (
                     <img src={student.user.avatar_url} className="w-12 h-12 rounded-full" alt="Avatar" />
                   ) : (
@@ -192,18 +197,21 @@ export function StudentsList() {
                       {student.user?.first_name?.[0] || '?'}
                     </div>
                   )}
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900">
                       {student.user ? `${student.user.first_name || ''} ${student.user.last_name || ''}`.trim() : student.comment || 'Не зарегистрирован'}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {student.user?.username ? `@${student.user.username}` : ''} 
+                      {student.user?.username ? `@${student.user.username}` : ''}
                       <span className="text-gray-400 ml-2">ID: {student.telegram_id}</span>
                     </p>
                     {!student.user && (
                       <p className="text-xs text-yellow-500">Ещё не заходил в приложение</p>
                     )}
                   </div>
+                  {student.user && (
+                    <ChevronRight size={18} className="text-gray-400 shrink-0" />
+                  )}
                 </div>
                 <button
                   onClick={() => {
@@ -211,7 +219,7 @@ export function StudentsList() {
                       removeUser.mutate(student.telegram_id)
                     }
                   }}
-                  className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                  className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors ml-2"
                 >
                   <Trash2 size={18} />
                 </button>
