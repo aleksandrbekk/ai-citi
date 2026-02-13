@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
-import { FileText, ExternalLink, Send, Lock, List, CheckCircle2, Clock, ChevronRight } from 'lucide-react'
+import { useLesson, useSubmitHomework, useModules } from '@/hooks/useCourse'
+import { FileText, ExternalLink, Send, Lock, List, CheckCircle2, Clock } from 'lucide-react'
+import { getUserTariffsById } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/uiStore'
@@ -37,7 +38,7 @@ export default function LessonPage() {
     return null
   }
 
-  // Получи все уроки модуля
+  // Получи все уроки текущего модуля (для unlock логики)
   const { data: allLessons, isLoading: allLessonsLoading } = useQuery({
     queryKey: ['module-lessons', moduleId],
     queryFn: async () => {
@@ -52,6 +53,85 @@ export default function LessonPage() {
     },
     enabled: !!moduleId
   })
+
+  // Все модули + тарифы пользователя для drawer
+  const { data: allModules } = useModules()
+  const { data: userTariffs } = useQuery({
+    queryKey: ['my-tariffs-drawer', getTelegramId()],
+    queryFn: async () => {
+      const tgId = getTelegramId()
+      if (!tgId) return []
+      return getUserTariffsById(tgId)
+    },
+    enabled: !!getTelegramId()
+  })
+
+  // Фильтруем модули по тарифу
+  const filteredModules = allModules?.filter(m => {
+    if (userTariffs?.includes('platinum')) return true
+    if (userTariffs?.includes('standard') && m.min_tariff === 'standard') return true
+    return false
+  }) || []
+
+  // Все уроки всех доступных модулей для drawer
+  const { data: drawerLessonsData } = useQuery({
+    queryKey: ['drawer-all-lessons', filteredModules.map(m => m.id).join(',')],
+    queryFn: async () => {
+      const moduleIds = filteredModules.map(m => m.id)
+      if (moduleIds.length === 0) return []
+      const { data } = await supabase
+        .from('course_lessons')
+        .select('id, module_id, title, order_index, has_homework')
+        .in('module_id', moduleIds)
+        .eq('is_active', true)
+        .order('order_index')
+      return data || []
+    },
+    enabled: filteredModules.length > 0
+  })
+
+  // Все статусы ДЗ пользователя (для всех модулей)
+  const { data: allHwStatuses } = useQuery({
+    queryKey: ['all-hw-statuses-drawer', getTelegramId()],
+    queryFn: async () => {
+      const tgId = getTelegramId()
+      if (!tgId) return {}
+      const { data: user } = await supabase
+        .from('users').select('id').eq('telegram_id', tgId).single()
+      if (!user) return {}
+      const { data: submissions } = await supabase
+        .from('homework_submissions')
+        .select('lesson_id, status')
+        .eq('user_id', user.id)
+      const map: Record<string, string> = {}
+      for (const s of submissions || []) { map[s.lesson_id] = s.status }
+      return map
+    },
+    enabled: !!getTelegramId()
+  })
+
+  // Вычисляем разблокированные уроки по всем модулям (для drawer)
+  const getUnlockedForModule = (moduleLessons: typeof drawerLessonsData): Set<string> => {
+    if (!moduleLessons || moduleLessons.length === 0) return new Set()
+    const unlocked = new Set<string>()
+    unlocked.add(moduleLessons[0].id)
+    for (let i = 0; i < moduleLessons.length; i++) {
+      const lesson = moduleLessons[i]
+      if (adminOverrides?.locks?.[lesson.id]) {
+        unlocked.delete(lesson.id); continue
+      }
+      if (adminOverrides?.unlocks?.[lesson.id]) {
+        unlocked.add(lesson.id)
+        if (i + 1 < moduleLessons.length) unlocked.add(moduleLessons[i + 1].id)
+        continue
+      }
+      if (!unlocked.has(lesson.id)) break
+      if (!lesson.has_homework || !!allHwStatuses?.[lesson.id]) {
+        if (i + 1 < moduleLessons.length) unlocked.add(moduleLessons[i + 1].id)
+      }
+    }
+    return unlocked
+  }
 
   // Загружаем статусы ДЗ для проверки доступа к уроку
   const { data: hwStatuses, isLoading: hwLoading } = useQuery({
@@ -394,16 +474,7 @@ export default function LessonPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-[300px]">
-      {/* Кнопка-таб слева для открытия списка уроков */}
-      <button
-        onClick={() => setDrawerOpen(true)}
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-30 bg-orange-500 text-white rounded-r-xl px-1.5 py-4 shadow-lg hover:bg-orange-600 transition-colors cursor-pointer"
-        aria-label="Список уроков"
-      >
-        <List className="w-4 h-4" />
-      </button>
-
-      {/* Drawer — список уроков модуля */}
+      {/* Drawer — все модули и уроки */}
       <AnimatePresence>
         {drawerOpen && (
           <>
@@ -419,53 +490,63 @@ export default function LessonPage() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col"
+              className="fixed left-0 top-0 bottom-0 w-[300px] max-w-[88vw] bg-white shadow-2xl z-50 flex flex-col"
             >
-              <div className="px-4 py-4 border-b border-gray-100">
-                <h2 className="text-base font-semibold text-gray-900">Уроки</h2>
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+                <List className="w-4 h-4 text-orange-500" />
+                <h2 className="text-base font-semibold text-gray-900">Содержание</h2>
               </div>
-              <div className="flex-1 overflow-y-auto px-2 py-2">
-                {allLessons?.map((l, idx) => {
-                  const isActive = l.id === lessonId
-                  const isUnlocked = unlockedSet.has(l.id)
-                  const hwStatus = hwStatuses?.[l.id]
+              <div className="flex-1 overflow-y-auto px-3 py-2">
+                {filteredModules.map((mod) => {
+                  const moduleLessons = drawerLessonsData?.filter(l => l.module_id === mod.id) || []
+                  const moduleUnlocked = getUnlockedForModule(moduleLessons)
 
                   return (
-                    <button
-                      key={l.id}
-                      onClick={() => {
-                        if (isUnlocked) {
-                          navigate(`/school/${tariffSlug}/${moduleId}/lesson/${l.id}`)
-                          setDrawerOpen(false)
-                        }
-                      }}
-                      disabled={!isUnlocked}
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all mb-1 ${
-                        isActive
-                          ? 'bg-orange-50 border border-orange-200'
-                          : isUnlocked
-                          ? 'hover:bg-gray-50 border border-transparent'
-                          : 'opacity-50 border border-transparent'
-                      }`}
-                    >
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
-                        !isUnlocked ? 'bg-gray-100 text-gray-400' :
-                        hwStatus === 'approved' ? 'bg-green-100 text-green-600' :
-                        hwStatus === 'pending' ? 'bg-amber-100 text-amber-600' :
-                        isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {!isUnlocked ? <Lock className="w-3 h-3" /> :
-                         hwStatus === 'approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> :
-                         hwStatus === 'pending' ? <Clock className="w-3.5 h-3.5" /> :
-                         idx + 1}
-                      </div>
-                      <span className={`text-sm truncate ${
-                        isActive ? 'font-semibold text-gray-900' : 'text-gray-700'
-                      }`}>
-                        {l.title}
-                      </span>
-                      {isActive && <ChevronRight className="w-4 h-4 text-orange-500 ml-auto shrink-0" />}
-                    </button>
+                    <div key={mod.id} className="mb-3">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 mb-1">{mod.title}</p>
+                      {moduleLessons.map((l, idx) => {
+                        const isActive = l.id === lessonId
+                        const isUnlocked = moduleUnlocked.has(l.id)
+                        const hwStatus = allHwStatuses?.[l.id]
+
+                        return (
+                          <button
+                            key={l.id}
+                            onClick={() => {
+                              if (isUnlocked) {
+                                navigate(`/school/${tariffSlug}/${mod.id}/lesson/${l.id}`)
+                                setDrawerOpen(false)
+                              }
+                            }}
+                            disabled={!isUnlocked}
+                            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-all ${
+                              isActive
+                                ? 'bg-orange-50 border border-orange-200'
+                                : isUnlocked
+                                ? 'hover:bg-gray-50 border border-transparent'
+                                : 'opacity-40 border border-transparent'
+                            }`}
+                          >
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium shrink-0 ${
+                              !isUnlocked ? 'bg-gray-100 text-gray-400' :
+                              hwStatus === 'approved' ? 'bg-green-100 text-green-600' :
+                              hwStatus === 'pending' ? 'bg-amber-100 text-amber-600' :
+                              isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {!isUnlocked ? <Lock className="w-2.5 h-2.5" /> :
+                               hwStatus === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
+                               hwStatus === 'pending' ? <Clock className="w-3 h-3" /> :
+                               idx + 1}
+                            </div>
+                            <span className={`text-xs truncate ${
+                              isActive ? 'font-semibold text-gray-900' : 'text-gray-700'
+                            }`}>
+                              {l.title}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
                   )
                 })}
               </div>
@@ -475,8 +556,17 @@ export default function LessonPage() {
       </AnimatePresence>
 
       <div className="max-w-3xl mx-auto px-4">
-        {/* Название урока */}
-        <h1 className="text-lg font-bold text-gray-900 mb-4">{lesson?.title}</h1>
+        {/* Кнопка содержания сверху + название урока */}
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-2 bg-orange-500 text-white rounded-xl shadow-sm hover:bg-orange-600 transition-colors cursor-pointer shrink-0"
+            aria-label="Содержание"
+          >
+            <List className="w-4 h-4" />
+          </button>
+          <h1 className="text-lg font-bold text-gray-900 truncate">{lesson?.title}</h1>
+        </div>
 
         {/* Видео */}
         {lesson?.video_url && (
