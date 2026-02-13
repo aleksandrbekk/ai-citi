@@ -8,9 +8,13 @@ const corsHeaders = {
 const PRODAMUS_SECRET = Deno.env.get('PRODAMUS_SECRET_KEY') || ''
 const PRODAMUS_URL = Deno.env.get('PRODAMUS_PAYFORM_URL') || 'https://lagermlm.payform.ru'
 
-// Тестовые пакеты для Prodamus (только рубли)
-const TEST_PACKAGES: Record<string, { coins: number; price: number; name: string }> = {
+const PACKAGES: Record<string, { coins: number; price: number; name: string }> = {
   test_50: { coins: 10, price: 50, name: 'Тест 50₽ — 10 нейронов' },
+  light: { coins: 30, price: 290, name: 'Light — 30 нейронов' },
+  starter: { coins: 100, price: 890, name: 'Starter — 100 нейронов' },
+  standard: { coins: 300, price: 2490, name: 'Standard — 300 нейронов' },
+  pro: { coins: 500, price: 3990, name: 'PRO — 500 нейронов' },
+  business: { coins: 1000, price: 7500, name: 'Business — 1000 нейронов' },
 }
 
 serve(async (req) => {
@@ -39,10 +43,10 @@ serve(async (req) => {
       )
     }
 
-    const pkg = TEST_PACKAGES[packageId]
+    const pkg = PACKAGES[packageId]
     if (!pkg) {
       return new Response(
-        JSON.stringify({ ok: false, error: `Invalid packageId: ${packageId}. Available: ${Object.keys(TEST_PACKAGES).join(', ')}` }),
+        JSON.stringify({ ok: false, error: `Invalid packageId: ${packageId}. Available: ${Object.keys(PACKAGES).join(', ')}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
