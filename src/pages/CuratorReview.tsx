@@ -359,12 +359,7 @@ export default function CuratorReview() {
                             </a>
                           )}
                           {student.email && (
-                            <a
-                              href={`mailto:${student.email}`}
-                              className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2"
-                            >
-                              {student.email}
-                            </a>
+                            <span className="text-xs text-gray-400">{student.email}</span>
                           )}
                           {!student.username && !student.email && (
                             <span className="text-xs text-gray-400">ID: {student.telegram_id}</span>
