@@ -182,7 +182,7 @@ export default function QuizEditor() {
   const [description, setDescription] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null)
   const [ctaText, setCtaText] = useState('Начать')
-  const [isPublished, setIsPublished] = useState(false)
+  const [isPublished, setIsPublished] = useState(true)
   const [slug, setSlug] = useState<string | null>(null)
   const [userRef, setUserRef] = useState<string | null>(null)
 
