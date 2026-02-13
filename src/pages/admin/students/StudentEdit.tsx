@@ -34,6 +34,8 @@ export function StudentEdit() {
   const [tariffSlug, setTariffSlug] = useState('standard')
   const [expiresAt, setExpiresAt] = useState('')
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+  const [showAccess, setShowAccess] = useState(false)
+  const [showHomework, setShowHomework] = useState(false)
 
   useEffect(() => {
     if (data?.tariff) {
@@ -296,14 +298,20 @@ export function StudentEdit() {
         </div>
 
         {/* Правая колонка: Управление доступом к урокам */}
-        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl shadow-sm overflow-hidden">
+          <button
+            onClick={() => setShowAccess(!showAccess)}
+            className="w-full flex items-center gap-3 p-6 text-left cursor-pointer hover:bg-gray-50 transition-colors"
+          >
+            {showAccess ? <ChevronDown size={18} className="text-gray-400 shrink-0" /> : <ChevronRight size={18} className="text-gray-400 shrink-0" />}
             <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
               <BookOpen size={20} />
               Доступ к урокам
             </h2>
-          </div>
+          </button>
 
+          {showAccess && (
+            <div className="px-6 pb-6">
           {accessLoading ? (
             <div className="text-center py-8 text-gray-400">Загрузка курса...</div>
           ) : courseData && courseData.modules.length > 0 ? (
@@ -405,19 +413,29 @@ export function StudentEdit() {
               Модули не найдены
             </div>
           )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Секция: Домашние задания ученика */}
-      <div className="mt-6 bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 mb-4">
-          <FileText size={20} />
-          Домашние задания
-          {studentSubmissions && studentSubmissions.length > 0 && (
-            <span className="text-sm font-normal text-gray-400">({studentSubmissions.length})</span>
-          )}
-        </h2>
+      <div className="mt-6 bg-white/80 backdrop-blur-xl border border-white/60 rounded-xl shadow-sm overflow-hidden">
+        <button
+          onClick={() => setShowHomework(!showHomework)}
+          className="w-full flex items-center gap-3 p-6 text-left cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+          {showHomework ? <ChevronDown size={18} className="text-gray-400 shrink-0" /> : <ChevronRight size={18} className="text-gray-400 shrink-0" />}
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900">
+            <FileText size={20} />
+            Домашние задания
+            {studentSubmissions && studentSubmissions.length > 0 && (
+              <span className="text-sm font-normal text-gray-400">({studentSubmissions.length})</span>
+            )}
+          </h2>
+        </button>
 
+        {showHomework && (
+          <div className="px-6 pb-6">
         {submissionsLoading ? (
           <div className="text-center py-8 text-gray-400">Загрузка ДЗ...</div>
         ) : !studentSubmissions || studentSubmissions.length === 0 ? (
@@ -524,6 +542,8 @@ export function StudentEdit() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
           </div>
         )}
       </div>
