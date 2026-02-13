@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Folder, ChevronRight, Lock, Star, Clock } from 'lucide-react'
+import { Folder, ChevronRight, Lock, Star, Clock, Mail } from 'lucide-react'
 import { getUserTariffsById, getUserTariffWithExpiry, checkIsCurator, supabase } from '@/lib/supabase'
 import { useFeatureAccess, FEATURES } from '@/hooks/useSubscription'
 
@@ -10,6 +10,11 @@ export default function SchoolIndex() {
   const [tariffExpiry, setTariffExpiry] = useState<string | null>(null)
   const [isLoadingTariffs, setIsLoadingTariffs] = useState(true)
   const [isCurator, setIsCurator] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [emailInput, setEmailInput] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [emailChecked, setEmailChecked] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // Проверка подписки PRO/ELITE
   const { data: academyAccess, isLoading: isLoadingAccess } = useFeatureAccess(FEATURES.AI_ACADEMY)
@@ -34,22 +39,26 @@ export default function SchoolIndex() {
         if (info) setTariffExpiry(info.expires_at)
       })
 
-      // Проверяем куратор ли
-      const checkCuratorStatus = async () => {
+      // Проверяем куратор ли + загружаем email
+      const checkUserData = async () => {
         const { data: userData } = await supabase
           .from('users')
-          .select('id')
+          .select('id, email')
           .eq('telegram_id', telegramId)
           .single()
 
         if (userData) {
+          setCurrentUserId(userData.id)
+          setUserEmail(userData.email || null)
           const curator = await checkIsCurator(userData.id)
           setIsCurator(curator)
         }
+        setEmailChecked(true)
       }
-      checkCuratorStatus()
+      checkUserData()
     } else {
       setIsLoadingTariffs(false)
+      setEmailChecked(true)
     }
   }, [])
 
@@ -67,6 +76,22 @@ export default function SchoolIndex() {
   // Доступ есть если: подписка PRO/ELITE ИЛИ куплен курс ИЛИ куратор
   const hasSubscriptionAccess = academyAccess?.has_access || false
   const hasAccess = hasSubscriptionAccess || !!tariffSlug || isCurator
+
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  const handleSaveEmail = async () => {
+    if (!currentUserId || !isValidEmail(emailInput.trim())) return
+    setSavingEmail(true)
+    await supabase
+      .from('users')
+      .update({ email: emailInput.trim() })
+      .eq('id', currentUserId)
+    setUserEmail(emailInput.trim())
+    setSavingEmail(false)
+  }
+
+  // Нужно показать модалку email если: есть доступ, email проверен, email пустой
+  const needsEmail = hasAccess && emailChecked && !userEmail
 
   if (isLoadingTariffs || isLoadingAccess) {
     return (
@@ -124,6 +149,36 @@ export default function SchoolIndex() {
               Оформить подписку
             </button>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Если email не заполнен — просим заполнить
+  if (needsEmail) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Mail size={36} className="text-orange-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Укажите email</h2>
+          <p className="text-gray-500 text-sm mb-6">Для доступа к курсам нам нужна ваша почта</p>
+          <input
+            type="email"
+            value={emailInput}
+            onChange={(e) => setEmailInput(e.target.value)}
+            placeholder="email@example.com"
+            className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4 text-center"
+            onKeyDown={(e) => e.key === 'Enter' && handleSaveEmail()}
+          />
+          <button
+            onClick={handleSaveEmail}
+            disabled={!isValidEmail(emailInput.trim()) || savingEmail}
+            className="w-full py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg disabled:opacity-50 transition-all cursor-pointer"
+          >
+            {savingEmail ? 'Сохранение...' : 'Продолжить'}
+          </button>
         </div>
       </div>
     )

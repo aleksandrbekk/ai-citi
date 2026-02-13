@@ -10,6 +10,7 @@ export function StudentsList() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [newIdentifier, setNewIdentifier] = useState('')
   const [newComment, setNewComment] = useState('')
+  const [newEmail, setNewEmail] = useState('')
   const [newTariff, setNewTariff] = useState('standard')
   const [newDays, setNewDays] = useState('')
 
@@ -29,7 +30,7 @@ export function StudentsList() {
       const enriched = await Promise.all(allowed.map(async (a: any) => {
         const { data: user } = await supabase
           .from('users')
-          .select('id, first_name, last_name, username, avatar_url')
+          .select('id, first_name, last_name, username, avatar_url, email')
           .eq('telegram_id', a.telegram_id)
           .single()
         
@@ -109,8 +110,14 @@ export function StudentsList() {
         )
       if (wlError) throw wlError
 
-      // Если пользователь найден — назначаем тариф
+      // Если пользователь найден — сохраняем email и назначаем тариф
       if (userId) {
+        if (newEmail.trim()) {
+          await supabase
+            .from('users')
+            .update({ email: newEmail.trim() })
+            .eq('id', userId)
+        }
         const expiresAt = newDays
           ? new Date(Date.now() + parseInt(newDays) * 86400000).toISOString()
           : null
@@ -138,6 +145,7 @@ export function StudentsList() {
       queryClient.invalidateQueries({ queryKey: ['students-full'] })
       setNewIdentifier('')
       setNewComment('')
+      setNewEmail('')
       setNewTariff('standard')
       setNewDays('')
       setShowAddForm(false)
@@ -224,7 +232,7 @@ export function StudentsList() {
           {addUser.isError && (
             <p className="text-sm text-red-500 mb-3">{(addUser.error as Error).message}</p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <input
               type="text"
               value={newIdentifier}
@@ -237,6 +245,13 @@ export function StudentsList() {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Имя"
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="Email"
               className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <select
@@ -292,6 +307,9 @@ export function StudentsList() {
                       {student.user?.username ? `@${student.user.username}` : ''}
                       <span className="text-gray-400 ml-2">ID: {student.telegram_id}</span>
                     </p>
+                    {student.user?.email && (
+                      <p className="text-xs text-gray-400">{student.user.email}</p>
+                    )}
                     {!student.user && (
                       <p className="text-xs text-yellow-500">Ещё не заходил в приложение</p>
                     )}
