@@ -383,9 +383,26 @@ serve(async (req) => {
     }
 
     // Process school invite link (school_CODE)
+    // Fallback: check pending_referrals for school code if not in startParam
+    let schoolStartParam = effectiveStartParam
+    if (!schoolStartParam || !schoolStartParam.startsWith('school_')) {
+      try {
+        const { data: pending } = await supabase
+          .from('pending_referrals')
+          .select('referral_code')
+          .eq('telegram_id', userData.id)
+          .single()
+        if (pending?.referral_code && pending.referral_code.startsWith('school_')) {
+          schoolStartParam = pending.referral_code
+          console.log('[SCHOOL] Found pending school code:', schoolStartParam)
+          await supabase.from('pending_referrals').delete().eq('telegram_id', userData.id)
+        }
+      } catch (_e) { /* no pending */ }
+    }
+
     let schoolEnrolled = false
     const schoolPrefix = 'school_'
-    if (effectiveStartParam && effectiveStartParam.startsWith(schoolPrefix)) {
+    if (schoolStartParam && schoolStartParam.startsWith(schoolPrefix)) {
       const inviteCode = effectiveStartParam.slice(schoolPrefix.length)
       console.log('[SCHOOL] Processing invite code:', inviteCode)
 

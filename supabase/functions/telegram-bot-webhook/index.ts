@@ -124,8 +124,23 @@ serve(async (req) => {
                 `📌 Закрепи чат, чтобы первым получать новые функции`
 
             if (promoCode && !promoCode.startsWith('ref_')) {
-                // Промокод — кнопка "Получить бонус"
+                // Промокод (или school-ссылка) — кнопка "Получить бонус"
                 await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard('🎁 Получить бонус', promoCode))
+
+                // Сохраняем в pending_referrals чтобы код не потерялся
+                // если пользователь откроет мини-апп из меню, а не по кнопке
+                try {
+                    const supabase = createClient(
+                        Deno.env.get('SUPABASE_URL')!,
+                        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+                    )
+                    await supabase
+                        .from('pending_referrals')
+                        .upsert({ telegram_id: chatId, referral_code: promoCode }, { onConflict: 'telegram_id' })
+                    console.log('Saved pending promo/school code:', chatId, '->', promoCode)
+                } catch (e) {
+                    console.error('Failed to save pending promo code:', e)
+                }
 
             } else if (promoCode && promoCode.startsWith('ref_')) {
                 // Реферальная ссылка — кнопка "Войти в город"
