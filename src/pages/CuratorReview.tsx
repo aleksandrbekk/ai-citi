@@ -347,9 +347,29 @@ export default function CuratorReview() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold text-gray-900 truncate">{name}</p>
-                        <p className="text-xs text-gray-400">
-                          {student.username ? `@${student.username}` : `ID: ${student.telegram_id}`}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                          {student.username && (
+                            <a
+                              href={`https://t.me/${student.username}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-cyan-500 hover:text-cyan-600 underline underline-offset-2"
+                            >
+                              @{student.username}
+                            </a>
+                          )}
+                          {student.email && (
+                            <a
+                              href={`mailto:${student.email}`}
+                              className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2"
+                            >
+                              {student.email}
+                            </a>
+                          )}
+                          {!student.username && !student.email && (
+                            <span className="text-xs text-gray-400">ID: {student.telegram_id}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right shrink-0">
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${

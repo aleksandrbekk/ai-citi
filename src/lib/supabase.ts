@@ -1131,6 +1131,7 @@ export interface CuratorStudent {
   first_name: string | null
   last_name: string | null
   username: string | null
+  email: string | null
   telegram_id: number
   tariff_slug: string
   curator_started_at: string | null
@@ -1149,7 +1150,7 @@ export async function getCuratorStudents(curatorUserId: string): Promise<Curator
   const userIds = tariffs.map(t => t.user_id)
   const { data: users } = await supabase
     .from('users')
-    .select('id, first_name, last_name, username, telegram_id')
+    .select('id, first_name, last_name, username, email, telegram_id')
     .in('id', userIds)
 
   return tariffs.map(t => {
@@ -1159,6 +1160,7 @@ export async function getCuratorStudents(curatorUserId: string): Promise<Curator
       first_name: user?.first_name || null,
       last_name: user?.last_name || null,
       username: user?.username || null,
+      email: user?.email || null,
       telegram_id: user?.telegram_id || 0,
       tariff_slug: t.tariff_slug,
       curator_started_at: t.curator_started_at,
