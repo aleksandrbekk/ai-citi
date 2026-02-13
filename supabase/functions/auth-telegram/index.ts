@@ -447,6 +447,7 @@ serve(async (req) => {
               .from('curators')
               .select('user_id')
               .eq('is_active', true)
+              .order('created_at', { ascending: false })
               .limit(1)
               .single()
             if (curator) curatorId = curator.user_id
