@@ -440,15 +440,34 @@ serve(async (req) => {
             .eq('user_id', user.id)
             .maybeSingle()
 
+          // Определяем куратора если ссылка с куратором
+          let curatorId = null
+          if (invite.with_curator) {
+            const { data: curator } = await supabase
+              .from('curators')
+              .select('user_id')
+              .eq('is_active', true)
+              .limit(1)
+              .single()
+            if (curator) curatorId = curator.user_id
+          }
+
+          const tariffData: any = {
+            tariff_slug: invite.tariff_slug,
+            expires_at: expiresAt,
+            is_active: true,
+          }
+          if (curatorId) tariffData.curator_id = curatorId
+
           if (existingTariff) {
             await supabase
               .from('user_tariffs')
-              .update({ tariff_slug: invite.tariff_slug, expires_at: expiresAt, is_active: true })
+              .update(tariffData)
               .eq('id', existingTariff.id)
           } else {
             await supabase
               .from('user_tariffs')
-              .insert({ user_id: user.id, tariff_slug: invite.tariff_slug, expires_at: expiresAt, is_active: true })
+              .insert({ user_id: user.id, ...tariffData })
           }
 
           // Increment used_count

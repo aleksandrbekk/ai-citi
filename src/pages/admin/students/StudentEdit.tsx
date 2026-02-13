@@ -12,7 +12,7 @@ import {
 } from '../../../hooks/admin/useStudents'
 import { supabase } from '../../../lib/supabase'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock, FileText, CheckCircle2, Clock, XCircle, Plus, RotateCcw } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Unlock, Lock, FileText, CheckCircle2, Clock, XCircle, RotateCcw } from 'lucide-react'
 import { Switch } from '../../../components/ui/switch'
 import { toast } from 'sonner'
 
@@ -329,43 +329,43 @@ export function StudentEdit() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <div className="text-xs text-gray-500 mb-2">
+                    <div className="text-xs text-gray-500 mb-3">
                       Начало: {start.toLocaleDateString('ru-RU')} · Прошло: {elapsed} дн.
                     </div>
                     <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 shrink-0">Установить дни:</span>
                       <input
                         type="number"
-                        min="1"
+                        min="0"
                         max="365"
-                        placeholder="Кол-во дней"
+                        placeholder={String(totalDays)}
                         value={addDaysInput}
                         onChange={(e) => setAddDaysInput(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                        className="w-24 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 text-center focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
                       <button
                         type="button"
                         onClick={async () => {
-                          const days = parseInt(addDaysInput)
-                          if (!days || days <= 0 || !data?.tariff?.curator_started_at) return
-                          // Сдвигаем curator_started_at вперёд на N дней (= добавляем дни поддержки)
-                          const curStart = new Date(data.tariff.curator_started_at)
-                          curStart.setDate(curStart.getDate() + days)
+                          const newDays = parseInt(addDaysInput)
+                          if (isNaN(newDays) || newDays < 0 || !data?.tariff?.curator_started_at) return
+                          // Пересчитываем curator_started_at чтобы осталось ровно newDays
+                          const newStart = new Date()
+                          newStart.setDate(newStart.getDate() - (totalDays - newDays))
                           const { error } = await supabase
                             .from('user_tariffs')
-                            .update({ curator_started_at: curStart.toISOString() })
+                            .update({ curator_started_at: newStart.toISOString() })
                             .eq('user_id', id)
                           if (error) {
                             toast.error('Ошибка: ' + error.message)
                           } else {
-                            toast.success(`+${days} дн. куратора добавлено`)
+                            toast.success(`Дни куратора: ${newDays}`)
                             setAddDaysInput('')
                             refetch()
                           }
                         }}
-                        className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                        className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
                       >
-                        <Plus size={14} />
-                        Добавить
+                        Сохранить
                       </button>
                       <button
                         type="button"

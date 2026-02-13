@@ -21,6 +21,8 @@ export function InviteLinks() {
   const [tariff, setTariff] = useState('standard')
   const [days, setDays] = useState('')
   const [maxUses, setMaxUses] = useState('')
+  const [withCurator, setWithCurator] = useState(false)
+  const [curatorDays, setCuratorDays] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const { data: links, isLoading } = useQuery({
@@ -45,6 +47,8 @@ export function InviteLinks() {
           tariff_slug: tariff,
           days_access: days ? parseInt(days) : null,
           max_uses: maxUses ? parseInt(maxUses) : null,
+          with_curator: withCurator,
+          curator_days: withCurator && curatorDays ? parseInt(curatorDays) : null,
         })
       if (error) throw error
     },
@@ -54,6 +58,8 @@ export function InviteLinks() {
       setTariff('standard')
       setDays('')
       setMaxUses('')
+      setWithCurator(false)
+      setCuratorDays('')
       toast.success('Ссылка создана')
     }
   })
@@ -133,6 +139,26 @@ export function InviteLinks() {
               placeholder="Лимит (пусто = безлимит)"
               className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
+            <div className="flex items-center gap-3 col-span-full">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={withCurator}
+                  onChange={(e) => setWithCurator(e.target.checked)}
+                  className="w-4 h-4 accent-cyan-500 cursor-pointer"
+                />
+                <span className="text-sm text-gray-700">С куратором</span>
+              </label>
+              {withCurator && (
+                <input
+                  type="number"
+                  value={curatorDays}
+                  onChange={(e) => setCuratorDays(e.target.value)}
+                  placeholder="Дни куратора (пусто = по тарифу)"
+                  className="flex-1 max-w-xs px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm"
+                />
+              )}
+            </div>
             <button
               onClick={() => createLink.mutate()}
               disabled={createLink.isPending}
@@ -175,6 +201,11 @@ export function InviteLinks() {
                       }`}>
                         {link.tariff_slug === 'platinum' ? 'Платина' : 'Стандарт'}
                       </span>
+                      {link.with_curator && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-600 font-medium">
+                          Куратор{link.curator_days ? ` ${link.curator_days}д` : ''}
+                        </span>
+                      )}
                       {link.days_access && (
                         <span className="text-xs text-gray-400">{link.days_access} дн.</span>
                       )}
