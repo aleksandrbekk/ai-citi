@@ -565,8 +565,8 @@ export default function LessonPage() {
       </AnimatePresence>
 
       <div className="max-w-3xl mx-auto px-4">
-        {/* Кнопка содержания сверху + название урока */}
-        <div className="flex items-center gap-3 mb-4">
+        {/* Кнопка содержания + название урока + стрелки */}
+        <div className="flex items-center gap-2 mb-4">
           <button
             onClick={() => setDrawerOpen(true)}
             className="p-2 bg-orange-500 text-white rounded-xl shadow-sm hover:bg-orange-600 transition-colors cursor-pointer shrink-0"
@@ -574,7 +574,25 @@ export default function LessonPage() {
           >
             <List className="w-4 h-4" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900 truncate">{lesson?.title}</h1>
+          <h1 className="text-lg font-bold text-gray-900 truncate flex-1 min-w-0">{lesson?.title}</h1>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={() => canGoPrev && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson!.id}`)}
+              disabled={!canGoPrev}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-500 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              aria-label="Предыдущий урок"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => canGoNext && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson!.id}`)}
+              disabled={!canGoNext}
+              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-500 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              aria-label="Следующий урок"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Видео */}
@@ -819,34 +837,6 @@ export default function LessonPage() {
           )}
         </div>
       )}
-        {/* Навигация prev/next */}
-        {allLessons && allLessons.length > 1 && (
-          <div className="flex items-center justify-between mt-8 mb-4">
-            {canGoPrev ? (
-              <button
-                onClick={() => navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson!.id}`)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:border-orange-300 transition-all cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="text-sm">Назад</span>
-              </button>
-            ) : (
-              <div />
-            )}
-
-            {canGoNext ? (
-              <button
-                onClick={() => navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson!.id}`)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg transition-all cursor-pointer"
-              >
-                <span className="text-sm">Далее</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <div />
-            )}
-          </div>
-        )}
       </div>
     </div>
   )
