@@ -95,25 +95,37 @@ serve(async (req) => {
       answerPart +
       `\n\n🕐 ${now} МСК`
 
-    // Определяем куратора ученика
+    // Определяем куратора ученика (только если дни не истекли)
     let curatorChatId: number | null = null
     if (user_id) {
       const { data: tariff } = await supabase
         .from('user_tariffs')
-        .select('curator_id')
+        .select('curator_id, curator_started_at, tariff_slug')
         .eq('user_id', user_id)
         .eq('is_active', true)
         .single()
 
       if (tariff?.curator_id) {
-        const { data: curatorUser } = await supabase
-          .from('users')
-          .select('telegram_id')
-          .eq('id', tariff.curator_id)
-          .single()
+        // Проверяем не истёк ли срок куратора
+        let curatorActive = true
+        if (tariff.curator_started_at) {
+          const totalDays = tariff.tariff_slug === 'platinum' ? 90 : 30
+          const elapsed = Math.floor((Date.now() - new Date(tariff.curator_started_at).getTime()) / 86400000)
+          if (elapsed >= totalDays) {
+            curatorActive = false
+          }
+        }
 
-        if (curatorUser?.telegram_id) {
-          curatorChatId = curatorUser.telegram_id
+        if (curatorActive) {
+          const { data: curatorUser } = await supabase
+            .from('users')
+            .select('telegram_id')
+            .eq('id', tariff.curator_id)
+            .single()
+
+          if (curatorUser?.telegram_id) {
+            curatorChatId = curatorUser.telegram_id
+          }
         }
       }
     }

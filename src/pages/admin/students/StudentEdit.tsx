@@ -347,9 +347,9 @@ export function StudentEdit() {
                         onClick={async () => {
                           const days = parseInt(addDaysInput)
                           if (!days || days <= 0 || !data?.tariff?.curator_started_at) return
-                          // Сдвигаем curator_started_at назад на N дней
+                          // Сдвигаем curator_started_at вперёд на N дней (= добавляем дни поддержки)
                           const curStart = new Date(data.tariff.curator_started_at)
-                          curStart.setDate(curStart.getDate() - days)
+                          curStart.setDate(curStart.getDate() + days)
                           const { error } = await supabase
                             .from('user_tariffs')
                             .update({ curator_started_at: curStart.toISOString() })

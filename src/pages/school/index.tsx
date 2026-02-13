@@ -309,7 +309,7 @@ export default function SchoolIndex() {
               </Link>
 
               {/* Куратор — внутри той же карточки */}
-              {curatorSupport && (
+              {curatorSupport && (curatorDaysLeft === null || curatorDaysLeft > 0) && (
                 <div className="border-t border-gray-100 px-5 py-4">
                   <div className="flex items-center gap-4 mb-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100 flex items-center justify-center">
@@ -375,8 +375,8 @@ export default function SchoolIndex() {
                 <ClipboardCheck className="w-5 h-5 text-green-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-base text-green-600">Проверка ДЗ</div>
-                <div className="text-sm text-gray-400">Проверить работы учеников</div>
+                <div className="font-bold text-base text-green-600">Кураторская</div>
+                <div className="text-sm text-gray-400">Проверка ДЗ и ученики</div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
             </Link>

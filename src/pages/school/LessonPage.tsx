@@ -589,7 +589,7 @@ export default function LessonPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="max-w-3xl mx-auto px-4"
+        className="max-w-3xl mx-auto px-4 pt-3"
       >
         {/* Кнопка содержания + название урока + стрелки */}
         <div className="flex items-center gap-2 mb-4">
