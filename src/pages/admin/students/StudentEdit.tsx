@@ -150,16 +150,29 @@ export function StudentEdit() {
   const chainUnlocked = (() => {
     const set = new Set<string>()
     if (!courseData || !hwStatuses) return set
-    for (const module of courseData.modules) {
+    const sortedModules = [...courseData.modules].sort((a, b) => a.order_index - b.order_index)
+    let prevModuleCompleted = true // Первый модуль всегда доступен
+    for (const module of sortedModules) {
       const moduleLessons = courseData.lessons.filter(l => l.module_id === module.id)
       if (moduleLessons.length === 0) continue
-      set.add(moduleLessons[0].id) // первый урок всегда открыт
+      // Первый урок модуля открыт только если предыдущий модуль завершён
+      if (prevModuleCompleted) {
+        set.add(moduleLessons[0].id)
+      }
       for (let i = 0; i < moduleLessons.length; i++) {
         const lesson = moduleLessons[i]
         if (!set.has(lesson.id)) break
         if (!lesson.has_homework || !!hwStatuses[lesson.id]) {
           if (i + 1 < moduleLessons.length) set.add(moduleLessons[i + 1].id)
         }
+      }
+      // Проверяем завершён ли этот модуль (последнее ДЗ сдано)
+      const hwLessons = moduleLessons.filter(l => l.has_homework)
+      if (hwLessons.length === 0) {
+        prevModuleCompleted = true
+      } else {
+        const lastHw = hwLessons[hwLessons.length - 1]
+        prevModuleCompleted = !!hwStatuses[lastHw.id]
       }
     }
     return set

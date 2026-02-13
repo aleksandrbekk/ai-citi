@@ -111,10 +111,12 @@ export default function LessonPage() {
   })
 
   // Вычисляем разблокированные уроки по всем модулям (для drawer)
-  const getUnlockedForModule = (moduleLessons: typeof drawerLessonsData): Set<string> => {
+  const getUnlockedForModule = (moduleLessons: typeof drawerLessonsData, isFirstModuleAvailable: boolean): Set<string> => {
     if (!moduleLessons || moduleLessons.length === 0) return new Set()
     const unlocked = new Set<string>()
-    unlocked.add(moduleLessons[0].id)
+    if (isFirstModuleAvailable) {
+      unlocked.add(moduleLessons[0].id)
+    }
     for (let i = 0; i < moduleLessons.length; i++) {
       const lesson = moduleLessons[i]
       if (adminOverrides?.locks?.[lesson.id]) {
@@ -541,9 +543,20 @@ export default function LessonPage() {
                   <ChevronLeft className="w-4 h-4" />
                   К модулям
                 </button>
-                {filteredModules.map((mod) => {
+                {filteredModules.map((mod, modIdx) => {
                   const moduleLessons = drawerLessonsData?.filter(l => l.module_id === mod.id) || []
-                  const moduleUnlocked = getUnlockedForModule(moduleLessons)
+                  // Проверяем завершён ли предыдущий модуль
+                  let prevCompleted = true
+                  if (modIdx > 0) {
+                    const prevMod = filteredModules[modIdx - 1]
+                    const prevLessons = drawerLessonsData?.filter(l => l.module_id === prevMod.id) || []
+                    const prevHw = prevLessons.filter(l => l.has_homework)
+                    if (prevHw.length > 0) {
+                      const lastHw = prevHw[prevHw.length - 1]
+                      prevCompleted = !!allHwStatuses?.[lastHw.id]
+                    }
+                  }
+                  const moduleUnlocked = getUnlockedForModule(moduleLessons, prevCompleted)
 
                   return (
                     <div key={mod.id} className="mb-3">
