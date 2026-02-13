@@ -161,12 +161,23 @@ export function StudentsList() {
         .delete()
         .eq('telegram_id', telegramId)
 
-      // Удаляем тарифы если есть user
-      if (userId) {
+      // Если userId не передан — ищем по telegram_id
+      let resolvedUserId = userId
+      if (!resolvedUserId) {
+        const { data: foundUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('telegram_id', telegramId)
+          .maybeSingle()
+        if (foundUser) resolvedUserId = foundUser.id
+      }
+
+      // Удаляем тарифы
+      if (resolvedUserId) {
         await supabase
           .from('user_tariffs')
           .delete()
-          .eq('user_id', userId)
+          .eq('user_id', resolvedUserId)
       }
     },
     onSuccess: () => {
