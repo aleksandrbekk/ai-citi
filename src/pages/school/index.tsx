@@ -245,24 +245,40 @@ export default function SchoolIndex() {
           <motion.div custom={hasSubscriptionAccess && !tariffSlug ? 1 : 0} initial="hidden" animate="visible" variants={cardVariants}>
             <Link
               to={`/school/${tariffSlug}`}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-orange-200 active:scale-[0.98] transition-all duration-200"
+              className="block p-5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-orange-200 active:scale-[0.98] transition-all duration-200"
             >
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shadow-sm">
-                <GraduationCap className="w-5 h-5 text-orange-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-base text-orange-500">{tariffName}</div>
-                <div className="text-sm text-gray-400">
-                  {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
+              {/* Верхняя часть: иконка + название + стрелка */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shadow-sm">
+                  <GraduationCap className="w-5 h-5 text-orange-500" />
                 </div>
-                {daysLeft !== null && (
-                  <div className={`flex items-center gap-1 text-xs mt-1 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-base text-orange-500">{tariffName}</div>
+                  <div className="text-sm text-gray-400">
+                    {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+              </div>
+
+              {/* Progress bar доступа */}
+              {daysLeft !== null && (
+                <div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${daysLeft > 14 ? 'bg-gradient-to-r from-orange-400 to-orange-500' :
+                          daysLeft > 0 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
+                            'bg-red-400'
+                        }`}
+                      style={{ width: `${Math.max(0, Math.min(100, (daysLeft / 90) * 100))}%` }}
+                    />
+                  </div>
+                  <div className={`flex items-center gap-1 text-xs mt-2 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
                     <Clock className="w-3 h-3" />
                     {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
                   </div>
-                )}
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+                </div>
+              )}
             </Link>
           </motion.div>
         )}
