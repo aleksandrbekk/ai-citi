@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
-import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
+import { FileText, ExternalLink, Send, Lock, List, CheckCircle2, Clock, ChevronRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useUIStore } from '@/store/uiStore'
 import { toast } from 'sonner'
@@ -19,6 +20,7 @@ export default function LessonPage() {
   const submitHomework = useSubmitHomework()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const setKeyboardOpen = useUIStore((s) => s.setKeyboardOpen)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Получаем telegram_id текущего пользователя
   const getTelegramId = (): number | null => {
@@ -103,11 +105,6 @@ export default function LessonPage() {
     },
     enabled: !!getTelegramId()
   })
-
-  // Найди индекс текущего урока
-  const currentIndex = allLessons?.findIndex(l => l.id === lessonId) ?? -1
-  const prevLesson = currentIndex > 0 ? allLessons?.[currentIndex - 1] : null
-  const nextLesson = currentIndex < (allLessons?.length || 0) - 1 ? allLessons?.[currentIndex + 1] : null
 
   // Вычисляем разблокированные уроки
   const getUnlockedLessons = (): Set<string> => {
@@ -397,40 +394,89 @@ export default function LessonPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-[300px]">
+      {/* Кнопка-таб слева для открытия списка уроков */}
+      <button
+        onClick={() => setDrawerOpen(true)}
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-30 bg-orange-500 text-white rounded-r-xl px-1.5 py-4 shadow-lg hover:bg-orange-600 transition-colors cursor-pointer"
+        aria-label="Список уроков"
+      >
+        <List className="w-4 h-4" />
+      </button>
+
+      {/* Drawer — список уроков модуля */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDrawerOpen(false)}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-white shadow-2xl z-50 flex flex-col"
+            >
+              <div className="px-4 py-4 border-b border-gray-100">
+                <h2 className="text-base font-semibold text-gray-900">Уроки</h2>
+              </div>
+              <div className="flex-1 overflow-y-auto px-2 py-2">
+                {allLessons?.map((l, idx) => {
+                  const isActive = l.id === lessonId
+                  const isUnlocked = unlockedSet.has(l.id)
+                  const hwStatus = hwStatuses?.[l.id]
+
+                  return (
+                    <button
+                      key={l.id}
+                      onClick={() => {
+                        if (isUnlocked) {
+                          navigate(`/school/${tariffSlug}/${moduleId}/lesson/${l.id}`)
+                          setDrawerOpen(false)
+                        }
+                      }}
+                      disabled={!isUnlocked}
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all mb-1 ${
+                        isActive
+                          ? 'bg-orange-50 border border-orange-200'
+                          : isUnlocked
+                          ? 'hover:bg-gray-50 border border-transparent'
+                          : 'opacity-50 border border-transparent'
+                      }`}
+                    >
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
+                        !isUnlocked ? 'bg-gray-100 text-gray-400' :
+                        hwStatus === 'approved' ? 'bg-green-100 text-green-600' :
+                        hwStatus === 'pending' ? 'bg-amber-100 text-amber-600' :
+                        isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {!isUnlocked ? <Lock className="w-3 h-3" /> :
+                         hwStatus === 'approved' ? <CheckCircle2 className="w-3.5 h-3.5" /> :
+                         hwStatus === 'pending' ? <Clock className="w-3.5 h-3.5" /> :
+                         idx + 1}
+                      </div>
+                      <span className={`text-sm truncate ${
+                        isActive ? 'font-semibold text-gray-900' : 'text-gray-700'
+                      }`}>
+                        {l.title}
+                      </span>
+                      {isActive && <ChevronRight className="w-4 h-4 text-orange-500 ml-auto shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-3xl mx-auto px-4">
-        {/* Шапка */}
-        <div className="relative flex items-center justify-between mb-4 h-10">
-          {/* Назад к модулю */}
-          <button
-            onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)}
-            className="p-2 bg-zinc-800 rounded-lg z-10"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-
-          {/* Название — по центру */}
-          <h1 className="absolute left-0 right-0 top-1/2 -translate-y-1/2 text-base font-semibold text-center px-16 truncate">
-            {lesson?.title}
-          </h1>
-
-          {/* Навигация между уроками */}
-          <div className="flex items-center gap-1 z-10">
-            <button
-              onClick={() => prevLesson && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson.id}`)}
-              disabled={!prevLesson}
-              className={`p-2 ${prevLesson ? 'text-gray-900' : 'text-gray-300'}`}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => nextLesson && unlockedSet.has(nextLesson.id) && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson.id}`)}
-              disabled={!nextLesson || !unlockedSet.has(nextLesson.id)}
-              className={`p-2 ${nextLesson && unlockedSet.has(nextLesson.id) ? 'text-gray-900' : 'text-gray-300'}`}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+        {/* Название урока */}
+        <h1 className="text-lg font-bold text-gray-900 mb-4">{lesson?.title}</h1>
 
         {/* Видео */}
         {lesson?.video_url && (

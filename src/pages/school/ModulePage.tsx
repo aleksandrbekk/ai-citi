@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useModule, useLessons } from '@/hooks/useCourse'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Play, FileText, ChevronRight, Lock, CheckCircle2, Clock } from 'lucide-react'
+import { Play, FileText, ChevronRight, Lock, CheckCircle2, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 function getTelegramId(): number | null {
@@ -124,12 +124,7 @@ export default function ModulePage() {
   return (
     <div className="min-h-screen bg-[#FFF8F5] text-gray-900 p-4 pb-24">
       {/* Шапка */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link to={`/school/${tariffSlug}`} className="p-2 rounded-lg bg-white border border-gray-200 hover:border-orange-300 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </Link>
-        <h1 className="text-xl font-bold flex-1">{module?.title}</h1>
-      </div>
+      <h1 className="text-xl font-bold mb-6">{module?.title}</h1>
 
       {/* Список уроков */}
       <div className="space-y-2">
