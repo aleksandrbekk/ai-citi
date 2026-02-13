@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Folder, ChevronRight, Lock, Star, Clock, Mail } from 'lucide-react'
+import { ChevronRight, Lock, Star, Clock, Mail, GraduationCap, ClipboardCheck } from 'lucide-react'
 import { getUserTariffsById, getUserTariffWithExpiry, checkIsCurator, supabase } from '@/lib/supabase'
 import { useFeatureAccess, FEATURES } from '@/hooks/useSubscription'
+import { motion } from 'framer-motion'
 
 export default function SchoolIndex() {
   const navigate = useNavigate()
@@ -95,11 +96,15 @@ export default function SchoolIndex() {
 
   if (isLoadingTariffs || isLoadingAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
-          <p className="text-gray-500">Загрузка...</p>
-        </div>
+      <div className="min-h-screen bg-[#FFF8F5] flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Загрузка курсов...</p>
+        </motion.div>
       </div>
     )
   }
@@ -107,7 +112,7 @@ export default function SchoolIndex() {
   // Если нет доступа - показываем экран блокировки
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
+      <div className="min-h-screen bg-[#FFF8F5] flex flex-col">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3 flex items-center gap-3">
           <button
@@ -115,15 +120,15 @@ export default function SchoolIndex() {
             className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-700">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
+              <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-              <Lock size={20} className="text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-xl flex items-center justify-center">
+              <Lock size={18} className="text-gray-500" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">AI Академия</h1>
+              <h1 className="text-lg font-bold text-gray-900">AI Академия</h1>
               <p className="text-xs text-gray-400">Требуется подписка PRO или ELITE</p>
             </div>
           </div>
@@ -131,9 +136,14 @@ export default function SchoolIndex() {
 
         {/* Locked content */}
         <div className="flex-1 flex items-center justify-center px-6">
-          <div className="text-center max-w-sm">
-            <div className="w-24 h-24 bg-gradient-to-br from-cyan-100 to-cyan-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-              <Lock size={40} className="text-cyan-500" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center max-w-sm"
+          >
+            <div className="w-20 h-20 glass-card flex items-center justify-center mx-auto mb-6">
+              <Lock size={32} className="text-gray-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Доступ ограничен</h2>
             <p className="text-gray-500 mb-2">
@@ -144,11 +154,11 @@ export default function SchoolIndex() {
             </p>
             <button
               onClick={() => navigate('/shop')}
-              className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-semibold rounded-full shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all cursor-pointer"
+              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98] transition-all duration-200 cursor-pointer"
             >
               Оформить подписку
             </button>
-          </div>
+          </motion.div>
         </div>
       </div>
     )
@@ -157,10 +167,15 @@ export default function SchoolIndex() {
   // Если email не заполнен — просим заполнить
   if (needsEmail) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail size={36} className="text-orange-500" />
+      <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-sm text-center"
+        >
+          <div className="w-20 h-20 glass-card flex items-center justify-center mx-auto mb-6">
+            <Mail size={32} className="text-orange-500" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Укажите email</h2>
           <p className="text-gray-500 text-sm mb-6">Для доступа к курсам нам нужна ваша почта</p>
@@ -169,83 +184,106 @@ export default function SchoolIndex() {
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
             placeholder="email@example.com"
-            className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 mb-4 text-center"
+            className="w-full px-4 py-3 glass-input text-gray-900 placeholder-gray-400 mb-4 text-center"
             onKeyDown={(e) => e.key === 'Enter' && handleSaveEmail()}
           />
           <button
             onClick={handleSaveEmail}
             disabled={!isValidEmail(emailInput.trim()) || savingEmail}
-            className="w-full py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg disabled:opacity-50 transition-all cursor-pointer"
+            className="w-full py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98] disabled:opacity-50 transition-all duration-200 cursor-pointer"
           >
             {savingEmail ? 'Сохранение...' : 'Продолжить'}
           </button>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
+  // Анимация staggered карточек
+  const cardVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: 'easeOut' as const }
+    })
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 p-4 pb-24">
-      <h1 className="text-2xl font-bold mb-6">📚 Мои курсы</h1>
+    <div className="min-h-screen bg-[#FFF8F5] text-gray-900 p-4 pb-24">
+      <motion.h1
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="text-2xl font-bold mb-6"
+      >
+        📚 Мои курсы
+      </motion.h1>
 
       <div className="space-y-3">
         {/* Доступ по подписке PRO/ELITE */}
         {hasSubscriptionAccess && !tariffSlug && (
-          <Link
-            to="/school/subscription"
-            className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-cyan-500/20 to-teal-500/10 border border-cyan-500/50 hover:border-cyan-400 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/30 flex items-center justify-center">
-              <Star className="w-6 h-6 text-cyan-500" />
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-lg text-cyan-600">AI Академия</div>
-              <div className="text-sm text-gray-500">Доступ по подписке PRO/ELITE</div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-cyan-500" />
-          </Link>
+          <motion.div custom={0} initial="hidden" animate="visible" variants={cardVariants}>
+            <Link
+              to="/school/subscription"
+              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-cyan-200 active:scale-[0.98] transition-all duration-200"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-50 to-cyan-100 flex items-center justify-center shadow-sm">
+                <Star className="w-5 h-5 text-cyan-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-base text-cyan-600">AI Академия</div>
+                <div className="text-sm text-gray-400">Доступ по подписке PRO/ELITE</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+            </Link>
+          </motion.div>
         )}
 
         {/* Курс (купленный) */}
         {tariffSlug && (
-          <Link
-            to={`/school/${tariffSlug}`}
-            className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/50 hover:border-amber-400 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-orange-500/30 flex items-center justify-center">
-              <Folder className="w-6 h-6 text-orange-500" />
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-lg text-orange-500">{tariffName}</div>
-              <div className="text-sm text-gray-500">
-                {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
+          <motion.div custom={hasSubscriptionAccess && !tariffSlug ? 1 : 0} initial="hidden" animate="visible" variants={cardVariants}>
+            <Link
+              to={`/school/${tariffSlug}`}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-orange-200 active:scale-[0.98] transition-all duration-200"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shadow-sm">
+                <GraduationCap className="w-5 h-5 text-orange-500" />
               </div>
-              {daysLeft !== null && (
-                <div className={`flex items-center gap-1 text-xs mt-1 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
-                  <Clock className="w-3 h-3" />
-                  {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-base text-orange-500">{tariffName}</div>
+                <div className="text-sm text-gray-400">
+                  {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
                 </div>
-              )}
-            </div>
-            <ChevronRight className="w-5 h-5 text-orange-500" />
-          </Link>
+                {daysLeft !== null && (
+                  <div className={`flex items-center gap-1 text-xs mt-1 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                    <Clock className="w-3 h-3" />
+                    {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
+                  </div>
+                )}
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+            </Link>
+          </motion.div>
         )}
 
         {/* Проверка ДЗ для кураторов */}
         {isCurator && (
-          <Link
-            to="/curator"
-            className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-blue-500/20 to-indigo-500/10 border border-blue-500/50 hover:border-blue-400 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-blue-500/30 flex items-center justify-center">
-              <span className="text-2xl">📋</span>
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-lg text-blue-600">Проверка ДЗ</div>
-              <div className="text-sm text-gray-500">Проверить работы учеников</div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-blue-500" />
-          </Link>
+          <motion.div custom={2} initial="hidden" animate="visible" variants={cardVariants}>
+            <Link
+              to="/curator"
+              className="flex items-center gap-4 p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-green-200 active:scale-[0.98] transition-all duration-200"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-sm">
+                <ClipboardCheck className="w-5 h-5 text-green-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-base text-green-600">Проверка ДЗ</div>
+                <div className="text-sm text-gray-400">Проверить работы учеников</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+            </Link>
+          </motion.div>
         )}
       </div>
     </div>
