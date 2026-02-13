@@ -50,25 +50,28 @@ export default function ModulePage() {
     enabled: !!telegramId && !!moduleId
   })
 
-  // Загружаем ручные разблокировки от админа
-  const { data: manualUnlocks } = useQuery({
-    queryKey: ['my-lesson-unlocks', telegramId],
+  // Загружаем ручные override от админа (unlock / lock)
+  const { data: adminOverrides } = useQuery({
+    queryKey: ['my-lesson-overrides', telegramId],
     queryFn: async () => {
-      if (!telegramId) return {}
+      if (!telegramId) return { unlocks: {} as Record<string, boolean>, locks: {} as Record<string, boolean> }
       const { data: user } = await supabase
         .from('users')
         .select('id')
         .eq('telegram_id', telegramId)
         .single()
-      if (!user) return {}
-      const { data: unlocks } = await supabase
+      if (!user) return { unlocks: {} as Record<string, boolean>, locks: {} as Record<string, boolean> }
+      const { data: rows } = await supabase
         .from('lesson_unlocks')
-        .select('lesson_id')
+        .select('lesson_id, is_locked')
         .eq('user_id', user.id)
-      if (!unlocks) return {}
-      const map: Record<string, boolean> = {}
-      for (const u of unlocks) map[u.lesson_id] = true
-      return map
+      const unlocks: Record<string, boolean> = {}
+      const locks: Record<string, boolean> = {}
+      for (const r of rows || []) {
+        if (r.is_locked) locks[r.lesson_id] = true
+        else unlocks[r.lesson_id] = true
+      }
+      return { unlocks, locks }
     },
     enabled: !!telegramId
   })
@@ -83,8 +86,14 @@ export default function ModulePage() {
     for (let i = 0; i < lessons.length; i++) {
       const lesson = lessons[i]
 
-      // Ручная разблокировка от админа
-      if (manualUnlocks?.[lesson.id]) {
+      // Принудительно закрыт админом
+      if (adminOverrides?.locks?.[lesson.id]) {
+        if (unlocked.has(lesson.id)) unlocked.delete(lesson.id)
+        continue
+      }
+
+      // Принудительно открыт админом
+      if (adminOverrides?.unlocks?.[lesson.id]) {
         unlocked.add(lesson.id)
         if (i + 1 < lessons.length) unlocked.add(lessons[i + 1].id)
         continue

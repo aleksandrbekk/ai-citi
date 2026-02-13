@@ -259,15 +259,20 @@ export function useStudentLessonUnlocks(userId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lesson_unlocks')
-        .select('lesson_id')
+        .select('lesson_id, is_locked')
         .eq('user_id', userId)
 
       if (error) throw error
-      const map: Record<string, boolean> = {}
+      const unlocks: Record<string, boolean> = {}
+      const locks: Record<string, boolean> = {}
       for (const row of data || []) {
-        map[row.lesson_id] = true
+        if (row.is_locked) {
+          locks[row.lesson_id] = true
+        } else {
+          unlocks[row.lesson_id] = true
+        }
       }
-      return map
+      return { unlocks, locks }
     },
     enabled: !!userId
   })
@@ -300,28 +305,20 @@ export function useToggleLessonUnlock() {
     mutationFn: async ({
       userId,
       lessonId,
-      unlock
+      open
     }: {
       userId: string
       lessonId: string
-      unlock: boolean
+      open: boolean
     }) => {
-      if (unlock) {
-        const { error } = await supabase
-          .from('lesson_unlocks')
-          .upsert(
-            { user_id: userId, lesson_id: lessonId },
-            { onConflict: 'user_id,lesson_id' }
-          )
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from('lesson_unlocks')
-          .delete()
-          .eq('user_id', userId)
-          .eq('lesson_id', lessonId)
-        if (error) throw error
-      }
+      // open=true → is_locked=false (открыть), open=false → is_locked=true (закрыть)
+      const { error } = await supabase
+        .from('lesson_unlocks')
+        .upsert(
+          { user_id: userId, lesson_id: lessonId, is_locked: !open },
+          { onConflict: 'user_id,lesson_id' }
+        )
+      if (error) throw error
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -338,30 +335,22 @@ export function useBulkToggleLessonUnlocks() {
     mutationFn: async ({
       userId,
       lessonIds,
-      unlock
+      open
     }: {
       userId: string
       lessonIds: string[]
-      unlock: boolean
+      open: boolean
     }) => {
       if (lessonIds.length === 0) return
-      if (unlock) {
-        const rows = lessonIds.map(lessonId => ({
-          user_id: userId,
-          lesson_id: lessonId
-        }))
-        const { error } = await supabase
-          .from('lesson_unlocks')
-          .upsert(rows, { onConflict: 'user_id,lesson_id' })
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from('lesson_unlocks')
-          .delete()
-          .eq('user_id', userId)
-          .in('lesson_id', lessonIds)
-        if (error) throw error
-      }
+      const rows = lessonIds.map(lessonId => ({
+        user_id: userId,
+        lesson_id: lessonId,
+        is_locked: !open
+      }))
+      const { error } = await supabase
+        .from('lesson_unlocks')
+        .upsert(rows, { onConflict: 'user_id,lesson_id' })
+      if (error) throw error
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({

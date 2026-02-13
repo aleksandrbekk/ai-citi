@@ -93,31 +93,34 @@ export default function TariffPage() {
     enabled: !!getTelegramId()
   })
 
-  // Загружаем ручные разблокировки от админа
-  const { data: manualUnlocks } = useQuery({
-    queryKey: ['my-lesson-unlocks', getTelegramId()],
+  // Загружаем ручные override от админа (unlock / lock)
+  const { data: adminOverrides } = useQuery({
+    queryKey: ['my-lesson-overrides', getTelegramId()],
     queryFn: async () => {
       const tgId = getTelegramId()
-      if (!tgId) return {}
+      if (!tgId) return { unlocks: {} as Record<string, boolean>, locks: {} as Record<string, boolean> }
       const { data: user } = await supabase
         .from('users')
         .select('id')
         .eq('telegram_id', tgId)
         .single()
-      if (!user) return {}
-      const { data: unlocks } = await supabase
+      if (!user) return { unlocks: {} as Record<string, boolean>, locks: {} as Record<string, boolean> }
+      const { data: rows } = await supabase
         .from('lesson_unlocks')
-        .select('lesson_id')
+        .select('lesson_id, is_locked')
         .eq('user_id', user.id)
-      if (!unlocks) return {}
-      const map: Record<string, boolean> = {}
-      for (const u of unlocks) map[u.lesson_id] = true
-      return map
+      const unlocks: Record<string, boolean> = {}
+      const locks: Record<string, boolean> = {}
+      for (const r of rows || []) {
+        if (r.is_locked) locks[r.lesson_id] = true
+        else unlocks[r.lesson_id] = true
+      }
+      return { unlocks, locks }
     },
     enabled: !!getTelegramId()
   })
 
-  // Модуль завершён если все уроки с ДЗ зачтены
+  // Модуль завершён если все уроки с ДЗ сданы
   const isModuleComplete = (moduleId: string): boolean => {
     if (!allLessonsData || !hwStatuses) return false
     const moduleLessons = allLessonsData.filter(l => l.module_id === moduleId)
@@ -137,10 +140,17 @@ export default function TariffPage() {
 
     for (let i = 0; i < filteredModules.length; i++) {
       const mod = filteredModules[i]
-
-      // Ручная разблокировка: если любой урок модуля разблокирован вручную
       const moduleLessons = allLessonsData?.filter(l => l.module_id === mod.id) || []
-      const hasManualUnlock = moduleLessons.some(l => manualUnlocks?.[l.id])
+
+      // Если ВСЕ уроки модуля принудительно закрыты — модуль закрыт
+      const allLocked = moduleLessons.length > 0 && moduleLessons.every(l => adminOverrides?.locks?.[l.id])
+      if (allLocked) {
+        if (unlocked.has(mod.id)) unlocked.delete(mod.id)
+        continue
+      }
+
+      // Если хотя бы один урок модуля принудительно открыт — модуль открыт
+      const hasManualUnlock = moduleLessons.some(l => adminOverrides?.unlocks?.[l.id])
       if (hasManualUnlock) {
         unlocked.add(mod.id)
         if (i + 1 < filteredModules.length) unlocked.add(filteredModules[i + 1].id)

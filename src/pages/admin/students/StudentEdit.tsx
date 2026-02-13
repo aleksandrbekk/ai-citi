@@ -118,27 +118,55 @@ export function StudentEdit() {
     }
   }
 
-  const handleToggleLesson = (lessonId: string, currentlyUnlocked: boolean) => {
+  // Вычисляем какие уроки открыты по цепочке ДЗ
+  const chainUnlocked = (() => {
+    const set = new Set<string>()
+    if (!courseData || !hwStatuses) return set
+    for (const module of courseData.modules) {
+      const moduleLessons = courseData.lessons.filter(l => l.module_id === module.id)
+      if (moduleLessons.length === 0) continue
+      set.add(moduleLessons[0].id) // первый урок всегда открыт
+      for (let i = 0; i < moduleLessons.length; i++) {
+        const lesson = moduleLessons[i]
+        if (!set.has(lesson.id)) break
+        if (!lesson.has_homework || !!hwStatuses[lesson.id]) {
+          if (i + 1 < moduleLessons.length) set.add(moduleLessons[i + 1].id)
+        }
+      }
+    }
+    return set
+  })()
+
+  // Эффективное состояние урока: (цепочка ИЛИ ручной unlock) И НЕ ручной lock
+  const isLessonOpen = (lessonId: string): boolean => {
+    const hasForceUnlock = !!lessonUnlocks?.unlocks?.[lessonId]
+    const hasForceLock = !!lessonUnlocks?.locks?.[lessonId]
+    if (hasForceLock) return false
+    if (hasForceUnlock) return true
+    return chainUnlocked.has(lessonId)
+  }
+
+  const handleToggleLesson = (lessonId: string, currentlyOpen: boolean) => {
     if (!id) return
     toggleUnlock.mutate({
       userId: id,
       lessonId,
-      unlock: !currentlyUnlocked
+      open: !currentlyOpen
     })
   }
 
-  const handleBulkModule = (moduleId: string, unlock: boolean) => {
+  const handleBulkModule = (moduleId: string, open: boolean) => {
     if (!id || !courseData) return
     const lessonIds = courseData.lessons
       .filter(l => l.module_id === moduleId)
       .map(l => l.id)
-    bulkToggle.mutate({ userId: id, lessonIds, unlock })
+    bulkToggle.mutate({ userId: id, lessonIds, open })
   }
 
   const handleOpenAllCourse = () => {
     if (!id || !courseData) return
     const allLessonIds = courseData.lessons.map(l => l.id)
-    bulkToggle.mutate({ userId: id, lessonIds: allLessonIds, unlock: true })
+    bulkToggle.mutate({ userId: id, lessonIds: allLessonIds, open: true })
   }
 
   const getHwBadge = (lessonId: string, hasHomework: boolean) => {
@@ -292,8 +320,8 @@ export function StudentEdit() {
               {courseData.modules.map(module => {
                 const moduleLessons = courseData.lessons.filter(l => l.module_id === module.id)
                 const isExpanded = expandedModules.has(module.id)
-                const unlockedCount = moduleLessons.filter(l => lessonUnlocks?.[l.id]).length
-                const allUnlocked = unlockedCount === moduleLessons.length && moduleLessons.length > 0
+                const openCount = moduleLessons.filter(l => isLessonOpen(l.id)).length
+                const allOpen = openCount === moduleLessons.length && moduleLessons.length > 0
 
                 return (
                   <div key={module.id} className="border border-gray-200 rounded-xl overflow-hidden">
@@ -310,13 +338,10 @@ export function StudentEdit() {
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-gray-900 truncate">{module.title}</div>
                         <div className="text-xs text-gray-500 mt-0.5">
-                          {moduleLessons.length} уроков
-                          {unlockedCount > 0 && (
-                            <span className="text-orange-500 ml-2">{unlockedCount} открыто вручную</span>
-                          )}
+                          {moduleLessons.length} уроков · {openCount} открыто
                         </div>
                       </div>
-                      {allUnlocked && (
+                      {allOpen && (
                         <Unlock size={16} className="text-orange-500 shrink-0" />
                       )}
                     </button>
@@ -347,7 +372,7 @@ export function StudentEdit() {
                         {/* Уроки */}
                         <div className="divide-y divide-gray-100">
                           {moduleLessons.map(lesson => {
-                            const isManuallyUnlocked = !!lessonUnlocks?.[lesson.id]
+                            const open = isLessonOpen(lesson.id)
 
                             return (
                               <div
@@ -355,8 +380,8 @@ export function StudentEdit() {
                                 className="flex items-center gap-3 px-4 py-3 bg-white"
                               >
                                 <Switch
-                                  checked={isManuallyUnlocked}
-                                  onCheckedChange={() => handleToggleLesson(lesson.id, isManuallyUnlocked)}
+                                  checked={open}
+                                  onCheckedChange={() => handleToggleLesson(lesson.id, open)}
                                   disabled={toggleUnlock.isPending}
                                 />
                                 <div className="flex-1 min-w-0">
