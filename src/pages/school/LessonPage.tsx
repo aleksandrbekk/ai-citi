@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework } from '@/hooks/useCourse'
 import { ArrowLeft, FileText, ExternalLink, Send, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 export default function LessonPage() {
   const { tariffSlug, moduleId, lessonId } = useParams<{ tariffSlug: string; moduleId: string; lessonId: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data, isLoading } = useLesson(lessonId!)
   const [answer, setAnswer] = useState('')
   const [extraVideos, setExtraVideos] = useState<any[]>([])
@@ -364,6 +365,11 @@ export default function LessonPage() {
     setUserAnswers({})
     toast.success('Ответ отправлен на проверку!')
     refetchSubmission()
+
+    // Обновить кэш статусов ДЗ — чтобы следующий урок сразу открылся
+    queryClient.invalidateQueries({ queryKey: ['hw-statuses'] })
+    queryClient.invalidateQueries({ queryKey: ['all-hw-statuses'] })
+    queryClient.invalidateQueries({ queryKey: ['my-lesson-unlocks'] })
 
     // Уведомление админу о новом ДЗ
     try {
