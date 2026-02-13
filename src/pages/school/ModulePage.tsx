@@ -65,7 +65,7 @@ export default function ModulePage() {
       if (!unlocked.has(lesson.id)) break // Если текущий заблокирован — дальше тоже
 
       // Если у урока нет ДЗ или ДЗ зачтено — открываем следующий
-      if (!lesson.has_homework || hwStatuses?.[lesson.id] === 'approved') {
+      if (!lesson.has_homework || !!hwStatuses?.[lesson.id]) {
         if (i + 1 < lessons.length) {
           unlocked.add(lessons[i + 1].id)
         }

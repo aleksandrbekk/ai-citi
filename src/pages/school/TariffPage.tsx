@@ -102,7 +102,7 @@ export default function TariffPage() {
     // Если есть → все должны быть approved
     return moduleLessons
       .filter(l => l.has_homework)
-      .every(l => hwStatuses[l.id] === 'approved')
+      .every(l => !!hwStatuses[l.id])
   }
 
   // Вычисляем разблокированные модули

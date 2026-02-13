@@ -89,7 +89,7 @@ export default function LessonPage() {
     for (let i = 0; i < allLessons.length; i++) {
       const lesson = allLessons[i]
       if (!unlocked.has(lesson.id)) break
-      if (!lesson.has_homework || hwStatuses?.[lesson.id] === 'approved') {
+      if (!lesson.has_homework || !!hwStatuses?.[lesson.id]) {
         if (i + 1 < allLessons.length) {
           unlocked.add(allLessons[i + 1].id)
         }
