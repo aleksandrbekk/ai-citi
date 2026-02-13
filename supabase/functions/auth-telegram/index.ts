@@ -382,6 +382,69 @@ serve(async (req) => {
       }
     }
 
+    // Process school invite link (school_CODE)
+    let schoolEnrolled = false
+    const schoolPrefix = 'school_'
+    if (effectiveStartParam && effectiveStartParam.startsWith(schoolPrefix)) {
+      const inviteCode = effectiveStartParam.slice(schoolPrefix.length)
+      console.log('[SCHOOL] Processing invite code:', inviteCode)
+
+      try {
+        const { data: invite } = await supabase
+          .from('school_invite_links')
+          .select('*')
+          .eq('code', inviteCode)
+          .eq('is_active', true)
+          .single()
+
+        if (invite && (!invite.max_uses || invite.used_count < invite.max_uses)) {
+          // Add to allowed_users
+          await supabase
+            .from('allowed_users')
+            .upsert(
+              { telegram_id: userData.id, comment: `invite:${inviteCode}` },
+              { onConflict: 'telegram_id' }
+            )
+
+          // Calculate expires_at
+          const expiresAt = invite.days_access
+            ? new Date(Date.now() + invite.days_access * 86400000).toISOString()
+            : null
+
+          // Upsert user_tariffs
+          const { data: existingTariff } = await supabase
+            .from('user_tariffs')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle()
+
+          if (existingTariff) {
+            await supabase
+              .from('user_tariffs')
+              .update({ tariff_slug: invite.tariff_slug, expires_at: expiresAt, is_active: true })
+              .eq('id', existingTariff.id)
+          } else {
+            await supabase
+              .from('user_tariffs')
+              .insert({ user_id: user.id, tariff_slug: invite.tariff_slug, expires_at: expiresAt, is_active: true })
+          }
+
+          // Increment used_count
+          await supabase
+            .from('school_invite_links')
+            .update({ used_count: invite.used_count + 1 })
+            .eq('id', invite.id)
+
+          schoolEnrolled = true
+          console.log('[SCHOOL] Enrolled user:', { tariff: invite.tariff_slug, days: invite.days_access })
+        } else {
+          console.log('[SCHOOL] Invite invalid or limit reached:', inviteCode)
+        }
+      } catch (e) {
+        console.error('[SCHOOL] Error processing invite (non-fatal):', e)
+      }
+    }
+
     // Get user profile
     const { data: profile } = await supabase
       .from('profiles')
@@ -390,7 +453,7 @@ serve(async (req) => {
       .single()
 
     return new Response(
-      JSON.stringify({ user, profile }),
+      JSON.stringify({ user, profile, school_enrolled: schoolEnrolled }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

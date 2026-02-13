@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Folder, ChevronRight, Lock, Star } from 'lucide-react'
-import { getUserTariffsById, checkIsCurator, supabase } from '@/lib/supabase'
+import { Folder, ChevronRight, Lock, Star, Clock } from 'lucide-react'
+import { getUserTariffsById, getUserTariffWithExpiry, checkIsCurator, supabase } from '@/lib/supabase'
 import { useFeatureAccess, FEATURES } from '@/hooks/useSubscription'
 
 export default function SchoolIndex() {
   const navigate = useNavigate()
   const [userTariffs, setUserTariffs] = useState<string[]>([])
+  const [tariffExpiry, setTariffExpiry] = useState<string | null>(null)
   const [isLoadingTariffs, setIsLoadingTariffs] = useState(true)
   const [isCurator, setIsCurator] = useState(false)
 
@@ -26,6 +27,11 @@ export default function SchoolIndex() {
       getUserTariffsById(telegramId).then(tariffs => {
         setUserTariffs(tariffs)
         setIsLoadingTariffs(false)
+      })
+
+      // Загружаем срок
+      getUserTariffWithExpiry(telegramId).then(info => {
+        if (info) setTariffExpiry(info.expires_at)
       })
 
       // Проверяем куратор ли
@@ -52,6 +58,11 @@ export default function SchoolIndex() {
     userTariffs.includes('standard') ? 'СТАНДАРТ' : 'Нет доступа'
   const tariffSlug = userTariffs.includes('platinum') ? 'platinum' :
     userTariffs.includes('standard') ? 'standard' : null
+
+  // Вычисляем оставшиеся дни
+  const daysLeft = tariffExpiry
+    ? Math.ceil((new Date(tariffExpiry).getTime() - Date.now()) / 86400000)
+    : null
 
   // Доступ есть если: подписка PRO/ELITE ИЛИ куплен курс ИЛИ куратор
   const hasSubscriptionAccess = academyAccess?.has_access || false
@@ -154,6 +165,12 @@ export default function SchoolIndex() {
               <div className="text-sm text-gray-500">
                 {tariffSlug === 'platinum' ? '11 модулей • Полный доступ' : 'Доступ к стандартным модулям'}
               </div>
+              {daysLeft !== null && (
+                <div className={`flex items-center gap-1 text-xs mt-1 ${daysLeft > 7 ? 'text-gray-400' : daysLeft > 0 ? 'text-amber-500' : 'text-red-500'}`}>
+                  <Clock className="w-3 h-3" />
+                  {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
+                </div>
+              )}
             </div>
             <ChevronRight className="w-5 h-5 text-orange-500" />
           </Link>

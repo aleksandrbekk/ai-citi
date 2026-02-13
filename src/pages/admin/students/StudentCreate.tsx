@@ -48,18 +48,18 @@ export function StudentCreate() {
     <div>
       <button
         onClick={() => navigate('/admin/mlm/students')}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors"
+        className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 transition-colors"
       >
         <ArrowLeft size={20} />
         Назад к ученикам
       </button>
 
-      <h1 className="text-2xl font-bold mb-6 text-white">Создать ученика</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900">Создать ученика</h1>
 
-      <form onSubmit={handleSubmit} className="bg-zinc-800 rounded-xl p-6 max-w-2xl">
+      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl shadow-sm">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">
+            <label className="block text-sm text-gray-500 mb-2">
               Telegram ID <span className="text-red-400">*</span>
             </label>
             <input
@@ -67,39 +67,39 @@ export function StudentCreate() {
               value={telegramId}
               onChange={(e) => setTelegramId(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="123456789"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Username</label>
+            <label className="block text-sm text-gray-500 mb-2">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="@username"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Имя</label>
+            <label className="block text-sm text-gray-500 mb-2">Имя</label>
             <input
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="Имя"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Тариф</label>
+            <label className="block text-sm text-gray-500 mb-2">Тариф</label>
             <select
               value={tariffSlug}
               onChange={(e) => setTariffSlug(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="standard">Standard</option>
               <option value="platinum">Platinum</option>
@@ -107,12 +107,12 @@ export function StudentCreate() {
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Дата окончания подписки</label>
+            <label className="block text-sm text-gray-500 mb-2">Дата окончания подписки</label>
             <input
               type="date"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
 
@@ -120,14 +120,14 @@ export function StudentCreate() {
             <button
               type="submit"
               disabled={createStudent.isPending}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+              className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 cursor-pointer"
             >
               {createStudent.isPending ? 'Создание...' : 'Создать'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/admin/mlm/students')}
-              className="px-6 py-3 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors"
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
             >
               Отмена
             </button>

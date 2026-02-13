@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../../../hooks/admin/useAdminAuth'
-import { Users, FileText, Layers } from 'lucide-react'
+import { Users, FileText, Layers, Link2 } from 'lucide-react'
 
 export function MlmDashboard() {
   const admin = useAdminAuth((s) => s.admin)
@@ -25,6 +25,12 @@ export function MlmDashboard() {
       path: '/admin/mlm/homework',
       color: 'from-amber-400 to-amber-500',
     },
+    {
+      label: 'Ссылки доступа',
+      icon: Link2,
+      path: '/admin/mlm/invite-links',
+      color: 'from-cyan-400 to-cyan-500',
+    },
   ]
 
   return (
@@ -33,7 +39,7 @@ export function MlmDashboard() {
         Добро пожаловать, {admin?.name || 'Администратор'}!
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {sections.map((s) => (
           <button
             key={s.path}

@@ -84,6 +84,29 @@ export async function getUserTariffsById(telegramId: number): Promise<string[]> 
   return tariffs?.map(t => t.tariff_slug) || []
 }
 
+export async function getUserTariffWithExpiry(telegramId: number): Promise<{ slug: string; expires_at: string | null } | null> {
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('telegram_id', telegramId)
+    .single()
+
+  if (!user) return null
+
+  const { data: tariffs } = await supabase
+    .from('user_tariffs')
+    .select('tariff_slug, expires_at')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+
+  if (!tariffs || tariffs.length === 0) return null
+
+  // Приоритет: platinum > standard
+  const platinum = tariffs.find(t => t.tariff_slug === 'platinum')
+  if (platinum) return { slug: platinum.tariff_slug, expires_at: platinum.expires_at }
+  return { slug: tariffs[0].tariff_slug, expires_at: tariffs[0].expires_at }
+}
+
 // Проверка активной подписки в premium_clients
 export async function checkPremiumSubscription(telegramId: number): Promise<boolean> {
   const { data, error } = await supabase

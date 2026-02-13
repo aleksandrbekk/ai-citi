@@ -12,7 +12,8 @@ import {
   BookOpen,
   UserCheck,
   ClipboardCheck,
-  Zap
+  Zap,
+  Link2
 } from 'lucide-react'
 import { useAdminAuth } from '../../hooks/admin/useAdminAuth'
 
@@ -205,6 +206,18 @@ export function AdminLayout() {
                 >
                   <ClipboardCheck className="w-4 h-4" />
                   Проверка ДЗ
+                </NavLink>
+                <NavLink
+                  to="/admin/mlm/invite-links"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive
+                      ? 'bg-teal-100 text-teal-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <Link2 className="w-4 h-4" />
+                  Ссылки доступа
                 </NavLink>
               </div>
             )}

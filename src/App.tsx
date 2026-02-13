@@ -117,6 +117,7 @@ const StudentsList = lazy(() => import('./pages/admin/students/StudentsList').th
 const StudentCreate = lazy(() => import('./pages/admin/students/StudentCreate').then(m => ({ default: m.StudentCreate })))
 const StudentEdit = lazy(() => import('./pages/admin/students/StudentEdit').then(m => ({ default: m.StudentEdit })))
 const AdminHomeworkReview = lazy(() => import('./pages/admin/HomeworkReview'))
+const InviteLinks = lazy(() => import('./pages/admin/mlm/InviteLinks').then(m => ({ default: m.InviteLinks })))
 const AdminWhitelist = lazy(() => import('./pages/admin/Whitelist'))
 const QuizzesList = lazy(() => import('./pages/admin/quizzes/QuizzesList').then(m => ({ default: m.QuizzesList })))
 const AdminQuizBuilder = lazy(() => import('./pages/admin/quizzes/QuizBuilder'))
@@ -309,6 +310,7 @@ function AppContent() {
               <Route path="mlm/students/new" element={<StudentCreate />} />
               <Route path="mlm/students/:id" element={<StudentEdit />} />
               <Route path="mlm/homework" element={<AdminHomeworkReview />} />
+              <Route path="mlm/invite-links" element={<InviteLinks />} />
             </Route>
           </Route>
 

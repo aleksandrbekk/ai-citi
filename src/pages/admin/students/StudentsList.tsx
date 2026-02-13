@@ -8,8 +8,10 @@ export function StudentsList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newTelegramId, setNewTelegramId] = useState('')
+  const [newIdentifier, setNewIdentifier] = useState('')
   const [newComment, setNewComment] = useState('')
+  const [newTariff, setNewTariff] = useState('standard')
+  const [newDays, setNewDays] = useState('')
 
   // Загрузить всех пользователей с доступом и тарифами
   const { data: students, isLoading } = useQuery({
@@ -63,22 +65,81 @@ export function StudentsList() {
     }
   })
 
-  // Добавить пользователя в whitelist
+  // Добавить пользователя в whitelist + тариф
   const addUser = useMutation({
     mutationFn: async () => {
-      // Добавляем в whitelist
+      const input = newIdentifier.trim()
+      if (!input) throw new Error('Введите Telegram ID или @username')
+
+      let telegramId: number | null = null
+      let userId: string | null = null
+
+      if (input.startsWith('@')) {
+        // Поиск по username
+        const username = input.slice(1)
+        const { data: foundUser } = await supabase
+          .from('users')
+          .select('id, telegram_id')
+          .eq('username', username)
+          .single()
+
+        if (!foundUser) throw new Error(`Пользователь @${username} не найден в системе`)
+        telegramId = foundUser.telegram_id
+        userId = foundUser.id
+      } else {
+        const parsed = parseInt(input)
+        if (isNaN(parsed)) throw new Error('Введите число (Telegram ID) или @username')
+        telegramId = parsed
+
+        // Пробуем найти пользователя по telegram_id
+        const { data: foundUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('telegram_id', telegramId)
+          .single()
+        if (foundUser) userId = foundUser.id
+      }
+
+      // Добавляем в whitelist (upsert)
       const { error: wlError } = await supabase
         .from('allowed_users')
-        .insert({ 
-          telegram_id: parseInt(newTelegramId), 
-          comment: newComment || null 
-        })
+        .upsert(
+          { telegram_id: telegramId, comment: newComment || null },
+          { onConflict: 'telegram_id' }
+        )
       if (wlError) throw wlError
+
+      // Если пользователь найден — назначаем тариф
+      if (userId) {
+        const expiresAt = newDays
+          ? new Date(Date.now() + parseInt(newDays) * 86400000).toISOString()
+          : null
+
+        // Upsert тариф
+        const { data: existing } = await supabase
+          .from('user_tariffs')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle()
+
+        if (existing) {
+          await supabase
+            .from('user_tariffs')
+            .update({ tariff_slug: newTariff, expires_at: expiresAt, is_active: true })
+            .eq('id', existing.id)
+        } else {
+          await supabase
+            .from('user_tariffs')
+            .insert({ user_id: userId, tariff_slug: newTariff, expires_at: expiresAt, is_active: true })
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-full'] })
-      setNewTelegramId('')
+      setNewIdentifier('')
       setNewComment('')
+      setNewTariff('standard')
+      setNewDays('')
       setShowAddForm(false)
     }
   })
@@ -152,25 +213,43 @@ export function StudentsList() {
       {showAddForm && (
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
           <h2 className="font-medium mb-3 text-gray-900">Новый ученик</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {addUser.isError && (
+            <p className="text-sm text-red-500 mb-3">{(addUser.error as Error).message}</p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <input
-              type="number"
-              value={newTelegramId}
-              onChange={(e) => setNewTelegramId(e.target.value)}
-              placeholder="Telegram ID *"
+              type="text"
+              value={newIdentifier}
+              onChange={(e) => setNewIdentifier(e.target.value)}
+              placeholder="Telegram ID или @username"
               className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <input
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Имя / комментарий"
+              placeholder="Имя"
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <select
+              value={newTariff}
+              onChange={(e) => setNewTariff(e.target.value)}
+              className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="standard">Standard</option>
+              <option value="platinum">Platinum</option>
+            </select>
+            <input
+              type="number"
+              value={newDays}
+              onChange={(e) => setNewDays(e.target.value)}
+              placeholder="Дней (пусто = бессрочно)"
               className="px-4 py-2 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <button
               onClick={() => addUser.mutate()}
-              disabled={!newTelegramId || addUser.isPending}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 rounded-lg text-gray-900 transition-colors"
+              disabled={!newIdentifier.trim() || addUser.isPending}
+              className="px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 hover:shadow-lg disabled:opacity-50 rounded-lg text-white font-medium transition-all cursor-pointer"
             >
               {addUser.isPending ? 'Добавление...' : 'Добавить'}
             </button>
