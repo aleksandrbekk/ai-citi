@@ -144,14 +144,22 @@ export function StudentsList() {
     }
   })
 
-  // Удалить пользователя
+  // Удалить пользователя (whitelist + тариф)
   const removeUser = useMutation({
-    mutationFn: async (telegramId: number) => {
+    mutationFn: async ({ telegramId, userId }: { telegramId: number; userId?: string }) => {
       // Удаляем из whitelist
       await supabase
         .from('allowed_users')
         .delete()
         .eq('telegram_id', telegramId)
+
+      // Удаляем тарифы если есть user
+      if (userId) {
+        await supabase
+          .from('user_tariffs')
+          .delete()
+          .eq('user_id', userId)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-full'] })
@@ -295,7 +303,7 @@ export function StudentsList() {
                 <button
                   onClick={() => {
                     if (confirm('Удалить ученика? Он потеряет доступ к платформе.')) {
-                      removeUser.mutate(student.telegram_id)
+                      removeUser.mutate({ telegramId: student.telegram_id, userId: student.user?.id })
                     }
                   }}
                   className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors ml-2"
