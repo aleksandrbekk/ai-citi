@@ -33,7 +33,7 @@ export default function LessonPage() {
     if (savedUser) {
       try {
         return JSON.parse(savedUser).id
-      } catch {}
+      } catch { }
     }
     return null
   }
@@ -235,27 +235,27 @@ export default function LessonPage() {
     queryFn: async () => {
       const telegramId = getTelegramId()
       if (!telegramId) return null
-      
+
       // Получаем user_id по telegram_id
       const { data: userData } = await supabase
         .from('users')
         .select('id')
         .eq('telegram_id', telegramId)
         .single()
-      
+
       if (!userData) return null
-      
+
       const { data, error } = await supabase
         .from('homework_submissions')
         .select('*')
         .eq('lesson_id', lessonId)
         .eq('user_id', userData.id)
         .single()
-      
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching submission:', error)
       }
-      
+
       return data
     },
     enabled: !!lessonId
@@ -267,17 +267,17 @@ export default function LessonPage() {
     queryFn: async () => {
       const authStorage = localStorage.getItem('auth-storage')
       if (!authStorage) return null
-      
+
       const parsed = JSON.parse(authStorage)
       const userId = parsed?.state?.user?.id
       if (!userId || userId === 'dev-user') return null
-      
+
       const { data } = await supabase
         .from('user_tariffs')
         .select('is_active')
         .eq('user_id', userId)
         .single()
-      
+
       return data
     }
   })
@@ -290,7 +290,7 @@ export default function LessonPage() {
         .eq('lesson_id', lessonId)
         .order('order_index')
         .then(({ data }) => setExtraVideos(data || []))
-      
+
       supabase
         .from('lesson_quizzes')
         .select(`
@@ -318,7 +318,14 @@ export default function LessonPage() {
   if (isLoading || allLessonsLoading || hwLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#FFF8F5]">
-        <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Загрузка урока...</p>
+        </motion.div>
       </div>
     )
   }
@@ -327,17 +334,24 @@ export default function LessonPage() {
   if (isLessonLocked) {
     return (
       <div className="min-h-screen bg-[#FFF8F5] flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-          <Lock className="w-8 h-8 text-gray-400" />
-        </div>
-        <p className="text-gray-900 font-semibold text-lg mb-2">Урок заблокирован</p>
-        <p className="text-gray-500 text-sm text-center mb-6">Выполните домашнее задание предыдущего урока</p>
-        <button
-          onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)}
-          className="bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl px-6 py-3 font-medium hover:shadow-lg transition-all duration-200 cursor-pointer"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
         >
-          К списку уроков
-        </button>
+          <div className="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mb-4 mx-auto">
+            <Lock className="w-7 h-7 text-gray-400" />
+          </div>
+          <p className="text-gray-900 font-bold text-lg mb-2">Урок заблокирован</p>
+          <p className="text-gray-400 text-sm text-center mb-6">Выполните домашнее задание предыдущего урока</p>
+          <button
+            onClick={() => navigate(`/school/${tariffSlug}/${moduleId}`)}
+            className="bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl px-6 py-3 font-medium shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+          >
+            К списку уроков
+          </button>
+        </motion.div>
       </div>
     )
   }
@@ -347,7 +361,7 @@ export default function LessonPage() {
   const linkifyText = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
     const parts = text.split(urlRegex)
-    
+
     return parts.map((part, index) => {
       if (part.match(urlRegex)) {
         return (
@@ -368,15 +382,15 @@ export default function LessonPage() {
 
   const handleSubmit = async () => {
     if (!lessonId) return
-    
+
     const hasTextAnswer = answer.trim().length > 0
     const hasQuizAnswers = Object.keys(userAnswers).length > 0
-    
+
     if (!hasTextAnswer && !hasQuizAnswers) return
-    
+
     // Получаем telegram_id текущего пользователя
     const telegramId = getTelegramId()
-    
+
     if (!telegramId) {
       toast.error('Не удалось определить пользователя')
       return
@@ -395,11 +409,11 @@ export default function LessonPage() {
     }
 
     const userId = userData.id
-    
+
     // Подготовить данные для отправки
     const homeworkAnswer = answer || ''
     const selectedAnswers = userAnswers
-    
+
     // Проверить есть ли уже ДЗ
     const { data: existingSubmission, error: fetchError } = await supabase
       .from('homework_submissions')
@@ -407,14 +421,14 @@ export default function LessonPage() {
       .eq('lesson_id', lessonId)
       .eq('user_id', userId)
       .maybeSingle()
-    
+
     // Игнорируем ошибку "не найдено"
     if (fetchError && fetchError.code !== 'PGRST116') {
       console.error('Error fetching existing submission:', fetchError)
     }
-    
+
     let error
-    
+
     if (existingSubmission && existingSubmission.status === 'rejected') {
       // Обновить существующее ДЗ
       const { error: updateError } = await supabase
@@ -428,7 +442,7 @@ export default function LessonPage() {
           updated_at: new Date().toISOString()
         })
         .eq('id', existingSubmission.id)
-      
+
       error = updateError
     } else if (!existingSubmission) {
       // Создать новое ДЗ
@@ -442,14 +456,14 @@ export default function LessonPage() {
           quiz_answers: selectedAnswers,
           status: 'pending'
         })
-      
+
       error = insertError
     } else {
       // ДЗ уже отправлено и не rejected
       toast.info('Домашнее задание уже отправлено')
       return
     }
-    
+
     if (error) {
       console.error('Error submitting homework:', error)
       toast.error('Ошибка при отправке')
@@ -482,7 +496,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 pb-[300px]">
+    <div className="min-h-screen bg-[#FFF8F5] text-gray-900 pb-[300px]">
       {/* Drawer — все модули и уроки */}
       <AnimatePresence>
         {drawerOpen && (
@@ -499,11 +513,13 @@ export default function LessonPage() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-0 top-0 bottom-0 w-[300px] max-w-[88vw] bg-white shadow-2xl z-50 flex flex-col"
+              className="fixed left-0 top-0 bottom-0 w-[300px] max-w-[88vw] bg-white/95 backdrop-blur-xl shadow-2xl z-50 flex flex-col rounded-r-3xl"
             >
               <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-                <List className="w-4 h-4 text-orange-500" />
-                <h2 className="text-base font-semibold text-gray-900">Содержание</h2>
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+                  <List className="w-3.5 h-3.5 text-orange-500" />
+                </div>
+                <h2 className="text-base font-bold text-gray-900">Содержание</h2>
               </div>
               <div className="flex-1 overflow-y-auto px-3 py-2">
                 {filteredModules.map((mod) => {
@@ -512,7 +528,7 @@ export default function LessonPage() {
 
                   return (
                     <div key={mod.id} className="mb-3">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 mb-1">{mod.title}</p>
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide px-2 mb-1">{mod.title}</p>
                       {moduleLessons.map((l, idx) => {
                         const isActive = l.id === lessonId
                         const isUnlocked = moduleUnlocked.has(l.id)
@@ -528,28 +544,25 @@ export default function LessonPage() {
                               }
                             }}
                             disabled={!isUnlocked}
-                            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-left transition-all ${
-                              isActive
-                                ? 'bg-orange-50 border border-orange-200'
+                            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-xl text-left transition-all duration-150 ${isActive
+                                ? 'bg-orange-50 border border-orange-200 shadow-sm'
                                 : isUnlocked
-                                ? 'hover:bg-gray-50 border border-transparent'
-                                : 'opacity-40 border border-transparent'
-                            }`}
+                                  ? 'hover:bg-gray-50 border border-transparent'
+                                  : 'opacity-35 border border-transparent'
+                              }`}
                           >
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-medium shrink-0 ${
-                              !isUnlocked ? 'bg-gray-100 text-gray-400' :
-                              hwStatus === 'approved' ? 'bg-green-100 text-green-600' :
-                              hwStatus === 'pending' ? 'bg-amber-100 text-amber-600' :
-                              isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                            }`}>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 ${!isUnlocked ? 'bg-gray-100 text-gray-300' :
+                                hwStatus === 'approved' ? 'bg-green-100 text-green-600' :
+                                  hwStatus === 'pending' ? 'bg-amber-100 text-amber-600' :
+                                    isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'
+                              }`}>
                               {!isUnlocked ? <Lock className="w-2.5 h-2.5" /> :
-                               hwStatus === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
-                               hwStatus === 'pending' ? <Clock className="w-3 h-3" /> :
-                               idx + 1}
+                                hwStatus === 'approved' ? <CheckCircle2 className="w-3 h-3" /> :
+                                  hwStatus === 'pending' ? <Clock className="w-3 h-3" /> :
+                                    idx + 1}
                             </div>
-                            <span className={`text-xs truncate ${
-                              isActive ? 'font-semibold text-gray-900' : 'text-gray-700'
-                            }`}>
+                            <span className={`text-xs truncate ${isActive ? 'font-semibold text-gray-900' : 'text-gray-600'
+                              }`}>
                               {l.title}
                             </span>
                           </button>
@@ -564,12 +577,17 @@ export default function LessonPage() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-3xl mx-auto px-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="max-w-3xl mx-auto px-4"
+      >
         {/* Кнопка содержания + название урока + стрелки */}
         <div className="flex items-center gap-2 mb-4">
           <button
             onClick={() => setDrawerOpen(true)}
-            className="p-2 bg-orange-500 text-white rounded-xl shadow-sm hover:bg-orange-600 transition-colors cursor-pointer shrink-0"
+            className="p-2 bg-gradient-to-br from-orange-400 to-orange-500 text-white rounded-xl shadow-sm shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-95 transition-all duration-150 cursor-pointer shrink-0"
             aria-label="Содержание"
           >
             <List className="w-4 h-4" />
@@ -579,7 +597,7 @@ export default function LessonPage() {
             <button
               onClick={() => canGoPrev && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson!.id}`)}
               disabled={!canGoPrev}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-500 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              className="p-1.5 rounded-xl bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-30 disabled:cursor-default shadow-sm"
               aria-label="Предыдущий урок"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -587,7 +605,7 @@ export default function LessonPage() {
             <button
               onClick={() => canGoNext && navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson!.id}`)}
               disabled={!canGoNext}
-              className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-500 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              className="p-1.5 rounded-xl bg-white/80 backdrop-blur-sm border border-gray-100 text-gray-400 hover:border-orange-200 hover:text-orange-500 active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-30 disabled:cursor-default shadow-sm"
               aria-label="Следующий урок"
             >
               <ChevronRight className="w-4 h-4" />
@@ -597,9 +615,14 @@ export default function LessonPage() {
 
         {/* Видео */}
         {lesson?.video_url && (
-          <div className="mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-6"
+          >
             <div className="max-w-2xl mx-auto">
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-lg">
                 <iframe
                   src={lesson.video_url}
                   className="w-full h-full"
@@ -608,21 +631,19 @@ export default function LessonPage() {
                 />
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Дополнительные видео */}
         {extraVideos.map((video) => (
           <div key={video.id} className="mb-4">
-            {/* Название видео если есть */}
             {video.title && (
-              <h3 className="text-lg font-semibold text-white mb-3 text-center">
+              <h3 className="text-base font-semibold text-gray-900 mb-3 text-center">
                 {video.title}
               </h3>
             )}
-            
             <div className="max-w-2xl mx-auto">
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-lg">
                 <iframe
                   src={video.video_url}
                   className="w-full h-full"
@@ -634,210 +655,223 @@ export default function LessonPage() {
           </div>
         ))}
 
-      {/* Описание урока */}
-      {lesson?.description && (
-        <div className="bg-white/80 border border-gray-200 rounded-xl p-3 mb-4">
-          <p className="text-xs font-medium text-gray-900 mb-2">В этом уроке:</p>
-          <p className="text-xs text-gray-600 whitespace-pre-wrap">{linkifyText(lesson.description)}</p>
-        </div>
-      )}
+        {/* Описание урока */}
+        {lesson?.description && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-4 mb-4 shadow-sm"
+          >
+            <p className="text-xs font-semibold text-gray-900 mb-2">В этом уроке:</p>
+            <p className="text-sm text-gray-500 whitespace-pre-wrap leading-relaxed">{linkifyText(lesson.description)}</p>
+          </motion.div>
+        )}
 
-      {/* Материалы */}
-      {materials && materials.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">📎 Материалы</h2>
-          <div className="space-y-2">
-            {materials.map((material) => (
-              <a
-                key={material.id}
-                href={material.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-orange-500 transition-all"
-              >
-                <FileText className="w-5 h-5 text-orange-500" />
-                <span className="flex-1">{material.title || 'Материал'}</span>
-                <ExternalLink className="w-4 h-4 text-gray-400" />
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Домашнее задание */}
-      {lesson?.has_homework && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">📝 Домашнее задание</h2>
-          
-          {/* Описание задания */}
-          {lesson.homework_description && (
-            <div className="p-4 rounded-lg bg-white border border-gray-200 mb-4">
-              <p className="text-gray-700 whitespace-pre-wrap">{lesson.homework_description}</p>
-            </div>
-          )}
-
-          {/* Статус отправленного ДЗ */}
-          {mySubmission && (
-            <div className={`mb-4 p-4 rounded-xl ${
-              mySubmission.status === 'pending' 
-                ? 'bg-yellow-500/10 border border-yellow-500/30' 
-                : mySubmission.status === 'approved'
-                ? 'bg-green-500/10 border border-green-500/30'
-                : 'bg-red-500/10 border border-red-500/30'
-            }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`w-2 h-2 rounded-full ${
-                  mySubmission.status === 'pending' ? 'bg-yellow-400' :
-                  mySubmission.status === 'approved' ? 'bg-green-400' : 'bg-red-400'
-                }`} />
-                <span className="font-medium">
-                  {mySubmission.status === 'pending' ? 'На проверке' :
-                   mySubmission.status === 'approved' ? 'Зачёт ✓' : 'Незачёт ✗'}
-                </span>
-              </div>
-              
-              {/* Твой ответ */}
-              <p className="text-sm text-gray-500 mb-2">Твой ответ:</p>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{mySubmission.answer_text}</p>
-
-              {/* Комментарий куратора */}
-              {mySubmission.curator_comment && (
-                <div className="mt-3 pt-3 border-t border-gray-300">
-                  <p className="text-sm text-blue-600 mb-1">Комментарий куратора:</p>
-                  <p className="text-sm text-gray-900">{mySubmission.curator_comment}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Тесты/квизы (если есть) */}
-          {quizzes.length > 0 && (
-            <div className="space-y-4 mb-4">
-              {quizzes.map((quiz, qIndex) => (
-                <div key={quiz.id} className="bg-white border border-gray-200 rounded-xl p-4">
-                  <p className="font-medium mb-3">{qIndex + 1}. {quiz.question}</p>
-
-                  {quiz.question_type === 'image' ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {quiz.quiz_options?.map((opt: any) => (
-                        <label
-                          key={opt.id}
-                          className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
-                            userAnswers[quiz.id]?.includes(opt.id)
-                              ? 'border-orange-500'
-                              : 'border-gray-200'
-                          }`}
-                        >
-                          <input
-                            type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
-                            name={`quiz-${quiz.id}`}
-                            checked={userAnswers[quiz.id]?.includes(opt.id) || false}
-                            onChange={() => {
-                              setUserAnswers(prev => {
-                                const current = prev[quiz.id] || []
-                                if (quiz.question_type === 'multiple') {
-                                  return {
-                                    ...prev,
-                                    [quiz.id]: current.includes(opt.id)
-                                      ? current.filter(id => id !== opt.id)
-                                      : [...current, opt.id]
-                                  }
-                                } else {
-                                  return { ...prev, [quiz.id]: [opt.id] }
-                                }
-                              })
-                            }}
-                            className="sr-only"
-                          />
-                          <img
-                            src={opt.image_url}
-                            alt={opt.option_text || ''}
-                            className="w-full h-auto object-contain bg-gray-100"
-                          />
-                        </label>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {quiz.quiz_options?.map((opt: any) => (
-                        <label
-                          key={opt.id}
-                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                            userAnswers[quiz.id]?.includes(opt.id)
-                              ? 'bg-orange-500/20 border-2 border-orange-500'
-                              : 'bg-gray-100 border-2 border-transparent hover:border-gray-300'
-                          }`}
-                        >
-                          <input
-                            type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
-                            name={`quiz-${quiz.id}`}
-                            checked={userAnswers[quiz.id]?.includes(opt.id) || false}
-                            onChange={() => {
-                              setUserAnswers(prev => {
-                                const current = prev[quiz.id] || []
-                                if (quiz.question_type === 'multiple') {
-                                  return {
-                                    ...prev,
-                                    [quiz.id]: current.includes(opt.id)
-                                      ? current.filter(id => id !== opt.id)
-                                      : [...current, opt.id]
-                                  }
-                                } else {
-                                  return { ...prev, [quiz.id]: [opt.id] }
-                                }
-                              })
-                            }}
-                            className="hidden"
-                          />
-                          <span className="text-sm">{opt.option_text}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        {/* Материалы */}
+        {materials && materials.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="mb-6"
+          >
+            <h2 className="text-base font-bold mb-3">📎 Материалы</h2>
+            <div className="space-y-2">
+              {materials.map((material) => (
+                <a
+                  key={material.id}
+                  href={material.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-orange-200 active:scale-[0.98] transition-all duration-200"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="flex-1 text-sm text-gray-900">{material.title || 'Материал'}</span>
+                  <ExternalLink className="w-4 h-4 text-gray-300" />
+                </a>
               ))}
             </div>
-          )}
+          </motion.div>
+        )}
 
-          {/* Форма отправки — показывать только если нет ДЗ или оно rejected */}
-          {(!mySubmission || mySubmission.status === 'rejected') && (
-            <>
-              {/* Текстовый ответ — только если НЕТ тестов */}
-              {quizzes.length === 0 && (
-                <textarea
-                  ref={textareaRef}
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  onFocus={() => {
-                    setKeyboardOpen(true)
-                    // Задержка чтобы клавиатура успела появиться
-                    setTimeout(() => {
-                      textareaRef.current?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                      })
-                    }, 300)
-                  }}
-                  onBlur={() => setKeyboardOpen(false)}
-                  placeholder="Напиши свой ответ..."
-                  className="w-full h-32 p-4 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none resize-none mb-4"
-                />
-              )}
+        {/* Домашнее задание */}
+        {lesson?.has_homework && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+            className="mb-6"
+          >
+            <h2 className="text-base font-bold mb-3">📝 Домашнее задание</h2>
 
-              {/* Кнопка отправки */}
-              <button
-                onClick={handleSubmit}
-                disabled={(quizzes.length === 0 && !answer.trim()) || (quizzes.length > 0 && Object.keys(userAnswers).length === 0) || submitHomework.isPending}
-                className="w-full py-3 rounded-xl bg-orange-500 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
-              >
-                <Send className="w-4 h-4" />
-                {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-      </div>
+            {/* Описание задания */}
+            {lesson.homework_description && (
+              <div className="p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm mb-4">
+                <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{lesson.homework_description}</p>
+              </div>
+            )}
+
+            {/* Статус отправленного ДЗ */}
+            {mySubmission && (
+              <div className={`mb-4 p-4 rounded-2xl backdrop-blur-sm ${mySubmission.status === 'pending'
+                  ? 'bg-amber-50/80 border border-amber-200'
+                  : mySubmission.status === 'approved'
+                    ? 'bg-green-50/80 border border-green-200'
+                    : 'bg-red-50/80 border border-red-200'
+                }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`w-2 h-2 rounded-full ${mySubmission.status === 'pending' ? 'bg-amber-400' :
+                      mySubmission.status === 'approved' ? 'bg-green-400' : 'bg-red-400'
+                    }`} />
+                  <span className="font-semibold text-sm">
+                    {mySubmission.status === 'pending' ? 'На проверке' :
+                      mySubmission.status === 'approved' ? 'Зачёт ✓' : 'Незачёт ✗'}
+                  </span>
+                </div>
+
+                {/* Твой ответ */}
+                <p className="text-xs text-gray-400 mb-1">Твой ответ:</p>
+                <p className="text-sm text-gray-600 whitespace-pre-wrap mb-2">{mySubmission.answer_text}</p>
+
+                {/* Комментарий куратора */}
+                {mySubmission.curator_comment && (
+                  <div className="mt-3 pt-3 border-t border-gray-200/60">
+                    <p className="text-xs text-orange-500 font-medium mb-1">Комментарий куратора:</p>
+                    <p className="text-sm text-gray-700">{mySubmission.curator_comment}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Тесты/квизы (если есть) */}
+            {quizzes.length > 0 && (
+              <div className="space-y-4 mb-4">
+                {quizzes.map((quiz, qIndex) => (
+                  <div key={quiz.id} className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-4 shadow-sm">
+                    <p className="font-semibold text-sm mb-3">{qIndex + 1}. {quiz.question}</p>
+
+                    {quiz.question_type === 'image' ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {quiz.quiz_options?.map((opt: any) => (
+                          <label
+                            key={opt.id}
+                            className={`cursor-pointer rounded-2xl overflow-hidden border-2 transition-all duration-200 ${userAnswers[quiz.id]?.includes(opt.id)
+                                ? 'border-orange-500 shadow-md shadow-orange-500/15'
+                                : 'border-gray-100 hover:border-gray-200'
+                              }`}
+                          >
+                            <input
+                              type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
+                              name={`quiz-${quiz.id}`}
+                              checked={userAnswers[quiz.id]?.includes(opt.id) || false}
+                              onChange={() => {
+                                setUserAnswers(prev => {
+                                  const current = prev[quiz.id] || []
+                                  if (quiz.question_type === 'multiple') {
+                                    return {
+                                      ...prev,
+                                      [quiz.id]: current.includes(opt.id)
+                                        ? current.filter(id => id !== opt.id)
+                                        : [...current, opt.id]
+                                    }
+                                  } else {
+                                    return { ...prev, [quiz.id]: [opt.id] }
+                                  }
+                                })
+                              }}
+                              className="sr-only"
+                            />
+                            <img
+                              src={opt.image_url}
+                              alt={opt.option_text || ''}
+                              className="w-full h-auto object-contain bg-gray-100"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {quiz.quiz_options?.map((opt: any) => (
+                          <label
+                            key={opt.id}
+                            className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${userAnswers[quiz.id]?.includes(opt.id)
+                                ? 'bg-orange-50 border-2 border-orange-400 shadow-sm'
+                                : 'bg-gray-50/80 border-2 border-transparent hover:border-gray-200'
+                              }`}
+                          >
+                            <input
+                              type={quiz.question_type === 'multiple' ? 'checkbox' : 'radio'}
+                              name={`quiz-${quiz.id}`}
+                              checked={userAnswers[quiz.id]?.includes(opt.id) || false}
+                              onChange={() => {
+                                setUserAnswers(prev => {
+                                  const current = prev[quiz.id] || []
+                                  if (quiz.question_type === 'multiple') {
+                                    return {
+                                      ...prev,
+                                      [quiz.id]: current.includes(opt.id)
+                                        ? current.filter(id => id !== opt.id)
+                                        : [...current, opt.id]
+                                    }
+                                  } else {
+                                    return { ...prev, [quiz.id]: [opt.id] }
+                                  }
+                                })
+                              }}
+                              className="hidden"
+                            />
+                            <span className="text-sm">{opt.option_text}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Форма отправки — показывать только если нет ДЗ или оно rejected */}
+            {(!mySubmission || mySubmission.status === 'rejected') && (
+              <>
+                {/* Текстовый ответ — только если НЕТ тестов */}
+                {quizzes.length === 0 && (
+                  <textarea
+                    ref={textareaRef}
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    onFocus={() => {
+                      setKeyboardOpen(true)
+                      // Задержка чтобы клавиатура успела появиться
+                      setTimeout(() => {
+                        textareaRef.current?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'center'
+                        })
+                      }, 300)
+                    }}
+                    onBlur={() => setKeyboardOpen(false)}
+                    placeholder="Напиши свой ответ..."
+                    className="w-full h-32 p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:outline-none focus:shadow-sm resize-none mb-4 text-sm shadow-sm"
+                  />
+                )}
+
+                {/* Кнопка отправки */}
+                <button
+                  onClick={handleSubmit}
+                  disabled={(quizzes.length === 0 && !answer.trim()) || (quizzes.length > 0 && Object.keys(userAnswers).length === 0) || submitHomework.isPending}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 active:scale-[0.98] transition-all duration-200"
+                >
+                  <Send className="w-4 h-4" />
+                  {submitHomework.isPending ? 'Отправка...' : 'Отправить на проверку'}
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   )
 }

@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useModules } from '@/hooks/useCourse'
 import { BookOpen, ChevronRight, Lock, CheckCircle2 } from 'lucide-react'
 import { supabase, getUserTariffsById } from '@/lib/supabase'
+import { motion } from 'framer-motion'
 
 function getTelegramId(): number | null {
   const tg = (window as any).Telegram?.WebApp
   if (tg?.initDataUnsafe?.user?.id) return tg.initDataUnsafe.user.id
   const saved = localStorage.getItem('tg_user')
-  if (saved) { try { return JSON.parse(saved).id } catch {} }
+  if (saved) { try { return JSON.parse(saved).id } catch { } }
   return null
 }
 
@@ -19,7 +20,7 @@ export default function TariffPage() {
   const { data: modules, isLoading } = useModules()
   const [userTariffs, setUserTariffs] = useState<string[]>([])
   const [isLoadingTariffs, setIsLoadingTariffs] = useState(true)
-  
+
   const tariffNames: Record<string, string> = {
     'platinum': 'ПЛАТИНА',
     'standard': 'СТАНДАРТ'
@@ -32,7 +33,7 @@ export default function TariffPage() {
     if (!telegramId && savedUser) {
       telegramId = JSON.parse(savedUser).id
     }
-    
+
     if (telegramId) {
       getUserTariffsById(telegramId).then(tariffs => {
         setUserTariffs(tariffs)
@@ -171,64 +172,102 @@ export default function TariffPage() {
 
   if (isLoading || isLoadingTariffs || lessonsLoading || hwLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-2"></div>
-          <p className="text-gray-500">Загрузка...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-[#FFF8F5]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-400">Загрузка модулей...</p>
+        </motion.div>
       </div>
     )
   }
 
+  const cardVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.08, duration: 0.4, ease: 'easeOut' as const }
+    })
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-900 p-4 pb-24">
+    <div className="min-h-screen bg-[#FFF8F5] text-gray-900 p-4 pb-24">
       {/* Шапка */}
-      <h1 className="text-xl font-bold text-orange-500 mb-6">{tariffNames[tariffSlug || ''] || 'Курс'}</h1>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-6"
+      >
+        <h1 className="text-xl font-bold text-orange-500">{tariffNames[tariffSlug || ''] || 'Курс'}</h1>
+        <p className="text-sm text-gray-400 mt-1">{filteredModules.length} модулей</p>
+      </motion.div>
 
       {/* Список модулей */}
       {filteredModules.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Нет доступных модулей</p>
+          <p className="text-gray-400">Нет доступных модулей</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredModules.map((module) => {
+          {filteredModules.map((module, index) => {
             const isUnlocked = unlockedModules.has(module.id)
+            const complete = isModuleComplete(module.id)
 
             if (!isUnlocked) {
               return (
-                <div
+                <motion.div
                   key={module.id}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-100/60 border border-gray-200 opacity-60"
+                  custom={index}
+                  initial="hidden"
+                  animate="visible"
+                  variants={cardVariants}
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-white/40 backdrop-blur-sm border border-gray-100 opacity-50"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-300 flex items-center justify-center text-sm font-semibold">
                     <Lock className="w-4 h-4" />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-400">{module.title}</div>
-                    <div className="text-sm text-gray-400">Завершите предыдущий модуль</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-400 truncate">{module.title}</div>
+                    <div className="text-xs text-gray-300 mt-0.5">Завершите предыдущий модуль</div>
                   </div>
-                </div>
+                </motion.div>
               )
             }
 
             return (
-              <div
+              <motion.div
                 key={module.id}
-                onClick={() => navigate(`/school/${tariffSlug}/${module.id}`)}
-                className="flex items-center gap-3 p-4 rounded-xl glass-card border border-gray-200 hover:border-orange-500 transition-all cursor-pointer"
+                custom={index}
+                initial="hidden"
+                animate="visible"
+                variants={cardVariants}
               >
-                {isModuleComplete(module.id) ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-500" />
-                ) : (
-                  <BookOpen className="w-5 h-5 text-orange-500" />
-                )}
-                <div className="flex-1">
-                  <div className="font-medium">{module.title}</div>
-                  <div className="text-sm text-gray-500">{module.lessons_count} уроков</div>
+                <div
+                  onClick={() => navigate(`/school/${tariffSlug}/${module.id}`)}
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-sm hover:shadow-md hover:border-orange-200 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold shadow-sm ${complete
+                      ? 'bg-gradient-to-br from-green-50 to-green-100 text-green-500'
+                      : 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-500'
+                    }`}>
+                    {complete ? (
+                      <CheckCircle2 className="w-5 h-5" />
+                    ) : (
+                      <BookOpen className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">{module.title}</div>
+                    <div className="text-sm text-gray-400 mt-0.5">{module.lessons_count} уроков</div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </div>
+              </motion.div>
             )
           })}
         </div>
