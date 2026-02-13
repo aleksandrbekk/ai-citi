@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useModule, useLessons } from '@/hooks/useCourse'
+import { useModule, useLessons, useModules } from '@/hooks/useCourse'
 import { useQuery } from '@tanstack/react-query'
 import { Play, FileText, ChevronRight, Lock, CheckCircle2, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -17,6 +17,7 @@ export default function ModulePage() {
   const { tariffSlug, moduleId } = useParams<{ tariffSlug: string; moduleId: string }>()
   const { data: module, isLoading: moduleLoading } = useModule(moduleId!)
   const { data: lessons, isLoading: lessonsLoading } = useLessons(moduleId!)
+  const { data: allModules } = useModules()
   const telegramId = getTelegramId()
 
   // Загружаем статусы ДЗ ученика для всех уроков модуля
@@ -77,12 +78,58 @@ export default function ModulePage() {
     enabled: !!telegramId
   })
 
+  // Проверяем, завершён ли предыдущий модуль (все ДЗ сданы или нет ДЗ)
+  const prevModule = allModules && module
+    ? allModules.filter(m => m.order_index < module.order_index).sort((a, b) => b.order_index - a.order_index)[0]
+    : null
+
+  const { data: prevModuleCompleted } = useQuery({
+    queryKey: ['prev-module-completed', prevModule?.id, telegramId],
+    queryFn: async () => {
+      if (!prevModule || !telegramId) return true // Первый модуль — всегда доступен
+
+      const { data: user } = await supabase
+        .from('users').select('id').eq('telegram_id', telegramId).single()
+      if (!user) return false
+
+      // Уроки предыдущего модуля
+      const { data: prevLessons } = await supabase
+        .from('course_lessons')
+        .select('id, has_homework')
+        .eq('module_id', prevModule.id)
+        .eq('is_active', true)
+        .order('order_index')
+      if (!prevLessons || prevLessons.length === 0) return true
+
+      // Уроки с ДЗ
+      const hwLessons = prevLessons.filter(l => l.has_homework)
+      if (hwLessons.length === 0) return true
+
+      // Проверяем все ДЗ
+      const { data: subs } = await supabase
+        .from('homework_submissions')
+        .select('lesson_id, status')
+        .eq('user_id', user.id)
+        .in('lesson_id', hwLessons.map(l => l.id))
+
+      // Все ДЗ должны быть отправлены (любой статус)
+      const submittedIds = new Set(subs?.map(s => s.lesson_id) || [])
+      return hwLessons.every(l => submittedIds.has(l.id))
+    },
+    enabled: !!telegramId && !!module && !!allModules
+  })
+
   // Вычисляем, какие уроки разблокированы
   const getUnlockedLessons = (): Set<string> => {
     if (!lessons || lessons.length === 0) return new Set()
 
     const unlocked = new Set<string>()
-    unlocked.add(lessons[0].id)
+
+    // Первый урок модуля открыт только если это первый модуль ИЛИ предыдущий завершён
+    const isFirstModule = !prevModule
+    if (isFirstModule || prevModuleCompleted) {
+      unlocked.add(lessons[0].id)
+    }
 
     for (let i = 0; i < lessons.length; i++) {
       const lesson = lessons[i]
