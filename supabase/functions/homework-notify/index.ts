@@ -138,25 +138,12 @@ serve(async (req) => {
       )
     }
 
-    // Отправляем уведомление куратору
-    if (curatorChatId !== ADMIN_CHAT_ID) {
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: curatorChatId,
-          text,
-          parse_mode: 'HTML',
-        }),
-      })
-    }
-
-    // Отправляем уведомление админу (если куратор назначен)
+    // Отправляем уведомление только куратору
     const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: ADMIN_CHAT_ID,
+        chat_id: curatorChatId,
         text,
         parse_mode: 'HTML',
       }),
