@@ -261,8 +261,8 @@ export default function SchoolIndex() {
                 <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
               </div>
 
-              {/* Progress bar доступа */}
-              {daysLeft !== null && (
+              {/* Статус доступа */}
+              {daysLeft !== null ? (
                 <div>
                   <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
@@ -277,6 +277,11 @@ export default function SchoolIndex() {
                     <Clock className="w-3 h-3" />
                     {daysLeft > 0 ? `Осталось ${daysLeft} дн.` : 'Доступ истёк'}
                   </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <Clock className="w-3 h-3" />
+                  Бессрочный доступ
                 </div>
               )}
             </Link>
