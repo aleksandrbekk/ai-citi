@@ -733,12 +733,12 @@ function StartTab({
         </button>
         {showSettings && (
           <div className="px-5 pb-5 space-y-4 border-t border-gray-100">
-            {slug && (
+            {slug !== null && (
               <div className="pt-4">
                 <label className="block text-sm text-gray-600 mb-1">Ссылка на квиз</label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400 whitespace-nowrap">/q/{userRef || '...'}/</span>
-                  <input type="text" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder="my-quiz" />
+                  <input type="text" value={slug || ''} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') || '')} className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-gray-900 text-sm" placeholder="my-quiz" />
                 </div>
                 {userRef && slug && (
                   <button
