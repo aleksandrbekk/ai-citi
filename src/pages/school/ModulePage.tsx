@@ -101,20 +101,22 @@ export default function ModulePage() {
         .order('order_index')
       if (!prevLessons || prevLessons.length === 0) return true
 
-      // Уроки с ДЗ
+      // Последний урок с ДЗ в предыдущем модуле
       const hwLessons = prevLessons.filter(l => l.has_homework)
       if (hwLessons.length === 0) return true
 
-      // Проверяем все ДЗ
-      const { data: subs } = await supabase
-        .from('homework_submissions')
-        .select('lesson_id, status')
-        .eq('user_id', user.id)
-        .in('lesson_id', hwLessons.map(l => l.id))
+      const lastHwLesson = hwLessons[hwLessons.length - 1]
 
-      // Все ДЗ должны быть отправлены (любой статус)
-      const submittedIds = new Set(subs?.map(s => s.lesson_id) || [])
-      return hwLessons.every(l => submittedIds.has(l.id))
+      // Проверяем сдано ли последнее ДЗ
+      const { data: sub } = await supabase
+        .from('homework_submissions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('lesson_id', lastHwLesson.id)
+        .limit(1)
+        .maybeSingle()
+
+      return !!sub
     },
     enabled: !!telegramId && !!module && !!allModules
   })
