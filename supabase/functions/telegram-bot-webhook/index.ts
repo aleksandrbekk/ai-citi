@@ -124,8 +124,9 @@ serve(async (req) => {
                 `📌 Закрепи чат, чтобы первым получать новые функции`
 
             if (promoCode && !promoCode.startsWith('ref_')) {
-                // Промокод (или school-ссылка) — кнопка "Получить бонус"
-                await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard('🎁 Получить бонус', promoCode))
+                // School-ссылка или промокод
+                const buttonText = promoCode.startsWith('school_') ? '📚 Открыть школу' : '🎁 Получить бонус'
+                await sendPhoto(chatId, WELCOME_IMAGE_URL, welcomeText, getKeyboard(buttonText, promoCode))
 
                 // Сохраняем в pending_referrals чтобы код не потерялся
                 // если пользователь откроет мини-апп из меню, а не по кнопке
