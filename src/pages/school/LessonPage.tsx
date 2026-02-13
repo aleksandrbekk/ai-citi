@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLesson, useSubmitHomework, useModules } from '@/hooks/useCourse'
-import { FileText, ExternalLink, Send, Lock, List, CheckCircle2, Clock } from 'lucide-react'
+import { FileText, ExternalLink, Send, Lock, List, CheckCircle2, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getUserTariffsById } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
@@ -219,6 +219,15 @@ export default function LessonPage() {
 
   const unlockedSet = getUnlockedLessons()
   const isLessonLocked = !!allLessons && allLessons.length > 0 && hwStatuses !== undefined && !!lessonId && !unlockedSet.has(lessonId)
+
+  // Навигация prev/next по урокам
+  const currentIndex = allLessons?.findIndex(l => l.id === lessonId) ?? -1
+  const prevLesson = currentIndex > 0 ? allLessons![currentIndex - 1] : null
+  const nextLesson = allLessons && currentIndex >= 0 && currentIndex < allLessons.length - 1
+    ? allLessons[currentIndex + 1]
+    : null
+  const canGoPrev = prevLesson && unlockedSet.has(prevLesson.id)
+  const canGoNext = nextLesson && unlockedSet.has(nextLesson.id)
 
   // Получи статус отправленного ДЗ текущего пользователя
   const { data: mySubmission, refetch: refetchSubmission } = useQuery({
@@ -810,9 +819,35 @@ export default function LessonPage() {
           )}
         </div>
       )}
+        {/* Навигация prev/next */}
+        {allLessons && allLessons.length > 1 && (
+          <div className="flex items-center justify-between mt-8 mb-4">
+            {canGoPrev ? (
+              <button
+                onClick={() => navigate(`/school/${tariffSlug}/${moduleId}/lesson/${prevLesson!.id}`)}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:border-orange-300 transition-all cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="text-sm">Назад</span>
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {canGoNext ? (
+              <button
+                onClick={() => navigate(`/school/${tariffSlug}/${moduleId}/lesson/${nextLesson!.id}`)}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg transition-all cursor-pointer"
+              >
+                <span className="text-sm">Далее</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <div />
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
 }
-
-
