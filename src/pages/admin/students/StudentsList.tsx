@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../../lib/supabase'
-import { Trash2, UserPlus, Pause, Play, ChevronRight } from 'lucide-react'
+import { Trash2, UserPlus, Pause, Play, ChevronRight, Filter } from 'lucide-react'
+
+type TariffFilter = 'all' | 'standard' | 'platinum'
 
 export function StudentsList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
+  const [tariffFilter, setTariffFilter] = useState<TariffFilter>('all')
   const [newIdentifier, setNewIdentifier] = useState('')
   const [newComment, setNewComment] = useState('')
   const [newEmail, setNewEmail] = useState('')
@@ -303,12 +306,43 @@ export function StudentsList() {
         </div>
       )}
 
+      {/* Фильтр по тарифам */}
+      <div className="flex items-center gap-2 mb-4">
+        <Filter size={16} className="text-gray-400" />
+        {(['all', 'standard', 'platinum'] as TariffFilter[]).map((f) => {
+          const labels: Record<TariffFilter, string> = { all: 'Все', standard: 'Standard', platinum: 'Platinum' }
+          const count = f === 'all'
+            ? students?.length ?? 0
+            : students?.filter((s: any) => s.tariffs?.some((t: any) => t.tariff_slug === f && t.is_active)).length ?? 0
+          return (
+            <button
+              key={f}
+              onClick={() => setTariffFilter(f)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                tariffFilter === f
+                  ? f === 'platinum'
+                    ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-white shadow-sm'
+                    : f === 'standard'
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-sm'
+                      : 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {labels[f]} ({count})
+            </button>
+          )
+        })}
+      </div>
+
       {/* Список учеников */}
       {isLoading ? (
         <p className="text-gray-500">Загрузка...</p>
       ) : (
         <div className="space-y-3">
-          {students?.map((student: any) => (
+          {students?.filter((student: any) => {
+            if (tariffFilter === 'all') return true
+            return student.tariffs?.some((t: any) => t.tariff_slug === tariffFilter && t.is_active)
+          }).map((student: any) => (
             <div key={student.id} className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-start justify-between">
                 <div
@@ -424,8 +458,13 @@ export function StudentsList() {
             </div>
           ))}
 
-          {students?.length === 0 && (
-            <p className="text-center py-8 text-gray-400">Нет учеников</p>
+          {students?.filter((s: any) => {
+            if (tariffFilter === 'all') return true
+            return s.tariffs?.some((t: any) => t.tariff_slug === tariffFilter && t.is_active)
+          }).length === 0 && (
+            <p className="text-center py-8 text-gray-400">
+              {tariffFilter === 'all' ? 'Нет учеников' : `Нет учеников на тарифе ${tariffFilter}`}
+            </p>
           )}
         </div>
       )}
