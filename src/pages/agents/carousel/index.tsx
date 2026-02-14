@@ -8,6 +8,8 @@ import { getTelegramUser } from '@/lib/telegram'
 import { trackCarouselEvent } from '@/lib/analytics'
 import { isAdmin } from '@/config/admins'
 import { VASIA_CORE, FORMAT_UNIVERSAL, STYLES_INDEX, STYLE_CONFIGS, type StyleId } from '@/lib/carouselStyles'
+import { Mic, MicOff } from 'lucide-react'
+import { toast } from 'sonner'
 import { LoaderIcon, CheckIcon } from '@/components/ui/icons'
 import { OnboardingCoachMarks, useCarouselOnboarding } from '@/components/carousel/OnboardingCoachMarks'
 import { SettingsPanel } from '@/components/carousel/SettingsPanel'
@@ -145,6 +147,10 @@ function CarouselIndexInner() {
 
   // Защита от двойных кликов
   const isGeneratingRef = useRef(false)
+
+  // Голосовой ввод
+  const [isRecording, setIsRecording] = useState(false)
+  const recognitionRef = useRef<any>(null)
 
   // Gender state (загружаем из localStorage, null если не выбран)
   const [gender, setGender] = useState<'male' | 'female' | null>(() => {
@@ -366,6 +372,59 @@ function CarouselIndexInner() {
     }
     // Fallback на локальные примеры (только для базовых стилей)
     return getLocalExamples(styleId as StyleId)
+  }
+
+  // Инициализация голосового ввода
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition()
+      recognitionRef.current.continuous = true
+      recognitionRef.current.interimResults = true
+      recognitionRef.current.lang = 'ru-RU'
+
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = ''
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript
+          }
+        }
+        if (finalTranscript) {
+          setTopic(prev => (prev + finalTranscript).slice(0, 5000))
+        }
+      }
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error)
+        setIsRecording(false)
+      }
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false)
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+    }
+  }, [])
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      toast.error('Голосовой ввод не поддерживается в вашем браузере')
+      return
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      recognitionRef.current.start()
+      setIsRecording(true)
+    }
   }
 
   // Загружаем сохранённый стиль с валидацией
@@ -891,14 +950,35 @@ function CarouselIndexInner() {
               <span className="text-xs font-bold">?</span>
             </button>
           </div>
-          <textarea
-            value={topic}
-            onChange={(e) => setTopic(e.target.value.slice(0, 5000))}
-            placeholder="Например: ТОП 5 способов похудения после родов без диеты"
-            maxLength={5000}
-            className="w-full min-h-[180px] px-4 py-4 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm"
-          />
-          <div className="flex justify-end items-center mt-2 px-1">
+          <div className="relative">
+            <textarea
+              value={topic}
+              onChange={(e) => setTopic(e.target.value.slice(0, 5000))}
+              placeholder="Например: ТОП 5 способов похудения после родов без диеты"
+              maxLength={5000}
+              className={`w-full min-h-[180px] px-4 py-4 pb-12 rounded-2xl bg-white border text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 resize-y text-[15px] leading-relaxed shadow-sm ${isRecording ? 'border-red-300 ring-2 ring-red-200' : 'border-gray-200'}`}
+            />
+            <button
+              onClick={toggleRecording}
+              className={`absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                isRecording
+                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse'
+                  : 'bg-gray-100 text-gray-400 hover:bg-orange-50 hover:text-orange-500'
+              }`}
+              aria-label={isRecording ? 'Остановить запись' : 'Голосовой ввод'}
+            >
+              {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </button>
+          </div>
+          <div className="flex justify-between items-center mt-2 px-1">
+            {isRecording ? (
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-xs text-red-500 font-medium">Слушаю...</span>
+              </div>
+            ) : (
+              <span />
+            )}
             <span className={`text-xs font-medium ${topic.length > 4500 ? 'text-orange-500' : 'text-gray-400'}`}>{topic.length} / 5000</span>
           </div>
         </div>
